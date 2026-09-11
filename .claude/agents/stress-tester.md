@@ -27,7 +27,8 @@ write reports and ledger rows.
 
 Measured on 2026-08-18, at v1.16.0:
 
-- **All ~1655 tests are hand-authored fixtures** with recorded figures. That is a
+- **All ~1655 tests were hand-authored fixtures** with recorded figures (3745 across
+  112 files by 2026-09-11, still fixtures). That is a
   deliberate and good property of this repo — every number was obtained by running
   the engine. But it means the engine had **never been run on a configuration
   nobody wrote by hand**.
@@ -52,6 +53,36 @@ npm run stress                                   # random seed, printed
 node scripts/roster-stress.mjs --seed=N --cases=3000
 node scripts/roster-stress.mjs --no-scale        # skip section B (it is slow)
 ```
+
+⚠️ **Run it outside `~/Documents`.** On the owner's Mac the repo is iCloud-synced and
+`node_modules` is evicted; copy the tree (minus `node_modules`, `dist`, `.git`),
+`npm ci`, and run there — `qc-steward.md` Phase 2 has the recipe. There is no
+`timeout` binary on that Mac; bound a run with `--cases` and `--no-scale` instead.
+Last verified run: 2026-09-11 at `8530343`, `--no-scale --cases=300`, seed
+`505591012`, exit 0 — SELF-TEST green, section A green, C1 AM/PM clash still a
+KNOWN GAP (queue item 4), C2 `D10` grade floor **GAP CLOSED** (`minGrade` gates
+every assignee), section D green.
+
+**Two sibling harnesses now exist** and are yours to run when their surface changes:
+
+```bash
+npm run stress:teams        # vite-node scripts/teams-stress.mjs  — multi-team shapes
+npm run stress:community    # vite-node scripts/community-stress.mjs — /individuals scoring + routing
+```
+
+Same rules apply — seed, classify, shrink, never fix. `community-stress.mjs` is the
+one to reach for after any change to `src/utils/scoring.js`, `clinicalParse.js`,
+`formClinicalData.js` or `ctaRouting.js` (the last two were extracted from the React
+components on 2026-09-10 precisely so they could be tested without a DOM). Both are
+**report-only** ("no pass/fail threshold is applied") and both printed one finding on
+2026-09-11 that is already on a ledger — do not re-report either as new:
+
+| Harness | Prints | Ledger |
+|---|---|---|
+| `stress:teams` | `[C1] two different pairs produce one team id ×1` (the hyphen slug) | `T3`, `ROSTER_TODO.md` §9.3 — **MITIGATED**, `teamExists` refuses the collision |
+| `stress:community` | `[T1] matchesFoodInsecurity fires on an answer that DENIES it ×1` (*"yes I always have enough food"*) | the residual **1** of `CP22`'s "16 → 1", `COMMUNITY_TODO.md` §7.5 — over-triage kept by design |
+
+A second hit on either, or a different shape, is a finding.
 
 The harness has four sections and **they do not all gate**:
 
@@ -113,7 +144,8 @@ NUL byte once made a whole audit file invisible to plain grep.
 
 ## Where to look
 
-`scripts/roster-stress.mjs` (the harness) · `scripts/roster-scaling.mjs` (the older
+`scripts/roster-stress.mjs` (the harness) · `scripts/teams-stress.mjs` ·
+`scripts/community-stress.mjs` (the siblings) · `scripts/roster-scaling.mjs` (the older
 V1-vs-V2 comparison) · `src/utils/rosterEngineV2.js` — especially §9 THE HOURS
 MODEL'S LIMITS LEDGER and §10, which are the engine's own honest account of what it
 cannot do · `src/data/mockData.js` (the shapes and their provenance contract) ·

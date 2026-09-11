@@ -118,11 +118,18 @@ Given a proposed fix, answer these and refuse to hand-wave:
 - **Lint clean:** `npm run lint` is configured with `--max-warnings 0`. ⚠️ **Neither
   lint nor the jsdom tests will finish inside this repo** — it lives under
   `~/Documents`, iCloud has evicted `node_modules`, and `require('jsdom')` never
-  completes. Run both gates via `/private/tmp/nexus-jsdom/verify.sh` (~35–40s, rsyncs
-  `src/` and `package.json`) and report its real exit code. If that path is missing
-  (`/private/tmp` clears on reboot), recreate it: copy `src/`, `package.json`,
-  `package-lock.json`, `vitest.config.js`, `.eslintrc.cjs`, `.eslintignore` outside
-  `~/Documents` and `npm install`.
+  completes. Run every gate in a copy outside `~/Documents` and report the real exit
+  codes. `/private/tmp/nexus-jsdom/verify.sh` was that copy; `/private/tmp` clears on
+  reboot and it was absent on 2026-09-11, so expect to recreate it. The recipe
+  (verified 2026-09-11, `npm ci` ~5s, suite ~48s):
+  ```bash
+  rsync -a --exclude node_modules --exclude dist --exclude .git ./ "$COPY"/ \
+    && cd "$COPY" && npm ci && npm run lint; echo LINT=$? \
+    && npx vitest run; echo TEST=$? && npm run build; echo BUILD=$?
+  ```
+  `vitest.config.js` collects `src/`, `functions/` **and** `scripts/` — a copy that
+  omits `functions/` or `scripts/` runs a smaller suite and reports a smaller count,
+  which is the exact signal you are watching for. Copy the whole tree.
 - **PWA cache hazard:** `public/firebase-messaging-sw.js` is a service worker.
   Returning users may hold a cached bundle. If the change alters a Firestore
   document shape, an old cached client will read the new shape — state whether
@@ -137,9 +144,14 @@ Given a proposed fix, answer these and refuse to hand-wave:
 1. Re-read the changed `file:line` yourself. Does the code do what the report says?
 2. `grep -rn` the changed identifier across `src/` and `functions/` and confirm
    every consumer agrees. List them.
-3. Run the tests and **paste the actual output** — counts, not adjectives. Use
-   `/private/tmp/nexus-jsdom/verify.sh` (see Phase 2); in-repo runs hang on iCloud.
-   Current baseline: **1639 tests across 28 files**, eslint clean.
+3. Run the tests and **paste the actual output** — counts, not adjectives. Use the
+   out-of-iCloud copy (see Phase 2); in-repo runs hang.
+   Current baseline: **3745 tests across 112 files, all passing; lint 0; build 0** at
+   `8530343` (2026-09-11). Earlier baselines this file quoted — 1639/28, then
+   3,667/108 at v2.12.3 — are history, not targets. Expected noise in the log:
+   `🔥 Coverage response failed: Error: nope` and similar are fixtures exercising
+   failure paths, printed to stderr by passing tests. A **drop** in the count is the
+   finding; read `Test Files` and `Tests` lines, not the colour.
 4. For anything that only manifests against live Firestore or across two signed-in
    users, mark **LIVE-VERIFY PENDING** and write the exact manual steps a human
    must perform (which account, which view, which button, what to observe).
@@ -176,13 +188,23 @@ Check for:
 - Items marked done whose evidence is "the code was edited" rather than an
   observed behaviour or a passing assertion.
 - CHANGELOG entries claiming a capability the code does not implement. There is
-  precedent: `README.md:35` and `AppGuide.jsx:28` both claim the roster "predicts
+  precedent: `README.md:35` and `AppGuide.jsx:28` both claimed the roster "predicts
   case volumes and automatically routes the right skill-mix", and the engine takes
-  no volume, skill, grade or leave input whatsoever. **Both are still exact and still
-  untrue** — decision **Q7**. *(The companion example, seven `alert()` calls in
+  no volume, skill, grade or leave input whatsoever. **Half of that is now history:
+  the README was rewritten on 2026-09-10 and the sentence is gone from it**
+  (`grep -n 'predicts case volumes' README.md` → nothing, verified 2026-09-11).
+  **`src/components/AppGuide.jsx:28` still carries it, exact and untrue** — decision
+  **Q7** is still `OPEN` in `ROSTER_TODO.md` §Open decisions. Cite the one that is
+  live, not the pair. *(The companion example, seven `alert()` calls in
   `RosterView.jsx`, was FIXED in v1.7.1: the count is 0, pinned by
   `RosterView.alerts.test.jsx`. Do not cite it as live — a verifier that does
   manufactures a false accusation, which is the failure this role exists to prevent.)*
+- **"Deployed" and "released" drifting apart.** `deploy.yml` ships every push to
+  `main`, so anything under `CHANGELOG.md` `[Unreleased]` is already live on
+  `smartdashboard.web.app` under the *previous* version label. On 2026-09-11 that was
+  `AU18`, `AC4` and Community `P4.2`/`P4.3`/`CP16`, live as "v2.12.3". The README's
+  *Current release status* table admits it. When you audit a release claim, check
+  which side of that line the fix is on, and hand the bump to `version-steward`.
 - Items that silently reopened, and fixes that caused the next defect.
 - Post-mortem claims stated as fact without a `file:line` or command output.
 
@@ -213,12 +235,18 @@ top; never touch the finding.
 
 ## Where to look
 
-`ROSTER_TODO.md` · `CHANGELOG.md` · (`ROSTER_POSTMORTEM.md` and `ROSTER_HANDOFF.md` at
-tag `docs-archive-2026-09-06`) · `README.md` (the claims) · `src/utils/auraEngine.js` (the producer) ·
-`src/components/RosterView.jsx` (reader + swap producer) ·
-`src/components/RosterView.jsx` (the swap mutator lives here now —
-`respondToCoverageRequest`, ~`:1620`; it left `AuraPulseBot.jsx` in v1.10.0) ·
-`src/components/CoverageWatcher.jsx` · `src/utils/rosterEngineV2.js` ·
-`src/utils/rosterWizard.js` · the four `ROSTER_QC_AUDIT*.md` (your own back
-catalogue, at the same tag) · `src/utils/index.js`
+`ROSTER_TODO.md` · `AURA-TODO.md` · `COMMUNITY_TODO.md` · `CHANGELOG.md` ·
+(`ROSTER_POSTMORTEM.md` and `ROSTER_HANDOFF.md` at tag `docs-archive-2026-09-06`) ·
+`README.md` (the claims — rewritten 2026-09-10; §"Current release status" is where it
+now states version vs. deployed) · `src/utils/auraEngine.js` (the producer) ·
+`src/components/RosterView.jsx` (reader + swap producer; the swap mutator lives here —
+`respondToCoverageRequest`, referenced from `:14`, `:563`, `:663`; it left
+`AuraPulseBot.jsx` in v1.10.0) · `src/components/CoverageWatcher.jsx` ·
+`src/utils/rosterEngineV2.js` · `src/utils/rosterWizard.js` · `src/utils/pulseKeys.js`
+(v2.12.3, `AU13` — the pulse board's counting rules) · `functions/responseParser.cjs`
+(`AU18`) · `src/utils/ctaRouting.js`, `src/utils/formClinicalData.js`,
+`src/utils/communityResourcePlan.js`, `src/data/communityResources.js` (the 2026-09-10
+Community extractions; `scripts/firestore_seed.cjs` was deleted with `CP16`) ·
+`scripts/firestore-rules-verify.mjs` (149 `check(` calls, still) · the four
+`ROSTER_QC_AUDIT*.md` (your own back catalogue, at the same tag) · `src/utils/index.js`
 (`TEAM_DIRECTORY` — since deleted; staff names now come from `teams/{id}/members`).

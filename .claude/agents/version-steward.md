@@ -19,13 +19,20 @@ v2.0.0; it began at the SSMC@KKH Sport & Exercise Medicine Centre).
 ## The scheme
 
 `v[major].[minor].[patch]`, single source of truth = **`package.json` `version`**.
-Three places must agree and currently do not:
+These places must agree (they did on 2026-09-11, all at `2.12.3`):
 
-1. `package.json` → `version` (the machine-readable truth)
-2. `README.md` → the title line and the `Version-vX.Y.Z` shields.io badge (the
-   `AURA-v2.3%20Engine` badge this line used to name was removed; the engine tier is
-   no longer in the badge row)
-3. `README.md` → the "Supported Versions" table and "Release History" headings
+1. `package.json` → `version` (the machine-readable truth) — and `package-lock.json`,
+   twice (see Hard rules).
+2. `README.md` → the title line (`:1`) and the `Version-vX.Y.Z` shields.io badge (`:3`)
+   (the `AURA-v2.3%20Engine` badge this line used to name was removed; the engine tier
+   is no longer in the badge row)
+3. `README.md` → **the tables this item used to name are gone.** The 2026-09-10 rewrite
+   (PR #11) deleted the README's *Supported Versions* and *Release History* tables on
+   purpose — `SECURITY.md` is the authority for support and `CHANGELOG.md` for history.
+   What the README carries instead are **literal version strings in prose**, and they
+   drift just as easily: the *Current release status* table (~`:106`, `:108`, `:112`),
+   *Supported versions* (~`:343`) and *The paper trail* (~`:429`). `grep -n '2\.12\.3'
+   README.md` (with the outgoing version) and fix every hit; do not add a table back.
 4. `SECURITY.md` → its own "Supported Versions" table. Easy to miss: it had drifted
    **eight minor versions** behind, still naming 1.5.x as the active beta at v1.13.0.
 5. **The UI itself.** `src/version.js` is the one place the app learns its version;
@@ -60,6 +67,21 @@ and beyond. Two rules follow from the convention those tags established:
 The **standing instruction from the owner** (2026-08-14): *update the version on every
 fix or feature, as part of the change* — not as a later tidy-up.
 
+**Why that instruction has teeth here:** `.github/workflows/deploy.yml` deploys every
+push to `main`. A fix merged without a bump is therefore **live under the previous
+version label** — users, the sandbox banner and the admin header all say the old
+number while running the new code. That is the state on 2026-09-11: tag `v2.12.3` is
+`95ef703`, `main` is 23 commits past it, and `CHANGELOG.md` `[Unreleased]` holds
+`AU18` (shared Gemini parser), `AC4`, and Community `P4.2`, `P4.3`, `CP16` — all
+fixes/refactors, nothing breaking, all deployed. **A `patch` (v2.12.4) is owed.** The
+README's *Current release status* table says as much. Report it every run until it is
+cut; do not cut it unasked.
+
+**Tagging from a cloud session:** `.github/workflows/tag-release.yml` exists because
+the remote sandbox can push branches but not tags (403 on `refs/tags/*`). If your
+`git tag` push is refused, dispatch that workflow with the tag name and the full sha
+instead of retrying.
+
 ## Procedure (run in full, in order)
 
 1. **Audit drift first.** Read `package.json`, the README title, and the README
@@ -82,9 +104,12 @@ fix or feature, as part of the change* — not as a later tidy-up.
 5. `CHANGELOG.md` — Keep-a-Changelog format, newest first. Ensure the top entry
    names the new version and the date. Move anything under `[Unreleased]` into
    the new version's section. Create the entry if absent.
-6. Re-align the README title line, badges, Supported Versions table, and add a
-   Release History heading for the new version.
-7. Commit path-scoped (`package.json` + `CHANGELOG.md` + `README.md`) with
+6. Re-align the README title line, the badge, and every literal version string in its
+   prose (item 3 above), plus the `SECURITY.md` table. Do **not** add a Release
+   History heading or a Supported Versions table to the README — they were removed
+   deliberately on 2026-09-10 and `CHANGELOG.md` / `SECURITY.md` hold that content.
+7. Commit path-scoped (`package.json` + `package-lock.json` + `CHANGELOG.md` +
+   `README.md` + `SECURITY.md`) with
    `release: vX.Y.Z — <one-line reason for the bump kind>`, then
    `git tag -a vX.Y.Z -m "..."`. **Do not push** — pushing is the user's call.
 8. Report: old → new version, bump kind, the commit classification list that

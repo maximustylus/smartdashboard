@@ -47,7 +47,7 @@ independently checked. You MAY write and edit reports, ledgers and docs.
 
 | Document | What it is |
 |---|---|
-| [`AURA-TODO.md`](../../AURA-TODO.md) | **The plan and the live status** — 65 findings as of 2026-09-06, the status table is the authoritative count, *The owner's ten* is the decision queue. Read this first. |
+| [`AURA-TODO.md`](../../AURA-TODO.md) | **The plan and the live status** — 65 findings as of 2026-09-11 (**55 `DONE` · 0 open-mine · 10 owner decisions**, recounted 2026-09-10 after `AU13`, `AU18` and `AC4` closed); the status table is the authoritative count, *The owner's ten* is the decision queue. Read this first. |
 | `AURA-POSTMORTEM.md` — **archived** | The finding text with evidence (51 findings at first writing, `AU1`–`AU24`, `AC1`–`AC14`, `AN1`–`AN13`; §7 is why the roster corpus is separate). Removed from the tree 2026-09-06; read it with `git show docs-archive-2026-09-06:AURA-POSTMORTEM.md`. `AURA-HANDOFF.md` and `AURA-GOLIVE-GATE.md` are at the same tag. |
 | [`AURA-CHANGELOG.md`](../../AURA-CHANGELOG.md) | Engine version history. Read its versioning rules before agreeing to any bump. |
 | [`AURA-VERIFICATION-TURNS.md`](../../AURA-VERIFICATION-TURNS.md) · `docs/P8.8-owner-read-2026-09-05.md` | The twenty-turn instrument and the drafted read from three live runs — owner verdicts pending. |
@@ -72,12 +72,21 @@ Anything not on this list is out of scope tonight, however tempting.
   ```bash
   npm run build && grep -oE 'Fadzlynn|Derlinder|Ying Xian|grade:"JG1[0-9]"' dist/assets/*.js | sort | uniq -c
   ```
-  Any output at all means it is still live. This is the single check most likely
-  to be skipped, because the source will look clean.
+  Any **name** in the output means it is still live. ⚠️ Since the Marvel demo team
+  gained grades, the `grade:"JG1[0-9]"` half returns **five hits that are legitimate**
+  — `demo_01`…`demo_05` (Steve, Peter, Charles, Jean, Tony) in `src/data/mockData.js`.
+  Verified 2026-09-11 at `8530343`: 5 grade hits, all demo, **0 names**. A grade hit is
+  a disclosure only if it sits beside a real name; read the surrounding bytes before
+  you call it. This is the single check most likely to be skipped, because the source
+  will look clean.
 - No other named-person constant reaches `dist/`:
   ```bash
   grep -oE '"(Alif|Fadzlynn|Derlinder|Ying Xian|Brandon|Nisa)"' dist/assets/*.js | sort | uniq -c
   ```
+- The check that runs on every deploy is `src/utils/an14.bundle.test.js` (emails and
+  distinctive names, reassembled so a source grep cannot match them). It only inspects
+  `dist/` when `CI` is set and a build precedes it — locally it checks source alone, so
+  run the greps above yourself.
 
 ### G2 · Nothing live is an open endpoint on the billed key
 
@@ -91,34 +100,47 @@ Anything not on this list is out of scope tonight, however tempting.
 ### G3 · The demo path in the README actually works
 
 **A stakeholder demo fails on a broken path, not on an unfixed ledger row.** Walk
-`README.md`'s own numbered walkthrough (~`:185`) and report each step pass/fail.
+`README.md`'s own smoke steps and report each step pass/fail. **The README was
+rewritten on 2026-09-10** (PRs #11, #12): the old numbered walkthrough at `:185` is
+gone; the steps now live under **§"Demo Mode and smoke testing"** (~`:414`–`:423`,
+four numbered items — coverage, AURA data entry, Feeds, Smart Analysis). Find them
+with `grep -n 'smoke testing' README.md`, never by the line numbers in this file.
 
-⚠️ **`README.md:186` — "The Data Entry Test"** — instructs the presenter to tell
-AURA *"I saw 145 patients in June"* and expect a green `DATA_ENTRY` block. In
-Demo Mode **no block appears** (`AU22`): the sandbox emits
-`{value, period, written}` and the render gate at `AuraPulseBot.jsx:1093` requires
-`target_collection`. **If the demo follows the README, it fails on stage.** Either
-the sandbox shape is fixed or the README step is corrected — decide which, but do
-not let both stand.
+History worth knowing, because the README used to script a failure: the old `:186`
+"Data Entry Test" told a presenter to say *"I saw 145 patients in June"* and expect a
+`DATA_ENTRY` card that Demo Mode never rendered (`AU22`). **`AU22` is `DONE`** —
+the sandbox emits the live shape, the card renders, and pressing *Commit Workload* in
+Demo Mode now reads as an explanation, not a red failure banner. The current README
+step 2 says exactly that ("in Demo Mode, confirming should state that nothing was
+saved"). Re-check it renders each time; do not re-open `AU22` from this paragraph.
 
-Also check: `README.md:185` (roster/coverage) needs **two signed-in live users** —
-it cannot be demonstrated solo or in Demo Mode. Say so before the day, not during.
+Still true: README step 1 (roster coverage) needs **two signed-in live users** — it
+cannot be demonstrated solo or in Demo Mode, and the README now says so. Say it
+before the day, not during.
 
 ### G4 · What AURA *is* is described accurately
 
-`AU1`. Not code — a paragraph, and it is the highest-value item for **this
-specific audience**. The roster engine is a deterministic constraint solver with
-no AI in it; the README calls the whole thing *"a proprietary, autonomous AI
-agent"* and contradicts itself at `:171`. Confirm the description a presenter
-would read is one they can defend to a governance body.
+`AU1` — **`DONE`**, and re-done: the README no longer calls anything *"a proprietary,
+autonomous AI agent"*; since 2026-09-10 it separates the deterministic roster from the
+Gemini-backed surfaces (§"Implemented capabilities", §"Product boundaries") and says
+outright *"AURA does not generate or alter rosters"*. Your job here is now drift
+control: read the description a presenter would read and confirm nothing has crept
+back in that a governance body could not be shown. The one unretired claim of that
+kind is **not in the README** — `src/components/AppGuide.jsx:28` still says the roster
+*"predicts case volumes and automatically routes the right skill-mix"* (roster `Q7`,
+owner decision, `qc-steward`'s surface). Mention it; do not close it.
 
 ### G5 · The suite, the lint and the build are green — and unchanged in shape
 
 ```bash
 npm run lint && npm test -- --run 2>&1 | tail -4 && npm run build 2>&1 | tail -2
 ```
-**2744 tests across 73 files, lint 0** is the baseline as of `8a6aba7`. A drop in
-test COUNT is as suspicious as a failure: it means a suite stopped running.
+**3745 tests across 112 files, lint 0, build 0** is the baseline as of `8530343`
+(2026-09-11; was 2744/73 at `8a6aba7`, 3,667/108 at v2.12.3). A drop in test COUNT
+is as suspicious as a failure: it means a suite stopped running. ⚠️ On the owner's Mac
+the repo is under iCloud and the in-repo run hangs — copy `src/`, `functions/`,
+`scripts/` and the config files outside `~/Documents`, `npm ci`, and run there
+(`qc-steward.md` Phase 2 has the recipe). Report the exit codes, not the tail.
 
 ---
 
@@ -131,12 +153,16 @@ Ask four questions and answer them in writing:
 2. **What is the blast radius?** Grep every consumer. This project's defining
    defect is a change applied to two of three call sites.
 3. **Is it a one-line guard or a refactor?** `AU2` is a `Number.isFinite`.
-   `AC3`/`AC5` is a shared parser module and a new test suite — **a day's work,
-   and not tonight.** Say which you are looking at.
+   `AC3`/`AC5` was a shared parser module and a new test suite — a day's work, and
+   it was done as a day's work, not the night before: `AU18` landed 2026-09-10 as
+   `functions/responseParser.cjs` (+ `responseParser.test.js`), shared by the Cloud
+   Functions and `AuraPulseBot.jsx`. Say which kind you are looking at.
 4. **What test would fail if this fix were wrong?** If the answer is "none",
-   that is the finding, not the fix. `AU24` exists because `executeDataEntry` and
+   that is the finding, not the fix. `AU24` existed because `executeDataEntry` and
    `clampEnergy` — which decide what a model may write to a clinical database and
-   what number enters a wellbeing record — have zero tests against a suite of 2744.
+   what number enters a wellbeing record — had zero tests against a suite of 2744.
+   (`clampEnergy` has since left `AuraPulseBot.jsx` — `AU9`/`AU10`; the comment at
+   ~`:461` records the move. Do not grep for it there.)
 
 ---
 
@@ -228,8 +254,17 @@ Two corollaries the AURA set paid for, and you enforce both:
   argues the P0–P6 work is a **v2.3 correction, not a v2.4**, because a bump
   means the capability tier changed. Hold that line unless the owner overrules it.
 - **Engine fuzzing.** `stress-tester` owns that.
-- **The owner's ten.** `AU1` `AU5` `AU8` `AU11` `AU17` `AC11` `AN7` `AN9` `AN11`
-  `AN12` are decisions, not defects. Surface them; never decide them.
+- **The owner's ten.** `AU5` `AU8` `AU11` `AU17`† `AU28` `AC11` `AN7` `AN9` `AN11`
+  `AN12` are decisions, not defects. Surface them; never decide them. *(`AU1` was on
+  this list and is `DONE`; `AU28` — the personas' `System Override:` text, row 7.2 —
+  was open all along and missing from it. Corrected 2026-09-11 from the status
+  table; the table is authoritative, this list is a copy.)* † `AU17`'s code half
+  shipped with `AU15`; only the PDPA policy half stays with the owner.
+- **Releasing.** Fixes merged to `main` deploy on the push (`deploy.yml`). Since
+  v2.12.3 the `[Unreleased]` section — `AU18`, `AC4`, Community `P4.2`/`P4.3`/`CP16`
+  — has been live while the app still displays v2.12.3. That is `version-steward`'s
+  finding to make and the owner's bump to call; you only note that "deployed" and
+  "released" have come apart when you report.
 
 ---
 
@@ -247,8 +282,9 @@ G3 — demo path
   Cause: AU22. Fix the sandbox shape or correct the README step.
 
 G4 — description
-  README:7 "proprietary, autonomous AI agent" vs :171 "requires a
-  human-in-the-loop physical click". Unchanged. AU1 OPEN.
+  README §Implemented capabilities: "deterministic constraint solver … AURA
+  does not generate or alter rosters" — holds. AppGuide.jsx:28 still claims
+  case-volume prediction (roster Q7, owner). Not a gate failure; reported.
 
 DEFERRED, and why: AC3/AC5 (a day's work, not tonight) …
 UNPROVEN: whether AN4 has ever been called externally — Cloud Logging only.
@@ -258,13 +294,26 @@ Then: what you verified, what you did not, and what you would not ship tonight.
 
 ## Where to look
 
-`AURA-TODO.md` · `AURA-CHANGELOG.md` · `AURA-VERIFICATION-TURNS.md` · `IDS.md` ·
-(`AURA-POSTMORTEM.md` and `AURA-HANDOFF.md` at tag `docs-archive-2026-09-06`) ·
-`functions/index.js` (all five callables; the prompts at `:210` and
-`:301`) · `functions/rateLimit.js` · `functions/communityAck.js` ·
-`src/components/AuraPulseBot.jsx` (MODE 3 at `:729`, `clampEnergy` at `:72`,
-`confirmLog` at `:406`) · `src/components/AuraChat.jsx` (`parseClinicalData` at
-`:643`, `concludeTriage` at `:1033`) · `src/components/SmartAnalysis.jsx`
-(`STAFF_PROFILES` at `:16`) · `src/utils/clinicalFlags.js` ·
-`src/utils/demoAura.js` · `firestore.rules` · `dist/assets/` (**the artefact that
-actually ships — check it**) · `README.md` (the claims, and the demo script).
+`AURA-TODO.md` · `AURA-CHANGELOG.md` · `AURA-GUARDRAILS.md` (code-enforced vs
+prompt-only, the distinction the README now leans on) · `AURA-VERIFICATION-TURNS.md`
+· `.github/workflows/verify-aura.yml` (P8.8 twenty-turn runner, `workflow_dispatch`;
+a green run is the floor, not the owner's read) · `IDS.md` · (`AURA-POSTMORTEM.md`
+and `AURA-HANDOFF.md` at tag `docs-archive-2026-09-06`) · `functions/index.js`
+(**ten exports** as of 2026-09-11 — `chatWithAura` ~`:519`, `generateSmartAnalysis`
+~`:756`, `scheduledPulseNudge`, `processFeedPost` ~`:993`, `publicTriageChat` ~`:1202`,
+`communityAck` ~`:1458`, `expireCommunityAssessments`, `buildCommunityInsights`,
+`listLeadRequests`, `approveLeadRequest`; the staff persona prompt from ~`:397`,
+MODE 3 at ~`:428` — `grep -n '^exports\.' functions/index.js` rather than trusting
+these) · `functions/responseParser.cjs` (`AU18`, the one Gemini JSON parser) ·
+`functions/rateLimit.js` · `functions/communityAck.js` · `functions/guardrails.js` ·
+`src/components/AuraPulseBot.jsx` (`confirmLog` ~`:519`; the `target_collection`
+render gate ~`:1394`; `clampEnergy` is gone) · `src/components/AuraChat.jsx`
+(`concludeTriage` ~`:925`; `parseClinicalData` moved to
+`src/utils/clinicalParse.js:30`) · `src/utils/formClinicalData.js` and
+`src/utils/ctaRouting.js` (the form's derivation and the shared CTA ladder, both
+since 2026-09-10) · `src/components/SmartAnalysis.jsx` (`STAFF_PROFILES` deleted —
+the header comment at `:30` is the record) · `src/utils/clinicalFlags.js` ·
+`src/utils/demoAura.js` · `src/utils/reworkNote.js` (`AU33`) · `firestore.rules` ·
+`dist/assets/` (**the artefact that actually ships — check it**) · `README.md`
+(the claims, and §"Demo Mode and smoke testing"). Line numbers here are as of
+`8530343`; grep before you cite them.
