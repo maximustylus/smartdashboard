@@ -54,7 +54,8 @@
 import {
     GRIP_NORMS_KG, GRIP_SOURCE, GRIP_RANGE_KG, STRENGTH_BANDS,
     CHAIR_STAND_BELOW_AVERAGE, CHAIR_STAND_SOURCE, CHAIR_STAND_RANGE_REPS,
-    PERCENTILE_LEVELS,
+    PERCENTILE_LEVELS, SIT_TO_STAND_PROTOCOLS, SIT_TO_STAND_SPLIT_AGE,
+    STS_60S_SOURCE, STS_60S_RANGE_REPS, SIT_TO_STAND_PLAUSIBLE,
 } from '../data/functionalNorms';
 
 /**
@@ -174,34 +175,86 @@ export const gripStrengthResult = (input) => {
 };
 
 /**
- * Repetitions in a 30-second chair stand against the CDC STEADI thresholds.
- *
- * Only ages 60 to 94 have a row. Below or above that the value is carried and
- * reported, and the absence of a comparison is stated rather than papered over.
+ * ==============================================================================
+ * SIT-TO-STAND — which test the person should have done, and reading their count
+ * ==============================================================================
  */
-export const chairStandResult = (input) => {
-    const { ageYears, sex, reps } = input || {};
+
+/**
+ * The protocol for an age: the one-minute test below 60, the thirty-second chair
+ * stand from 60. Returns `null` when no protocol applies, which is anybody under
+ * 20, because neither reference reaches them.
+ */
+export const sitToStandProtocolForAge = (ageYears) => {
+    const age = parseAgeYears(ageYears);
+    if (age === null) return null;
+    if (age < SIT_TO_STAND_PROTOCOLS['sts-60s'].minAge) return null;
+    return age < SIT_TO_STAND_SPLIT_AGE ? 'sts-60s' : 'sts-30s';
+};
+
+/**
+ * Reads a sit-to-stand count.
+ *
+ * `protocol` is REQUIRED and is what the resident was actually asked, carried
+ * forward from the question rather than re-derived here. If it disagrees with the
+ * protocol their age implies, the count is kept and reported but not banded: a
+ * thirty-second count read against one-minute norms would tell somebody they are
+ * far weaker than they are, and that is the likeliest way this feature hurts
+ * anyone.
+ *
+ * Under 60 there is currently no band, because the one-minute reference table has
+ * not been loaded (`STS_60S_SOURCE.tableLoaded`). That returns
+ * `reference-unavailable`, which is an honest answer and not an error.
+ */
+export const sitToStandResult = (input) => {
+    const { ageYears, sex, reps, protocol } = input || {};
+
+    if (!Object.prototype.hasOwnProperty.call(SIT_TO_STAND_PROTOCOLS, protocol)) {
+        return { ok: false, reason: 'protocol-unknown', value: null };
+    }
+    const spec = SIT_TO_STAND_PROTOCOLS[protocol];
+    const range = protocol === 'sts-60s' ? STS_60S_RANGE_REPS : CHAIR_STAND_RANGE_REPS;
+
     const value = asNumber(reps);
-    if (value === null) return { ok: false, reason: 'missing', value: null };
-    if (!Number.isInteger(value)) return { ok: false, reason: 'out-of-range', value };
-    if (value < CHAIR_STAND_RANGE_REPS.min || value > CHAIR_STAND_RANGE_REPS.max) {
-        return { ok: false, reason: 'out-of-range', value };
+    if (value === null) return { ok: false, reason: 'missing', value: null, protocol };
+    if (!Number.isInteger(value) || value < range.min || value > range.max) {
+        return { ok: false, reason: 'out-of-range', value, protocol };
     }
 
     const age = parseAgeYears(ageYears);
-    if (age === null) return { ok: false, reason: 'age-unknown', value };
+    if (age === null) return { ok: false, reason: 'age-unknown', value, protocol };
+
+    // The wrong-stopwatch guard. The count stands; the comparison does not.
+    if (sitToStandProtocolForAge(age) !== protocol) {
+        return { ok: false, reason: 'protocol-age-mismatch', value, protocol };
+    }
+
+    const plausible = SIT_TO_STAND_PLAUSIBLE[protocol];
+    const implausible = value < plausible.min || value > plausible.max;
 
     const normalisedSex = normaliseSex(sex);
-    if (normalisedSex === null) return { ok: false, reason: 'no-reference-for-sex', value };
+    if (normalisedSex === null) return { ok: false, reason: 'no-reference-for-sex', value, protocol };
+
+    // The one-minute table is not held yet: only page 949 of Strassmann was
+    // supplied, and the age-and-sex values are on 950-953. Banding here would mean
+    // interpolating twelve age bands from the two the abstract quotes, which is
+    // inventing a norm. When the table lands, `tableLoaded` flips and the band is
+    // computed here exactly as the thirty-second path does below.
+    if (protocol === 'sts-60s' && !STS_60S_SOURCE.tableLoaded) {
+        return { ok: false, reason: 'reference-unavailable', value, protocol };
+    }
 
     const row = rowForAge(CHAIR_STAND_BELOW_AVERAGE[normalisedSex], age);
-    if (row === null) return { ok: false, reason: 'no-reference-for-age', value };
+    if (row === null) return { ok: false, reason: 'no-reference-for-age', value, protocol };
 
     return {
         ok: true,
         band: value < row.belowAverage ? 'below-average' : 'at-or-above-average',
         value,
         unit: 'reps',
+        protocol,
+        seconds: spec.seconds,
+        implausibleForProtocol: implausible,
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         belowAverageThreshold: row.belowAverage,
@@ -217,6 +270,7 @@ export const CHAIR_STAND_BAND_IDS = Object.freeze(['below-average', 'at-or-above
 /** Every `reason` an unsuccessful result can carry, so no caller misses a case. */
 export const RESULT_REASONS = Object.freeze([
     'missing', 'out-of-range', 'age-unknown', 'no-reference-for-age', 'no-reference-for-sex',
+    'protocol-unknown', 'protocol-age-mismatch', 'reference-unavailable',
 ]);
 
 /**
@@ -228,10 +282,14 @@ export const RESULT_REASONS = Object.freeze([
  */
 export const toStorableBand = (result) => {
     if (!result || result.ok !== true) return null;
-    return {
+    const stored = {
         band: result.band,
         ageBand: result.ageBand,
         sex: result.sex,
         sourceId: result.sourceId,
     };
+    // Which test produced this, so a later comparison cannot read a thirty-second
+    // count against one-minute norms.
+    if (result.protocol) stored.protocol = result.protocol;
+    return stored;
 };

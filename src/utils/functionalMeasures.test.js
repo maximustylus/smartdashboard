@@ -13,8 +13,9 @@
 
 import { describe, it, expect } from 'vitest';
 import {
-    gripStrengthResult, chairStandResult, ageBandLabel, parseAgeYears,
+    gripStrengthResult, ageBandLabel, parseAgeYears,
     toStorableBand, GRIP_BAND_IDS, CHAIR_STAND_BAND_IDS,
+    sitToStandProtocolForAge, sitToStandResult,
 } from './functionalMeasures';
 import {
     GRIP_NORMS_KG, CHAIR_STAND_BELOW_AVERAGE, PERCENTILE_LEVELS, GRIP_SOURCE,
@@ -113,9 +114,13 @@ describe('it refuses rather than guesses', () => {
         expect(r.reason).toBe('no-reference-for-age');
     });
 
-    it('gives no chair-stand comparison under 60 or over 94', () => {
-        expect(chairStandResult({ ageYears: 59, sex: 'male', reps: 12 }).reason).toBe('no-reference-for-age');
-        expect(chairStandResult({ ageYears: 95, sex: 'male', reps: 12 }).reason).toBe('no-reference-for-age');
+    // Two different absences, and they are not the same thing. Under 60 a reference
+    // exists and is simply not loaded yet; over 94 no reference exists at all.
+    it('distinguishes a pending table from a reference that does not exist', () => {
+        expect(sitToStandResult({ ageYears: 59, sex: 'male', reps: 30, protocol: 'sts-60s' }).reason)
+            .toBe('reference-unavailable');
+        expect(sitToStandResult({ ageYears: 95, sex: 'male', reps: 12, protocol: 'sts-30s' }).reason)
+            .toBe('no-reference-for-age');
     });
 
     // Both sources are sex-stratified. Quietly assigning a sex would fabricate the
@@ -141,13 +146,13 @@ describe('it refuses rather than guesses', () => {
     });
 
     it('refuses a fractional repetition count', () => {
-        expect(chairStandResult({ ageYears: 67, sex: 'female', reps: 8.5 }).reason).toBe('out-of-range');
+        expect(sitToStandResult({ ageYears: 67, sex: 'female', reps: 8.5, protocol: 'sts-30s' }).reason).toBe('out-of-range');
     });
 
     it('never throws, whatever it is handed', () => {
         [undefined, null, {}, { ageYears: 'x', sex: 1, kg: [] }].forEach((input) => {
             expect(() => gripStrengthResult(input)).not.toThrow();
-            expect(() => chairStandResult(input)).not.toThrow();
+            expect(() => sitToStandResult(input)).not.toThrow();
         });
     });
 });
@@ -156,18 +161,18 @@ describe('it refuses rather than guesses', () => {
 describe('chair stand against the STEADI thresholds', () => {
     it('marks a count below the threshold as below average', () => {
         // Women 65-69: fewer than 11 is below average.
-        const r = chairStandResult({ ageYears: 67, sex: 'female', reps: 10 });
+        const r = sitToStandResult({ ageYears: 67, sex: 'female', reps: 10, protocol: 'sts-30s' });
         expect(r.band).toBe('below-average');
         expect(r.belowAverageThreshold).toBe(11);
     });
 
     it('treats the threshold itself as at or above average', () => {
-        expect(chairStandResult({ ageYears: 67, sex: 'female', reps: 11 }).band).toBe('at-or-above-average');
+        expect(sitToStandResult({ ageYears: 67, sex: 'female', reps: 11, protocol: 'sts-30s' }).band).toBe('at-or-above-average');
     });
 
     it('returns only known band ids across the plausible range', () => {
         for (let reps = 0; reps <= 60; reps++) {
-            const r = chairStandResult({ ageYears: 72, sex: 'male', reps });
+            const r = sitToStandResult({ ageYears: 72, sex: 'male', reps, protocol: 'sts-30s' });
             expect(CHAIR_STAND_BAND_IDS).toContain(r.band);
         }
     });
@@ -225,5 +230,85 @@ describe('the risk score is untouched by these measures', () => {
     it('does not penalise a resident who entered no measurement', () => {
         expect(calculateRiskScore({ ...base, gripBand: null, chairStandBand: null }))
             .toBe(calculateRiskScore(base));
+    });
+});
+
+
+// ── two sit-to-stand protocols, split at 60 ─────────────────────────────────
+describe('the sit-to-stand protocol follows from age', () => {
+    it.each([[20, 'sts-60s'], [45, 'sts-60s'], [59, 'sts-60s'], [60, 'sts-30s'], [75, 'sts-30s'], [94, 'sts-30s']])(
+        'age %i uses %s', (age, protocol) => expect(sitToStandProtocolForAge(age)).toBe(protocol),
+    );
+
+    // Neither reference reaches an 18 or 19 year old. Saying so beats guessing.
+    it.each([18, 19])('has no protocol for age %i', (age) => {
+        expect(sitToStandProtocolForAge(age)).toBeNull();
+    });
+
+    it('has no protocol when age is unknown', () => {
+        expect(sitToStandProtocolForAge(null)).toBeNull();
+        expect(sitToStandProtocolForAge('x')).toBeNull();
+    });
+});
+
+describe('reading a sit-to-stand count', () => {
+    it('bands a thirty-second count for a resident of 60 or over', () => {
+        const r = sitToStandResult({ ageYears: 67, sex: 'female', reps: 10, protocol: 'sts-30s' });
+        expect(r.ok).toBe(true);
+        expect(r.band).toBe('below-average');
+        expect(r.seconds).toBe(30);
+        expect(r.protocol).toBe('sts-30s');
+    });
+
+    // THE DANGEROUS CASE. A thirty-second count read against one-minute norms would
+    // call a healthy person profoundly weak. The count is kept; the comparison is not.
+    it('refuses to band a count entered against the wrong stopwatch', () => {
+        const r = sitToStandResult({ ageYears: 58, sex: 'female', reps: 12, protocol: 'sts-30s' });
+        expect(r.ok).toBe(false);
+        expect(r.reason).toBe('protocol-age-mismatch');
+        expect(r.value).toBe(12);
+    });
+
+    it('refuses the reverse mismatch too', () => {
+        const r = sitToStandResult({ ageYears: 67, sex: 'male', reps: 40, protocol: 'sts-60s' });
+        expect(r.reason).toBe('protocol-age-mismatch');
+    });
+
+    // Until pages 950-953 of Strassmann are loaded there is no under-60 table, and
+    // the honest answer is that no comparison is available.
+    it('gives no under-60 band while the one-minute table is not loaded', () => {
+        const r = sitToStandResult({ ageYears: 45, sex: 'female', reps: 40, protocol: 'sts-60s' });
+        expect(r.ok).toBe(false);
+        expect(r.reason).toBe('reference-unavailable');
+        expect(r.value).toBe(40);
+    });
+
+    it('rejects an unrecognised protocol rather than assuming one', () => {
+        expect(sitToStandResult({ ageYears: 67, sex: 'female', reps: 10, protocol: 'sts-5x' }).reason)
+            .toBe('protocol-unknown');
+        expect(sitToStandResult({ ageYears: 67, sex: 'female', reps: 10 }).reason)
+            .toBe('protocol-unknown');
+    });
+
+    it('flags a count that is possible but implausible for its protocol', () => {
+        // 34 stands in thirty seconds is inside the envelope but at its edge.
+        const high = sitToStandResult({ ageYears: 67, sex: 'male', reps: 34, protocol: 'sts-30s' });
+        expect(high.ok).toBe(true);
+        expect(high.implausibleForProtocol).toBe(false);
+        const silly = sitToStandResult({ ageYears: 67, sex: 'male', reps: 50, protocol: 'sts-30s' });
+        expect(silly.ok).toBe(true);
+        expect(silly.implausibleForProtocol).toBe(true);
+    });
+
+    it('records which test produced a stored band', () => {
+        const stored = toStorableBand(sitToStandResult({ ageYears: 67, sex: 'female', reps: 10, protocol: 'sts-30s' }));
+        expect(stored.protocol).toBe('sts-30s');
+        expect(stored).not.toHaveProperty('value');
+    });
+
+    it('never throws', () => {
+        [undefined, null, {}, { protocol: 'sts-30s', reps: [] }].forEach((input) => {
+            expect(() => sitToStandResult(input)).not.toThrow();
+        });
     });
 });

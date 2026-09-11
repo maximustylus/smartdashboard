@@ -142,6 +142,86 @@ export const GRIP_NORMS_KG = Object.freeze({
  *    somebody else measured and never administers the test. These numbers interpret
  *    a result; they do not license producing one.
  */
+/**
+ * ==============================================================================
+ * SIT-TO-STAND: TWO PROTOCOLS, SPLIT AT 60
+ * ==============================================================================
+ *
+ * Under 60 the portal uses the ONE-MINUTE sit-to-stand; from 60 the THIRTY-SECOND
+ * chair stand. That is not a preference, it is where the references exist: STEADI
+ * begins at 60, and the only reference covering working-age adults is Strassmann's
+ * one-minute test.
+ *
+ * ⚠️ THE TWO COUNTS ARE NOT INTERCHANGEABLE AND LOOK IDENTICAL. A count of 12 is a
+ *    poor one-minute result and a fine thirty-second one. If a 58-year-old enters a
+ *    thirty-second count it would be read against one-minute norms and they would be
+ *    told they are far weaker than they are. So the protocol is stored WITH the
+ *    value, never inferred from age at read time, and the question names the
+ *    duration rather than saying "sit-to-stand".
+ *
+ * ⚠️ THE BOUNDARY IS A REAL DISCONTINUITY. Someone who re-tests after turning 60
+ *    switches instrument, so their two results cannot be compared to each other.
+ *    Any progress view must compare like with like or say it cannot.
+ */
+export const SIT_TO_STAND_PROTOCOLS = Object.freeze({
+    /** Ages 20 to 79. Reference table pending: see `STS_60S_SOURCE`. */
+    'sts-60s': Object.freeze({ id: 'sts-60s', seconds: 60, minAge: 20, maxAge: 79 }),
+    /** Ages 60 to 94, CDC STEADI. */
+    'sts-30s': Object.freeze({ id: 'sts-30s', seconds: 30, minAge: 60, maxAge: 94 }),
+});
+
+/** The age at which the portal switches instrument. Below this, the minute version. */
+export const SIT_TO_STAND_SPLIT_AGE = 60;
+
+/**
+ * Strassmann A, Steurer-Stey C, Dalla Lana K, et al. Population-based reference
+ * values for the 1-min sit-to-stand test. Int J Public Health 2013;58:949-53.
+ * doi:10.1007/s00038-013-0504-z. Swiss population, 6,926 adults.
+ *
+ * ⚠️ THE REFERENCE TABLE IS NOT YET HELD. Only page 949 of the paper was supplied,
+ *    which carries the abstract; the age-and-sex stratified values are on pages 950
+ *    to 953. The four figures the abstract states are recorded below as a CHECK for
+ *    whatever table is eventually loaded, and deliberately NOT as the table itself:
+ *    they cover only the two extreme age groups, and interpolating the twelve bands
+ *    between them would be inventing a norm. Until the real table lands, an under-60
+ *    result reports the number and says plainly that no comparison is available.
+ */
+export const STS_60S_SOURCE = Object.freeze({
+    id: 'strassmann-2013-1min',
+    citation: 'Strassmann A, Steurer-Stey C, Dalla Lana K, et al. Int J Public Health 2013;58:949-53',
+    doi: '10.1007/s00038-013-0504-z',
+    referencePopulation: 'swiss',
+    minAge: 20,
+    maxAge: 79,
+    /** `false` until the real table is loaded. Nothing may band against it while false. */
+    tableLoaded: false,
+});
+
+/**
+ * The only values the abstract states, for validating a future table load rather
+ * than for banding anybody. `p25`/`p75` are the reported interquartile range.
+ */
+export const STS_60S_ABSTRACT_CHECKS = Object.freeze([
+    { sex: 'male', from: 20, to: 24, median: 50, p25: 41, p75: 57 },
+    { sex: 'female', from: 20, to: 24, median: 47, p25: 39, p75: 55 },
+    { sex: 'male', from: 75, to: 79, median: 30, p25: 25, p75: 37 },
+    { sex: 'female', from: 75, to: 79, median: 27, p25: 22, p75: 30 },
+].map(Object.freeze));
+
+/** Reps in one minute. Wider than the thirty-second envelope, necessarily. */
+export const STS_60S_RANGE_REPS = Object.freeze({ min: 0, max: 120 });
+
+/**
+ * Counts that are possible but implausible for the protocol stated, which is the
+ * signature of a value entered against the wrong stopwatch. Not a hard refusal:
+ * the value is kept and reported, the comparison is withheld and the mismatch
+ * surfaced, because a real person can legitimately be outside these.
+ */
+export const SIT_TO_STAND_PLAUSIBLE = Object.freeze({
+    'sts-30s': Object.freeze({ min: 1, max: 35 }),
+    'sts-60s': Object.freeze({ min: 10, max: 90 }),
+});
+
 export const CHAIR_STAND_SOURCE = Object.freeze({
     id: 'cdc-steadi-2017',
     citation: 'CDC STEADI, Assessment: 30-Second Chair Stand (2017)',
