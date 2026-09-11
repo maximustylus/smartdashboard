@@ -6,8 +6,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 **Single source of truth for the app version is `package.json` `version`.** The
-`README.md` title line, the shields.io badges and the *Supported Versions* table are
-downstream of it and must be kept aligned.
+`README.md` title line, its shields.io badge and its version strings in prose, and the
+`SECURITY.md` *Supported Versions* table are downstream of it and must be kept aligned.
 
 The **AURA engine version** (currently `v2.3`) is a *separate* internal version
 tracking the agent's capability tier. It moves independently of the app version and is
@@ -54,23 +54,17 @@ not changed by this release.
 
 ## [Unreleased]
 
-### Documentation
+---
 
-- Expanded the README around user workflows and implemented capabilities. Replaced the negative claims list with practical responsible-use guidance, moved identifier-check details into security guidance, and retained explicit Gemini data disclosures, screening limitations and governance links. No runtime behaviour or remediation status changed.
-- Reworked `README.md` as a current project entry point: separated the deterministic roster, staff AURA, Feeds, Smart Intelligence and public screening pathways; added a release-status snapshot, honest AI/data boundaries, local setup and verification commands; removed the duplicate release-history and supported-version tables; and linked current work back to the authoritative ledgers.
-- Rebased the Community functional-measures proposal onto current `main` and registered
-  its nine owner decisions as `CD17`–`CD25` in `COMMUNITY_TODO.md`. The plan is explicitly
-  `PROPOSED`; `CD17`, `CD18`, `CD19` and `CD25` block a build. Corrected its stale decision
-  count, age-band count and unsupported anonymity/de-identification wording, and reconciled
-  Community's status table with its open and completed body rows.
-- Reconciled `README.md` with current architecture and controls: CI builds before its
-  bundle-level tests; coverage and roster mutation are outside AURA; attachment bounds
-  and metadata logging from `AU15` are present but content classification remains open
-  under `AU17`; Feeds controls are described without an unsupported PDPA-compliance
-  claim; internal staff authorization is separated from the public `/individuals`
-  pathway; and multi-team architecture is recorded as shipped rather than future work.
-- Corrected the stale `AU17` evidence text in `AURA-TODO.md` without changing the
-  finding's `OPEN` owner-decision status.
+## [2.12.4] - 2026-09-11
+
+The version label catches up with what `main` already deployed.
+
+Every change below reached production through `deploy.yml` while the app still
+reported v2.12.3. Nothing here adds a feature or changes a Firestore shape; the
+two behavioural fixes (`AU18`, `P4.2`) and two behaviour-preserving extractions
+(`P4.3`, `CP16`) are patch-level, and the rest is documentation. `AC4` is a
+comment-only correction in `src/utils/scoring.js`.
 
 ### Fixed
 
@@ -105,6 +99,24 @@ not changed by this release.
   and required-field checks. Cloud Functions translate its typed failures to their
   existing `HttpsError` messages; `AuraPulseBot.jsx` translates the same failures to
   its existing unreadable-response message.
+
+### Documentation
+
+- Expanded the README around user workflows and implemented capabilities. Replaced the negative claims list with practical responsible-use guidance, moved identifier-check details into security guidance, and retained explicit Gemini data disclosures, screening limitations and governance links. No runtime behaviour or remediation status changed.
+- Reworked `README.md` as a current project entry point: separated the deterministic roster, staff AURA, Feeds, Smart Intelligence and public screening pathways; added a release-status snapshot, honest AI/data boundaries, local setup and verification commands; removed the duplicate release-history and supported-version tables; and linked current work back to the authoritative ledgers.
+- Rebased the Community functional-measures proposal onto current `main` and registered
+  its nine owner decisions as `CD17`–`CD25` in `COMMUNITY_TODO.md`. The plan is explicitly
+  `PROPOSED`; `CD17`, `CD18`, `CD19` and `CD25` block a build. Corrected its stale decision
+  count, age-band count and unsupported anonymity/de-identification wording, and reconciled
+  Community's status table with its open and completed body rows.
+- Reconciled `README.md` with current architecture and controls: CI builds before its
+  bundle-level tests; coverage and roster mutation are outside AURA; attachment bounds
+  and metadata logging from `AU15` are present but content classification remains open
+  under `AU17`; Feeds controls are described without an unsupported PDPA-compliance
+  claim; internal staff authorization is separated from the public `/individuals`
+  pathway; and multi-team architecture is recorded as shipped rather than future work.
+- Corrected the stale `AU17` evidence text in `AURA-TODO.md` without changing the
+  finding's `OPEN` owner-decision status.
 
 ---
 
