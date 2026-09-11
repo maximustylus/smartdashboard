@@ -30,6 +30,10 @@ import { deriveFormClinicalData } from './formClinicalData';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const src = (name) => readFileSync(resolve(HERE, '..', 'components', name), 'utf8');
+// Anything outside `components/`. The chat's falls gate moved to
+// `data/communityDomains.js` when `DOMAIN_CONFIG` was extracted so it could be
+// imported without `AuraChat`'s firebase graph; the assertion below followed it.
+const mod = (rel) => readFileSync(resolve(HERE, '..', rel), 'utf8');
 
 /**
  * The keys of the object a pathway returns to the scorer. Brace-matched from the
@@ -163,10 +167,11 @@ describe('both pathways ask the questions those flags come from', () => {
      *    both doing it wrong.
      */
     it('both gate the falls question with the shared age parser', () => {
-        ['AuraChat.jsx', 'ConventionalForm.jsx'].forEach((file) => {
-            expect(src(file), file).toMatch(/isSixtyPlus\(/);
-        });
-        expect(src('AuraChat.jsx'), 'the chat must not re-introduce a substring test for the chip text')
+        // The chat's gate is the `when` predicate on the `falls` step, which lives in
+        // `data/communityDomains.js` since the extraction. The form's is inline.
+        expect(mod('data/communityDomains.js'), 'communityDomains.js').toMatch(/isSixtyPlus\(/);
+        expect(src('ConventionalForm.jsx'), 'ConventionalForm.jsx').toMatch(/isSixtyPlus\(/);
+        expect(mod('data/communityDomains.js'), 'the chat must not re-introduce a substring test for the chip text')
             .not.toMatch(/when:\s*\(data\)\s*=>\s*\/60/);
         expect(src('ConventionalForm.jsx'), 'the form must not compare against the chip text')
             .not.toMatch(/ageGroup === '60\+'/);
