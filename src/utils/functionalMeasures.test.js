@@ -1,0 +1,229 @@
+/**
+ * ==============================================================================
+ * FUNCTIONAL MEASURES — SPECIFICATION TEST SUITE
+ * ==============================================================================
+ * Runner: Vitest.  Run: npm test
+ *
+ * These functions decide what a member of the public is told about their own body,
+ * with no professional in the room. The cases below are the ways that goes wrong:
+ * a band computed from a reference that does not cover the person, a value banded
+ * when its units were misread, a quiet default to one sex, an exact age reaching
+ * storage, or the traffic light moving because somebody does not own a dynamometer.
+ */
+
+import { describe, it, expect } from 'vitest';
+import {
+    gripStrengthResult, chairStandResult, ageBandLabel, parseAgeYears,
+    toStorableBand, GRIP_BAND_IDS, CHAIR_STAND_BAND_IDS,
+} from './functionalMeasures';
+import {
+    GRIP_NORMS_KG, CHAIR_STAND_BELOW_AVERAGE, PERCENTILE_LEVELS, GRIP_SOURCE,
+    CHAIR_STAND_SOURCE,
+} from '../data/functionalNorms';
+import { calculateRiskScore } from './scoring';
+
+const f65 = GRIP_NORMS_KG.female.find((r) => r.from === 65);
+const P = (level) => PERCENTILE_LEVELS.indexOf(level);
+
+// ── the reference tables themselves ─────────────────────────────────────────
+describe('the shipped norm tables are internally coherent', () => {
+    it.each(['male', 'female'])('%s grip has 17 contiguous five-year bands to 100+', (sex) => {
+        const rows = GRIP_NORMS_KG[sex];
+        expect(rows).toHaveLength(17);
+        expect(rows[0].from).toBe(20);
+        expect(rows[rows.length - 1].to).toBeNull();
+        rows.forEach((r, i) => {
+            if (i > 0) expect(r.from).toBe(rows[i - 1].from + 5);
+            if (r.to !== null) expect(r.to).toBe(r.from + 4);
+        });
+    });
+
+    it.each(['male', 'female'])('%s grip percentiles rise monotonically in every band', (sex) => {
+        GRIP_NORMS_KG[sex].forEach((r) => {
+            for (let i = 1; i < r.p.length; i++) expect(r.p[i]).toBeGreaterThan(r.p[i - 1]);
+        });
+    });
+
+    // Guards the transcription against the paper's own prose, which states the peak.
+    it('matches the figures the source states in its abstract', () => {
+        expect(GRIP_NORMS_KG.male.find((r) => r.from === 30).p[P(50)]).toBe(49.7);
+        expect(GRIP_NORMS_KG.female.find((r) => r.from === 30).p[P(50)]).toBe(29.7);
+    });
+
+    it('covers only ages 60 to 94 for the chair stand, and invents nothing outside', () => {
+        ['male', 'female'].forEach((sex) => {
+            const rows = CHAIR_STAND_BELOW_AVERAGE[sex];
+            expect(rows[0].from).toBe(60);
+            expect(rows[rows.length - 1].to).toBe(94);
+        });
+    });
+
+    it('never describes either reference population as South East Asian', () => {
+        expect(GRIP_SOURCE.referencePopulation).toBe('international');
+        expect(CHAIR_STAND_SOURCE.referencePopulation).toBe('united-states');
+    });
+});
+
+// ── grip banding ────────────────────────────────────────────────────────────
+describe('grip strength banding', () => {
+    const woman67 = { ageYears: 67, sex: 'female' };
+
+    it('places a value below the 20th percentile in the low band', () => {
+        const r = gripStrengthResult({ ...woman67, kg: f65.p[P(20)] - 0.1 });
+        expect(r.ok).toBe(true);
+        expect(r.band).toBe('low');
+        expect(r.lowThreshold).toBe(f65.p[P(20)]);
+    });
+
+    // The threshold value itself is NOT below the threshold. An off-by-one here
+    // tells somebody they are in the lowest fifth when they are not.
+    it('treats the threshold value itself as not low', () => {
+        expect(gripStrengthResult({ ...woman67, kg: f65.p[P(20)] }).band).toBe('somewhat-low');
+    });
+
+    it.each([
+        ['low', f65.p[P(20)] - 1],
+        ['somewhat-low', f65.p[P(20)]],
+        ['moderate', f65.p[P(40)]],
+        ['somewhat-high', f65.p[P(60)]],
+        ['high', f65.p[P(80)]],
+    ])('returns %s at the band boundary', (band, kg) => {
+        expect(gripStrengthResult({ ...woman67, kg }).band).toBe(band);
+    });
+
+    it('returns only known band ids across the whole plausible range', () => {
+        for (let kg = 1; kg <= 100; kg += 0.5) {
+            const r = gripStrengthResult({ ...woman67, kg });
+            expect(GRIP_BAND_IDS).toContain(r.band);
+        }
+    });
+
+    it('bands the oldest group from the open-ended row', () => {
+        const r = gripStrengthResult({ ageYears: 103, sex: 'male', kg: 20 });
+        expect(r.ok).toBe(true);
+        expect(r.ageBand).toBe('100+');
+    });
+});
+
+// ── refusals, which are results and not errors ──────────────────────────────
+describe('it refuses rather than guesses', () => {
+    it('gives no comparison below the source age floor', () => {
+        const r = gripStrengthResult({ ageYears: 19, sex: 'male', kg: 40 });
+        expect(r.ok).toBe(false);
+        expect(r.reason).toBe('no-reference-for-age');
+    });
+
+    it('gives no chair-stand comparison under 60 or over 94', () => {
+        expect(chairStandResult({ ageYears: 59, sex: 'male', reps: 12 }).reason).toBe('no-reference-for-age');
+        expect(chairStandResult({ ageYears: 95, sex: 'male', reps: 12 }).reason).toBe('no-reference-for-age');
+    });
+
+    // Both sources are sex-stratified. Quietly assigning a sex would fabricate the
+    // comparison, so an unrecognised value returns nothing.
+    it.each([undefined, null, '', 'prefer not to say', 'other', 'nonbinary'])(
+        'gives no comparison for sex %s', (sex) => {
+            const r = gripStrengthResult({ ageYears: 67, sex, kg: 25 });
+            expect(r.ok).toBe(false);
+            expect(r.reason).toBe('no-reference-for-sex');
+        },
+    );
+
+    // A value in pounds is the realistic unit error, and 60 kg of grip is not a
+    // person. Refusing beats banding a misread number as "high".
+    it.each([0, 0.5, 101, 250, -5])('refuses an implausible grip value of %s kg', (kg) => {
+        const r = gripStrengthResult({ ageYears: 67, sex: 'female', kg });
+        expect(r.ok).toBe(false);
+        expect(r.reason).toBe('out-of-range');
+    });
+
+    it.each(['', null, undefined, 'twenty', NaN, {}])('treats %s as missing, not as zero', (kg) => {
+        expect(gripStrengthResult({ ageYears: 67, sex: 'female', kg }).reason).toBe('missing');
+    });
+
+    it('refuses a fractional repetition count', () => {
+        expect(chairStandResult({ ageYears: 67, sex: 'female', reps: 8.5 }).reason).toBe('out-of-range');
+    });
+
+    it('never throws, whatever it is handed', () => {
+        [undefined, null, {}, { ageYears: 'x', sex: 1, kg: [] }].forEach((input) => {
+            expect(() => gripStrengthResult(input)).not.toThrow();
+            expect(() => chairStandResult(input)).not.toThrow();
+        });
+    });
+});
+
+// ── chair stand ─────────────────────────────────────────────────────────────
+describe('chair stand against the STEADI thresholds', () => {
+    it('marks a count below the threshold as below average', () => {
+        // Women 65-69: fewer than 11 is below average.
+        const r = chairStandResult({ ageYears: 67, sex: 'female', reps: 10 });
+        expect(r.band).toBe('below-average');
+        expect(r.belowAverageThreshold).toBe(11);
+    });
+
+    it('treats the threshold itself as at or above average', () => {
+        expect(chairStandResult({ ageYears: 67, sex: 'female', reps: 11 }).band).toBe('at-or-above-average');
+    });
+
+    it('returns only known band ids across the plausible range', () => {
+        for (let reps = 0; reps <= 60; reps++) {
+            const r = chairStandResult({ ageYears: 72, sex: 'male', reps });
+            expect(CHAIR_STAND_BAND_IDS).toContain(r.band);
+        }
+    });
+});
+
+// ── age handling and what leaves the device ─────────────────────────────────
+describe('age is used precisely and stored coarsely', () => {
+    it.each([[65, '65-69'], [69, '65-69'], [70, '70-74'], [20, '20-24'], [99, '95-99'], [100, '100+'], [117, '100+']])(
+        'bands age %i as %s', (age, label) => expect(ageBandLabel(age)).toBe(label),
+    );
+
+    it('rejects an age outside a plausible adult lifespan', () => {
+        [17, 0, -1, 121, 'x', null].forEach((a) => expect(parseAgeYears(a)).toBeNull());
+    });
+
+    // The privacy bargain of `CD25`: precise age enables the comparison, and only
+    // the five-year band is ever persisted.
+    it('never lets an exact age into the storable payload', () => {
+        const stored = toStorableBand(gripStrengthResult({ ageYears: 67, sex: 'female', kg: 25 }));
+        expect(stored).toEqual({ band: expect.any(String), ageBand: '65-69', sex: 'female', sourceId: GRIP_SOURCE.id });
+        expect(JSON.stringify(stored)).not.toContain('67');
+    });
+
+    it('stores no raw measurement', () => {
+        const stored = toStorableBand(gripStrengthResult({ ageYears: 67, sex: 'female', kg: 25 }));
+        expect(Object.values(stored)).not.toContain(25);
+        expect(stored).not.toHaveProperty('value');
+    });
+
+    it('has nothing to store when there was no comparison', () => {
+        expect(toStorableBand(gripStrengthResult({ ageYears: 67, sex: 'other', kg: 25 }))).toBeNull();
+        expect(toStorableBand(null)).toBeNull();
+    });
+});
+
+// ── the traffic light must not move (`CD20`) ────────────────────────────────
+describe('the risk score is untouched by these measures', () => {
+    const base = { symptomFlag: false, medFlag: false, psychoFlag: false, pavsScore: 200, strengthDays: 3 };
+
+    it('scores the same with and without a grip result', () => {
+        const before = calculateRiskScore(base);
+        const after = calculateRiskScore({
+            ...base,
+            gripStrengthKg: 17,
+            gripBand: 'low',
+            chairStandReps: 8,
+            chairStandBand: 'below-average',
+        });
+        expect(after).toBe(before);
+    });
+
+    // The failure this guards is the documented "missing data is a deficit" rule
+    // being extended to a measurement requiring equipment, which would charge a
+    // band to every resident who cannot afford a dynamometer.
+    it('does not penalise a resident who entered no measurement', () => {
+        expect(calculateRiskScore({ ...base, gripBand: null, chairStandBand: null }))
+            .toBe(calculateRiskScore(base));
+    });
+});
