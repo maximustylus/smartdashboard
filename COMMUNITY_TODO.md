@@ -446,6 +446,43 @@ named sign-off per sheet. Ten minutes per reviewer; what remains is three reader
 |---|---|---|
 | Group 1 — falls & Healthier SG | 9 × 3 | Claude |
 | Group 4 — the ten slip flag lines | 10 × 3 | Google Gemini 3.1 Pro |
+| Group 5 — P9 functional measures | 3 × 3 **safety-critical** | Claude |
+
+**2026-09-12: group 5 landed, and it is a different kind of string.** Groups 1 and 4
+are questions and observations: a mistranslation collects a wrong answer or reads
+awkwardly. The three in group 5 are **prohibitions**, and the owner's own standing
+rule is that this category is not machine-translated alone:
+
+| Key | What it has to stop |
+|---|---|
+| `measures.doNotSelfTest` | somebody attempting a timed chair stand alone, unassisted |
+| `measures.noComparison` | somebody reading a comparison that was never made |
+| `measures.notADiagnosis` | somebody treating a number as a diagnosis |
+
+A prohibition degrades quietly. *"Do not try this on your own"* comes back as a
+suggestion and still reads perfectly well, so a reviewer skimming for accuracy
+passes it. That is why these three are gated rather than tracked.
+
+**The gate is now in code, not in this document.** `src/data/copyReview.js` is the
+registry, `src/data/copyReview.test.js` fails the build, and
+`scripts/copy-reachability.mjs` decides when. The trigger is **when a resident can
+read the string**, resolved against the real import graph, not when somebody types
+it: the copy exists in four languages today and no component imports it, so the
+build is green. It goes red the moment the entry screen lands, which is exactly when
+a reviewer is needed and not weeks before.
+
+    $ node scripts/copy-review-sheet.mjs
+    7 strings outstanding, 3 safety-critical.
+    None are on a resident-facing screen yet, so none are failing the build.
+
+⚠️ **THE BUILD WILL GO RED WHEN THE UI IS WIRED.** That is the mechanism working, not
+a regression. It clears one of two ways, and only these two: three names against the
+three strings in `reviewedBy`, or a dated, owner-named entry in `REVIEW_WAIVERS`. A
+waiver is a debt somebody signs, not a way past the gate.
+
+`copyReview.test.js` proves the gate can actually fire — it simulates the import and
+asserts the build fails — because a gate that never goes red looks identical to a
+gate that is satisfied.
 
 `TRANSLATION-BRIEF.md` carries a back-translation of every string and names the four
 a reviewer must check, because they change a value rather than a sentence:

@@ -32,6 +32,11 @@
  * carry an explicit, dated, owner-named waiver. `copyReview.test.js` fails the
  * build otherwise. A new safety-critical string added without either does not ship.
  *
+ * The gate fires when a resident can READ the string, which is not the same moment
+ * a developer types it. `reachableWhen` and the walk in `scripts/copy-reachability.mjs`
+ * decide that against the real import graph, so nothing declares itself exempt. See
+ * "WHAT LIVE MEANS" further down for why that is the right trigger.
+ *
  * ------------------------------------------------------------------------------
  * WHAT A REVIEW ACTUALLY ASKS
  * ------------------------------------------------------------------------------
@@ -85,24 +90,29 @@ export const COPY_REVIEW = Object.freeze({
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
     }),
 
-    // ── P9 functional measures, DECLARED BEFORE THE COPY EXISTS ──────────────
-    // Registered now so the gate is armed before the strings land, rather than
-    // being remembered afterwards. Each is a prohibition, which is the category
-    // the owner's standing rule is about.
+    // ── P9 functional measures, WRITTEN AND MACHINE-TRANSLATED, NOT YET ON SCREEN ──
+    // All four languages exist in `src/data/measuresCopy.js`. Each is a prohibition,
+    // which is the category the owner's standing rule is about, so each carries
+    // `reachableWhen`: the gate fires the moment a resident-facing component imports
+    // that module, and not before. See `reachableWhen` below for why that, rather
+    // than the mere existence of the string, is the right trigger.
     'measures.doNotSelfTest': Object.freeze({
-        where: 'src/data/communityChatCopy.js (pending)',
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
         safetyCritical: true,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
         english: 'Please do not try either test on your own now. These are measured with someone there to help.',
     }),
     'measures.noComparison': Object.freeze({
-        where: 'src/data/communityChatCopy.js (pending)',
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
         safetyCritical: true,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
         english: 'We have kept your number so you can show it to your doctor. We do not have a published range that covers your age, so we are not going to guess one.',
     }),
     'measures.notADiagnosis': Object.freeze({
-        where: 'src/data/communityChatCopy.js (pending)',
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
         safetyCritical: true,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
         english: 'These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above.',
@@ -138,25 +148,60 @@ export const unreviewedLanguages = (key) => {
 export const isPending = (key) => Boolean(COPY_REVIEW[key]?.where?.includes('pending'));
 
 /**
+ * ==============================================================================
+ * WHAT "LIVE" MEANS, AND WHY IT IS NOT "THE STRING EXISTS"
+ * ==============================================================================
+ *
+ * The gate protects residents, so it should fire when a resident can READ a string,
+ * not when a developer has typed one. Those are different moments, and the gap
+ * between them is where the measures copy sits right now: written in four
+ * languages, imported by nothing.
+ *
+ * Blocking on existence alone would make the build red for weeks while the entry
+ * screen and report tiles are built, protecting nobody, and a permanently red build
+ * is a gate everybody learns to ignore. Blocking on nothing at all is how `CD13`
+ * sat in a document for months.
+ *
+ * So an entry may name `reachableWhen`: the module whose import by a resident-facing
+ * component makes its strings readable. `copyReview.test.js` resolves that against
+ * the actual source tree, so nobody declares their own copy unreachable. The build
+ * goes red the moment the UI lands, which is exactly when a reviewer is needed.
+ *
+ * ⚠️ UNKNOWN REACHABILITY COUNTS AS REACHABLE. A caller that cannot check the file
+ *    system gets the cautious answer, so a gate that loses its evidence fails shut
+ *    rather than quietly passing everything.
+ */
+const isLive = (key, reachedByUi) => {
+    if (isPending(key)) return false;
+    const { reachableWhen } = COPY_REVIEW[key];
+    if (!reachableWhen) return true;
+    if (!reachedByUi) return true; // fail shut, see above
+    return reachedByUi.has(reachableWhen);
+};
+
+/**
  * Safety-critical strings that are LIVE and neither reviewed nor waived. Anything
  * in here fails the build, which is the entire point.
  *
- * Pending strings are excluded deliberately: no resident can read a string that has
- * not been written, so blocking on one would stop unrelated work to protect nobody.
- * They stay in `reviewDebt`, and the moment `where` names a real module the gate
- * fires. `copyReview.test.js` also checks that a pending entry's English has not
- * quietly appeared in a shipped module, which is the one way `where` could lie.
+ * @param {Set<string>} [reachedByUi] modules a resident-facing component imports.
+ *   Omit it and every `reachableWhen` string is treated as reachable.
  */
-export const blockingReviewGaps = () => safetyCriticalKeys()
-    .filter((key) => !REVIEW_WAIVERS[key] && !isPending(key))
+export const blockingReviewGaps = (reachedByUi) => safetyCriticalKeys()
+    .filter((key) => !REVIEW_WAIVERS[key] && isLive(key, reachedByUi))
     .map((key) => ({ key, missing: unreviewedLanguages(key) }))
     .filter((gap) => gap.missing.length > 0);
 
+/** Modules named by `reachableWhen`, for a caller that has to go and check them. */
+export const reachabilityWatchlist = () => Object.freeze([...new Set(
+    Object.keys(COPY_REVIEW).map((k) => COPY_REVIEW[k].reachableWhen).filter(Boolean),
+)]);
+
 /** Everything still owed a human read, safety-critical or not. This is `CD13`. */
-export const reviewDebt = () => Object.keys(COPY_REVIEW)
+export const reviewDebt = (reachedByUi) => Object.keys(COPY_REVIEW)
     .map((key) => ({
         key,
         safetyCritical: COPY_REVIEW[key].safetyCritical,
+        live: isLive(key, reachedByUi),
         missing: unreviewedLanguages(key),
     }))
     .filter((row) => row.missing.length > 0);

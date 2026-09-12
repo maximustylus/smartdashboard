@@ -16,10 +16,18 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { existsSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
     COPY_REVIEW, REVIEW_WAIVERS, TRANSLATION_LANGUAGES,
     safetyCriticalKeys, unreviewedLanguages, blockingReviewGaps, reviewDebt, isPending,
+    reachabilityWatchlist,
 } from './copyReview';
+import { reachedByUi, REPO_ROOT, UI_ENTRY_POINTS } from '../../scripts/copy-reachability.mjs';
+
+// Resolved once against the real source tree. This is what makes the gate fire on
+// what a resident can READ rather than on what somebody has typed.
+const ON_SCREEN = reachedByUi();
 
 describe('the registry describes itself honestly', () => {
     it('gives every string a location a reviewer can open', () => {
@@ -60,7 +68,7 @@ describe('THE GATE: safety instructions are read by a person', () => {
     // safety-critical string is neither reviewed nor consciously waived, which
     // includes any new one somebody adds without noticing this rule.
     it('ships no safety-critical string that is unreviewed and unwaived', () => {
-        const gaps = blockingReviewGaps();
+        const gaps = blockingReviewGaps(ON_SCREEN);
         const detail = gaps.map((g) => `  ${g.key}: no reviewer for ${g.missing.join(', ')}`).join('\n');
         expect(gaps, gaps.length ? `\nUnreviewed safety-critical copy:\n${detail}\n` : '').toEqual([]);
     });
@@ -112,7 +120,8 @@ describe('a pending declaration cannot quietly become live', () => {
     // residents can now read. Checked against the shipped copy itself.
     it('finds no pending safety-critical English already shipping in a module', async () => {
         const { DICTIONARY } = await import('./communityChatCopy');
-        const shipped = JSON.stringify(DICTIONARY);
+        const { MEASURES_COPY } = await import('./measuresCopy');
+        const shipped = JSON.stringify(DICTIONARY) + JSON.stringify(MEASURES_COPY);
         Object.entries(COPY_REVIEW).forEach(([key, entry]) => {
             if (!entry.safetyCritical || !entry.where.includes('pending')) return;
             const firstClause = entry.english.split(/[.,]/)[0].trim();
@@ -124,12 +133,81 @@ describe('a pending declaration cannot quietly become live', () => {
     });
 
     it('blocks a live safety-critical string the moment it stops being pending', () => {
-        const live = safetyCriticalKeys().filter((k) => !isPending(k) && !REVIEW_WAIVERS[k]);
+        const live = safetyCriticalKeys().filter(
+            (k) => !isPending(k) && !COPY_REVIEW[k].reachableWhen && !REVIEW_WAIVERS[k],
+        );
         // Every live one must already be reviewed, or `blockingReviewGaps` names it.
         live.forEach((key) => {
             if (unreviewedLanguages(key).length > 0) {
-                expect(blockingReviewGaps().map((g) => g.key)).toContain(key);
+                expect(blockingReviewGaps(ON_SCREEN).map((g) => g.key)).toContain(key);
             }
         });
+    });
+});
+
+/**
+ * ==============================================================================
+ * THE GATE CAN ACTUALLY GO RED
+ * ==============================================================================
+ *
+ * A gate that never fires passes every build and protects nobody, and it looks
+ * exactly like a gate that is satisfied. The measures copy is written and
+ * unreviewed today, and the only reason the build is green is that no component
+ * imports it yet. These assertions prove that reason is real: that the scanner
+ * finds things, that it has not silently stopped finding them, and that the moment
+ * the entry screen lands the build goes red.
+ */
+describe('the reachability gate is load-bearing, not decorative', () => {
+    // POSITIVE CONTROL. `communityChatCopy.js` is on screen today: `AuraChat.jsx`
+    // imports it and residents read it in four languages. If the walk breaks, this
+    // fails here rather than quietly reporting nothing reachable and passing
+    // everything downstream.
+    it('finds copy that is demonstrably on screen today', () => {
+        expect(ON_SCREEN.has('src/data/communityChatCopy.js')).toBe(true);
+        expect(ON_SCREEN.has('src/data/screeningChips.js')).toBe(true);
+        expect(ON_SCREEN.size).toBeGreaterThan(20);
+    });
+
+    it('resolves every resident-facing entry point it claims to walk from', () => {
+        UI_ENTRY_POINTS.forEach((entry) => {
+            expect(existsSync(resolve(REPO_ROOT, entry)), `${entry} does not exist`).toBe(true);
+        });
+    });
+
+    // A `reachableWhen` naming a module that no longer exists can never be reached,
+    // so its string would be permanently exempt. That is the quiet way this gate
+    // dies: not by being switched off, but by pointing at nothing.
+    it('watches only modules that exist', () => {
+        reachabilityWatchlist().forEach((module) => {
+            expect(existsSync(resolve(REPO_ROOT, module)), `${module} is watched but missing`).toBe(true);
+        });
+    });
+
+    // THE ASSERTION THIS WHOLE MECHANISM RESTS ON. Simulate the measures copy being
+    // imported by a component and confirm the build would fail. If this passes and
+    // the gate test above also passes, the gate is armed and simply has not fired.
+    it('fails the build once a component imports unreviewed safety copy', () => {
+        const watched = reachabilityWatchlist();
+        expect(watched.length, 'nothing is watched, so this proves nothing').toBeGreaterThan(0);
+
+        const asIfShipped = new Set([...ON_SCREEN, ...watched]);
+        const gaps = blockingReviewGaps(asIfShipped);
+        expect(gaps.map((g) => g.key)).toEqual(
+            expect.arrayContaining(['measures.doNotSelfTest', 'measures.noComparison', 'measures.notADiagnosis']),
+        );
+        gaps.forEach((gap) => expect(gap.missing).toEqual(['ms', 'zh', 'ta']));
+    });
+
+    // Unknown reachability must fail SHUT. A caller with no filesystem access gets
+    // the cautious answer rather than a free pass.
+    it('treats unknown reachability as reachable', () => {
+        expect(blockingReviewGaps().map((g) => g.key)).toContain('measures.doNotSelfTest');
+    });
+
+    it('marks written-but-unreachable copy as not live in the debt sheet', () => {
+        const row = reviewDebt(ON_SCREEN).find((r) => r.key === 'measures.doNotSelfTest');
+        expect(row).toBeDefined();
+        expect(row.live).toBe(false);
+        expect(isPending('measures.doNotSelfTest')).toBe(false);
     });
 });

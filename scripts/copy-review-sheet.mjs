@@ -8,9 +8,13 @@
  * handed and what CI checks cannot disagree.
  */
 import { COPY_REVIEW, reviewDebt, blockingReviewGaps, isPending } from '../src/data/copyReview.js';
+import { reachedByUi } from './copy-reachability.mjs';
 
-const debt = reviewDebt();
-const blocking = blockingReviewGaps();
+// The same reachability the build gate uses, resolved against the real source tree,
+// so a reviewer is never handed a sheet that disagrees with what CI enforces.
+const onScreen = reachedByUi();
+const debt = reviewDebt(onScreen);
+const blocking = blockingReviewGaps(onScreen);
 
 console.log('NEXUS Community — copy awaiting a human read\n');
 console.log('The question for a reviewer is NOT "is this accurate".');
@@ -25,7 +29,10 @@ if (critical.length) {
     console.log('── SAFETY-CRITICAL: these stop somebody doing something ──\n');
     critical.forEach((row) => {
         const e = COPY_REVIEW[row.key];
-        console.log(`  ${row.key}${isPending(row.key) ? '  [copy not written yet]' : ''}`);
+        const state = isPending(row.key)
+            ? '  [copy not written yet]'
+            : (row.live ? '  [ON SCREEN — blocking the build]' : '  [written, not on screen yet]');
+        console.log(`  ${row.key}${state}`);
         console.log(`    where   : ${e.where}`);
         if (e.english) console.log(`    english : ${e.english}`);
         console.log(`    needs   : ${row.missing.join(', ')}\n`);
@@ -42,5 +49,7 @@ if (rest.length) {
 
 console.log(`${debt.length} strings outstanding, ${critical.length} safety-critical.`);
 console.log(blocking.length
-    ? `${blocking.length} of them are LIVE and failing the build.`
-    : 'None are currently blocking the build.');
+    ? `${blocking.length} of them are ON SCREEN and failing the build.`
+    : 'None are on a resident-facing screen yet, so none are failing the build.');
+console.log('A string marked "written, not on screen yet" starts failing the build the');
+console.log('moment a component imports it. Reviewing it now is what stops that.');
