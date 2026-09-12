@@ -22,8 +22,9 @@ We take the security and data privacy of the NEXUS platform very seriously. Curr
 | 1.18.x  | Supported (rollback target for the v2.0.0 migration) |
 | < 1.18  | Unsupported |
 
-> This table must match the *Supported Versions* table in [`README.md`](README.md); both are
-> downstream of `package.json` `version`, which is the single authoritative copy. It had
+> This table is the only support table in the repository — the README's copy was removed on
+> 2026-09-10 and its *Supported versions* prose now defers here. Both are downstream of
+> `package.json` `version`, which is the single authoritative copy. This table had
 > drifted eight minor versions behind (it still named 1.5.x as the Active Beta at v1.13.0),
 > and drifted again by two minors between v2.8.0 and v2.10.0 — the support boundary moves
 > with each release and is not an independent policy. Nothing tests this table; until

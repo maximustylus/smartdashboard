@@ -1,6 +1,6 @@
-# NEXUS: Smart Operations Dashboard v2.12.3
+# NEXUS: Smart Operations Dashboard v2.12.4
 
-![Version](https://img.shields.io/badge/Version-v2.12.3-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
+![Version](https://img.shields.io/badge/Version-v2.12.4-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
 
 **NEXUS** (formerly IDC App) is a clinician-led progressive web application for team operations, workload tracking, staff wellbeing, rostering and community health screening. It uses a multi-team Firebase data model so each department and institution has its own membership, settings and operational records.
 
@@ -103,13 +103,13 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 
 | Item | Status | Evidence and meaning |
 |---|---|---|
-| Application version | `IMPLEMENTED` — **v2.12.3** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
+| Application version | `IMPLEMENTED` — **v2.12.4** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
-| AU18 response parser | `IMPLEMENTED` and `VERIFIED` under **Unreleased** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. This code was deployed after v2.12.3 without changing the displayed version. |
+| AU18 response parser | `IMPLEMENTED` and `VERIFIED` in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. The code was deployed ahead of the label; v2.12.4 is the release that carries it. |
 | Community functional measures | `PROPOSED` | No grip-strength or sit-to-stand feature has been built. Decisions `CD17`–`CD25` remain with the owner; `CD17`, `CD18`, `CD19` and `CD25` block implementation. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
-The deployed application therefore reports **v2.12.3**, while current `main` also contains the Unreleased AU18 parser fix and documentation corrections. See [`CHANGELOG.md`](CHANGELOG.md) for the authoritative release record.
+The application reports **v2.12.4**, which carries the AU18 parser fix, the Community `P4.2`, `P4.3` and `CP16` changes, and the documentation corrections that had been deployed under the previous label. See [`CHANGELOG.md`](CHANGELOG.md) for the authoritative release record.
 
 ## Quick start
 
@@ -340,7 +340,7 @@ NEXUS is an operational and workload management tool. It is not a clinical syste
 
 ### Supported versions
 
-The current application version is **2.12.3**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
+The current application version is **2.12.4**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
 
 ### Access and data controls
 
@@ -426,7 +426,7 @@ Use these focused checks after a deployment:
 
 ## Releases and current work
 
-[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.12.3**; current `main` also contains an Unreleased, deployed AU18 parser fix and documentation corrections.
+[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.12.4**, which carries the AU18 parser fix, Community `P4.2`, `P4.3` and `CP16`, and the documentation corrections that had been deployed under v2.12.3.
 
 The next work is governed by the live ledgers:
 
