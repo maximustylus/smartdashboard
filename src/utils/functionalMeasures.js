@@ -56,7 +56,7 @@ import {
     CHAIR_STAND_BELOW_AVERAGE, CHAIR_STAND_SOURCE, CHAIR_STAND_RANGE_REPS,
     PERCENTILE_LEVELS, SIT_TO_STAND_PROTOCOLS, SIT_TO_STAND_SPLIT_AGE,
     STS_60S_SOURCE, STS_60S_RANGE_REPS, SIT_TO_STAND_PLAUSIBLE,
-    STS_60S_NORMS_REPS, STS_60S_PERCENTILE_LEVELS,
+    STS_60S_NORMS_REPS, STS_60S_PERCENTILE_LEVELS, MEASUREMENT_SETTINGS,
 } from '../data/functionalNorms';
 
 /**
@@ -88,6 +88,19 @@ const normaliseSex = (value) => {
     if (v === 'male' || v === 'm') return 'male';
     if (v === 'female' || v === 'f') return 'female';
     return null;
+};
+
+/**
+ * Where the measurement was taken. Unrecognised settings become `other` rather than
+ * being stored verbatim: this field reaches the aggregate rollup, and a free-text
+ * value there is both a small re-identification surface and a category nobody can
+ * count. `null` when the resident was not asked or did not say.
+ */
+const normaliseSetting = (value) => {
+    if (typeof value !== 'string') return null;
+    const v = value.trim().toLowerCase();
+    if (v === '') return null;
+    return MEASUREMENT_SETTINGS.includes(v) ? v : 'other';
 };
 
 /**
@@ -141,7 +154,7 @@ const P75_STS = STS_60S_PERCENTILE_LEVELS.indexOf(75);
  *        | {{ok: false, reason: string, value: number|null}}
  */
 export const gripStrengthResult = (input) => {
-    const { ageYears, sex, kg } = input || {};
+    const { ageYears, sex, kg, setting } = input || {};
     const value = asNumber(kg);
     if (value === null) return { ok: false, reason: 'missing', value: null };
     if (value < GRIP_RANGE_KG.min || value > GRIP_RANGE_KG.max) {
@@ -174,6 +187,7 @@ export const gripStrengthResult = (input) => {
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         lowThreshold: row.p[P20],
+        setting: normaliseSetting(setting),
         sourceId: GRIP_SOURCE.id,
         referencePopulation: GRIP_SOURCE.referencePopulation,
     };
@@ -212,7 +226,24 @@ export const sitToStandProtocolForAge = (ageYears) => {
  * `reference-unavailable`, which is an honest answer and not an error.
  */
 export const sitToStandResult = (input) => {
-    const { ageYears, sex, reps, protocol } = input || {};
+    const { ageYears, sex, reps, protocol, setting } = input || {};
+
+    // "I am not sure which test they did" is the honest answer for most people
+    // measured at a community event, where nobody says whether the stopwatch ran for
+    // thirty seconds or a minute. The count is kept and shown; no band is computed,
+    // because guessing the protocol is guessing the answer. This is a resident
+    // answer, so it carries the value, unlike `protocol-unknown` below which is a
+    // caller passing something that is not a protocol at all.
+    if (protocol === 'unsure') {
+        const unsureValue = asNumber(reps);
+        return {
+            ok: false,
+            reason: 'protocol-not-known-by-resident',
+            value: unsureValue,
+            protocol: 'unsure',
+            setting: normaliseSetting(setting),
+        };
+    }
 
     if (!Object.prototype.hasOwnProperty.call(SIT_TO_STAND_PROTOCOLS, protocol)) {
         return { ok: false, reason: 'protocol-unknown', value: null };
@@ -266,6 +297,7 @@ export const sitToStandResult = (input) => {
             ageBand: ageBandLabel(age),
             sex: normalisedSex,
             typicalRange: [stsRow.p[P25_STS], stsRow.p[P75_STS]],
+            setting: normaliseSetting(setting),
             sourceId: STS_60S_SOURCE.id,
             referencePopulation: STS_60S_SOURCE.referencePopulation,
         };
@@ -285,6 +317,7 @@ export const sitToStandResult = (input) => {
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         belowAverageThreshold: row.belowAverage,
+        setting: normaliseSetting(setting),
         sourceId: CHAIR_STAND_SOURCE.id,
         referencePopulation: CHAIR_STAND_SOURCE.referencePopulation,
     };
@@ -298,6 +331,7 @@ export const CHAIR_STAND_BAND_IDS = Object.freeze(['below-average', 'at-or-above
 export const RESULT_REASONS = Object.freeze([
     'missing', 'out-of-range', 'age-unknown', 'no-reference-for-age', 'no-reference-for-sex',
     'protocol-unknown', 'protocol-age-mismatch', 'reference-unavailable',
+    'protocol-not-known-by-resident',
 ]);
 
 /**
@@ -318,5 +352,6 @@ export const toStorableBand = (result) => {
     // Which test produced this, so a later comparison cannot read a thirty-second
     // count against one-minute norms.
     if (result.protocol) stored.protocol = result.protocol;
+    if (result.setting) stored.setting = result.setting;
     return stored;
 };

@@ -170,6 +170,42 @@ export const SIT_TO_STAND_PROTOCOLS = Object.freeze({
     'sts-30s': Object.freeze({ id: 'sts-30s', seconds: 30, minAge: 60, maxAge: 94 }),
 });
 
+/**
+ * ==============================================================================
+ * WHERE A MEASUREMENT CAME FROM
+ * ==============================================================================
+ *
+ * Provenance is not bookkeeping here, it decides whether a value is interpretable
+ * at all. Tomkinson's harmonisation adjustments reach 17% across reporting
+ * variants, which is wider than several adjacent percentile columns.
+ *
+ * ⚠️ COMMUNITY EVENTS ARE THE COMMON CASE AND THE RISKIEST ONE. A roadshow or
+ *    screening stall is the most reachable route for exactly the residents this
+ *    portal exists for: free, local, no appointment, no referral. It is also where
+ *    nobody tells the resident which protocol was used. They remember being timed
+ *    standing up and sitting down, not whether the stopwatch ran for thirty seconds
+ *    or a minute. Those two counts look identical and mean opposite things, so
+ *    "I am not sure" has to be a first-class answer rather than a gap the interface
+ *    pressures somebody past.
+ */
+export const MEASUREMENT_SETTINGS = Object.freeze([
+    'community-event',
+    'active-ageing-centre',
+    'health-screening',
+    'gp-or-polyclinic',
+    'sport-exercise-medicine',
+    'gym-or-fitness',
+    'other',
+    'unsure',
+].map(String));
+
+/**
+ * What a resident may answer when asked which sit-to-stand they were given.
+ * `unsure` is not a failure state: it is the honest answer for most people
+ * measured at an event, and it produces a recorded value with no band.
+ */
+export const SIT_TO_STAND_ANSWERS = Object.freeze(['sts-30s', 'sts-60s', 'unsure']);
+
 /** The age at which the portal switches instrument. Below this, the minute version. */
 export const SIT_TO_STAND_SPLIT_AGE = 60;
 

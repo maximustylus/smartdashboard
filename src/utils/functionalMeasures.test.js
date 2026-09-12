@@ -353,3 +353,52 @@ describe('reading a sit-to-stand count', () => {
         });
     });
 });
+
+// ── provenance, and the community-event case ────────────────────────────────
+describe('where the measurement came from', () => {
+    it('carries the setting through a banded result', () => {
+        const r = gripStrengthResult({ ageYears: 67, sex: 'female', kg: 25, setting: 'community-event' });
+        expect(r.ok).toBe(true);
+        expect(r.setting).toBe('community-event');
+        expect(toStorableBand(r).setting).toBe('community-event');
+    });
+
+    // The rollup counts these, so an unrecognised value becomes a known category
+    // rather than free text nobody can count and everybody can be found by.
+    it('folds an unrecognised setting into other rather than storing it verbatim', () => {
+        const r = gripStrengthResult({ ageYears: 67, sex: 'female', kg: 25, setting: 'my uncle measured me' });
+        expect(r.setting).toBe('other');
+    });
+
+    it('leaves the setting null when nobody was asked', () => {
+        expect(gripStrengthResult({ ageYears: 67, sex: 'female', kg: 25 }).setting).toBeNull();
+    });
+
+    // THE COMMUNITY EVENT CASE. Somebody was timed at a roadshow and was never told
+    // which test it was. Thirty seconds and one minute look identical as counts and
+    // mean opposite things, so the number is kept and no band is computed.
+    it('records but does not band a count whose test the resident cannot name', () => {
+        const r = sitToStandResult({
+            ageYears: 45, sex: 'female', reps: 22, protocol: 'unsure', setting: 'community-event',
+        });
+        expect(r.ok).toBe(false);
+        expect(r.reason).toBe('protocol-not-known-by-resident');
+        expect(r.value).toBe(22);
+        expect(r.setting).toBe('community-event');
+    });
+
+    // 22 would be above-typical on a thirty-second test and well below typical on a
+    // minute. Guessing either way is guessing the answer.
+    it('would have banded that same count in opposite directions had it guessed', () => {
+        const asThirty = sitToStandResult({ ageYears: 67, sex: 'female', reps: 22, protocol: 'sts-30s' });
+        const asMinute = sitToStandResult({ ageYears: 45, sex: 'female', reps: 22, protocol: 'sts-60s' });
+        expect(asThirty.band).toBe('at-or-above-average');
+        expect(asMinute.band).toBe('below-typical');
+    });
+
+    it('has nothing to store when the protocol was not known', () => {
+        expect(toStorableBand(sitToStandResult({
+            ageYears: 45, sex: 'female', reps: 22, protocol: 'unsure',
+        }))).toBeNull();
+    });
+});
