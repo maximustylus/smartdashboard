@@ -54,6 +54,54 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.12.4] - 2026-09-12
+
+Community portal. A live defect fixed for residents aged 60 and over, the chat copy
+made safe to reorder, and the dormant foundations of the P9 functional-measures work.
+Also versions the AU18 parser fix and documentation corrections that were deployed
+after v2.12.3 without changing the displayed version, which `README.md` recorded as
+drift.
+
+### Fixed
+
+- **`CP27`** — the chat asked two questions the server would not accept. `AuraChat`
+  sends `domain: stepKey` for every answered step and `communityAck` rejects any
+  domain outside `COMMUNITY_DOMAINS`. `CP26` appended `falls` and `healthier_sg` on
+  the client and never extended the server list, so both answers were rejected with
+  "Unknown assessment domain." and neither was ever acknowledged. The falls step is
+  gated to residents aged 60 and over, so the failure landed on older adults, the
+  same cohort `CP26` itself was about. The two lists cannot import each other: the
+  client is ESM, the function is CommonJS behind its own package and deploy. A
+  contract test now holds the agreement and fails the build if it drifts again.
+
+### Changed
+
+- Chat copy moved out of `AuraChat.jsx` into `src/data/communityChatCopy.js`, and
+  addressed by question name rather than by counting. `COPY_ORDER` now states the
+  binding between array position and question explicitly, so `DOMAIN_CONFIG` can be
+  reordered without silently reassigning every prompt after the moved step in four
+  languages. Not one translated string was edited. Verified by driving the built app
+  in all four languages, zero page errors.
+- `pathwayParity` asserts on the real dictionary instead of grepping component
+  source, and gains the check `CP26` needed and nobody had: every language must
+  carry a prompt for every step. A short array was never an error, it was a question
+  silently never asked.
+
+### Added
+
+- Reference tables and banding for grip strength and sit-to-stand, with no
+  resident-facing surface yet: nothing imports them, so no screen changes. Grip from
+  Tomkinson 2025 (international, ages 20 to 100+), the 30-second chair stand from CDC
+  STEADI (United States, 60 to 94), the one-minute sit-to-stand from Strassmann 2013
+  (Swiss, 20 to 79). Every table machine-copied from its source PDF and validated on
+  load; tests re-assert the figures each paper prints in its own abstract. No source
+  is South East Asian and three tests hold that line.
+- Measurement provenance, including community events as a setting and "I am not sure
+  which test" as a first-class answer that records the count without banding it. A
+  count of 22 is above average on a thirty-second test and below typical on a minute.
+- A measurement-venue layer for `CD17` routing, which shows a venue only once both
+  its assessments and its access and cost are described.
+
 ### Documentation
 
 - Expanded the README around user workflows and implemented capabilities. Replaced the negative claims list with practical responsible-use guidance, moved identifier-check details into security guidance, and retained explicit Gemini data disclosures, screening limitations and governance links. No runtime behaviour or remediation status changed.
