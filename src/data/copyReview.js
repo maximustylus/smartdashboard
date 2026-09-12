@@ -117,6 +117,21 @@ export const COPY_REVIEW = Object.freeze({
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
         english: 'These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above.',
     }),
+
+    // The other 44 strings in that module: the two questions, the band labels, the
+    // nine reasons a comparison was refused, the eight places a measurement is
+    // taken. Registered as ONE entry rather than 44, because a reviewer reads the
+    // module in one sitting and 44 rows would make the sheet unreadable without
+    // telling anybody anything the module does not.
+    //
+    // Not safety-critical, and the distinction is real: a mistranslated band label
+    // is wrong, a mistranslated prohibition is dangerous. It still owes a human
+    // read, and `reviewDebt` still counts it, which is the whole point of `CD13`.
+    'measures.uiCopy': Object.freeze({
+        where: 'src/data/measuresCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
 });
 
 /**

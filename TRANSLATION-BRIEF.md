@@ -426,6 +426,91 @@ flag lines, not substituted for it.
 
 ---
 
+## Group 5 — functional measures · 47 strings · ⚠️ **3 OF THEM GATE THE BUILD**
+
+`src/data/measuresCopy.js`. Written 2026-09-12, machine-translated, on no screen
+yet. This is the copy for the two strength measurements: grip strength in
+kilograms, and how many times somebody can stand up from a chair.
+
+### ⚠️ Why three of these are not like anything else in this brief
+
+Everything in groups 1 to 4 is a question or an observation. A mistranslation there
+collects a wrong answer or reads awkwardly, which is bad and recoverable.
+
+**Three strings in this group are prohibitions.** Their entire job is to stop
+somebody doing something, and that is the category the owner has already ruled on:
+*"I have not machine-translated urgent clinical advice and will not."*
+
+A prohibition degrades in a way nothing else in this brief does. *"Do not try this
+on your own"* can come back as *"you may prefer to have someone with you"* and read
+perfectly naturally, so a reviewer skimming for accuracy passes it. The sentence is
+fine. The instruction is gone.
+
+**So the one thing to check in this group is that each of the three is still an
+instruction, not a suggestion.** Everything else is secondary.
+
+These three are enforced in code, not by this document. `src/data/copyReview.js`
+holds the registry and the build fails once a screen shows them. Today it does not,
+so the build is green; it goes red the day the entry screen lands.
+
+### The three that gate the build
+
+**`measures.doNotSelfTest`** — EN: *Please do not try either test on your own now.
+These are measured with someone there to help.*
+
+⚠️ Must read as a **prohibition**. If the back-translation is a preference, a
+recommendation, or anything with "should", it has failed and must be rewritten.
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Sila jangan cuba mana-mana ujian ini sendiri sekarang. Ujian ini diukur dengan ada orang di sisi untuk membantu. | Please do not try any of these tests by yourself now. These tests are measured with someone at your side to help. |
+| `zh` | 请不要现在自己尝试这两项测试。这些测试要在有人在旁协助的情况下才进行测量。 | Please do not try these two tests by yourself now. These tests are only measured when there is someone alongside to assist. |
+| `ta` | இந்த இரண்டு சோதனைகளையும் இப்போது நீங்களே தனியாக முயற்சிக்க வேண்டாம். உதவிக்கு ஒருவர் உடன் இருக்கும்போது மட்டுமே இவை அளக்கப்படுகின்றன. | Do not attempt these two tests by yourself alone now. These are measured only when someone is with you to help. |
+
+**`measures.noComparison`** — EN: *We have kept your number so you can show it to
+your doctor. We do not have a published range that covers your age, so we are not
+going to guess one.*
+
+⚠️ Must read as **we did not compare it**, not as a comparison that came out poorly.
+A reader who takes this as a bad result is the failure this string exists to prevent.
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Kami telah simpan nombor anda supaya anda boleh tunjukkan kepada doktor anda. Kami tiada julat terbitan yang meliputi umur anda, jadi kami tidak akan meneka. | We have kept your number so that you can show it to your doctor. We do not have a published range that covers your age, so we will not guess. |
+| `zh` | 我们保存了您的数字，方便您给医生看。我们没有涵盖您年龄的已发表范围，所以我们不会去猜测。 | We have saved your number, so it is convenient for you to show your doctor. We do not have a published range covering your age, so we will not guess. |
+| `ta` | உங்கள் மருத்துவரிடம் காட்டுவதற்காக உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம். உங்கள் வயதை உள்ளடக்கிய வெளியிடப்பட்ட வரம்பு எங்களிடம் இல்லை, எனவே நாங்கள் ஊகிக்கப் போவதில்லை. | We have kept your number so that you can show it to your doctor. We do not have a published range that covers your age, so we are not going to guess. |
+
+**`measures.notADiagnosis`** — EN: *These numbers describe your strength today. They
+are not a diagnosis, and they have not changed your result above.*
+
+⚠️ Must read as **not a diagnosis**. ⚠️ Tamil uses *நோய் கண்டறிதல்* ("disease
+diagnosis"), which is more specific than the English. A Tamil reader should confirm
+that is the right register for somebody who is not unwell.
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Nombor ini menerangkan kekuatan anda hari ini. Ia bukan diagnosis, dan ia tidak mengubah keputusan anda di atas. | These numbers describe your strength today. It is not a diagnosis, and it does not change your result above. |
+| `zh` | 这些数字描述的是您今天的力量。它们不是诊断，也没有改变您上面的结果。 | These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above. |
+| `ta` | இந்த எண்கள் இன்றைய உங்கள் வலிமையை விவரிக்கின்றன. இவை நோய் கண்டறிதல் அல்ல, மேலே உள்ள உங்கள் முடிவை இவை மாற்றவும் இல்லை. | These numbers describe your strength today. These are not a disease diagnosis, and they have not changed your result above. |
+
+### The other 44, read as a block
+
+`measures.uiCopy` in the registry: two questions, the band labels, the nine reasons
+a comparison was refused, the eight places a measurement is taken. Not gated, still
+owed a read. Two things worth an eye:
+
+- **The band labels never rank a person.** *"Below the usual range for your age"*,
+  never *"weaker than most people your age"*. `measuresCopy.test.js` asserts this
+  in English and the reviewer is the only check in the other three.
+- **The chair stand has two levels, not three**, because the source publishes one
+  cut-off. If a translation implies a middle level exists, it has invented one.
+
+⚠️ **The back-translations above were produced by the same model that wrote the
+translations.** That is not a second opinion and is not offered as one. They are
+there so a reviewer can see what was intended, and the translation is what counts.
+
+---
+
 ## Totals
 
 | Group | Strings | × 3 languages |
@@ -434,7 +519,11 @@ flag lines, not substituted for it.
 | 2 — action cards | 49 | 147 |
 | 3 — notices | 6 blocks | 18 |
 | 4 — handover slip | 24 | 72 |
-| | **88** | **264** |
+| 5 — functional measures | 47 | 141 |
+| | **135** | **405** |
 
 Group 2 is the bulk and the highest clinical stakes; Group 1 is the one where every
-day it is missing costs data you cannot recover later.
+day it is missing costs data you cannot recover later. **Group 5 is the only one
+that can stop a build**, and only three of its strings do: the three prohibitions.
+Reading those three is roughly fifteen minutes per language, and it is the thing
+standing between the functional measures feature and being shippable.
