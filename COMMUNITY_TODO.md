@@ -434,6 +434,50 @@ were found by the test rather than by reading:**
   first. A bare token would have turned *"the portal does not know"* into *"this
   person is not enrolled"*, for every Malay speaker who was unsure, silently.
 
+## `P9` — the pathway split landed 2026-09-12
+
+The conversation now runs: physical activity, then sex, then a precise age, then
+everything that branches on it.
+
+| | Before | After |
+|---|---|---|
+| Activity questions | 1-3 | 1-3 |
+| Sex | 9, as "age group and gender" | 4, sex only |
+| Age | 9, as a band | **5, as a year** |
+| Falls (60+) | 14, after record linkage | 11, after the age is known |
+| Record linkage | 13 | last |
+
+**Why a year and not a band.** The published strength references are cut in
+five-year rows from 20 to 100+. "60+" spans eight of them, so a record collected
+as a band can never be compared and nobody can be told why. `parseAgeYears`
+returns `null` for a range rather than picking an end of it: a guess here does not
+produce a missing comparison, it produces a WRONG one, shown to somebody as if it
+were about them.
+
+**Only the band is stored.** The year is used to pick the reference row and is then
+dropped. The telemetry payload already carries postal sector, sex, ethnicity and
+housing type, and a whole-year age beside them narrows a record to very few people
+in a sector.
+
+**Both pathways changed together.** The form's age-group select is gone too, and
+`pathwayParity.test.js` now asserts that neither pathway offers bands again and
+that both gate the falls question through `isSixtyPlusPerson`. That gate has now
+broken twice for the same cohort: first as a `/60\s*\+/` substring test that only
+matched the chip text (`CP26`), then it would have broken again reading
+`demographics` for an age that had moved out of it.
+
+Verified in the built app, four languages, zero page errors: the progress total
+goes 15 → 16 at the age question for a 67-year-old and stays 15 for a 45-year-old.
+The only console errors are blocked Firebase calls in the sandbox.
+
+⚠️ `CP28` **OPEN, PRE-EXISTING, NOT INTRODUCED HERE.** The step badges
+("👤 About You", "🎂 Your Age", "🩺 Health & Safety Check") are English in all four
+languages, and always have been — every badge in `DOMAIN_CONFIG` is a literal. It
+is visible to a Chinese or Tamil speaker on every question. Out of scope for `P9`
+and logged rather than left unsaid.
+
+---
+
 ⚠️ **STILL OWED, AND IT IS A REAL DEBT — `CD13`.** Everything translated so far is
 machine-translated and **reviewed by no native speaker**. Two models were involved
 and that is not a second opinion, since neither can read back what it wrote.

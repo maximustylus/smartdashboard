@@ -45,6 +45,11 @@ const COMMUNITY_DOMAINS = [
     //    it cannot import the client's list. The contract is held by
     //    `src/components/AuraChat.domainParity.test.jsx` and by nothing else.
     'falls', 'healthier_sg',
+    //    Added with `P9`, which split the precise age out of `demographics` into its
+    //    own question. Same contract, same failure mode if forgotten: the answer is
+    //    rejected with "Unknown assessment domain." and the resident sees no
+    //    acknowledgement for the one question the strength comparison depends on.
+    'age_years',
 ];
 
 /** The four the portal ships. Mirrors `SUPPORTED` in `src/utils/language.js`. */

@@ -6,7 +6,7 @@ import { ChevronLeft, Send, Sun, Moon, ExternalLink, CheckCircle, BrainCircuit, 
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { readTheme, writeTheme } from '../utils/theme';
 
-import { nextActiveStep, activeStepCount, activeStepPosition } from '../utils/chatSteps';
+import { firstActiveStep, nextActiveStep, activeStepCount, activeStepPosition } from '../utils/chatSteps';
 // The word-level matchers moved with the parser into `clinicalParse.js` (`AC5`);
 // what stays is the one gate this component evaluates itself.
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
@@ -351,8 +351,21 @@ const AuraChatbot = () => {
     writeTheme(next);
   };
 
+  /*
+    ⚠️ THE FIRST QUESTION IS FOUND, NOT ASSUMED TO BE INDEX 0. This opened on
+       `keyAt(0)` unconditionally, which was right only for as long as step 0
+       happened to be translated everywhere and unconditional. `firstActiveStep`
+       applies the same two rules every other step goes through — skip what this
+       language has no prompt for, skip what `when` excludes — so reordering the
+       flow or gating its opening question cannot leave the chat greeting somebody
+       with `undefined`.
+  */
   useEffect(() => {
-    if (messages.length === 0) appendBotMessage(langData.prompts[keyAt(0)], 0);
+    if (messages.length > 0) return;
+    const opening = firstActiveStep(DOMAIN_CONFIG, langData.prompts, {});
+    if (opening === -1) return;
+    setCurrentStep(opening);
+    appendBotMessage(langData.prompts[keyAt(opening)], opening);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {

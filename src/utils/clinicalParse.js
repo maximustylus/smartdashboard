@@ -21,7 +21,7 @@ import { toSector } from './singapore/postalSectors';
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
   matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
-  parseAgeBand,
+  parseAgeBand, exactAge,
   matchesFemale, matchesMale,
   isNoPreviousId, parseFallsAnswer, parseHealthierSg,
   parsePavsDays, parsePavsMinutes,
@@ -100,11 +100,25 @@ export const parseClinicalData = (raw) => {
   if (matchesFemale(demoStr))       gender = 'Female';
   else if (matchesMale(demoStr))    gender = 'Male';
 
-  // ⚠️ ONE PARSER, SHARED WITH THE FALLS GATE AND THE FORM. This was three
-  //    `includes` calls that only recognised the chip text, so a typed age became
-  //    `Unknown` — losing the falls screen AND both 60+ CTA tiers, since
-  //    `selectCTA` branches on this value.
-  const age = parseAgeBand(demoStr);
+  /**
+   * ⚠️ ONE PARSER, SHARED WITH THE FALLS GATE AND THE FORM. This was three
+   *    `includes` calls that only recognised the chip text, so a typed age became
+   *    `Unknown` — losing the falls screen AND both 60+ CTA tiers, since
+   *    `selectCTA` branches on this value.
+   *
+   * ⚠️ THE AGE NOW ARRIVES IN ITS OWN ANSWER, and `demographics` is the fallback
+   *    rather than the source. `P9` moved it, because the strength references are
+   *    cut in five-year bands and "60+" cannot be narrowed back down. The band is
+   *    still derived, because `selectCTA`, `calculateRiskScore` and the resource
+   *    plan all branch on it and none of them should learn a new shape for this.
+   *
+   *    Reading `demographics` alone here would have returned `Unknown` for every
+   *    resident from the moment that question became "are you male or female" —
+   *    silently costing the 60+ CTA tiers for the entire cohort. The fallback is
+   *    what keeps a record collected before this change readable afterwards.
+   */
+  const ageYears = exactAge(raw);
+  const age = ageYears !== null ? parseAgeBand(String(ageYears)) : parseAgeBand(demoStr);
 
   // NEW: Ethnicity & Housing Type
   const ethnicity = raw.ethnicity || 'Unknown';
@@ -143,7 +157,7 @@ export const parseClinicalData = (raw) => {
     fallsCount: falls.falls, fallsRisk: falls.fallsRisk,
     fearOfFalling: falls.avoidsActivity, fallsAsked: falls.asked,
     healthierSgEnrolled,
-    gender, age, ethnicity, housingType, postalSector, previousId,
+    gender, age, ageYears, ethnicity, housingType, postalSector, previousId,
     psychoFlag: sdohPsychological,
   };
 };

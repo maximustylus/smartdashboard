@@ -9,13 +9,23 @@
  * of this copy could be imported, inspected or tested on its own, and the checks
  * that most needed writing could not be written at all.
  *
- * ⚠️ `prompts`, `reflections` and `quickReplies` ARE STILL POSITIONAL ARRAYS HERE,
- *    index-aligned to `DOMAIN_CONFIG`. That is the defect this extraction is the
- *    first step of fixing, not a design. A question is currently bound to its text
- *    by COUNTING, so inserting a step in the middle silently reassigns every prompt
- *    after it, in four languages at once. That is how `CP26` happened. The next
- *    commit keys them by name; this one only moves them, so that if anything breaks
- *    it is obvious which change did it.
+ * `prompts`, `reflections` and `quickReplies` are positional arrays HERE, and
+ * `COPY_ORDER` at the foot of this file is what binds each position to a question
+ * name. That binding used to be implicit — whatever order `DOMAIN_CONFIG` happened
+ * to have — which is how `CP26` happened: inserting a step in the middle silently
+ * reassigned every prompt after it, in four languages at once.
+ *
+ * ⚠️ THE TWO ORDERS ARE NOW SEPARATE AND MUST NOT BE CONFUSED.
+ *
+ *      `COPY_ORDER`     the order the arrays below were AUTHORED in.
+ *      `DOMAIN_CONFIG`  the order questions are ASKED in.
+ *
+ *    Reordering the flow means editing `DOMAIN_CONFIG` alone and touching nothing
+ *    here. Adding a question means appending to BOTH — a new entry at the end of
+ *    each array and its name at the end of `COPY_ORDER` — or inserting at the same
+ *    index in every array and in `COPY_ORDER` together, which is what `age_years`
+ *    did at index 13. `communityChatCopy.test.js` asserts the two describe the same
+ *    set of questions, so a step added to one and not the other fails the build.
  */
 
 import { FALLS_CHIPS, HSG_CHIPS } from './screeningChips';
@@ -46,13 +56,14 @@ export const DICTIONARY = {
       /* 5  social          */ 'Roughly how many people — family or friends — could you call on for support if you needed help? And would you say you have people you can talk to openly?',
       /* 6  food_insecurity */ 'One more quick question — in the past 12 months, were there times when you were hungry but did not eat because you could not afford enough food?',
       /* 7  wellbeing       */ 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed — for example, due to work, caregiving, or financial pressure?',
-      /* 8  demographics    */ 'Almost done! Could you share your age group and gender? This helps me find programmes designed for your profile. (e.g. Female, 41–60)',
+      /* 8  demographics    */ 'Thank you. Now two quick things about you, because the advice changes with both. First, are you male or female?',
       /* 9  ethnicity       */ 'What is your ethnic group? This helps us understand the diverse communities we serve.',
       /* 10 housing_type    */ 'What type of housing do you live in? (e.g. HDB 3-Room, Condo)',
       /* 11 postal_code     */ 'What are the first two digits of your postal code? This lets me map the nearest resources to you.',
       /* 12 previous_id     */ 'Do you have a previous NEXUS Assessment ID? If yes, paste it below so I can link your records. If not, just select No.',
-      /* 13 falls           */ 'Two quick questions about steadiness. In the past 12 months, have you had a fall — including a slip or trip where you ended up on the ground?',
-      /* 14 healthier_sg    */ 'Last one — are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
+      /* 13 age_years      */ 'And how old are you? Please type your age in years, for example 67.',
+      /* 14 falls           */ 'Two quick questions about steadiness. In the past 12 months, have you had a fall — including a slip or trip where you ended up on the ground?',
+      /* 15 healthier_sg    */ 'Last one — are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
     ],
 
     reflections: [
@@ -86,6 +97,7 @@ export const DICTIONARY = {
         /(no|none|don'?t)/i.test(input)
           ? 'No problem — I will start a fresh record for you today. '
           : 'I will link your previous records to track your progress over time. ',
+      /* 13 age_years */ () => 'Thank you. ',
     ],
 
     quickReplies: [
@@ -109,7 +121,7 @@ export const DICTIONARY = {
         clinical copy was translated — see `CD10`.
       */
       /* 7 wellbeing       */ ['Feeling good overall', 'Some stress but managing', 'Feeling quite stressed or low', 'Overwhelmed — caregiving', 'Overwhelmed — financial pressure'],
-      /* 8 demographics    */ ['Male, 21–40', 'Female, 21–40', 'Male, 41–60', 'Female, 41–60', 'Male, 60+', 'Female, 60+'],
+      /* 8 demographics    */ ['Male', 'Female'],
       /* 9 ethnicity       */ ['Chinese', 'Malay', 'Indian', 'Eurasian', 'Others', 'Prefer not to say'],
       /* 10 housing_type   */ ['HDB 1-2 Room', 'HDB 3 Room', 'HDB 4 Room', 'HDB 5 Room / Exec', 'Condo / Private', 'Landed'],
       /* 11 postal_code    */ 
@@ -127,8 +139,9 @@ export const DICTIONARY = {
       */
       ['Other / Type my own'],
       /* 12 previous_id    */ ['No previous ID'],
-      /* 13 falls           */ FALLS_CHIPS.en,
-      /* 14 healthier_sg    */ HSG_CHIPS.en,
+      /* 13 age_years     */ null,
+      /* 14 falls           */ FALLS_CHIPS.en,
+      /* 15 healthier_sg    */ HSG_CHIPS.en,
     ],
   },
 
@@ -154,13 +167,14 @@ export const DICTIONARY = {
       'Lebih kurang berapa ramai orang — keluarga atau rakan — yang boleh anda hubungi jika memerlukan bantuan? Adakah anda mempunyai seseorang untuk bercerita?',
       'Satu soalan lagi — dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
       'Dalam dua minggu lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda berasa tertekan, murung, atau terbeban?',
-      'Hampir siap! Boleh kongsi kumpulan umur dan jantina anda? (cth. Perempuan, 41–60)',
+      'Terima kasih. Sekarang dua perkara ringkas tentang anda, kerana nasihat berubah mengikut kedua-duanya. Pertama, adakah anda lelaki atau perempuan?',
       'Apakah kumpulan etnik anda? Ini membantu kami memahami komuniti pelbagai yang kami layani.',
       'Apakah jenis perumahan yang anda diami? (cth. HDB 3-Bilik, Kondo)',
       'Apakah dua digit pertama poskod anda supaya saya boleh mencari sumber berdekatan?',
       'Soalan terakhir — adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada.',
-      /* 13 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh — termasuk tergelincir atau tersandung sehingga anda terjatuh ke lantai?',
-      /* 14 healthier_sg   */ 'Yang terakhir — adakah anda berdaftar dengan doktor Healthier SG? Ia menentukan program mana yang boleh dirujuk kepada anda.',
+      /* 13 age_years      */ 'Dan berapakah umur anda? Sila taip umur anda dalam tahun, contohnya 67.',
+      /* 14 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh — termasuk tergelincir atau tersandung sehingga anda terjatuh ke lantai?',
+      /* 15 healthier_sg   */ 'Yang terakhir — adakah anda berdaftar dengan doktor Healthier SG? Ia menentukan program mana yang boleh dirujuk kepada anda.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'Memulakan dari sifar adalah normal. ' : 'Permulaan yang baik. '; },
@@ -176,6 +190,7 @@ export const DICTIONARY = {
       () => 'Baik, ini membantu kami mencari ruang komuniti berdekatan. ',
       () => 'Memetakan sumber berdekatan sekarang. ',
       (input) => /(tidak|tiada|no)/i.test(input) ? 'Baik, rekod baharu akan dimulakan. ' : 'Saya akan menghubungkan rekod lama anda. ',
+      /* 13 age_years */ () => 'Terima kasih. ',
     ],
     quickReplies: [
       ['0 hari', '1–2 hari', '3–4 hari', '5–7 hari'],
@@ -186,7 +201,7 @@ export const DICTIONARY = {
       ['Ada beberapa orang yang boleh saya hubungi', 'Ada satu atau dua orang rapat', 'Saya mostly uruskan sendiri', 'Saya rasa agak keseorangan'],
       ['Ya, ini pernah berlaku', 'Tidak, saya sentiasa ada makanan yang cukup'],
       ['Perasaan baik secara keseluruhannya', 'Ada sedikit tekanan tapi boleh kawal', 'Rasa sangat tertekan atau sedih', 'Terbeban — tanggungjawab penjagaan', 'Terbeban — tekanan kewangan'],
-      ['Lelaki, 21–40', 'Perempuan, 21–40', 'Lelaki, 41–60', 'Perempuan, 41–60', 'Lelaki, 60+', 'Perempuan, 60+'],
+      ['Lelaki', 'Perempuan'],
       ['Cina', 'Melayu', 'India', 'Eurasian', 'Lain-lain', 'Tidak mahu beritahu'],
       ['HDB 1-2 Bilik', 'HDB 3 Bilik', 'HDB 4 Bilik', 'HDB 5 Bilik / Eksekutif', 'Kondo / Pangsapuri', 'Landed'],
       
@@ -216,8 +231,9 @@ export const DICTIONARY = {
            chip-for-chip parity with English — a chip changed here without its
            token fails that test rather than silently mis-flagging somebody.
       */
-      /* 13 falls          */ FALLS_CHIPS.ms,
-      /* 14 healthier_sg   */ HSG_CHIPS.ms,
+      /* 13 age_years     */ null,
+      /* 14 falls          */ FALLS_CHIPS.ms,
+      /* 15 healthier_sg   */ HSG_CHIPS.ms,
     ],
   },
 
@@ -243,13 +259,14 @@ export const DICTIONARY = {
       '大概有多少家人或朋友可以在您需要时提供帮助？您是否有可以倾心交谈的人？',
       '还有一个问题——在过去12个月里，您是否因为买不起足够的食物而挨过饿？',
       '在过去两周里，您的整体感觉如何？是否感到压力大、情绪低落或不知所措？',
-      '快完成了！能告诉我您的年龄段和性别吗？（例如：女，41–60）',
+      '谢谢。现在问两个关于您的简单问题，因为建议会随这两项而不同。首先，您是男性还是女性？',
       '您的种族是什么？这有助于我们更好地了解我们服务的多元社区。',
       '您居住的房屋类型是什么？（例如：HDB 3房式，公寓等）',
       '您的邮政编码前两位数是什么？这样我可以为您找到附近的资源。',
       '最后一个问题 — 您是否有之前的 NEXUS 评估 ID？如有，请粘贴在下方；如没有，请选择"没有"。',
-      /* 13 falls          */ '关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。',
-      /* 14 healthier_sg   */ '最后一个问题 — 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
+      /* 13 age_years      */ '请问您今年多大年纪？请输入您的年龄（岁），例如 67。',
+      /* 14 falls          */ '关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。',
+      /* 15 healthier_sg   */ '最后一个问题 — 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? '从零开始完全正常。' : '这是一个很好的起点。'; },
@@ -265,6 +282,7 @@ export const DICTIONARY = {
       () => '明白了，这有助于我们为您推荐附近的社区空间。',
       () => '正在为您定位附近的资源。',
       (input) => /(没|无|不|no)/i.test(input) ? '没问题，今天将为您建立新记录。' : '很好，我将链接您的历史记录。',
+      /* 13 age_years */ () => '谢谢。',
     ],
     quickReplies: [
       ['0 天', '1–2 天', '3–4 天', '5–7 天'],
@@ -275,7 +293,7 @@ export const DICTIONARY = {
       ['有几个可以依靠的人', '有一两个亲近的人', '大多数情况自己处理', '感到相当孤立'],
       ['是的', '没有，我一直都有足够的食物'],
       ['整体感觉不错', '有些压力但能应对', '感到很压抑或情绪低落', '感到不知所措 — 照顾', '感到不知所措 — 经济压力'],
-      ['男, 21–40', '女, 21–40', '男, 41–60', '女, 41–60', '男, 60+', '女, 60+'],
+      ['男', '女'],
       ['华人', '马来人', '印度人', '欧亚裔', '其他', '不愿透露'],
       ['HDB 1-2 房式', 'HDB 3 房式', 'HDB 4 房式', 'HDB 5 房式 / 执行组屋', '私人公寓', '有地住宅'],
       
@@ -305,8 +323,9 @@ export const DICTIONARY = {
            chip-for-chip parity with English — a chip changed here without its
            token fails that test rather than silently mis-flagging somebody.
       */
-      /* 13 falls          */ FALLS_CHIPS.zh,
-      /* 14 healthier_sg   */ HSG_CHIPS.zh,
+      /* 13 age_years     */ null,
+      /* 14 falls          */ FALLS_CHIPS.zh,
+      /* 15 healthier_sg   */ HSG_CHIPS.zh,
     ],
   },
 
@@ -332,13 +351,14 @@ export const DICTIONARY = {
       'தோராயமாக எத்தனை குடும்பத்தினர் அல்லது நண்பர்கள் உங்களுக்கு உதவ முடியும்? நெருங்கி பேச யாரேனும் இருக்கிறார்களா?',
       'கடந்த 12 மாதங்களில் உணவு வாங்க வசதியில்லாததால் பசியுடன் இருந்தும் சாப்பிடாத நேரங்கள் இருந்தனவா?',
       'கடந்த இரண்டு வாரங்களில் நீங்கள் எப்படி உணர்ந்தீர்கள்? மன அழுத்தம், மனச்சோர்வு, அல்லது அதிக சுமையாக உணர்ந்தீர்களா?',
-      'கிட்டத்தட்ட முடிந்துவிட்டது! உங்கள் வயது மற்றும் பாலினம் என்ன? (எ.கா. பெண், 41–60)',
+      'நன்றி. இப்போது உங்களைப் பற்றி இரண்டு சிறிய கேள்விகள், ஏனெனில் இவ்விரண்டையும் பொறுத்து அறிவுரை மாறும். முதலில், நீங்கள் ஆணா அல்லது பெண்ணா?',
       'உங்கள் இனம் என்ன? இது நாங்கள் சேவை செய்யும் பல்வேறு சமூகங்களை புரிந்துகொள்ள உதவுகிறது.',
       'நீங்கள் எந்த வகையான வீட்டில் வசிக்கிறீர்கள்? (எ.கா. HDB 3-அறை, காண்டோ)',
       'உங்கள் தபால் குறியீட்டின் முதல் இரண்டு இலக்கங்கள் என்ன?',
       'கடைசி கேள்வி — உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும்.',
-      /* 13 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட?',
-      /* 14 healthier_sg   */ 'கடைசியாக — நீங்கள் Healthier SG மருத்துவரிடம் பதிவு செய்துள்ளீர்களா? இது உங்களை எந்தத் திட்டங்களுக்குப் பரிந்துரைக்க முடியும் என்பதை மாற்றும்.',
+      /* 13 age_years      */ 'உங்கள் வயது என்ன? உங்கள் வயதை ஆண்டுகளில் தட்டச்சு செய்யுங்கள், எடுத்துக்காட்டாக 67.',
+      /* 14 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட?',
+      /* 15 healthier_sg   */ 'கடைசியாக — நீங்கள் Healthier SG மருத்துவரிடம் பதிவு செய்துள்ளீர்களா? இது உங்களை எந்தத் திட்டங்களுக்குப் பரிந்துரைக்க முடியும் என்பதை மாற்றும்.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'சூன்யத்திலிருந்து தொடங்குவது முற்றிலும் சாதாரணமானது. ' : 'இது ஒரு சிறந்த தொடக்கம். '; },
@@ -354,6 +374,7 @@ export const DICTIONARY = {
       () => 'புரிந்தது, அருகிலுள்ள சமூக இடங்களை பரிந்துரைக்க இது உதவுகிறது. ',
       () => 'அருகிலுள்ள வளங்களை இப்போது வரைபடமாக்குகிறேன். ',
       (input) => /(இல்லை|no)/i.test(input) ? 'பரவாயில்லை, புதிய பதிவை தொடங்குவோம். ' : 'முந்தைய பதிவுகளை இணைக்கிறேன். ',
+      /* 13 age_years */ () => 'நன்றி. ',
     ],
     quickReplies: [
       ['0 நாட்கள்', '1–2 நாட்கள்', '3–4 நாட்கள்', '5–7 நாட்கள்'],
@@ -364,7 +385,7 @@ export const DICTIONARY = {
       ['பல நம்பகமான நபர்கள் உள்ளனர்', 'ஒன்று அல்லது இரண்டு நெருங்கிய நபர்கள்', 'பெரும்பாலும் சுயமாக சமாளிக்கிறேன்', 'மிகவும் தனிமையாக உணர்கிறேன்'],
       ['ஆம், இது நடந்துள்ளது', 'இல்லை, என்னிடம் எப்போதும் போதுமான உணவு இருந்தது'],
       ['ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன்', 'சில மன அழுத்தம் ஆனால் சமாளிக்கிறேன்', 'மிகவும் மன அழுத்தம் அல்லது மனச்சோர்வு', 'அதிக சுமை — பராமரிப்பு', 'அதிக சுமை — நிதி அழுத்தம்'],
-      ['ஆண், 21–40', 'பெண், 21–40', 'ஆண், 41–60', 'பெண், 41–60', 'ஆண், 60+', 'பெண், 60+'],
+      ['ஆண்', 'பெண்'],
       ['சீனர்', 'மலாய்', 'இந்தியர்', 'யுரேஷியன்', 'மற்றவை', 'கூற விரும்பவில்லை'],
       ['HDB 1-2 அறை', 'HDB 3 அறை', 'HDB 4 அறை', 'HDB 5 அறை / எக்ஸிகியூட்டிவ்', 'காண்டோ / தனியார் அபார்ட்மெண்ட்', 'நிலம் உள்ள வீடு'],
       
@@ -394,8 +415,9 @@ export const DICTIONARY = {
            chip-for-chip parity with English — a chip changed here without its
            token fails that test rather than silently mis-flagging somebody.
       */
-      /* 13 falls          */ FALLS_CHIPS.ta,
-      /* 14 healthier_sg   */ HSG_CHIPS.ta,
+      /* 13 age_years     */ null,
+      /* 14 falls          */ FALLS_CHIPS.ta,
+      /* 15 healthier_sg   */ HSG_CHIPS.ta,
     ],
   },
 };
@@ -424,7 +446,7 @@ export const DICTIONARY = {
 export const COPY_ORDER = Object.freeze([
     'pavs_days', 'pavs_mins', 'strength', 'medical', 'barriers', 'social',
     'food_insecurity', 'wellbeing', 'demographics', 'ethnicity', 'housing_type',
-    'postal_code', 'previous_id', 'falls', 'healthier_sg',
+    'postal_code', 'previous_id', 'age_years', 'falls', 'healthier_sg',
 ]);
 
 /**

@@ -6,7 +6,7 @@
  * The conversational pathway assembles the same shape in `clinicalParse.js`.
  */
 import { toSector } from './singapore/postalSectors';
-import { parseFallsAnswer, parseHealthierSg, parseAgeBand } from './clinicalFlags';
+import { parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears } from './clinicalFlags';
 
 export const DAYS_MIDPOINT = Object.freeze({
   '0 days': 0,
@@ -85,6 +85,9 @@ export const deriveFormClinicalData = (answers = {}) => {
   const healthierSgEnrolled = parseHealthierSg(f.healthierSg);
   const previousId = answerText(f.previousId).trim().toUpperCase() || null;
 
+  // One reading of the age, shared by the band below and by `P9`'s comparisons.
+  const ageYears = parseAgeYears(f.ageYears);
+
   return {
     pavsScore,
     pavsDays,
@@ -107,7 +110,15 @@ export const deriveFormClinicalData = (answers = {}) => {
     ethnicity: answerText(f.race, 'Unknown') || 'Unknown',
     housingType: answerText(f.housing, 'Unknown') || 'Unknown',
     postalSector: toSector(f.postalCode),
-    age: parseAgeBand(f.ageGroup),
+    /*
+      ⚠️ THE BAND IS DERIVED FROM THE YEAR, NOT ASKED FOR. `P9` replaced the form's
+         age-group select with a whole-year input, because the strength references
+         are cut in five-year bands and "60+" cannot be narrowed back down.
+         `selectCTA`, `calculateRiskScore` and the resource plan all still branch on
+         the band, and none of them should learn a new shape for this.
+    */
+    age: ageYears !== null ? parseAgeBand(String(ageYears)) : 'Unknown',
+    ageYears,
     gender: answerText(f.gender, 'Unknown') || 'Unknown',
     previousId,
   };

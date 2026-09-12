@@ -20,7 +20,7 @@ const answers = (overrides = {}) => ({
   housing: 'HDB 3-5 Room',
   race: 'Chinese',
   postalCode: '560123',
-  ageGroup: '41-60',
+  ageYears: '52',
   gender: 'Female',
   previousId: ' nx-ab12cd ',
   ...overrides,
@@ -51,6 +51,7 @@ describe('deriveFormClinicalData', () => {
       housingType: 'HDB 3-5 Room',
       postalSector: '56',
       age: '41-60',
+      ageYears: 52,
       gender: 'Female',
       previousId: 'NX-AB12CD',
     });
