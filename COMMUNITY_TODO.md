@@ -434,6 +434,52 @@ were found by the test rather than by reading:**
   first. A bare token would have turned *"the portal does not know"* into *"this
   person is not enrolled"*, for every Malay speaker who was unsure, silently.
 
+## ⚠️ `CP30` — the printed report is 2px from losing content, today
+
+`PDF_PAGE_STYLE` is a fixed 794x1123 box with `overflow: hidden`, and the PDF is a
+rasterised screenshot of it. A page that grows does not spill onto another page and
+does not shrink to fit. **The bottom is cut off.** It still looks right on screen,
+where the same content sits in a scrolling column, so nothing warns and no test
+fails. A resident downloads a report with the last thing on it missing.
+
+`scripts/pdf-headroom.mjs` measures it. Run 2026-09-12, before any `P9` change:
+
+    scenario     lang  page  natural  spare
+    low-risk     en    1        1052     71
+    low-risk     ms    1        1037     86
+    low-risk     zh    1         988    135
+    low-risk     ta    1         988    135
+    worst-case   en    1        1121      2  ← tight
+    worst-case   ms    1        1091     32  ← tight
+    worst-case   zh    1        1056     67
+    worst-case   ta    1        1056     67
+    (page 2 is static: 77px spare in every language and scenario)
+
+    Tightest: worst-case / en / page 1 with 2px spare.
+
+**Two pixels.** A resident who raises every flag and reads English is two pixels
+from losing the bottom of their own plan. One more line of English copy anywhere on
+page 1 — a longer call to action, a new resource row, a wrapped sentence at a
+different font size — and content starts disappearing from people's PDFs with
+nothing to say it did.
+
+⚠️ **CONSEQUENCE FOR `P9`: THE MEASUREMENTS CANNOT GO ON PAGE 1 OR PAGE 2.** Neither
+has room for a two-row block plus its source citations. They go on a third page,
+which exists only when the resident gave a figure, so everybody who skips gets
+exactly the report they get today.
+
+`CP30` itself stays OPEN. The third page routes around it; it does not fix it, and
+page 1 is still two pixels from the edge for the next person who edits it.
+
+⚠️ Measuring this needs a detached clone with `height: auto`. The page is a
+fixed-height flex column, so its children stretch: `scrollHeight`, the bottom edge
+of the last child and the content area's own box ALL report exactly 1123 whether
+the content needs 300px or 3000. Three attempts at this measurement returned "0px
+spare" and meant nothing. The script's header says so, at length, because the
+obvious measurement is the wrong one and looks right.
+
+---
+
 ## ⚠️ THE BUILD IS RED, ON PURPOSE, AND ONE THING CLEARS IT
 
 `npm test` fails with exactly one failure:
