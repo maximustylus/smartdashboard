@@ -434,6 +434,44 @@ were found by the test rather than by reading:**
   first. A bare token would have turned *"the portal does not know"* into *"this
   person is not enrolled"*, for every Malay speaker who was unsure, silently.
 
+## `P9` — the report page landed 2026-09-12
+
+Page 3 of the printed report, rendered **only when the resident gave a figure**.
+Everybody who skips the questions gets exactly the two-page report they get today,
+with no blank page in their download. The footer's "PAGE n OF 2" was a literal and
+is now passed in, so a three-page report does not insist it has two.
+
+Each measurement shows the number, the band, and one sentence about what to do.
+Where no comparison could be made it shows the NUMBER and the REASON, because a
+blank card under a figure somebody just gave reads as "your result was too bad to
+print". All nine refusal states are covered by test.
+
+`measuresCopy.reportIntro` is a separate string from `intro`. The question-time
+line says "you can skip this and your result will not change", which is nonsense
+printed beside figures the person already gave.
+
+**The sources are named, with their populations.** None of the three is
+Singaporean, and a resident comparing themselves to a Swiss or United States
+sample is entitled to know that is what they are doing. Nothing is cited when no
+comparison was made: a citation for a comparison that did not happen is worse than
+none. That closes the citation half of `CD21`; the wording still wants the owner's
+sign-off.
+
+Headroom after the change, measured not assumed:
+
+    scenario           lang  page  natural  spare
+    measured           en    3         646    477
+    measured-refused   en    3         505    618
+    measured-refused   zh    3         489    634
+    (pages 1 and 2 unchanged: 71px and 77px, exactly as before)
+
+The `measured-refused` scenario exists because the worst case for page 3 is NOT
+two clean bands: the reason strings are far longer than a band label. A page sized
+against the happy path clips exactly the residents it was most important to
+explain things to.
+
+---
+
 ## ⚠️ `CP30` — the printed report is 2px from losing content, today
 
 `PDF_PAGE_STYLE` is a fixed 794x1123 box with `overflow: hidden`, and the PDF is a

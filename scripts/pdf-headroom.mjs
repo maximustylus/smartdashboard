@@ -83,10 +83,44 @@ const flags = (over) => ({
     ...over,
 });
 
+/*
+  `P9` page 3. The worst case for it is NOT two clean bands: it is two refusals,
+  because the reason strings are far longer than a band label and
+  `protocol-age-mismatch` is the longest of them. A page sized against the happy
+  path clips exactly the residents it was most important to explain things to.
+*/
+const measurements = (kind) => (kind === 'banded' ? {
+    grip: {
+        ok: true, band: 'low', value: 22, unit: 'kg', ageBand: '65-69', sex: 'female',
+        setting: 'community-event', sourceId: 'tomkinson-2025-absolute',
+        referencePopulation: 'international',
+    },
+    sitToStand: {
+        ok: true, band: 'at-or-above-average', value: 12, unit: 'reps', protocol: 'sts-30s',
+        seconds: 30, implausibleForProtocol: true, ageBand: '65-69', sex: 'female',
+        belowAverageThreshold: 11, setting: 'community-event', sourceId: 'cdc-steadi-2017',
+        referencePopulation: 'united-states',
+    },
+    setting: 'community-event',
+} : {
+    grip: { ok: false, reason: 'no-reference-for-age', value: 22 },
+    sitToStand: { ok: false, reason: 'protocol-age-mismatch', value: 12, protocol: 'sts-30s' },
+    setting: 'sport-exercise-medicine',
+});
+
 const SCENARIOS = {
     'low-risk': {
         score: 182, postalSector: '73', sessionId: 'NX-HEADROOM1', ctaTier: 'COMMUNITY',
         previousSessionId: null, data: flags({}),
+    },
+    'measured': {
+        score: 182, postalSector: '73', sessionId: 'NX-HEADROOM3', ctaTier: 'COMMUNITY',
+        previousSessionId: null, data: flags({ functional: measurements('banded') }),
+    },
+    // Two refusals rather than two bands: the longest this page can get.
+    'measured-refused': {
+        score: 182, postalSector: '73', sessionId: 'NX-HEADROOM4', ctaTier: 'COMMUNITY',
+        previousSessionId: null, data: flags({ functional: measurements('refused') }),
     },
     // Every flag raised, the longest call to action, and a linked previous record.
     'worst-case': {

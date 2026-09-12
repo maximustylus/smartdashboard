@@ -87,6 +87,16 @@ export const MEASURES_COPY = {
         noComparison: 'We have kept your number so you can show it to your doctor. We do not have a published range that covers your age, so we are not going to guess one.',
         notADiagnosis: 'These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above.',
 
+        reportHeading: 'Your strength measurements',
+        reportIntro: 'What you entered, and where each number sits against published ranges for your age.',
+        measuredAt: 'Measured at',
+        comparedAgainst: 'Compared against',
+        populations: {
+            international: 'an international reference population',
+            swiss: 'a Swiss reference population',
+            'united-states': 'a United States reference population',
+        },
+
         gripPrompt: 'Has anyone measured your grip strength with a hand grip meter? If yes, enter the number in kilograms.',
         gripUnit: 'kilograms (kg)',
         gripLabel: 'Grip strength',
@@ -153,6 +163,16 @@ export const MEASURES_COPY = {
         doNotSelfTest: 'Sila jangan cuba mana-mana ujian ini sendiri sekarang. Ujian ini diukur dengan ada orang di sisi untuk membantu.',
         noComparison: 'Kami telah simpan nombor anda supaya anda boleh tunjukkan kepada doktor anda. Kami tiada julat terbitan yang meliputi umur anda, jadi kami tidak akan meneka.',
         notADiagnosis: 'Nombor ini menerangkan kekuatan anda hari ini. Ia bukan diagnosis, dan ia tidak mengubah keputusan anda di atas.',
+
+        reportHeading: 'Ukuran kekuatan anda',
+        reportIntro: 'Apa yang anda masukkan, dan di mana setiap nombor berada berbanding julat terbitan bagi umur anda.',
+        measuredAt: 'Diukur di',
+        comparedAgainst: 'Dibandingkan dengan',
+        populations: {
+            international: 'populasi rujukan antarabangsa',
+            swiss: 'populasi rujukan Switzerland',
+            'united-states': 'populasi rujukan Amerika Syarikat',
+        },
 
         gripPrompt: 'Adakah sesiapa pernah mengukur kekuatan genggaman anda dengan alat pengukur genggaman? Jika ya, masukkan nombor itu dalam kilogram.',
         gripUnit: 'kilogram (kg)',
@@ -221,6 +241,16 @@ export const MEASURES_COPY = {
         noComparison: '我们保存了您的数字，方便您给医生看。我们没有涵盖您年龄的已发表范围，所以我们不会去猜测。',
         notADiagnosis: '这些数字描述的是您今天的力量。它们不是诊断，也没有改变您上面的结果。',
 
+        reportHeading: '您的力量测量结果',
+        reportIntro: '您填写的数字，以及每个数字在您这个年龄的已发表范围中的位置。',
+        measuredAt: '测量地点',
+        comparedAgainst: '对照范围',
+        populations: {
+            international: '国际参照人群',
+            swiss: '瑞士参照人群',
+            'united-states': '美国参照人群',
+        },
+
         gripPrompt: '有人用握力器为您测量过握力吗？如果有，请输入以公斤为单位的数字。',
         gripUnit: '公斤 (kg)',
         gripLabel: '握力',
@@ -287,6 +317,16 @@ export const MEASURES_COPY = {
         doNotSelfTest: 'இந்த இரண்டு சோதனைகளையும் இப்போது நீங்களே தனியாக முயற்சிக்க வேண்டாம். உதவிக்கு ஒருவர் உடன் இருக்கும்போது மட்டுமே இவை அளக்கப்படுகின்றன.',
         noComparison: 'உங்கள் மருத்துவரிடம் காட்டுவதற்காக உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம். உங்கள் வயதை உள்ளடக்கிய வெளியிடப்பட்ட வரம்பு எங்களிடம் இல்லை, எனவே நாங்கள் ஊகிக்கப் போவதில்லை.',
         notADiagnosis: 'இந்த எண்கள் இன்றைய உங்கள் வலிமையை விவரிக்கின்றன. இவை நோய் கண்டறிதல் அல்ல, மேலே உள்ள உங்கள் முடிவை இவை மாற்றவும் இல்லை.',
+
+        reportHeading: 'உங்கள் வலிமை அளவீடுகள்',
+        reportIntro: 'நீங்கள் பதிவு செய்தவை, மற்றும் உங்கள் வயதுக்கான வெளியிடப்பட்ட வரம்புகளுடன் ஒப்பிடும்போது ஒவ்வொரு எண்ணும் எங்கு இருக்கிறது என்பது.',
+        measuredAt: 'அளக்கப்பட்ட இடம்',
+        comparedAgainst: 'ஒப்பிடப்பட்ட வரம்பு',
+        populations: {
+            international: 'சர்வதேச ஒப்பீட்டு மக்கள்தொகை',
+            swiss: 'சுவிட்சர்லாந்து ஒப்பீட்டு மக்கள்தொகை',
+            'united-states': 'அமெரிக்க ஒப்பீட்டு மக்கள்தொகை',
+        },
 
         gripPrompt: 'கைப்பிடி வலிமை அளவியைக் கொண்டு யாராவது உங்கள் கைப்பிடி வலிமையை அளந்துள்ளார்களா? ஆம் எனில், கிலோகிராமில் அந்த எண்ணைப் பதிவு செய்யுங்கள்.',
         gripUnit: 'கிலோகிராம் (kg)',

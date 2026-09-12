@@ -9,6 +9,8 @@ import {
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { recordTelemetry } from '../utils/telemetry';
+import MeasurementsPanel from './MeasurementsPanel';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, saveResult, loadResult } from '../utils/assessmentSession';
@@ -326,10 +328,16 @@ const PDF_FOOTER_STYLE = {
   marginTop: 'auto',
 };
 
-const PdfFooter = ({ pageNum }) => (
+/*
+  ⚠️ THE TOTAL IS PASSED IN, NOT HARDCODED. It read "OF 2" as a literal, which was
+     true until `P9` added a measurements page that exists only for residents who
+     gave a figure. A footer that insists there are two pages on a three-page
+     report is the kind of detail that makes somebody doubt the rest of it.
+*/
+const PdfFooter = ({ pageNum, totalPages = 2 }) => (
   <div style={PDF_FOOTER_STYLE}>
     <div style={{ color: '#64748b', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>NEXUS AURA · SMART DASHBOARD</div>
-    <div style={{ color: '#94a3b8', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF 2</div>
+    <div style={{ color: '#94a3b8', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF {totalPages}</div>
   </div>
 );
 
@@ -579,6 +587,8 @@ export default function ResultPage() {
 
   const printRef  = useRef(null);
   const printRef2 = useRef(null);
+  // Page 3 exists only when there is something to put on it. See `MeasurementsPanel`.
+  const printRef3 = useRef(null);
 
   /**
    * ⚠️ A FINISHED ASSESSMENT USED TO DIE ON RELOAD. The result arrived only as
@@ -609,6 +619,15 @@ export default function ResultPage() {
   // `null`, not '00' — an absent result has no location, and '00' is not a sector.
   const safe = resultState || { score: 0, data: {}, postalSector: null };
   const { score, data, postalSector, sessionId, previousSessionId, ctaTier } = safe;
+
+  /*
+    ⚠️ ONE SOURCE OF TRUTH FOR WHETHER PAGE 3 EXISTS. The template below and the
+       PDF builder above must agree, or the download gets a blank third page (or
+       loses a page that is on screen). `hasMeasurementsToShow` is the rule, in
+       `measurementAnswers.js`, and both read it.
+  */
+  const showMeasurements = hasMeasurementsToShow(data?.functional);
+  const totalPages       = showMeasurements ? 3 : 2;
 
   const riskTier        = getRiskTier(score);
   // The id the record was written under, not a fresh one. This used to mint a
@@ -712,9 +731,13 @@ export default function ResultPage() {
     };
 
     try {
-      const [canvas1, canvas2] = await Promise.all([
+      const light = { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') };
+      const [canvas1, canvas2, canvas3] = await Promise.all([
         html2canvas(printRef.current,  captureOpts),
-        html2canvas(printRef2.current, { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') }),
+        html2canvas(printRef2.current, light),
+        // `null` rather than a skipped slot, so the destructure above stays aligned
+        // whether or not there is a third page.
+        printRef3.current ? html2canvas(printRef3.current, light) : Promise.resolve(null),
       ]);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -753,6 +776,10 @@ export default function ResultPage() {
       addCanvasPage(canvas1, printRef.current);
       pdf.addPage();
       addCanvasPage(canvas2, printRef2.current);
+      if (canvas3 && printRef3.current) {
+        pdf.addPage();
+        addCanvasPage(canvas3, printRef3.current);
+      }
 
       pdf.save(`NEXUS_AURA_Result_${riskTier}_${activeSessionId}.pdf`);
     } catch (err) { console.error('[NEXUS] PDF generation error:', err); }
@@ -921,7 +948,7 @@ export default function ResultPage() {
             </div>
           </div>
 
-          <PdfFooter pageNum={1} />
+          <PdfFooter pageNum={1} totalPages={totalPages} />
         </div>
 
         {/* ── PAGE 2: Governance ──────────────────────────────────────── */}
@@ -1038,8 +1065,22 @@ export default function ResultPage() {
 
           </div>
 
-          <PdfFooter pageNum={2} />
+          <PdfFooter pageNum={2} totalPages={totalPages} />
         </div>
+
+        {/* ── PAGE 3: Strength measurements ──────────────────────────────
+            Rendered ONLY when the resident gave a figure. Everybody who skipped
+            the questions gets exactly the two-page report they got before `P9`,
+            and no blank page in their download. */}
+        {showMeasurements && (
+          <div ref={printRef3} style={PDF_PAGE_STYLE}>
+            <PdfHeader subtitle={t.reportTitle} {...headerProps} />
+            <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <MeasurementsPanel functional={data.functional} lang={lang} />
+            </div>
+            <PdfFooter pageNum={3} totalPages={totalPages} />
+          </div>
+        )}
       </div>
 
       {/* ── BACKGROUND ORBS ─────────────────────────────────────────────────── */}

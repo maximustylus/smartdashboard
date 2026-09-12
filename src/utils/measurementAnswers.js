@@ -144,3 +144,18 @@ export const toStorableMeasurements = (results) => ({
     grip: toStorableBand(results?.grip),
     sitToStand: toStorableBand(results?.sitToStand),
 });
+
+/**
+ * Whether the report has anything to say about these measurements: a figure that
+ * was compared, or one that was given and could not be. A resident who skipped
+ * both gets no measurement page at all, which is the point — the page exists only
+ * when there is something on it, so skipping costs nothing and adds nothing.
+ *
+ * Lives here rather than beside the panel because it is a rule about results, and
+ * both the page and `ResultPage`'s PDF builder have to agree on it. Two copies of
+ * "is there anything to show" is how a blank page gets into somebody's download.
+ */
+export const hasMeasurementsToShow = (functional) => {
+    const shown = (result) => Boolean(result) && (result.ok === true || result.value !== null);
+    return shown(functional?.grip) || shown(functional?.sitToStand);
+};
