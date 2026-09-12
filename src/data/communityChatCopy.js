@@ -399,3 +399,52 @@ export const DICTIONARY = {
     ],
   },
 };
+
+/**
+ * ==============================================================================
+ * THE BINDING BETWEEN POSITION AND QUESTION
+ * ==============================================================================
+ *
+ * The three arrays below are written in this order. That is the ONLY thing that
+ * binds a prompt to the question it belongs to, and until now the binding was
+ * implicit: it lived in whatever order `DOMAIN_CONFIG` happened to have, so
+ * reordering the flow silently reassigned every prompt after the moved step, in
+ * four languages at once. `DOMAIN_CONFIG` carries an "APPENDED, NOT INSERTED"
+ * warning for exactly that reason.
+ *
+ * Writing it down here breaks that coupling. `DOMAIN_CONFIG` may now be reordered
+ * freely, because it describes the order questions are ASKED in, while this
+ * describes the order the answers were AUTHORED in. `communityChatCopy.test.js`
+ * asserts the two cover the same set of questions, so a step added to one and not
+ * the other fails the build rather than shipping a misaligned prompt.
+ *
+ * ⚠️ CHANGING THIS LIST REASSIGNS COPY. It is not a preference. Only ever edit it
+ *    in the same commit that moves the corresponding entries inside the arrays.
+ */
+export const COPY_ORDER = Object.freeze([
+    'pavs_days', 'pavs_mins', 'strength', 'medical', 'barriers', 'social',
+    'food_insecurity', 'wellbeing', 'demographics', 'ethnicity', 'housing_type',
+    'postal_code', 'previous_id', 'falls', 'healthier_sg',
+]);
+
+/**
+ * A question's copy, addressed by NAME. `undefined` where a language has no entry,
+ * which is a real state: `reflections` stops before the two appended steps, and
+ * `isStepAvailable` treats a missing prompt as a step to skip.
+ */
+const byKey = (list) => {
+    const out = {};
+    COPY_ORDER.forEach((key, i) => { out[key] = list[i]; });
+    return out;
+};
+
+/** `copyFor(lang).prompts.demographics` rather than `prompts[8]`. */
+export const copyFor = (lang) => {
+    const dict = DICTIONARY[lang] || DICTIONARY.en;
+    return {
+        ...dict,
+        prompts: byKey(dict.prompts),
+        reflections: byKey(dict.reflections),
+        quickReplies: byKey(dict.quickReplies),
+    };
+};

@@ -179,7 +179,7 @@ const CTA = {
   },
 };
 
-import { DICTIONARY } from '../data/communityChatCopy';
+import { copyFor } from '../data/communityChatCopy';
 
 // ─── AURA AVATAR ──────────────────────────────────────────────────────────────
 const AuraAvatar = ({ size = 'sm' }) => (
@@ -309,7 +309,9 @@ const AuraChatbot = () => {
   const concludingRef               = useRef(false);
 
   const [lang]      = useState(() => applyDocumentLanguage(readLanguage()));
-  const langData    = DICTIONARY[lang] || DICTIONARY.en;
+  const langData    = copyFor(lang);
+  // Copy is addressed by question name, never by counting. See `COPY_ORDER`.
+  const keyAt       = (i) => DOMAIN_CONFIG[i]?.key;
   const [sessionId] = useState(getSessionId);
 
   /**
@@ -350,7 +352,7 @@ const AuraChatbot = () => {
   };
 
   useEffect(() => {
-    if (messages.length === 0) appendBotMessage(langData.prompts[0], 0);
+    if (messages.length === 0) appendBotMessage(langData.prompts[keyAt(0)], 0);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -395,14 +397,14 @@ const AuraChatbot = () => {
     setCollectedData(updatedData);
     setIsTyping(true);
 
-    const staticAck = langData.reflections[currentStep]?.(text) ?? '';
+    const staticAck = langData.reflections[keyAt(currentStep)]?.(text) ?? '';
     // ⚠️ NOT `currentStep + 1`. Steps are skipped when they do not apply to this
     //    person (the falls branch is 60+ only) or when the active language has no
     //    prompt for them — see `src/utils/chatSteps.js`.
     const nextStep  = nextActiveStep(DOMAIN_CONFIG, currentStep, langData.prompts, updatedData);
 
     if (nextStep !== -1) {
-      const nextPromptRaw = langData.prompts[nextStep];
+      const nextPromptRaw = langData.prompts[keyAt(nextStep)];
       const nextPrompt    = typeof nextPromptRaw === 'function' ? nextPromptRaw(updatedData) : nextPromptRaw;
       const staticText    = (staticAck ? staticAck + ' ' : '') + nextPrompt;
 
@@ -570,7 +572,7 @@ const AuraChatbot = () => {
     }
   };
 
-  const showQuickReplies = !isTyping && !isComplete && currentStep < langData.quickReplies.length;
+  const showQuickReplies = !isTyping && !isComplete && Boolean(langData.quickReplies[keyAt(currentStep)]);
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-stone-50 dark:bg-slate-950 font-sans transition-colors duration-500">
@@ -703,7 +705,7 @@ const AuraChatbot = () => {
               {langData.hintText}
             </p>
             <div className="flex flex-wrap gap-2">
-              {langData.quickReplies[currentStep].map((reply) => (
+              {langData.quickReplies[keyAt(currentStep)].map((reply) => (
                 <button
                   key={reply}
                   onClick={() => handleUserSubmission(reply)}
