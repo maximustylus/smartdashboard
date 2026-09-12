@@ -48,7 +48,12 @@ export const isStepAvailable = (config, index, prompts, data) => {
 
     // Untranslated in this language — see the header. Checked BEFORE `when`, so a
     // conditional question cannot slip through in the wrong language.
-    const prompt = prompts?.[index];
+    //
+    // Addressed by NAME where the caller passes a keyed object, falling back to the
+    // index for callers still passing the positional array. The fallback is
+    // transitional: it exists so the array-to-keyed migration could land without
+    // rewriting every caller in one commit, and should go once none remain.
+    const prompt = (prompts && step.key in prompts) ? prompts[step.key] : prompts?.[index];
     if (prompt === undefined || prompt === null || prompt === '') return false;
 
     if (typeof step.when === 'function') {

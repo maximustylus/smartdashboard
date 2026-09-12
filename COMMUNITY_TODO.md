@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 15 | `CP1` `CP2` `CP3` `CP5` `CP6` `CP7` `CP9` `CP12` `CP13` `CP14` `CP15` `CP16` `CP17` `CP18` `CP19` |
+| `DONE`, evidenced | 16 | `CP1` `CP2` `CP3` `CP5` `CP6` `CP7` `CP9` `CP12` `CP13` `CP14` `CP15` `CP16` `CP17` `CP18` `CP19` · `CP27` (P10, on `community`, not yet on `main`) |
 | `OPEN`, mine | 0 | — |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -542,6 +542,37 @@ authorised for build. Revision 1 replaces the original recommendation where they
 instrument, input shape and public output. The other five decisions remain open and must
 be settled before their affected build steps. Recommendations above are `PROPOSED`, not
 accepted policy.
+
+---
+
+## P10 — `CP27` · the chat asked two questions the server would not accept · risk: medium
+
+Found while preparing the P9 build, because P9 appends conditional steps by the
+same mechanism that broke here. Fixed on branch `community`; not yet on `main`.
+
+`AuraChat` sends `domain: stepKey` for every answered step. `communityAck`'s
+`validateAckRequest` rejects any domain outside `COMMUNITY_DOMAINS` with *"Unknown
+assessment domain."* `CP26` appended `falls` and `healthier_sg` to the client's
+`DOMAIN_CONFIG` and never extended the server list, so **both answers were rejected
+at the endpoint and neither was ever acknowledged in the chat.** `falls` is gated to
+residents aged 60 and over, so the failure landed on older adults specifically —
+the same cohort `CP26` was itself about, failing a second time by a second route.
+
+The two lists cannot import each other: the client is ESM under `src/`, the
+function is CommonJS behind its own `package.json` and its own deploy. Nothing made
+them agree and nothing could see that they did not.
+
+| # | What | Id | Status | Evidence |
+|---|---|---|---|---|
+| 10.1 | Extract `DOMAIN_CONFIG` so the step list can be imported without `AuraChat` | `CP27` | `DONE` | `src/data/communityDomains.js`. Importing `AuraChat` pulls `src/firebase.js`, which calls `getMessaging(app)` at module scope and throws outside a browser: `FirebaseError: messaging/unsupported-browser`. The invariant was untestable until this moved. |
+| 10.2 | Contract test: every client step is a domain the server accepts | `CP27` | `DONE` | `src/components/AuraChat.domainParity.test.jsx`, **34 tests**. Before the fix: **5 failed**, `expected [ 'falls', 'healthier_sg' ] to deeply equal []`, including `validateAckRequest` returning `ok: false` for both through the real validator. |
+| 10.3 | Add the two keys to `COMMUNITY_DOMAINS` | `CP27` | `DONE` | `functions/communityAck.js`. After: **34 passed**. Full suite **3781 passed, 113 files**; `npm run lint` clean at `--max-warnings 0`; `npm run build` ✓. |
+| 10.4 | Follow the extraction in `pathwayParity.test.js` | `CP27` | `DONE` | The falls-gate assertion read `AuraChat.jsx` for `isSixtyPlus(` and failed on the move. Now asserts `data/communityDomains.js`, keeping both the positive gate and the "must not re-introduce a substring test" guard. **23 passed**. |
+| 10.5 | Remove the hardcoded "thirteen lines" count in `priorAnswerLines` | `CP27` | `DONE` | It would have read thirteen against a list of fifteen. `AC14` is the precedent for exactly this; the comment now describes the bound instead of counting it. |
+
+⚠️ **The parity test is the only thing holding this contract.** There is no shared
+module and there cannot be one across the two deploys. Appending a step without
+adding its key must fail in CI, and `AuraChat.domainParity.test.jsx` is where.
 
 ---
 

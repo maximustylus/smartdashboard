@@ -33,6 +33,18 @@ const COMMUNITY_DOMAINS = [
     'pavs_days', 'pavs_mins', 'strength', 'medical', 'barriers', 'social',
     'food_insecurity', 'wellbeing', 'demographics', 'ethnicity', 'housing_type',
     'postal_code', 'previous_id',
+    // ⚠️ APPENDED WHEN THE CLIENT APPENDED THEM, AND THAT DID NOT HAPPEN THE FIRST
+    //    TIME. `CP26` added `falls` and `healthier_sg` to `DOMAIN_CONFIG` on the
+    //    client; this list was not extended, so `validateAckRequest` rejected both
+    //    with "Unknown assessment domain." and neither answer was ever acknowledged
+    //    in the chat. `falls` is gated to residents aged 60 and over, so the
+    //    failure landed on older adults specifically — the same cohort `CP26`
+    //    itself was about.
+    //
+    //    This file is CommonJS behind its own `package.json` and its own deploy, so
+    //    it cannot import the client's list. The contract is held by
+    //    `src/components/AuraChat.domainParity.test.jsx` and by nothing else.
+    'falls', 'healthier_sg',
 ];
 
 /** The four the portal ships. Mirrors `SUPPORTED` in `src/utils/language.js`. */
@@ -93,8 +105,9 @@ const validateAckRequest = (data) => {
  *    caller's keys and skipping unknown ones leaves the door open to whatever the
  *    next reviewer forgets — a prototype-polluting key, a symbol, a key whose name
  *    is itself an injection. Walking `COMMUNITY_DOMAINS` and pulling values out
- *    means the shape of the output cannot be influenced at all: at most thirteen
- *    lines, each labelled with a name from this file.
+ *    means the shape of the output cannot be influenced at all: at most one line
+ *    per known domain, each labelled with a name from this file. (The count is
+ *    deliberately not written down here; `AC14` is what happens when it is.)
  */
 const priorAnswerLines = (prior) => {
     if (!prior || typeof prior !== 'object') return [];

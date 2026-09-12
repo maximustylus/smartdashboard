@@ -24,12 +24,18 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { DICTIONARY } from '../data/communityChatCopy';
+import { DOMAIN_CONFIG } from '../data/communityDomains';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { deriveFormClinicalData } from './formClinicalData';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const src = (name) => readFileSync(resolve(HERE, '..', 'components', name), 'utf8');
+// Anything outside `components/`. The chat's falls gate moved to
+// `data/communityDomains.js` when `DOMAIN_CONFIG` was extracted so it could be
+// imported without `AuraChat`'s firebase graph; the assertion below followed it.
+const mod = (rel) => readFileSync(resolve(HERE, '..', rel), 'utf8');
 
 /**
  * The keys of the object a pathway returns to the scorer. Brace-matched from the
@@ -140,12 +146,12 @@ describe('⚠️ both pathways derive the same clinical flags', () => {
 
 describe('both pathways ask the questions those flags come from', () => {
     it('both ask about falls', () => {
-        expect(src('AuraChat.jsx')).toMatch(/have you had a fall/i);
+        expect(DICTIONARY.en.prompts.join(' ')).toMatch(/have you had a fall/i);
         expect(src('ConventionalForm.jsx')).toMatch(/have you had a fall/i);
     });
 
     it('both ask about Healthier SG enrolment', () => {
-        expect(src('AuraChat.jsx')).toMatch(/enrolled with a Healthier SG GP/i);
+        expect(DICTIONARY.en.prompts.join(' ')).toMatch(/enrolled with a Healthier SG GP/i);
         expect(src('ConventionalForm.jsx')).toMatch(/enrolled with a Healthier SG GP/i);
     });
 
@@ -163,10 +169,11 @@ describe('both pathways ask the questions those flags come from', () => {
      *    both doing it wrong.
      */
     it('both gate the falls question with the shared age parser', () => {
-        ['AuraChat.jsx', 'ConventionalForm.jsx'].forEach((file) => {
-            expect(src(file), file).toMatch(/isSixtyPlus\(/);
-        });
-        expect(src('AuraChat.jsx'), 'the chat must not re-introduce a substring test for the chip text')
+        // The chat's gate is the `when` predicate on the `falls` step, which lives in
+        // `data/communityDomains.js` since the extraction. The form's is inline.
+        expect(mod('data/communityDomains.js'), 'communityDomains.js').toMatch(/isSixtyPlus\(/);
+        expect(src('ConventionalForm.jsx'), 'ConventionalForm.jsx').toMatch(/isSixtyPlus\(/);
+        expect(mod('data/communityDomains.js'), 'the chat must not re-introduce a substring test for the chip text')
             .not.toMatch(/when:\s*\(data\)\s*=>\s*\/60/);
         expect(src('ConventionalForm.jsx'), 'the form must not compare against the chip text')
             .not.toMatch(/ageGroup === '60\+'/);
@@ -184,5 +191,40 @@ describe('both pathways ask the questions those flags come from', () => {
             expect(parser).toMatch(/parseFallsAnswer/);
             expect(parser).toMatch(/parseHealthierSg/);
         });
+    });
+});
+
+// ── the guard `CP26` needed and nobody had ──────────────────────────────────
+//
+// `prompts`, `reflections` and `quickReplies` are positional arrays index-aligned
+// to `DOMAIN_CONFIG`, in four languages. `isStepAvailable` SKIPS a step with no
+// prompt in the active language, so a short array is not an error, it is a question
+// silently never asked. That is exactly what happened: English shipped 15 prompts
+// and the other three shipped 13, so the least English-dominant older residents,
+// the ones an Active Ageing Centre referral targets, got the shortest assessment.
+// Nothing in CI could see it.
+describe('every language is asked every question', () => {
+    const LANGS = ['en', 'ms', 'zh', 'ta'];
+
+    it.each(LANGS)('%s has a prompt for every step in DOMAIN_CONFIG', (lang) => {
+        expect(DICTIONARY[lang].prompts).toHaveLength(DOMAIN_CONFIG.length);
+    });
+
+    // A prompt is either a string or a function of the answers so far, because some
+    // questions quote what the person just said back to them. Both are valid; an
+    // empty string is not, and neither is a hole left where a translation should be.
+    it.each(LANGS)('%s has no blank prompt standing in for a missing translation', (lang) => {
+        DICTIONARY[lang].prompts.forEach((prompt, i) => {
+            const where = `${lang} prompt ${i} (${DOMAIN_CONFIG[i].key})`;
+            expect(['string', 'function'], where).toContain(typeof prompt);
+            if (typeof prompt === 'string') expect(prompt.trim().length, where).toBeGreaterThan(0);
+        });
+    });
+
+    // Chips and acknowledgements are addressed by the same index as the prompts, so
+    // a short array here misaligns every entry after it rather than simply ending.
+    it.each(LANGS)('%s keeps quickReplies and reflections within the step count', (lang) => {
+        expect(DICTIONARY[lang].quickReplies.length).toBeLessThanOrEqual(DOMAIN_CONFIG.length);
+        expect(DICTIONARY[lang].reflections.length).toBeLessThanOrEqual(DOMAIN_CONFIG.length);
     });
 });
