@@ -204,10 +204,25 @@ describe('the reachability gate is load-bearing, not decorative', () => {
         expect(blockingReviewGaps().map((g) => g.key)).toContain('measures.doNotSelfTest');
     });
 
-    it('marks written-but-unreachable copy as not live in the debt sheet', () => {
-        const row = reviewDebt(ON_SCREEN).find((r) => r.key === 'measures.doNotSelfTest');
-        expect(row).toBeDefined();
-        expect(row.live).toBe(false);
-        expect(isPending('measures.doNotSelfTest')).toBe(false);
+    /*
+      The debt sheet has to tell a reviewer WHICH strings are already in front of
+      residents, because that is what decides what to read first.
+
+      ⚠️ ASSERTED AGAINST BOTH REACHABILITY STATES, NOT AGAINST TODAY'S. This test
+         used to pin `live === false`, which was true only while nothing imported
+         the measures copy. It went stale the moment the questions shipped, and a
+         test that has to be edited every time the app changes teaches people to
+         edit it rather than read it. Driving it from an explicit set proves the
+         distinction works in both directions and stays true either way.
+    */
+    it('separates copy that is on screen from copy that is merely written', () => {
+        const key = 'measures.doNotSelfTest';
+        expect(isPending(key), 'the copy exists, so it is not pending').toBe(false);
+
+        const nothingShipped = reviewDebt(new Set()).find((r) => r.key === key);
+        expect(nothingShipped.live, 'unimported copy no resident can read').toBe(false);
+
+        const shipped = reviewDebt(new Set(reachabilityWatchlist())).find((r) => r.key === key);
+        expect(shipped.live, 'imported copy a resident can read').toBe(true);
     });
 });

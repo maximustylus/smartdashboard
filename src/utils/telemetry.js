@@ -95,10 +95,60 @@ const withDeadline = (promise, ms, onDeadline) => {
     return Promise.race([promise.finally(() => clearTimeout(timer)), deadline]);
 };
 
+/**
+ * ==============================================================================
+ * ⚠️ FIELDS THAT MUST NEVER REACH FIRESTORE, STRIPPED HERE RATHER THAN AT EACH CALL
+ * ==============================================================================
+ *
+ * The record this module writes already carries postal sector, age BAND, sex,
+ * ethnicity and housing type. That combination is close enough to identifying
+ * already; adding a whole-year age, or a grip figure in kilograms, closes the gap
+ * for anybody who ran the session at which the measurement was taken.
+ *
+ * Both are computed and both belong on screen, in the resident's own report, on the
+ * resident's own device. Neither belongs in an aggregate.
+ *
+ * ⚠️ THE STRIP HAPPENS INSIDE THIS FUNCTION ON PURPOSE. The obvious place is the
+ *    call site, and that is exactly where it fails: `AuraChat` passes the WHOLE
+ *    parsed object as `payload`, so every field anything ever adds to
+ *    `parseClinicalData` ships by default, and it ships silently. `ageYears` did
+ *    precisely that the day it was added, and nobody would have seen it. Enforcing
+ *    it here means a caller cannot leak these by forgetting, because there is
+ *    nothing for a caller to remember.
+ *
+ * ⚠️ THE SOURCE ALLOWLIST IS STILL THE PRIMARY GUARD. `toStorableMeasurements`
+ *    builds the band record from named fields rather than by deletion. This is the
+ *    second line, for the payloads that are whole objects rather than built ones.
+ */
+const NEVER_STORED = Object.freeze([
+    // A precise age. The five-year band is what the rollup counts; the year exists
+    // only to pick a reference row.
+    'ageYears',
+    // The display-only measurement results, which carry the raw kilograms and
+    // repetitions. `functionalStorable` beside it is the band-only version and is
+    // what may be written.
+    'functional',
+]);
+
+/** Deep copy with the fields above removed, whatever shape the payload has. */
+const withoutIdentifyingDetail = (value) => {
+    if (Array.isArray(value)) return value.map(withoutIdentifyingDetail);
+    if (value === null || typeof value !== 'object') return value;
+    // Dates, timestamps and other non-plain objects pass through untouched: copying
+    // them field by field would quietly destroy them.
+    if (Object.getPrototypeOf(value) !== Object.prototype) return value;
+    const out = {};
+    Object.entries(value).forEach(([key, inner]) => {
+        if (NEVER_STORED.includes(key)) return;
+        out[key] = withoutIdentifyingDetail(inner);
+    });
+    return out;
+};
+
 export const recordTelemetry = async (postalSector, payload) => {
     try {
         const assessmentData = {
-            ...payload,
+            ...withoutIdentifyingDetail(payload),
             // ⚠️ `'--'`, NOT `'00'`. A person who did not give a usable postal
             //    sector must not be recorded as living in one. `'00'` is two digits
             //    and reads as a place — it was the old sentinel, and it flowed

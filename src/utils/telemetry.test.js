@@ -132,3 +132,80 @@ describe('what is written', () => {
         expect(JSON.stringify(addDoc.mock.calls[0][1])).not.toMatch(/clientReference|userAgent/i);
     });
 });
+
+/**
+ * ==============================================================================
+ * ⚠️ WHAT MUST NOT REACH FIRESTORE
+ * ==============================================================================
+ *
+ * The aggregate record already carries postal sector, age band, sex, ethnicity and
+ * housing type. A whole-year age or a grip figure in kilograms beside those
+ * identifies a resident to anybody who ran the session at which they were measured.
+ *
+ * The strip lives inside `recordTelemetry` rather than at the call sites because
+ * `AuraChat` passes the WHOLE parsed object as its payload. Every field anything
+ * ever adds to `parseClinicalData` therefore ships by default and ships silently —
+ * which is exactly what `ageYears` did on the day it was added, and nobody would
+ * have seen it. These assertions are what make forgetting impossible.
+ */
+describe('a payload is stripped of what must never be stored', () => {
+    const written = () => addDoc.mock.calls[0][1];
+
+    beforeEach(() => { addDoc.mockResolvedValue({ id: 'doc1' }); });
+
+    it('drops a precise age while keeping the band', async () => {
+        await recordTelemetry('73', { payload: { age: '60+', ageYears: 67, gender: 'Female' } });
+        expect(written().payload.ageYears).toBeUndefined();
+        expect(written().payload.age).toBe('60+');
+        expect(written().payload.gender).toBe('Female');
+    });
+
+    it('drops the raw measurements while keeping the bands', async () => {
+        await recordTelemetry('73', {
+            payload: {
+                functional: { grip: { ok: true, value: 22.5, band: 'low' } },
+                functionalStorable: { grip: { band: 'low', ageBand: '65-69' }, sitToStand: null },
+            },
+        });
+        expect(written().payload.functional).toBeUndefined();
+        expect(written().payload.functionalStorable.grip.band).toBe('low');
+        expect(written().payload.functionalStorable.grip.ageBand).toBe('65-69');
+    });
+
+    // The chat passes the whole parsed object, at whatever depth it happens to nest.
+    // A strip that only looked at the top level would miss every one of them.
+    it('strips at any depth, not only at the top level', async () => {
+        await recordTelemetry('73', { a: { b: { c: { ageYears: 67, keep: 'yes' } } } });
+        expect(written().a.b.c.ageYears).toBeUndefined();
+        expect(written().a.b.c.keep).toBe('yes');
+    });
+
+    it('strips inside arrays too', async () => {
+        await recordTelemetry('73', { rows: [{ ageYears: 67, keep: 1 }, { keep: 2 }] });
+        expect(written().rows[0].ageYears).toBeUndefined();
+        expect(written().rows[0].keep).toBe(1);
+        expect(written().rows[1].keep).toBe(2);
+    });
+
+    // Copying a Date or a Firestore sentinel field by field would quietly destroy
+    // it, so anything that is not a plain object passes through untouched.
+    it('does not flatten a Date on its way past', async () => {
+        const when = new Date('2026-09-12T00:00:00Z');
+        await recordTelemetry('73', { when });
+        expect(written().when).toBeInstanceOf(Date);
+        expect(written().when.getTime()).toBe(when.getTime());
+    });
+
+    it('leaves a payload with nothing to strip exactly as it was', async () => {
+        await recordTelemetry('73', { score: 182, ctaTier: 'COMMUNITY', flags: { medFlag: false } });
+        expect(written().score).toBe(182);
+        expect(written().ctaTier).toBe('COMMUNITY');
+        expect(written().flags).toEqual({ medFlag: false });
+    });
+
+    it('still records the sector and the timestamp it is responsible for', async () => {
+        await recordTelemetry('73', { payload: { ageYears: 67 } });
+        expect(written().postalSector).toBe('73');
+        expect(written().createdAt).toEqual({ __serverTimestamp: true });
+    });
+});

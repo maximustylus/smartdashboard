@@ -29,6 +29,10 @@
  */
 
 import { FALLS_CHIPS, HSG_CHIPS } from './screeningChips';
+import { MEASURES_COPY } from './measuresCopy';
+import { MEASUREMENT_SETTINGS } from './functionalNorms';
+import { exactAge } from '../utils/clinicalFlags';
+import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
 
 export const DICTIONARY = {
   en: {
@@ -447,7 +451,62 @@ export const COPY_ORDER = Object.freeze([
     'pavs_days', 'pavs_mins', 'strength', 'medical', 'barriers', 'social',
     'food_insecurity', 'wellbeing', 'demographics', 'ethnicity', 'housing_type',
     'postal_code', 'previous_id', 'age_years', 'falls', 'healthier_sg',
+    // `P9`, appended below rather than written into the four dictionaries by hand.
+    'grip_kg', 'sit_to_stand', 'measure_setting',
 ]);
+
+/**
+ * ==============================================================================
+ * THE MEASUREMENT QUESTIONS, APPENDED FROM ONE SOURCE
+ * ==============================================================================
+ *
+ * These three are built here rather than typed into each of the four dictionaries
+ * above, and the reason is the shape of every translation defect this file has had.
+ * Four hand-written copies of the same structure is four chances to leave a chip
+ * out of Tamil, and `isStepAvailable` SKIPS rather than falls back, so the question
+ * is simply never asked to the people who cannot read it. Generating them means a
+ * language cannot be short by construction.
+ *
+ * The words themselves live in `measuresCopy.js`, which is where the review gate
+ * can see them.
+ *
+ * ⚠️ THIS IMPORT IS WHAT ARMS `copyReview.js`. `AuraChat` imports this module, so
+ *    from here the reachability walk in `scripts/copy-reachability.mjs` finds
+ *    `measuresCopy.js` and the three safety-critical strings become LIVE. The build
+ *    fails until a person has read them in Malay, Chinese and Tamil, or an owner
+ *    signs a dated waiver. That is the gate doing exactly what it was built for.
+ *
+ * ⚠️ THE PROHIBITION LEADS THE FIRST MEASUREMENT QUESTION. `doNotSelfTest` is shown
+ *    BEFORE either test is described, because a resident who reads "how many times
+ *    can you stand up from a chair in thirty seconds" and nothing else may try it,
+ *    alone, at 78. Moving it below the question, or onto the second one, undoes the
+ *    only thing standing between this feature and that.
+ */
+const LANGS = ['en', 'ms', 'zh', 'ta'];
+
+LANGS.forEach((lang) => {
+    const m = MEASURES_COPY[lang];
+
+    DICTIONARY[lang].prompts.push(
+        /* grip_kg        */ `${m.intro}\n\n${m.doNotSelfTest}\n\n${m.gripPrompt}`,
+        /* sit_to_stand   */ (data) => {
+            // The question NAMES its stopwatch, because the answer is read against
+            // the protocol the age selects and a resident who was timed differently
+            // has to be able to tell. `DOMAIN_CONFIG` does not ask this at all when
+            // no protocol applies; the fallback exists so a future gate change
+            // cannot make AURA greet somebody with `undefined`.
+            const protocol = sitToStandProtocolForAge(exactAge(data));
+            return m.stsPrompt[protocol] || m.stsPrompt['sts-60s'];
+        },
+        /* measure_setting */ m.settingPrompt,
+    );
+
+    DICTIONARY[lang].quickReplies.push(
+        /* grip_kg        */ [m.skip],
+        /* sit_to_stand   */ [m.skip, m.stsUnsure],
+        /* measure_setting */ MEASUREMENT_SETTINGS.map((id) => m.settings[id]),
+    );
+});
 
 /**
  * A question's copy, addressed by NAME. `undefined` where a language has no entry,

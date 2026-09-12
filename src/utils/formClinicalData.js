@@ -7,6 +7,7 @@
  */
 import { toSector } from './singapore/postalSectors';
 import { parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears } from './clinicalFlags';
+import { measurementResults, toStorableMeasurements } from './measurementAnswers';
 
 export const DAYS_MIDPOINT = Object.freeze({
   '0 days': 0,
@@ -88,6 +89,24 @@ export const deriveFormClinicalData = (answers = {}) => {
   // One reading of the age, shared by the band below and by `P9`'s comparisons.
   const ageYears = parseAgeYears(f.ageYears);
 
+  /*
+    ⚠️ THE SAME DERIVATION THE CHAT USES, FROM THE SAME MODULE. Two pathways reading
+       a typed measurement two ways is how `CP9` happened. `pathwayParity.test.js`
+       asserts both return the same keys; `measurementAnswers.js` is what makes them
+       return the same VALUES for the same person.
+
+       `functional` carries the raw figures and is for this device only;
+       `functionalStorable` is the band-only record. `telemetry.js` strips the
+       former by name, so neither pathway can leak it by forgetting.
+  */
+  const functional = measurementResults({
+    gripAnswer: f.gripKg,
+    stsAnswer: f.sitToStand,
+    settingAnswer: f.measureSetting,
+    ageYears,
+    sex: answerText(f.gender, ''),
+  });
+
   return {
     pavsScore,
     pavsDays,
@@ -119,6 +138,8 @@ export const deriveFormClinicalData = (answers = {}) => {
     */
     age: ageYears !== null ? parseAgeBand(String(ageYears)) : 'Unknown',
     ageYears,
+    functional,
+    functionalStorable: toStorableMeasurements(functional),
     gender: answerText(f.gender, 'Unknown') || 'Unknown',
     previousId,
   };

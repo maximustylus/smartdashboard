@@ -434,6 +434,70 @@ were found by the test rather than by reading:**
   first. A bare token would have turned *"the portal does not know"* into *"this
   person is not enrolled"*, for every Malay speaker who was unsure, silently.
 
+## ⚠️ THE BUILD IS RED, ON PURPOSE, AND ONE THING CLEARS IT
+
+`npm test` fails with exactly one failure:
+
+    THE GATE: safety instructions are read by a person
+      measures.doNotSelfTest: no reviewer for ms, zh, ta
+      measures.noComparison:  no reviewer for ms, zh, ta
+      measures.notADiagnosis: no reviewer for ms, zh, ta
+
+    Test Files  1 failed | 118 passed (119)
+    Tests       1 failed | 4091 passed (4092)
+
+This is the gate built on 2026-09-12 doing the job it was built for. The three
+strings are prohibitions, they are now on a screen a resident reaches, and no
+person has read them in Malay, Chinese or Tamil. Nothing is broken.
+
+**It clears one of two ways, and only these two:**
+
+1. Three names in `reviewedBy` in `src/data/copyReview.js`, one per language.
+   `TRANSLATION-BRIEF.md` group 5 has the strings, their translations and
+   back-translations. Roughly fifteen minutes per language.
+2. A dated, owner-named entry in `REVIEW_WAIVERS`. That is a debt somebody signs,
+   not a way past the gate, and it is the owner's to sign.
+
+Run `node scripts/copy-review-sheet.mjs` for the current state.
+
+---
+
+## `P9` — the measurement questions landed 2026-09-12
+
+Three questions, immediately before record linkage, in both pathways:
+
+| | Asked when | Answer |
+|---|---|---|
+| Grip strength | a published reference covers the age (20+) | kilograms, or skip |
+| Standing up from a chair | the same | repetitions, or skip, or "not sure which test" |
+| Where it was measured | either figure was given | one of eight settings |
+
+**The protocol comes from the age**, one minute under 60 and thirty seconds from
+60, and the question NAMES its stopwatch so a resident timed differently can say
+so. Verified in the built app: a 45-year-old is asked about one minute, a
+67-year-old about thirty seconds, in all four languages, zero page errors.
+
+**"I am not sure which test" is an answer, not a blank.** It keeps the number and
+refuses the comparison. A thirty-second count read against one-minute norms would
+tell somebody they are far weaker than they are, and that is the likeliest way
+this feature hurts anyone.
+
+**Neither figure feeds `calculateRiskScore`** (`CD20`). Skipping both changes
+nothing about the result.
+
+⚠️ `CP29` **FOUND AND FIXED HERE, INTRODUCED BY ME IN THE COMMIT BEFORE.** The chat
+passes the WHOLE parsed object to `recordTelemetry` as its payload. When `ageYears`
+was added to `parseClinicalData`, the precise age therefore started going to
+Firestore beside postal sector, sex, ethnicity and housing type. I caught it in the
+form and missed it in the chat.
+
+The fix is not at the call site, because that is where it failed: the strip now
+happens INSIDE `recordTelemetry`, so no caller can leak by forgetting. `ageYears`
+and the raw measurement figures are removed at any depth before the write.
+`telemetry.test.js` covers it.
+
+---
+
 ## `P9` — the pathway split landed 2026-09-12
 
 The conversation now runs: physical activity, then sex, then a precise age, then

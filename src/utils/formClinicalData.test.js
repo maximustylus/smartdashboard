@@ -54,6 +54,19 @@ describe('deriveFormClinicalData', () => {
       ageYears: 52,
       gender: 'Female',
       previousId: 'NX-AB12CD',
+      /*
+        ⚠️ A SKIPPED MEASUREMENT IS `missing`, NOT A ZERO AND NOT AN ERROR. This
+           fixture gives neither figure, which is what most residents will do, and
+           the contract has to say so in a shape the report can render a sentence
+           from. `functionalStorable` being null on both is the privacy default:
+           nothing is aggregated for somebody who was never measured.
+      */
+      functional: {
+        grip: { ok: false, reason: 'missing', value: null },
+        sitToStand: { ok: false, reason: 'missing', value: null, protocol: 'sts-60s' },
+        setting: null,
+      },
+      functionalStorable: { grip: null, sitToStand: null },
     });
   });
 

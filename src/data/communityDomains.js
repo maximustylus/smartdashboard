@@ -22,7 +22,21 @@
  *    assessment domain." The parity test is the only thing holding that contract.
  */
 
-import { isSixtyPlusPerson } from '../utils/clinicalFlags';
+import { isSixtyPlusPerson, exactAge } from '../utils/clinicalFlags';
+import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
+import { numberIn } from '../utils/measurementAnswers';
+
+/**
+ * Whether a published reference exists for this person at all. Both sources start
+ * at 20, so under that there is nothing to compare against and the honest thing is
+ * not to ask. `sitToStandProtocolForAge` already encodes that floor, so asking it
+ * keeps one definition rather than a second copy of the same number.
+ */
+const hasStrengthReference = (data) => sitToStandProtocolForAge(exactAge(data)) !== null;
+
+/** Whether either measurement actually produced a figure worth attributing. */
+const gaveAMeasurement = (data) =>
+    numberIn(data?.grip_kg) !== null || numberIn(data?.sit_to_stand) !== null;
 
 // ─── DOMAIN CONFIGURATION ─────────────────────────────────────────────────────
 // Each step declares its screening domain for badge display and progress colouring.
@@ -121,6 +135,44 @@ export const DOMAIN_CONFIG = [
     // Asked of everyone. The portal references Healthier SG throughout and cannot
     // currently tell whether the person is enrolled — which changes almost every
     // recommendation it makes.
+  },
+
+  /*
+    ── The strength measurements, immediately before record linkage ───────────
+
+    ⚠️ OPTIONAL, AND THEY MUST STAY OPTIONAL. `CD20` settled that neither of these
+       feeds `calculateRiskScore`, following the `falls` precedent: charging a
+       deficit for not owning a dynamometer penalises exactly the cohort this
+       portal exists for. Skipping both changes nothing about the result.
+
+    ⚠️ ASKED ONLY WHERE A REFERENCE EXISTS. Both sources start at 20. Asking an
+       18-year-old for a number nothing can be compared against collects a figure
+       we would then have to explain away, and every unnecessary question costs
+       completions.
+  */
+  {
+    key: 'grip_kg', badge: '🤝 Grip Strength', group: 'pavs',
+    when: hasStrengthReference,
+  },
+  {
+    key: 'sit_to_stand', badge: '🪑 Standing Up From a Chair', group: 'pavs',
+    /*
+      The prompt itself changes with age: one minute under 60, thirty seconds from
+      60, per the two published sources. That choice lives in the prompt function
+      in `communityChatCopy.js` and in `measurementAnswers.js`, and both read it
+      from `sitToStandProtocolForAge` so there is one rule.
+    */
+    when: hasStrengthReference,
+  },
+  {
+    key: 'measure_setting', badge: '📋 Where It Was Measured', group: 'admin',
+    /*
+      ⚠️ ASKED ONLY WHEN THERE IS SOMETHING TO ATTRIBUTE. A resident who skipped
+         both measurements must not then be asked where they were taken. It reads
+         as the portal not listening, and it is the question most likely to be the
+         one somebody abandons on, right before record linkage.
+    */
+    when: gaveAMeasurement,
   },
 
   // ── And last, the record linkage ──────────────────────────────────────────

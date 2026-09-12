@@ -60,6 +60,10 @@ import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/lan
 import { getSessionId, saveProgress, loadProgress, clearProgress } from '../utils/assessmentSession';
 import { isValidSector } from '../utils/singapore/postalSectors';
 import { isSixtyPlusPerson, parseAgeYears } from '../utils/clinicalFlags';
+import { measuresCopyFor } from '../data/measuresCopy';
+import { MEASUREMENT_SETTINGS } from '../data/functionalNorms';
+import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
+import { numberIn } from '../utils/measurementAnswers';
 import { DAYS_MIDPOINT, MINS_MIDPOINT, deriveFormClinicalData } from '../utils/formClinicalData';
 import { selectCTA } from '../utils/ctaRouting';
 
@@ -259,6 +263,8 @@ const D = {
       referred: 'Please answer the referral question.',
       rating:   "Please select a rating (choose 'Not applicable' if you haven't used community services).",
       ageYears: 'Please enter your age in whole years, between 18 and 120.',
+      gripKg: 'Please enter your grip strength as a single number in kilograms, or leave it blank.',
+      sitToStand: 'Please enter how many times you stood up as a single number, or leave it blank.',
       gender:   'Please select your gender.',
       race:     'Please select your ethnicity.',
       postalCode: 'Please enter the first 2 digits of your postal code.',
@@ -329,6 +335,8 @@ const D = {
       referred: 'Sila jawab soalan rujukan.',
       rating:   "Sila pilih penilaian (pilih 'Tidak berkenaan' jika belum menggunakan).",
       ageYears: 'Sila masukkan umur anda dalam tahun penuh, antara 18 dan 120.',
+      gripKg: 'Sila masukkan kekuatan genggaman anda sebagai satu nombor dalam kilogram, atau biarkan kosong.',
+      sitToStand: 'Sila masukkan berapa kali anda bangun sebagai satu nombor, atau biarkan kosong.',
       gender:   'Sila pilih jantina anda.',
       race:     'Sila pilih etnik anda.',
       postalCode: 'Sila masukkan 2 digit pertama poskod anda.',
@@ -399,6 +407,8 @@ const D = {
       referred: '请回答转介问题。',
       rating:   '请选择评分（如未使用过社区服务，请选"不适用"）。',
       ageYears: '请输入您的实际年龄（整岁），介于 18 至 120 之间。',
+      gripKg: '请以公斤为单位输入一个数字作为您的握力，或留空。',
+      sitToStand: '请输入您站起来的次数（一个数字），或留空。',
       gender:   '请选择您的性别。',
       race:     '请选择您的族裔。',
       postalCode: '请输入您邮政编码的前2位数字。',
@@ -469,6 +479,8 @@ const D = {
       referred: 'பரிந்துரை கேள்விக்கு பதிலளிக்கவும்.',
       rating:   'மதிப்பீட்டை தேர்ந்தெடுக்கவும்.',
       ageYears: 'உங்கள் வயதை முழு ஆண்டுகளில் உள்ளிடவும், 18 முதல் 120 வரை.',
+      gripKg: 'உங்கள் கைப்பிடி வலிமையை கிலோகிராமில் ஒரே எண்ணாக உள்ளிடவும், அல்லது காலியாக விடவும்.',
+      sitToStand: 'நீங்கள் எத்தனை முறை எழுந்தீர்கள் என்பதை ஒரே எண்ணாக உள்ளிடவும், அல்லது காலியாக விடவும்.',
       gender:   'உங்கள் பாலினத்தை தேர்ந்தெடுக்கவும்.',
       race:     'உங்கள் இனத்தை தேர்ந்தெடுக்கவும்.',
       postalCode: 'அஞ்சல் குறியீட்டின் முதல் 2 இலக்கங்களை உள்ளிடவும்.',
@@ -585,6 +597,7 @@ export default function ConventionalForm() {
     barriers: [], social: '', foodInsecure: null, incomeAdequacy: '', housing: '',
     aware: null, referred: null, rating: '', trust: '3', improve: '',
     ageYears: '', gender: '', race: '', postalCode: '', previousId: '',
+    gripKg: '', sitToStand: '', measureSetting: '',
     falls: '', healthierSg: '',
   };
   // Spread over the empty shape rather than used directly: a saved object from an
@@ -680,6 +693,14 @@ export default function ConventionalForm() {
       //    question — but for a 60+ respondent who skipped it, "not asked" would be
       //    a lie about whether the cohort was screened.
       if (isSixtyPlusPerson({ age_years: f.ageYears }) && !f.falls) return 'falls';
+      /*
+        ⚠️ OPTIONAL, BUT NOT "ANYTHING GOES". `CD20` keeps these out of the risk
+           score entirely, so a blank is free and must stay free. A figure that was
+           TYPED and cannot be read is different: it silently produces no comparison
+           at the end, with no way for the person to know why. Caught here instead.
+      */
+      if (f.gripKg.trim() !== '' && numberIn(f.gripKg) === null) return 'gripKg';
+      if (f.sitToStand.trim() !== '' && numberIn(f.sitToStand) === null) return 'sitToStand';
     }
     return null;
   };
@@ -977,6 +998,71 @@ export default function ConventionalForm() {
                 </select>
               </div>
             )}
+
+            {/*
+              ⚠️ THE SAME GATE AS THE CHAT'S `hasStrengthReference`. Both published
+                 sources start at 20, so below that there is nothing to compare
+                 against and asking collects a figure we would have to explain away.
+
+              ⚠️ `doNotSelfTest` LEADS THIS BLOCK, ABOVE EITHER FIELD. Somebody who
+                 reads "how many times can you stand up from a chair in thirty
+                 seconds" and nothing else may go and try it, alone, at 78. It is
+                 the first thing in the block for that reason, not for layout.
+            */}
+            {sitToStandProtocolForAge(parseAgeYears(f.ageYears)) !== null && (() => {
+              const m = measuresCopyFor(lang);
+              const protocol = sitToStandProtocolForAge(parseAgeYears(f.ageYears));
+              return (
+                <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {m.title}
+                    <span className="text-slate-400 font-normal text-xs ml-1">({t.optional})</span>
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{m.intro}</p>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-500 mt-2 leading-relaxed">
+                    {m.doNotSelfTest}
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-5 mt-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        {m.gripLabel}
+                      </label>
+                      <input type="number" inputMode="decimal" min={1} max={120} step="0.5"
+                        value={f.gripKg} onChange={e => set('gripKg', e.target.value)}
+                        className={inputCls} placeholder={m.gripUnit} />
+                      <Note text={m.gripPrompt} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        {m.stsLabel[protocol]}
+                      </label>
+                      <input type="number" inputMode="numeric" min={0} max={100} step="1"
+                        value={f.sitToStand} onChange={e => set('sitToStand', e.target.value)}
+                        className={inputCls} placeholder={m.stsUnit} />
+                      <Note text={m.stsPrompt[protocol]} />
+                    </div>
+                    {/*
+                      ⚠️ SHOWN ONLY ONCE THERE IS SOMETHING TO ATTRIBUTE, matching the
+                         chat's `gaveAMeasurement` gate. Asking where a measurement
+                         was taken from somebody who gave none reads as not listening.
+                    */}
+                    {(numberIn(f.gripKg) !== null || numberIn(f.sitToStand) !== null) && (
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                          {m.settingPrompt}
+                        </label>
+                        <select value={f.measureSetting} onChange={e => set('measureSetting', e.target.value)} className={selCls}>
+                          <option value="">{t.sel}</option>
+                          {MEASUREMENT_SETTINGS.map(id => (
+                            <option key={id} value={m.settings[id]}>{m.settings[id]}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">

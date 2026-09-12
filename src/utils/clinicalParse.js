@@ -18,6 +18,7 @@
  * lines, not about the chat.
  */
 import { toSector } from './singapore/postalSectors';
+import { measurementResults, toStorableMeasurements } from './measurementAnswers';
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
   matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
@@ -149,7 +150,32 @@ export const parseClinicalData = (raw) => {
   const isNoId     = isNoPreviousId(prevStr);
   const previousId = isNoId ? null : prevStr.trim().toUpperCase();
 
+  /*
+    ── The two strength measurements, `P9` ────────────────────────────────────
+
+    ⚠️ TWO SHAPES, AND THE DIFFERENCE IS A PRIVACY BOUNDARY, NOT A STYLE CHOICE.
+
+       `functional`         the full results, INCLUDING the kilograms and the
+                            repetitions. For the resident's own screen only.
+                            `telemetry.js` strips this field by name before writing.
+       `functionalStorable` bands and provenance, nothing continuous. This is what
+                            may be aggregated.
+
+    ⚠️ NEITHER FEEDS `calculateRiskScore`. `CD20`, following the `falls` precedent:
+       charging somebody a deficit for not owning a dynamometer penalises exactly
+       the cohort this portal exists for. Skipping both changes nothing.
+  */
+  const functional = measurementResults({
+    gripAnswer: raw.grip_kg,
+    stsAnswer: raw.sit_to_stand,
+    settingAnswer: raw.measure_setting,
+    ageYears,
+    sex: gender,
+  });
+
   return {
+    functional,
+    functionalStorable: toStorableMeasurements(functional),
     pavsScore, pavsDays, pavsMinutes, strengthDays,
     symptomFlag, medFlag,
     sdohFinancial, sdohSocial, sdohPsychological, sdohFoodInsecure,
