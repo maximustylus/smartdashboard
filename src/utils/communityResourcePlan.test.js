@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { CTA_TIER_BY_ROUTE } from './ctaRouting';
+import { COMMUNITY_RESOURCES } from '../data/communityResources';
 import {
   RESOURCE_IDS_BY_CTA_TIER,
+  MEASUREMENT_IDS,
+  VENUE_MEASURES,
+  measurementVenues,
   generateCommunityResourcePlan,
 } from './communityResourcePlan';
 
@@ -75,4 +79,47 @@ describe('community resource plan', () => {
     expect(new Set(plan).size).toBe(plan.length);
     expect(plan).toHaveLength(6);
   });
+});
+
+// ── measurement venues (`CD17`, P9) ─────────────────────────────────────────
+describe('where a resident is sent to be measured', () => {
+    it('names only assessments the banding code actually supports', () => {
+        Object.values(VENUE_MEASURES).forEach((list) => {
+            list.forEach((m) => expect(MEASUREMENT_IDS).toContain(m));
+        });
+    });
+
+    it('lists every marked venue against a real resource id', () => {
+        Object.keys(VENUE_MEASURES).forEach((id) => {
+            expect(COMMUNITY_RESOURCES[id]).toBeDefined();
+        });
+    });
+
+    // The guard that matters. A venue somebody half-confirmed, with the assessments
+    // named but no statement of how a resident gets seen or what it costs, must not
+    // reach a public surface. `CP8`.
+    it('shows no venue whose access and cost are undescribed', () => {
+        Object.keys(VENUE_MEASURES).forEach((id) => {
+            const resource = COMMUNITY_RESOURCES[id];
+            if (!resource.access) {
+                MEASUREMENT_IDS.forEach((m) => {
+                    expect(measurementVenues(m).map((v) => v.id)).not.toContain(id);
+                });
+            }
+        });
+    });
+
+    it('returns an empty list rather than a partial one when nothing is confirmed', () => {
+        MEASUREMENT_IDS.forEach((m) => {
+            expect(Array.isArray(measurementVenues(m))).toBe(true);
+        });
+    });
+
+    // Named explicitly so that adding them later is a deliberate act with evidence
+    // behind it, not an accident of editing a nearby line.
+    it.each(['active_health', 'aic_aac', 'healthier_sg'])(
+        'does not claim %s performs these assessments without confirmation', (id) => {
+            expect(VENUE_MEASURES[id]).toBeUndefined();
+        },
+    );
 });
