@@ -56,6 +56,7 @@ import {
     CHAIR_STAND_BELOW_AVERAGE, CHAIR_STAND_SOURCE, CHAIR_STAND_RANGE_REPS,
     PERCENTILE_LEVELS, SIT_TO_STAND_PROTOCOLS, SIT_TO_STAND_SPLIT_AGE,
     STS_60S_SOURCE, STS_60S_RANGE_REPS, SIT_TO_STAND_PLAUSIBLE,
+    STS_60S_NORMS_REPS, STS_60S_PERCENTILE_LEVELS,
 } from '../data/functionalNorms';
 
 /**
@@ -127,6 +128,10 @@ const P20 = PERCENTILE_LEVELS.indexOf(20);
 const P40 = PERCENTILE_LEVELS.indexOf(40);
 const P60 = PERCENTILE_LEVELS.indexOf(60);
 const P80 = PERCENTILE_LEVELS.indexOf(80);
+
+// Strassmann reports quartiles, so its columns are indexed separately from grip's.
+const P25_STS = STS_60S_PERCENTILE_LEVELS.indexOf(25);
+const P75_STS = STS_60S_PERCENTILE_LEVELS.indexOf(75);
 
 /**
  * Grip strength against the international reference range.
@@ -235,13 +240,35 @@ export const sitToStandResult = (input) => {
     const normalisedSex = normaliseSex(sex);
     if (normalisedSex === null) return { ok: false, reason: 'no-reference-for-sex', value, protocol };
 
-    // The one-minute table is not held yet: only page 949 of Strassmann was
-    // supplied, and the age-and-sex values are on 950-953. Banding here would mean
-    // interpolating twelve age bands from the two the abstract quotes, which is
-    // inventing a norm. When the table lands, `tableLoaded` flips and the band is
-    // computed here exactly as the thirty-second path does below.
-    if (protocol === 'sts-60s' && !STS_60S_SOURCE.tableLoaded) {
-        return { ok: false, reason: 'reference-unavailable', value, protocol };
+    if (protocol === 'sts-60s') {
+        // Kept as a guard rather than removed: if a future edit clears the table,
+        // this refuses rather than banding against an empty one.
+        if (!STS_60S_SOURCE.tableLoaded) {
+            return { ok: false, reason: 'reference-unavailable', value, protocol };
+        }
+        const stsRow = rowForAge(STS_60S_NORMS_REPS[normalisedSex], age);
+        if (stsRow === null) return { ok: false, reason: 'no-reference-for-age', value, protocol };
+
+        // Quartile cuts. "Typical" is the interquartile range inclusive, so the
+        // boundary values themselves read as typical rather than as outliers.
+        let stsBand = 'typical';
+        if (value < stsRow.p[P25_STS]) stsBand = 'below-typical';
+        else if (value > stsRow.p[P75_STS]) stsBand = 'above-typical';
+
+        return {
+            ok: true,
+            band: stsBand,
+            value,
+            unit: 'reps',
+            protocol,
+            seconds: spec.seconds,
+            implausibleForProtocol: implausible,
+            ageBand: ageBandLabel(age),
+            sex: normalisedSex,
+            typicalRange: [stsRow.p[P25_STS], stsRow.p[P75_STS]],
+            sourceId: STS_60S_SOURCE.id,
+            referencePopulation: STS_60S_SOURCE.referencePopulation,
+        };
     }
 
     const row = rowForAge(CHAIR_STAND_BELOW_AVERAGE[normalisedSex], age);

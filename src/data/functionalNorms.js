@@ -193,8 +193,8 @@ export const STS_60S_SOURCE = Object.freeze({
     referencePopulation: 'swiss',
     minAge: 20,
     maxAge: 79,
-    /** `false` until the real table is loaded. Nothing may band against it while false. */
-    tableLoaded: false,
+    /** Table 2 of the paper, loaded and validated. See `STS_60S_NORMS_REPS`. */
+    tableLoaded: true,
 });
 
 /**
@@ -207,6 +207,60 @@ export const STS_60S_ABSTRACT_CHECKS = Object.freeze([
     { sex: 'male', from: 75, to: 79, median: 30, p25: 25, p75: 37 },
     { sex: 'female', from: 75, to: 79, median: 27, p25: 22, p75: 30 },
 ].map(Object.freeze));
+
+/** Percentile columns of Strassmann Table 2, in the order every `p` array uses. */
+export const STS_60S_PERCENTILE_LEVELS = Object.freeze([2.5, 25, 50, 75, 97.5]);
+
+/**
+ * Strassmann Table 2: repetitions in one minute, by sex and five-year age band,
+ * ages 20 to 79. Machine-copied from the paper's text layer and validated on the
+ * way in: twelve contiguous bands, percentiles ascending within every row, and the
+ * four figures the abstract prints reproduced exactly by the parsed table.
+ *
+ * ⚠️ QUARTILES, NOT QUINTILES. This paper reports p2.5 / p25 / p50 / p75 / p97.5,
+ *    where the grip source reports deciles. So the two measures cannot share a band
+ *    vocabulary: grip gets the five-level quintile reading its own authors
+ *    prescribe, and this gets a three-level reading around the interquartile range.
+ *    That asymmetry is the data's, not a choice, and the resident-facing wording has
+ *    to absorb it rather than imply a precision this table does not carry.
+ */
+export const STS_60S_NORMS_REPS = Object.freeze({
+    male: Object.freeze([
+        { from: 20, to: 24, p: [27, 41, 50, 57, 72] },
+        { from: 25, to: 29, p: [29, 40, 48, 56, 74] },
+        { from: 30, to: 34, p: [28, 40, 47, 56, 72] },
+        { from: 35, to: 39, p: [27, 38, 47, 58, 72] },
+        { from: 40, to: 44, p: [25, 37, 45, 53, 69] },
+        { from: 45, to: 49, p: [25, 35, 44, 52, 70] },
+        { from: 50, to: 54, p: [24, 35, 42, 53, 67] },
+        { from: 55, to: 59, p: [22, 33, 41, 48, 63] },
+        { from: 60, to: 64, p: [20, 31, 37, 46, 63] },
+        { from: 65, to: 69, p: [20, 29, 35, 44, 60] },
+        { from: 70, to: 74, p: [19, 27, 32, 40, 59] },
+        { from: 75, to: 79, p: [16, 25, 30, 37, 56] },
+    ].map(Object.freeze)),
+    female: Object.freeze([
+        { from: 20, to: 24, p: [31, 39, 47, 55, 70] },
+        { from: 25, to: 29, p: [30, 40, 47, 54, 68] },
+        { from: 30, to: 34, p: [27, 37, 45, 51, 68] },
+        { from: 35, to: 39, p: [25, 37, 42, 50, 63] },
+        { from: 40, to: 44, p: [26, 35, 41, 48, 65] },
+        { from: 45, to: 49, p: [25, 35, 41, 50, 63] },
+        { from: 50, to: 54, p: [23, 33, 39, 47, 60] },
+        { from: 55, to: 59, p: [21, 30, 36, 43, 61] },
+        { from: 60, to: 64, p: [20, 28, 34, 40, 55] },
+        { from: 65, to: 69, p: [19, 27, 33, 40, 53] },
+        { from: 70, to: 74, p: [17, 25, 30, 36, 51] },
+        { from: 75, to: 79, p: [13, 22, 27, 30, 43] },
+    ].map(Object.freeze)),
+});
+
+/**
+ * Three levels, cut at the quartiles the paper reports. "Typical" spans the
+ * interquartile range, so half of same-age, same-sex adults in the reference
+ * population sit inside it.
+ */
+export const STS_60S_BANDS = Object.freeze(['below-typical', 'typical', 'above-typical']);
 
 /** Reps in one minute. Wider than the thirty-second envelope, necessarily. */
 export const STS_60S_RANGE_REPS = Object.freeze({ min: 0, max: 120 });

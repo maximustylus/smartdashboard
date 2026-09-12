@@ -19,7 +19,7 @@ import {
 } from './functionalMeasures';
 import {
     GRIP_NORMS_KG, CHAIR_STAND_BELOW_AVERAGE, PERCENTILE_LEVELS, GRIP_SOURCE,
-    CHAIR_STAND_SOURCE,
+    CHAIR_STAND_SOURCE, STS_60S_NORMS_REPS, STS_60S_SOURCE, STS_60S_BANDS,
 } from '../data/functionalNorms';
 import { calculateRiskScore } from './scoring';
 
@@ -59,7 +59,32 @@ describe('the shipped norm tables are internally coherent', () => {
         });
     });
 
-    it('never describes either reference population as South East Asian', () => {
+    it.each(['male', 'female'])('%s one-minute table has 12 contiguous bands from 20 to 79', (sex) => {
+        const rows = STS_60S_NORMS_REPS[sex];
+        expect(rows).toHaveLength(12);
+        expect(rows[0].from).toBe(20);
+        expect(rows[rows.length - 1].to).toBe(79);
+        rows.forEach((r, i) => {
+            if (i > 0) expect(r.from).toBe(rows[i - 1].from + 5);
+            expect(r.to).toBe(r.from + 4);
+            for (let k = 1; k < r.p.length; k++) expect(r.p[k]).toBeGreaterThan(r.p[k - 1]);
+        });
+    });
+
+    // The four figures Strassmann prints in its abstract, as an independent check
+    // that the table was read correctly.
+    it.each([
+        ['male', 20, [41, 50, 57]],
+        ['female', 20, [39, 47, 55]],
+        ['male', 75, [25, 30, 37]],
+        ['female', 75, [22, 27, 30]],
+    ])('%s aged %i matches the abstract', (sex, from, want) => {
+        const r = STS_60S_NORMS_REPS[sex].find((x) => x.from === from);
+        expect([r.p[1], r.p[2], r.p[3]]).toEqual(want);
+    });
+
+    it('never describes any reference population as South East Asian', () => {
+        expect(STS_60S_SOURCE.referencePopulation).toBe('swiss');
         expect(GRIP_SOURCE.referencePopulation).toBe('international');
         expect(CHAIR_STAND_SOURCE.referencePopulation).toBe('united-states');
     });
@@ -114,11 +139,9 @@ describe('it refuses rather than guesses', () => {
         expect(r.reason).toBe('no-reference-for-age');
     });
 
-    // Two different absences, and they are not the same thing. Under 60 a reference
-    // exists and is simply not loaded yet; over 94 no reference exists at all.
-    it('distinguishes a pending table from a reference that does not exist', () => {
-        expect(sitToStandResult({ ageYears: 59, sex: 'male', reps: 30, protocol: 'sts-60s' }).reason)
-            .toBe('reference-unavailable');
+    // Strassmann stops at 79 and STEADI at 94. Beyond either, no reference exists
+    // and none is extrapolated from the last row.
+    it('gives no comparison past the top of either reference', () => {
         expect(sitToStandResult({ ageYears: 95, sex: 'male', reps: 12, protocol: 'sts-30s' }).reason)
             .toBe('no-reference-for-age');
     });
@@ -274,13 +297,31 @@ describe('reading a sit-to-stand count', () => {
         expect(r.reason).toBe('protocol-age-mismatch');
     });
 
-    // Until pages 950-953 of Strassmann are loaded there is no under-60 table, and
-    // the honest answer is that no comparison is available.
-    it('gives no under-60 band while the one-minute table is not loaded', () => {
+    // Strassmann Table 2, women 45-49: p25 is 35 and p75 is 50, so 40 sits inside
+    // the interquartile range.
+    it('bands a one-minute count for a resident under 60', () => {
         const r = sitToStandResult({ ageYears: 45, sex: 'female', reps: 40, protocol: 'sts-60s' });
-        expect(r.ok).toBe(false);
-        expect(r.reason).toBe('reference-unavailable');
-        expect(r.value).toBe(40);
+        expect(r.ok).toBe(true);
+        expect(r.band).toBe('typical');
+        expect(r.seconds).toBe(60);
+        expect(r.typicalRange).toEqual([35, 50]);
+        expect(r.referencePopulation).toBe('swiss');
+    });
+
+    it.each([
+        ['below-typical', 34],
+        ['typical', 35],
+        ['typical', 50],
+        ['above-typical', 51],
+    ])('returns %s at the quartile boundary', (band, reps) => {
+        expect(sitToStandResult({ ageYears: 45, sex: 'female', reps, protocol: 'sts-60s' }).band).toBe(band);
+    });
+
+    it('returns only known one-minute band ids across the plausible range', () => {
+        for (let reps = 0; reps <= 120; reps++) {
+            const r = sitToStandResult({ ageYears: 45, sex: 'female', reps, protocol: 'sts-60s' });
+            expect(STS_60S_BANDS).toContain(r.band);
+        }
     });
 
     it('rejects an unrecognised protocol rather than assuming one', () => {
