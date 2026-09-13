@@ -135,6 +135,36 @@ export const COPY_REVIEW = Object.freeze({
 });
 
 /**
+ * ==============================================================================
+ * A MACHINE CROSS-CHECK IS EVIDENCE. IT IS NOT A REVIEW.
+ * ==============================================================================
+ *
+ * Running a translation back through two INDEPENDENT models is a genuinely good
+ * catch-net for the one failure this gate is about. A prohibition that lost its
+ * negation comes back, on back-translation, as a suggestion — and a second and
+ * third model that never saw the first one's reasoning will usually say so. It is
+ * worth doing and worth recording.
+ *
+ * It is not what the owner's rule asks for, and the difference is not pedantry:
+ *
+ *   A model checks whether the sentence MEANS the same thing.
+ *   A reviewer answers whether a 70-year-old with low health literacy, reading it
+ *   on a phone at a community event, would understand it and know what to do.
+ *
+ * The second question is the one that decides whether this portal works for the
+ * people it was built for, and no amount of model agreement answers it.
+ *
+ * ⚠️ SO A CROSS-CHECK GOES HERE, NOT IN `reviewedBy`, AND IT DOES NOT OPEN THE
+ *    GATE. Typing a model's name into `reviewedBy` would turn the build green and
+ *    record, permanently and falsely, that a person had read the string.
+ *    `copyReview.test.js` rejects a known model name there for exactly that
+ *    reason. If you want to ship without a human read, the honest route is a
+ *    waiver: it says so out loud, it carries your name and a date, and it is
+ *    countable. That is the difference between a decision and an accident.
+ */
+export const CROSS_CHECKS = Object.freeze({});
+
+/**
  * A safety-critical string knowingly shipped without review, with an owner and a
  * date. Not a loophole: it is how a conscious decision is distinguished from an
  * oversight, and every waiver is visible and countable.
@@ -147,6 +177,34 @@ export const REVIEW_WAIVERS = Object.freeze({});
 /** Strings whose job is to stop somebody doing something. */
 export const safetyCriticalKeys = () => Object.keys(COPY_REVIEW)
     .filter((key) => COPY_REVIEW[key].safetyCritical);
+
+/**
+ * Names that are not people. Not exhaustive and cannot be: it catches the obvious
+ * mistake rather than policing the field, which is the right ambition for a check
+ * whose job is to stop somebody typing "Gemini" into a box labelled "who read this".
+ */
+export const NOT_A_PERSON = Object.freeze([
+    'claude', 'gpt', 'chatgpt', 'gemini', 'astra', 'llama', 'mistral', 'copilot',
+    'deepl', 'google translate', 'machine', 'model', 'bot', 'llm',
+]);
+
+/**
+ * ⚠️ "AI" IS CHECKED CASE-SENSITIVELY, AND THAT IS NOT FUSSINESS. Lower-cased with
+ *    the rest, `ai` refuses a reviewer called **Ai Ling** — a common Chinese given
+ *    name, in a portal whose whole point is serving Chinese speakers. A check about
+ *    robots that turns away a real Singaporean reviewer has failed at the only job
+ *    that matters. It was written that way first and the test caught it.
+ */
+const UPPERCASE_ONLY = Object.freeze(['AI']);
+
+/** Whether a `reviewedBy` entry names something that is not a person. */
+export const looksLikeAModel = (name) => {
+    const raw = String(name ?? '').trim();
+    if (raw === '') return false;
+    const bounded = (token, haystack) => new RegExp(`(^|[^A-Za-z])${token}([^A-Za-z]|$)`).test(haystack);
+    if (UPPERCASE_ONLY.some((token) => bounded(token, raw))) return true;
+    return NOT_A_PERSON.some((token) => bounded(token, raw.toLowerCase()));
+};
 
 /** Languages in which `key` still has nobody's name against it. */
 export const unreviewedLanguages = (key) => {

@@ -493,6 +493,35 @@ that is the right register for somebody who is not unwell.
 | `zh` | 这些数字描述的是您今天的力量。它们不是诊断，也没有改变您上面的结果。 | These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above. |
 | `ta` | இந்த எண்கள் இன்றைய உங்கள் வலிமையை விவரிக்கின்றன. இவை நோய் கண்டறிதல் அல்ல, மேலே உள்ள உங்கள் முடிவை இவை மாற்றவும் இல்லை. | These numbers describe your strength today. These are not a disease diagnosis, and they have not changed your result above. |
 
+### ⚠️ These three are NOT in the original review workbook — they are now
+
+`docs/CD13-translation-review.xlsx` was built on 2026-08-24 for the nineteen strings
+in groups 1 and 4. It did not contain these three, so a review pass run against that
+file would have come back complete while leaving the build red and the prohibitions
+unread.
+
+Group 5 was appended to all three language sheets on 2026-09-13, marked in red, with
+the English, the shipped translation, a back-translation and a one-line statement of
+what must survive. About five minutes per language.
+
+### ⚠️ Running these past other models is evidence, not a review
+
+Two INDEPENDENT models back-translating is a real catch-net for the one failure this
+group is about: a prohibition that lost its negation comes back as a suggestion, and
+a model that never saw the first one's reasoning will usually say so. Worth doing.
+
+It does not answer the question a reviewer answers. A model checks whether the
+sentence MEANS the same thing. A reviewer answers whether a 70-year-old with low
+health literacy, reading it on a phone at a community event, would understand it and
+know what to do. Only the second decides whether this portal works for the people it
+was built for.
+
+So a machine pass goes in `CROSS_CHECKS` in `src/data/copyReview.js`, and it does not
+open the gate. `copyReview.test.js` refuses a model's name in `reviewedBy`, because
+typing one there would turn the build green and record, permanently, that a person
+read a safety instruction when none had. To ship without a human read, sign a waiver:
+it says so out loud, carries a name and a date, and is countable.
+
 ### The other 44, read as a block
 
 `measures.uiCopy` in the registry: two questions, the band labels, the nine reasons

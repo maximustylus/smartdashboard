@@ -21,7 +21,7 @@ import { resolve } from 'node:path';
 import {
     COPY_REVIEW, REVIEW_WAIVERS, TRANSLATION_LANGUAGES,
     safetyCriticalKeys, unreviewedLanguages, blockingReviewGaps, reviewDebt, isPending,
-    reachabilityWatchlist,
+    reachabilityWatchlist, CROSS_CHECKS, looksLikeAModel,
 } from './copyReview';
 import { reachedByUi, REPO_ROOT, UI_ENTRY_POINTS } from '../../scripts/copy-reachability.mjs';
 
@@ -85,6 +85,68 @@ describe('THE GATE: safety instructions are read by a person', () => {
         Object.entries(REVIEW_WAIVERS).forEach(([key, waiver]) => {
             expect(typeof waiver.by, `${key} waiver has no owner`).toBe('string');
             expect(String(waiver.on), `${key} waiver has no date`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        });
+    });
+});
+
+/**
+ * ==============================================================================
+ * A MODEL CANNOT BE RECORDED AS A REVIEWER
+ * ==============================================================================
+ *
+ * The realistic way this gate dies is not somebody disabling it. It is somebody
+ * running the strings through two other models, getting sensible answers, and
+ * typing "Gemini 3.1 Pro" into `reviewedBy` — which turns the build green and
+ * records, permanently, that a person read a safety instruction when none did.
+ *
+ * Machine cross-checks are worth doing and belong in `CROSS_CHECKS`. They are
+ * evidence. They are not the answer to "would your mother understand this".
+ */
+describe('a machine cross-check is not a review', () => {
+    it.each([
+        'Gemini 3.1 Pro', 'ChatGPT6 Astra', 'Claude', 'GPT-5', 'Google Translate',
+        'DeepL', 'machine translation', 'AI review', 'an LLM',
+    ])('rejects %s as a reviewer', (name) => {
+        expect(looksLikeAModel(name)).toBe(true);
+    });
+
+    // The check must not swallow real names. "Amir" contains no model token; a
+    // person called Ai Ling is a person, and the word boundaries are what protect
+    // her from being refused by a check about robots.
+    it.each(['Siti Aisha', 'Amir bin Hassan', 'Ai Ling Tan', 'Raj', 'M. Alif', ''])(
+        'accepts %s', (name) => {
+            expect(looksLikeAModel(name)).toBe(false);
+        },
+    );
+
+    it('lets no model name into the live registry', () => {
+        Object.entries(COPY_REVIEW).forEach(([key, entry]) => {
+            TRANSLATION_LANGUAGES.forEach((lang) => {
+                const who = entry.reviewedBy[lang];
+                expect(
+                    looksLikeAModel(who),
+                    `${key}.${lang} names "${who}", which is not a person. A machine ` +
+                    'cross-check belongs in CROSS_CHECKS; to ship without a human read, ' +
+                    'sign a waiver.',
+                ).toBe(false);
+            });
+        });
+    });
+
+    it('records cross-checks against strings the registry knows about', () => {
+        Object.keys(CROSS_CHECKS).forEach((key) => {
+            expect(COPY_REVIEW[key], `cross-check for unknown string ${key}`).toBeDefined();
+        });
+    });
+
+    // The whole point: a cross-check must not move the gate. If recording one ever
+    // reduces the blocking set, the distinction has collapsed.
+    it('does not open the gate for anything', () => {
+        const blocking = blockingReviewGaps(new Set(reachabilityWatchlist())).map((g) => g.key);
+        Object.keys(CROSS_CHECKS).forEach((key) => {
+            if (safetyCriticalKeys().includes(key) && unreviewedLanguages(key).length > 0) {
+                expect(blocking, `${key} was cross-checked and stopped blocking`).toContain(key);
+            }
         });
     });
 });
