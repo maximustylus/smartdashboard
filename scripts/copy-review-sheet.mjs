@@ -7,7 +7,7 @@
  * drifts. This reads the registry the build itself enforces, so what a reviewer is
  * handed and what CI checks cannot disagree.
  */
-import { COPY_REVIEW, reviewDebt, blockingReviewGaps, isPending } from '../src/data/copyReview.js';
+import { COPY_REVIEW, REVIEW_WAIVERS, reviewDebt, blockingReviewGaps, isPending } from '../src/data/copyReview.js';
 import { reachedByUi } from './copy-reachability.mjs';
 
 // The same reachability the build gate uses, resolved against the real source tree,
@@ -29,10 +29,20 @@ if (critical.length) {
     console.log('── SAFETY-CRITICAL: these stop somebody doing something ──\n');
     critical.forEach((row) => {
         const e = COPY_REVIEW[row.key];
+        /*
+          ⚠️ "WAIVED" AND "NOT ON SCREEN" ARE DIFFERENT AND MUST READ DIFFERENTLY.
+             This printed "not on screen yet" for a waived string, which is how a
+             sheet quietly tells somebody there is nothing to worry about while
+             residents are reading the string.
+        */
+        const waiver = REVIEW_WAIVERS[row.key];
         const state = isPending(row.key)
             ? '  [copy not written yet]'
-            : (row.live ? '  [ON SCREEN — blocking the build]' : '  [written, not on screen yet]');
+            : waiver
+                ? `  [⚠️ ON SCREEN, UNREVIEWED — waived by ${waiver.by} on ${waiver.on}]`
+                : (row.live ? '  [ON SCREEN — blocking the build]' : '  [written, not on screen yet]');
         console.log(`  ${row.key}${state}`);
+        if (waiver?.why) console.log(`    waived  : ${waiver.why}`);
         console.log(`    where   : ${e.where}`);
         if (e.english) console.log(`    english : ${e.english}`);
         console.log(`    needs   : ${row.missing.join(', ')}\n`);
@@ -48,8 +58,18 @@ if (rest.length) {
 }
 
 console.log(`${debt.length} strings outstanding, ${critical.length} safety-critical.`);
+const waived = debt.filter((r) => REVIEW_WAIVERS[r.key]);
 console.log(blocking.length
     ? `${blocking.length} of them are ON SCREEN and failing the build.`
-    : 'None are on a resident-facing screen yet, so none are failing the build.');
-console.log('A string marked "written, not on screen yet" starts failing the build the');
+    : 'None are failing the build.');
+
+if (waived.length) {
+    console.log(`\n⚠️  ${waived.length} of them are ON SCREEN AND UNREVIEWED, and the build is`);
+    console.log('    green only because somebody signed for them. That is a debt with a');
+    console.log('    name and a date on it, not a resolved item. Residents are reading');
+    console.log('    these now. Clearing it: get the review, then delete the waiver.');
+} else {
+    console.log('Nothing is waived. Every safety-critical string on screen has been read.');
+}
+console.log('\nA string marked "written, not on screen yet" starts failing the build the');
 console.log('moment a component imports it. Reviewing it now is what stops that.');

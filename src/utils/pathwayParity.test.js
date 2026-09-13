@@ -190,6 +190,28 @@ describe('both pathways ask the questions those flags come from', () => {
     });
 
     /**
+     * ⚠️ `CP32` — THE FORM OFFERED SEVEN ANSWERS IN ENGLISH TO EVERY LANGUAGE.
+     *
+     *    Every other option list on the form was translated. Falls and Healthier SG
+     *    were not, so a Malay, Chinese or Tamil speaker reached the falls question —
+     *    asked only of residents aged 60 and over, the cohort least likely to read
+     *    English — and chose between "No falls / One fall / Two or more falls".
+     *
+     *    Fixed at the cause: the form now BUILDS its options from the chat's chips
+     *    instead of keeping a second hand-maintained copy. This asserts it still
+     *    does, because a private copy is what drifted the first time.
+     */
+    it('offers the same falls and Healthier SG answers in both pathways', () => {
+        const form = src('ConventionalForm.jsx');
+        expect(form, 'the form must build its options from the shared chips')
+            .toMatch(/optionsFromChips\(FALLS_CHIPS\)/);
+        expect(form).toMatch(/optionsFromChips\(HSG_CHIPS\)/);
+        // And must not have grown a private copy again.
+        expect(form, 'the form has re-introduced hand-written falls options')
+            .not.toMatch(/value: 'No falls',\s*en:/);
+    });
+
+    /**
      * ⚠️ BOTH ASK FOR A YEAR, AND NEITHER OFFERS A BAND. The strength references are
      *    cut in five-year rows, so an age group cannot be narrowed back down after
      *    the fact. A pathway that quietly kept its band select would produce records

@@ -56,13 +56,21 @@
  *    provenance recorded as verified is worse than one recorded as machine, because
  *    it removes the reason anybody would look again.
  *
- * ⚠️ ONE KNOWN QUERY, LEFT AS IT IS BY THE OWNER'S DECISION. `fallsAvoiding.ta`
- *    ends `…தவிர்க்கிறது` — the third-person NEUTER verb ("it avoids") where the
- *    honorific `தவிர்க்கிறார்` would be the expected form for describing a person.
- *    The English is a participle with no explicit subject, so the compression may
- *    be deliberate. Raised, considered, and kept. Recorded so it is not
- *    re-discovered and "fixed" by somebody who also cannot read Tamil — which
- *    includes whoever wrote this line.
+ * ⚠️ ONE KNOWN QUERY, RAISED TWICE, AND NOW CHANGED. `fallsAvoiding.ta` used to end
+ *    `…தவிர்க்கிறது` — the third-person NEUTER verb ("it avoids") where a person is
+ *    being described. It was raised once, considered, and kept on the owner's
+ *    decision, on the reasoning that the English is a participle with no explicit
+ *    subject so the compression might be deliberate.
+ *
+ *    On 2026-09-13 two independent reviewers flagged the same line without knowing
+ *    that history, which is different evidence from one unresolved query. They
+ *    proposed DIFFERENT fixes — a verbal noun and the honorific — which is itself
+ *    the signal that the shipped form was the odd one out. Put back to the owner
+ *    with that, and the decision reversed: it now reads `விழுந்துள்ளார் … 
+ *    தவிர்க்கிறார்`, the respectful human form.
+ *
+ *    Recorded in full because the earlier decision was also recorded, and a reversal
+ *    that erases what it reversed teaches the next person nothing.
  *
  * ⚠️ `CommunityInsightsPanel.jsx` HAS A SIMILAR-LOOKING LABEL MAP AND IS NOT THIS.
  *    It labels POPULATION RATES for staff — "Below 150 min/week", "1–2 room HDB" —
@@ -108,7 +116,7 @@ export const SLIP_FLAG_LINES = Object.freeze({
         en: 'Fall in the past 12 months, and now avoiding some activities',
         ms: 'Pernah jatuh dalam masa 12 bulan yang lalu, dan kini mengelak beberapa aktiviti',
         zh: '过去 12 个月内曾跌倒，现在会避免一些活动',
-        ta: 'கடந்த 12 மாதங்களில் கீழே விழுந்தது, இப்போது சில செயல்பாடுகளைத் தவிர்க்கிறது',
+        ta: 'கடந்த 12 மாதங்களில் கீழே விழுந்துள்ளார்; இப்போது சில செயல்பாடுகளைத் தவிர்க்கிறார்',
     }),
     caregiver: Object.freeze({
         en: 'Unpaid caregiving strain',

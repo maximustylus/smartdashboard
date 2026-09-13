@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { FALLS_CHIPS } from '../data/screeningChips';
 import {
   DAYS_MIDPOINT,
   MINS_MIDPOINT,
@@ -142,7 +143,9 @@ describe('deriveFormClinicalData', () => {
 
   it('preserves the shared falls and Healthier SG parser semantics', () => {
     expect(deriveFormClinicalData(answers({
-      falls: 'A fall, and I now avoid some activities',
+      // The value the form actually stores, read from the shared chips so this
+      // fixture cannot drift from what a resident can select.
+      falls: FALLS_CHIPS.en[3],
       healthierSg: 'I am not sure',
     }))).toMatchObject({
       fallsCount: 1,

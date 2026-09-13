@@ -262,7 +262,56 @@ export const CROSS_CHECKS = Object.freeze({
  * ⚠️ A WAIVER IS A DEBT, NOT A RESOLUTION. Adding one is a deliberate act by the
  *    person named in it. Empty is the correct state.
  */
-export const REVIEW_WAIVERS = Object.freeze({});
+export const REVIEW_WAIVERS = Object.freeze({
+    /*
+      ==========================================================================
+      SIGNED 2026-09-13 BY THE REPOSITORY OWNER, IN FULL KNOWLEDGE OF THE RISK
+      ==========================================================================
+
+      The owner was shown, in plain terms, what this waiver permits: three
+      prohibitions reaching residents in Malay, Chinese and Tamil having been read
+      by no speaker of those languages, and the specific failure it exposes — a
+      machine turning "do not try this on your own" into "you might prefer someone
+      with you", which reads perfectly and is not a prohibition. They chose to
+      ship. That is the decision this records.
+
+      ⚠️ THIS IS A DEBT, NOT A RESOLUTION. It does not make the strings reviewed. It
+         records that a person decided to ship without review, on a date, and it is
+         countable. `scripts/copy-review-sheet.mjs` still lists all three as
+         outstanding, and `reviewDebt()` still returns them.
+
+      ⚠️ WHAT WOULD MAKE THIS WAIVER STALE. It covers the strings AS THEY READ ON
+         2026-09-13. Rewording any of the three, in any language, is a new string
+         nobody has decided about, so remove its waiver and get it reviewed or
+         signed again. `english` in `COPY_REVIEW` is the text that was waived.
+
+      TWO MACHINE CROSS-CHECKS WERE RUN AND NEITHER COVERED THESE. Gemini 3.1 Pro
+      and ChatGPT6 Astra both reviewed the workbook as it stood BEFORE these three
+      were added to it. `CROSS_CHECKS` records what they did cover. Nothing has
+      checked these three in any language, by any means.
+
+      To clear it properly: three reviewer names in `reviewedBy`, then delete the
+      three entries below. `docs/CD13-translation-review.xlsx` group 5 has the
+      strings, the translations and back-translations. Fifteen minutes per language.
+    */
+    'measures.doNotSelfTest': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-13',
+        why: 'Chose to go live for community testing before a native-speaker review '
+            + 'was available. Risk stated and accepted: the prohibition may read as a '
+            + 'suggestion in one or more languages, and this is the string that stops '
+            + 'somebody attempting a timed chair stand alone.',
+    }),
+    'measures.noComparison': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-13',
+        why: 'Same decision. Risk: may read as a comparison that came out badly '
+            + 'rather than as no comparison having been made.',
+    }),
+    'measures.notADiagnosis': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-13',
+        why: 'Same decision. Risk: may read as weaker than a denial, beside a number '
+            + 'and a band that look like a finding.',
+    }),
+});
 
 /** Strings whose job is to stop somebody doing something. */
 export const safetyCriticalKeys = () => Object.keys(COPY_REVIEW)

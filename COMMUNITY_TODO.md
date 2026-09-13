@@ -518,6 +518,49 @@ obvious measurement is the wrong one and looks right.
 
 ---
 
+## Owner decisions, 2026-09-13 — four settled
+
+| | Decision | State |
+|---|---|---|
+| Translation gate | Go live without a native-speaker review | Waiver signed, above |
+| `CD24` fear in the falls chip | **Yes, add it** | Done, four languages, parser re-tested |
+| `fallsAvoiding.ta` | **Change it** — earlier decision reversed | Done, honorific form |
+| `CD23` re-measurement | **The app should show the change** | ⬜ NOT BUILT — see below |
+| SSMC access | Call 6394 8488 / 6394 7171 to enquire | Done, venue now surfaces |
+
+### The falls chip now mentions fear
+
+Astra found the gap: the review instruction requires the chip to convey avoidance
+**out of fear**, and the English did not mention it. The translations were faithful
+to a source that was wrong. Now, in four languages, with the parser re-run chip by
+chip: all sixteen still parse identically to English at the same index.
+
+### `CP32` — the form offered seven answers in English to every language
+
+Every other option list on the conventional form was translated. Falls and Healthier
+SG were not, so a Malay, Chinese or Tamil speaker reached the falls question — asked
+only of residents aged 60 and over, **the cohort least likely to read English** — and
+chose between "No falls / One fall / Two or more falls".
+
+Fixed at the cause rather than the symptom: the form now builds its options from the
+chat's chips instead of keeping a second hand-maintained copy. Two copies of one
+answer set is how the pathways drift, and the chat's copy is already guarded against
+the parser by a test the form's private copy was never covered by.
+
+### SSMC@KKH now surfaces
+
+    grip     :: ssmc_kkh  ·  6394 8488 / 6394 7171
+    sts-30s  :: ssmc_kkh
+    sts-60s  :: ssmc_kkh
+
+⚠️ The copy says **call and ask**, not "come in", and does not state a price. Those
+are the two things owner confirmation did not cover: whether a referral is needed and
+what a given payment class pays. This is a factual claim on a public surface (`CP8`)
+that sends a cost-constrained resident on a bus journey, so it claims only what the
+evidence supports.
+
+---
+
 ## Two machine cross-checks, 2026-09-13 — and what they did not cover
 
 Gemini 3.1 Pro and ChatGPT6 Astra both reviewed `docs/CD13-translation-review.xlsx`.
@@ -594,31 +637,41 @@ Tamil now reads as Tamil.
 
 ---
 
-## ⚠️ THE BUILD IS RED, ON PURPOSE, AND ONE THING CLEARS IT
+## ⚠️ THE BUILD IS GREEN BECAUSE SOMEBODY SIGNED, NOT BECAUSE IT IS REVIEWED
 
-`npm test` fails with exactly one failure:
+**2026-09-13 — the owner signed a waiver for all three `measures.*` strings.**
 
-    THE GATE: safety instructions are read by a person
-      measures.doNotSelfTest: no reviewer for ms, zh, ta
-      measures.noComparison:  no reviewer for ms, zh, ta
-      measures.notADiagnosis: no reviewer for ms, zh, ta
+    node scripts/copy-review-sheet.mjs
 
-    Test Files  1 failed | 118 passed (119)
-    Tests       1 failed | 4091 passed (4092)
+    measures.doNotSelfTest  [⚠️ ON SCREEN, UNREVIEWED — waived by Repository owner
+                             (maximustylus) on 2026-09-13]
+    measures.noComparison   [same]
+    measures.notADiagnosis  [same]
 
-This is the gate built on 2026-09-12 doing the job it was built for. The three
-strings are prohibitions, they are now on a screen a resident reaches, and no
-person has read them in Malay, Chinese or Tamil. Nothing is broken.
+    9 strings outstanding, 3 safety-critical.
+    None are failing the build.
 
-**It clears one of two ways, and only these two:**
+    ⚠️  3 of them are ON SCREEN AND UNREVIEWED, and the build is green only
+        because somebody signed for them.
 
-1. Three names in `reviewedBy` in `src/data/copyReview.js`, one per language.
-   `TRANSLATION-BRIEF.md` group 5 has the strings, their translations and
-   back-translations. Roughly fifteen minutes per language.
-2. A dated, owner-named entry in `REVIEW_WAIVERS`. That is a debt somebody signs,
-   not a way past the gate, and it is the owner's to sign.
+The owner was shown in plain terms what the waiver permits, including the specific
+failure it exposes: a machine turning *"do not try this on your own"* into *"you
+might prefer someone with you"*, which reads perfectly and is not a prohibition.
+They chose to ship for community testing.
 
-Run `node scripts/copy-review-sheet.mjs` for the current state.
+**This is a debt, not a resolution.** `reviewDebt()` still returns all three, the
+sheet still lists them, and nothing about the strings has changed. To clear it
+properly: three reviewer names in `reviewedBy`, then delete the waiver entries.
+`docs/CD13-translation-review.xlsx` group 5 has everything a reviewer needs.
+
+⚠️ **THE WAIVER COVERS THE WORDS, NOT THE KEY.** Reword any of the three, in any
+language, and the signature is over text nobody decided about. `copyReview.test.js`
+asserts the shipped English still matches the `english` recorded in the registry
+and fails the build if it drifts, so a silent reword cannot ride the old signature.
+
+⚠️ **TWO MACHINE CROSS-CHECKS COVERED NONE OF THESE THREE.** Gemini and Astra both
+reviewed the workbook as it stood before Group 5 was added to it. Nothing has
+checked these three, in any language, by any means.
 
 ---
 

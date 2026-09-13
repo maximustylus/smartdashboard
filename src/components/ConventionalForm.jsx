@@ -61,6 +61,7 @@ import { getSessionId, saveProgress, loadProgress, clearProgress } from '../util
 import { isValidSector } from '../utils/singapore/postalSectors';
 import { isSixtyPlusPerson, parseAgeYears } from '../utils/clinicalFlags';
 import { measuresCopyFor } from '../data/measuresCopy';
+import { FALLS_CHIPS, HSG_CHIPS } from '../data/screeningChips';
 import { MEASUREMENT_SETTINGS } from '../data/functionalNorms';
 import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
 import { numberIn } from '../utils/measurementAnswers';
@@ -127,18 +128,38 @@ const SOCIAL_OPTIONS = [
   would render an empty row rather than an English one. Falling back to `en` keeps
   the question answerable. Tracked as `CD10` — see `TRANSLATION-BRIEF.md`.
 */
-const FALLS_OPTIONS = [
-  { value: 'No falls',           en: 'No falls',           ms: 'No falls',           zh: 'No falls',           ta: 'No falls' },
-  { value: 'One fall',           en: 'One fall',           ms: 'One fall',           zh: 'One fall',           ta: 'One fall' },
-  { value: 'Two or more falls',  en: 'Two or more falls',  ms: 'Two or more falls',  zh: 'Two or more falls',  ta: 'Two or more falls' },
-  { value: 'A fall, and I now avoid some activities', en: 'A fall, and I now avoid some activities', ms: 'A fall, and I now avoid some activities', zh: 'A fall, and I now avoid some activities', ta: 'A fall, and I now avoid some activities' },
-];
+/**
+ * ==============================================================================
+ * ⚠️ `CP32` — THESE SEVEN ANSWERS WERE ENGLISH IN ALL FOUR LANGUAGES
+ * ==============================================================================
+ *
+ * Every other option list on this form is translated. These two were not: a Malay,
+ * Chinese or Tamil speaker reached the falls question — asked only of residents
+ * aged 60 and over, the cohort least likely to read English — and was offered
+ * "No falls / One fall / Two or more falls" to choose between. The chat has had
+ * these in four languages since `CP26`.
+ *
+ * They are now BUILT FROM THE CHAT'S CHIPS rather than translated separately,
+ * which fixes the cause and not just the symptom. Two hand-maintained copies of
+ * one answer set is how the pathways drift, and `clinicalFlags.i18n.test.js`
+ * already guards the chips against the parser — a guard the form's private copy
+ * was never covered by.
+ *
+ * ⚠️ `value` IS THE ENGLISH, AND MUST STAY THE ENGLISH. It is what gets stored and
+ *    what `deriveFormClinicalData` parses. Only the LABEL changes with language.
+ *    Making `value` follow the language would store four different strings for one
+ *    answer and quietly split every count by language.
+ */
+const optionsFromChips = (chips) => chips.en.map((value, i) => ({
+  value,
+  en: value,
+  ms: chips.ms[i],
+  zh: chips.zh[i],
+  ta: chips.ta[i],
+}));
 
-const HEALTHIER_SG_OPTIONS = [
-  { value: 'Yes, I am enrolled', en: 'Yes, I am enrolled', ms: 'Yes, I am enrolled', zh: 'Yes, I am enrolled', ta: 'Yes, I am enrolled' },
-  { value: 'No, not enrolled',   en: 'No, not enrolled',   ms: 'No, not enrolled',   zh: 'No, not enrolled',   ta: 'No, not enrolled' },
-  { value: 'I am not sure',      en: 'I am not sure',      ms: 'I am not sure',      zh: 'I am not sure',      ta: 'I am not sure' },
-];
+const FALLS_OPTIONS = optionsFromChips(FALLS_CHIPS);
+const HEALTHIER_SG_OPTIONS = optionsFromChips(HSG_CHIPS);
 
 const WELLBEING_OPTIONS = [
   { value: 'Feeling good overall',                           en: 'Feeling good overall',                             ms: 'Perasaan baik secara keseluruhannya',        zh: '整体感觉不错',            ta: 'ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன்'        },

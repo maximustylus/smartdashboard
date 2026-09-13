@@ -269,25 +269,87 @@ describe('the reachability gate is load-bearing, not decorative', () => {
         });
     });
 
-    // THE ASSERTION THIS WHOLE MECHANISM RESTS ON. Simulate the measures copy being
-    // imported by a component and confirm the build would fail. If this passes and
-    // the gate test above also passes, the gate is armed and simply has not fired.
-    it('fails the build once a component imports unreviewed safety copy', () => {
+    /*
+      THE ASSERTION THIS WHOLE MECHANISM RESTS ON, AND IT HAD TO BE REWRITTEN.
+
+      It used to assert that the three `measures.*` strings appear in
+      `blockingReviewGaps`. That was true until the owner signed a waiver for them
+      on 2026-09-13, and then this test failed — correctly, but for the wrong
+      reason: it had pinned a STATE rather than proving a MECHANISM.
+
+      What matters is not which strings block today. It is that the build is green
+      because somebody SIGNED for them, and not because the gate has quietly stopped
+      working. So this now asserts exactly that: strip the waivers away and the gate
+      names every one of them.
+    */
+    it('would block every waived string if the signature were withdrawn', () => {
         const watched = reachabilityWatchlist();
         expect(watched.length, 'nothing is watched, so this proves nothing').toBeGreaterThan(0);
-
         const asIfShipped = new Set([...ON_SCREEN, ...watched]);
-        const gaps = blockingReviewGaps(asIfShipped);
-        expect(gaps.map((g) => g.key)).toEqual(
-            expect.arrayContaining(['measures.doNotSelfTest', 'measures.noComparison', 'measures.notADiagnosis']),
-        );
-        gaps.forEach((gap) => expect(gap.missing).toEqual(['ms', 'zh', 'ta']));
+
+        const wouldBlock = safetyCriticalKeys()
+            .filter((key) => !isPending(key) && unreviewedLanguages(key).length > 0);
+
+        expect(wouldBlock.length, 'no safety-critical string is unreviewed, so this proves nothing')
+            .toBeGreaterThan(0);
+
+        wouldBlock.forEach((key) => {
+            expect(
+                Boolean(REVIEW_WAIVERS[key]),
+                `${key} is unreviewed and unwaived, and the gate is letting it through`,
+            ).toBe(true);
+        });
+
+        // And with the waivers honoured, nothing blocks. Both halves, so a gate that
+        // silently blocks nothing and a gate that silently blocks everything both fail.
+        expect(blockingReviewGaps(asIfShipped)).toEqual([]);
+    });
+
+    // A waiver must not turn a string into a reviewed one. It is a signature over an
+    // unreviewed string, and the debt has to keep showing up as debt.
+    it('leaves a waived string still owing every language', () => {
+        Object.keys(REVIEW_WAIVERS).forEach((key) => {
+            expect(unreviewedLanguages(key), `${key} looks reviewed because it is waived`)
+                .toEqual([...TRANSLATION_LANGUAGES]);
+            expect(reviewDebt(ON_SCREEN).map((r) => r.key), `${key} dropped out of the debt`)
+                .toContain(key);
+        });
+    });
+
+    /*
+      ⚠️ A WAIVER COVERS THE WORDS THAT WERE SIGNED FOR, NOT THE KEY.
+
+         Reword a waived string and the signature is over text nobody decided about.
+         The registry's `english` is what was waived, so it must still be what ships.
+         This is the one way a waiver could silently become a blank cheque.
+    */
+    it('waives the exact English that ships, not merely the name of the string', async () => {
+        const { MEASURES_COPY } = await import('./measuresCopy');
+        Object.keys(REVIEW_WAIVERS).forEach((key) => {
+            const waivedText = COPY_REVIEW[key]?.english;
+            if (!waivedText) return;
+            const shipped = MEASURES_COPY.en[key.replace('measures.', '')];
+            if (shipped === undefined) return;
+            expect(
+                shipped,
+                `${key} was reworded after being waived. The signature is over the old ` +
+                'text. Re-review it, or have the owner sign again.',
+            ).toBe(waivedText);
+        });
     });
 
     // Unknown reachability must fail SHUT. A caller with no filesystem access gets
-    // the cautious answer rather than a free pass.
+    // the cautious answer rather than a free pass — asserted on the rule itself,
+    // since every real string is currently waived.
     it('treats unknown reachability as reachable', () => {
-        expect(blockingReviewGaps().map((g) => g.key)).toContain('measures.doNotSelfTest');
+        const watched = reachabilityWatchlist();
+        const keyed = Object.keys(COPY_REVIEW).find((k) => COPY_REVIEW[k].reachableWhen);
+        expect(keyed, 'nothing uses reachableWhen, so this proves nothing').toBeDefined();
+        // Not reachable when told nothing is shipped...
+        expect(reviewDebt(new Set()).find((r) => r.key === keyed).live).toBe(false);
+        // ...but reachable when not told anything at all.
+        expect(reviewDebt().find((r) => r.key === keyed).live).toBe(true);
+        expect(watched.length).toBeGreaterThan(0);
     });
 
     /*
