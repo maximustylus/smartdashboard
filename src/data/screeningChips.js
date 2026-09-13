@@ -63,7 +63,7 @@ export const FALLS_CHIPS = Object.freeze({
         'A fall, and I now avoid some activities',
     ]),
     ms: Object.freeze([
-        'Tiada jatuh',
+        'Tidak pernah jatuh',
         'Jatuh satu kali',
         'Jatuh dua kali atau lebih',
         'Pernah jatuh, dan kini saya mengelak sesetengah aktiviti',
@@ -86,7 +86,7 @@ export const FALLS_CHIPS = Object.freeze({
     ta: Object.freeze([
         'விழுந்ததில்லை',
         'ஒரு முறை விழுந்தேன்',
-        'இரண்டு முறை அல்லது அதிகமாக',
+        'இரண்டு அல்லது அதற்கு மேற்பட்ட முறை விழுந்தேன்',
         'விழுந்தேன், இப்போது சில செயல்களைத் தவிர்க்கிறேன்',
     ]),
 });

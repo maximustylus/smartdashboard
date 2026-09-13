@@ -518,6 +518,82 @@ obvious measurement is the wrong one and looks right.
 
 ---
 
+## Two machine cross-checks, 2026-09-13 — and what they did not cover
+
+Gemini 3.1 Pro and ChatGPT6 Astra both reviewed `docs/CD13-translation-review.xlsx`.
+
+⚠️ **NEITHER COVERED THE THREE `measures.*` STRINGS.** Both ran against the workbook
+as it stood before Group 5 was appended, so the three prohibitions blocking the build
+are exactly as unreviewed as they were. The gate has not moved. That is the single
+most important line in this section.
+
+### What they found in the nineteen they did cover
+
+| | |
+|---|---|
+| Both agreed | ms "no falls" chip; "GP" unexplained in ms and ta |
+| Astra alone | the ms Healthier SG question referred **programmes to you** rather than **you to programmes**; **"on exertion" dropped** from the chest-pain slip line in all three languages; "belum" says "not YET enrolled" |
+| Disagreed | ms and zh avoidance chips, ms caregiving line — kept as shipped |
+
+**Where two reviewers disagree and neither finds an error, what ships stays.** One
+model's fluency preference against another's "this matches the English" is not
+grounds to change copy, least of all parser input.
+
+**Astra found what a back-translation cannot.** "Programmes referred to you" is
+fluent, faithful-looking Malay that says the wrong thing. Dropping "on exertion" from
+the chest-pain flag leaves a grammatical sentence that describes a different symptom,
+on the one line carrying the absolute contraindication.
+
+### ⚠️ Two corrections would have broken the parser
+
+Chip text is parser input, and a reviewer reading for language cannot see that.
+
+| Correction | Applied as written | Effect |
+|---|---|---|
+| ms "Tidak pernah jatuh" | `falls=1, fallsRisk=true` | every Malay speaker who never fell recorded as having fallen |
+| ms "mengelakkan diri daripada…" | `avoidsActivity: false` | the fear-of-falling flag lost for Malay speakers |
+| ta "இரண்டு அல்லது அதற்கு மேற்பட்ட…" | `falls=1` | two-or-more read as one |
+
+`clinicalFlags.i18n.test.js` catches all three, and was run with the tokens removed
+to prove it does rather than to assume it. The first two were fixed by extending the
+token list, keeping the old tokens so answers already collected still parse.
+
+### `CP31` — the Tamil copy was working around a parser bug
+
+The third is different. `அல்லது` ("or") begins with `அல்ல`, a negator, and Tamil
+negation is adjacent — so "இரண்டு அல்லது…" read as a denial of "two". That was worked
+around **in the copy**: the chip said "இரண்டு முறை அல்லது அதிகமாக", with முறை wedged
+in to break the adjacency. It parsed, and it is not how anybody would say it.
+
+Both reviewers proposed the natural wording without knowing that history, which is
+the signal that the constraint was in the wrong place. A parser that forces awkward
+copy onto residents to protect itself has the dependency backwards, and every future
+reviewer would have proposed the same correction again. Fixed in the parser; the
+Tamil now reads as Tamil.
+
+### Still owed, and now visible
+
+- `slip.flagLines` **was never in the registry at all.** Ten lines printed on the slip
+  a resident carries to a community centre, translated for group 4 and never entered,
+  so `reviewDebt` under-reported and no reviewer working from the registry would have
+  been shown them. Found because a cross-check was recorded against them and the test
+  refused a cross-check for a string it did not know — written to catch a typo, caught
+  a gap.
+- ⚠️ **A DECISION FOR THE OWNER, RE-OPENED BY BOTH REVIEWERS.** `fallsAvoiding.ta`
+  uses the neuter `தவிர்க்கிறது` ("it avoids") where a person is being described.
+  Raised once before and **settled by the owner: left as it is**. Both models have now
+  flagged it independently, and they propose different fixes — Gemini the verbal noun
+  `தவிர்ப்பது`, Astra the honorific `தவிர்க்கிறார்`. Not changed. The prior decision
+  stands until the owner says otherwise; recorded here because the evidence behind it
+  has changed.
+- ⚠️ **A GAP IN THE ENGLISH, NOT THE TRANSLATIONS.** Astra flagged the same thing in
+  all three languages: the review instruction says the avoidance chip must convey
+  avoidance **out of fear**, and the English chip — "A fall, and I now avoid some
+  activities" — does not mention fear. The translations match the English faithfully.
+  The English is what needs deciding first.
+
+---
+
 ## ⚠️ THE BUILD IS RED, ON PURPOSE, AND ONE THING CLEARS IT
 
 `npm test` fails with exactly one failure:

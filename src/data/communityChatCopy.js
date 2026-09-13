@@ -177,8 +177,8 @@ export const DICTIONARY = {
       'Apakah dua digit pertama poskod anda supaya saya boleh mencari sumber berdekatan?',
       'Soalan terakhir — adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada.',
       /* 13 age_years      */ 'Dan berapakah umur anda? Sila taip umur anda dalam tahun, contohnya 67.',
-      /* 14 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh — termasuk tergelincir atau tersandung sehingga anda terjatuh ke lantai?',
-      /* 15 healthier_sg   */ 'Yang terakhir — adakah anda berdaftar dengan doktor Healthier SG? Ia menentukan program mana yang boleh dirujuk kepada anda.',
+      /* 14 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai?',
+      /* 15 healthier_sg   */ 'Soalan terakhir: adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'Memulakan dari sifar adalah normal. ' : 'Permulaan yang baik. '; },
@@ -362,7 +362,7 @@ export const DICTIONARY = {
       'கடைசி கேள்வி — உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும்.',
       /* 13 age_years      */ 'உங்கள் வயது என்ன? உங்கள் வயதை ஆண்டுகளில் தட்டச்சு செய்யுங்கள், எடுத்துக்காட்டாக 67.',
       /* 14 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட?',
-      /* 15 healthier_sg   */ 'கடைசியாக — நீங்கள் Healthier SG மருத்துவரிடம் பதிவு செய்துள்ளீர்களா? இது உங்களை எந்தத் திட்டங்களுக்குப் பரிந்துரைக்க முடியும் என்பதை மாற்றும்.',
+      /* 15 healthier_sg   */ 'கடைசிக் கேள்வி: நீங்கள் Healthier SG குடும்ப மருத்தவரிடம் பதிவு செய்துள்ளீர்களா? இதைப் பொறுத்து, உங்களை எந்தெந்தத் திட்டங்களுக்குப் பரிந்துரைக்கலாம் என்பது மாறும்.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'சூன்யத்திலிருந்து தொடங்குவது முற்றிலும் சாதாரணமானது. ' : 'இது ஒரு சிறந்த தொடக்கம். '; },

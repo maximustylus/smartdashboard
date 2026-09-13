@@ -111,6 +111,25 @@ const NEGATORS_BEFORE = [
 const TAMIL_NEGATORS = ['இல்லை', 'இல்ல', 'அல்ல', 'கிடையாது'];
 
 /**
+ * ⚠️ TAMIL WORDS THAT BEGIN WITH A NEGATOR AND ARE NOT ONE.
+ *
+ *    `அல்லது` means "or". It starts with `அல்ல`, which is a negator, and Tamil
+ *    negation is adjacent — so "இரண்டு அல்லது…" ("two or…") read as a denial of
+ *    "two" and the two-or-more chip parsed as ONE fall.
+ *
+ *    That was worked around in the copy: the shipped chip says
+ *    "இரண்டு முறை அல்லது அதிகமாக", with முறை wedged in to break the adjacency. It
+ *    parses, and it is not how anybody would say it. TWO independent reviewers
+ *    proposed the natural "இரண்டு அல்லது அதற்கு மேற்பட்ட…" wording, and it parsed
+ *    as one fall, exactly as before.
+ *
+ *    The constraint belongs here, not in the Tamil. A parser that forces awkward
+ *    copy onto residents to protect itself has the dependency backwards, and the
+ *    next reviewer would have proposed the same correction again.
+ */
+const TAMIL_NOT_NEGATORS = ['அல்லது'];
+
+/**
  * English phrases that dismiss the term BEFORE them: "cost is not a problem",
  * "my heart is fine".
  *
@@ -181,7 +200,12 @@ const hasCue = (fragment, cues, edge) => cues.some((cue) => {
         // Word-bounded — "no" must not match inside "know" or "another".
         return new RegExp(`(^|[^\\w])${escapeRegex(cue)}([^\\w]|$)`, 'i').test(` ${fragment} `);
     }
-    return edge === 'end' ? fragment.trimEnd().endsWith(cue) : fragment.trimStart().startsWith(cue);
+    if (edge === 'end') return fragment.trimEnd().endsWith(cue);
+    const start = fragment.trimStart();
+    // See `TAMIL_NOT_NEGATORS`: a longer word that merely BEGINS with a negator is
+    // not a denial. Checked before the negator itself, or `அல்ல` wins on `அல்லது`.
+    if (TAMIL_NOT_NEGATORS.some((word) => start.startsWith(word))) return false;
+    return start.startsWith(cue);
 });
 
 /** Whether the match at [start, end) in `value` is inside a denial. */
@@ -325,9 +349,23 @@ export const matchesMale = buildMatcher(['male', 'lelaki', '男', 'ஆண்']);
  *    "இரண்டு முறை அல்லது அதிகமாக" puts முறை between them and means the same. The
  *    parity test is what surfaced it.
  */
+/*
+  ⚠️ BOTH MALAY TOKENS ARE HERE, AND THE OLD ONE STAYS. The chip was reworded on a
+     reviewer's correction ("Tiada jatuh" -> "Tidak pernah jatuh"), and the matcher
+     is WORD-BOUNDED, so `tiada` stopped matching the moment the chip changed. Run
+     against the parser before the change went in: the new wording returned
+     `falls=1, fallsRisk=true`. Every Malay speaker who had never fallen would have
+     been recorded as having fallen, and the handover slip would have printed it to
+     a community centre as fact.
+
+     `tiada` is kept rather than replaced because assessments were collected under
+     the old chip and their answers must still parse. A token list is cheap; a
+     record that silently stops reading is not.
+*/
 const matchesNoFalls = buildMatcher([
     'no falls', 'none', 'no',
-    'tiada',                    // ms · "Tiada jatuh"
+    'tiada',                    // ms · the pre-2026-09-13 chip, "Tiada jatuh"
+    'tidak pernah',             // ms · the current chip, "Tidak pernah jatuh"
     '没有跌倒',                  // zh · and NOT bare 没有, which is a general negator
     'விழுந்ததில்லை',            // ta · "have not fallen", one word
 ]);
@@ -339,7 +377,15 @@ const matchesTwoOrMore = buildMatcher([
 ]);
 const matchesAvoidance = buildMatcher([
     'avoid', 'afraid', 'scared', 'stopped',
-    'mengelak',                 // ms
+    /*
+      ⚠️ `mengelakkan` IS NOT MATCHED BY `mengelak`. The matcher is word-bounded,
+         so the longer form is a different word, not a longer one. The reworded
+         chip returned `avoidsActivity: false` against the parser before this
+         token was added — which loses the fear-of-falling flag for Malay
+         speakers, the one thing that chip exists to carry.
+    */
+    'mengelak',                 // ms · the pre-2026-09-13 chip
+    'mengelakkan',              // ms · the current chip
     '避免',                      // zh
     'தவிர்க்கிறேன்',            // ta
 ]);

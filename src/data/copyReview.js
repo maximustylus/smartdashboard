@@ -90,6 +90,30 @@ export const COPY_REVIEW = Object.freeze({
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
     }),
 
+    /*
+      ⚠️ REGISTERED ON 2026-09-13, AFTER SHIPPING — the registry did not know these
+         existed. They are the ten lines printed on the handover slip a resident
+         carries to a community centre, translated by Gemini for group 4 and never
+         entered here, so `reviewDebt` under-reported for weeks and a reviewer
+         working from this registry would never have been shown them.
+
+         Found because a cross-check was recorded against them and
+         `copyReview.test.js` refused a cross-check for a string it did not know.
+         The test was written to catch a typo and caught a gap instead.
+
+      Not safety-critical by the definition used here: they describe a person to a
+      staff member rather than instructing the person. They are still the copy most
+      likely to be read ABOUT somebody in front of them, which is its own reason to
+      get right — and Astra's pass found "on exertion" missing from the chest-pain
+      line in all three languages, on the one flag that carries the absolute
+      contraindication.
+    */
+    'slip.flagLines': Object.freeze({
+        where: 'src/data/slipFlagLines.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
+
     // ── P9 functional measures, WRITTEN AND MACHINE-TRANSLATED, NOT YET ON SCREEN ──
     // All four languages exist in `src/data/measuresCopy.js`. Each is a prohibition,
     // which is the category the owner's standing rule is about, so each carries
@@ -162,7 +186,73 @@ export const COPY_REVIEW = Object.freeze({
  *    waiver: it says so out loud, it carries your name and a date, and it is
  *    countable. That is the difference between a decision and an accident.
  */
-export const CROSS_CHECKS = Object.freeze({});
+export const CROSS_CHECKS = Object.freeze({
+    /*
+      2026-09-13 · Gemini 3.1 Pro, over `docs/CD13-translation-review.xlsx`.
+
+      Two independent passes over the nineteen group 1 and group 4 strings, and the
+      disagreement between them is the most useful thing here.
+
+      WHERE THEY AGREED, the change went in: the Malay "no falls" chip, and "GP"
+      being an unexplained abbreviation in Malay and Tamil.
+
+      WHERE THEY DISAGREED and neither identified an ERROR, what ships stays. One
+      model's fluency preference against another's "this matches the English" is not
+      grounds to change copy, least of all parser input. That is the ms and zh
+      avoidance chips, and the Malay caregiving line — where Gemini's "Beban"
+      (burden) is arguably further from the English "strain" than the shipped
+      "Tekanan".
+
+      ASTRA FOUND WHAT A BACK-TRANSLATION CANNOT. That the Malay Healthier SG
+      question referred PROGRAMMES TO YOU rather than you to programmes. That "on
+      exertion" had been dropped from the chest-pain flag line in all three
+      languages — on the one line that carries the absolute contraindication. That
+      "belum" says "not YET enrolled". None of those is a mistranslation a
+      round-trip would surface; each changes what the reader is told.
+
+      ⚠️ IT ALSO NEARLY BROKE THE PARSER, WHICH IS THE POINT OF RECORDING THIS.
+         Two of the six corrections are CHIP TEXT, which is parser input. Applied as
+         written they returned `falls=1` for "Tidak pernah jatuh" and
+         `avoidsActivity: false` for the reworded avoidance chip. A reviewer reading
+         for language cannot see that, and should not have to: it is the code's job
+         to survive being corrected. `clinicalFlags.i18n.test.js` catches it, and was
+         run with the tokens removed to prove it does.
+
+      ⚠️ THIS COVERS NONE OF THE `measures.*` STRINGS. The workbook it ran against
+         predated them. They remain unreviewed and the gate remains red, which is
+         why none of them appear below.
+    */
+    'chips.falls': Object.freeze({
+        by: 'Gemini 3.1 Pro + ChatGPT6 Astra', on: '2026-09-13',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'ms chip 1 reworded (both agreed) and ta chip 3 restored to natural '
+            + 'wording after the parser was fixed; ms and zh chip 4 left as shipped '
+            + 'because the two reviewers disagreed and neither found an error',
+    }),
+    'chips.healthierSg': Object.freeze({
+        by: 'Gemini 3.1 Pro', on: '2026-09-13', languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'no change',
+    }),
+    'prompt.healthier_sg': Object.freeze({
+        by: 'Gemini 3.1 Pro + ChatGPT6 Astra', on: '2026-09-13',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'ms and ta rewritten. Both flagged "GP" as unexplained; only Astra '
+            + 'caught that the sentence referred PROGRAMMES TO YOU rather than you '
+            + 'to programmes, in two languages',
+    }),
+    'prompt.falls': Object.freeze({
+        by: 'Gemini 3.1 Pro + ChatGPT6 Astra', on: '2026-09-13',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'ms: "lantai" (a floor) widened to "tanah atau lantai", so somebody '
+            + 'who fell outdoors is asked about it',
+    }),
+    'slip.flagLines': Object.freeze({
+        by: 'ChatGPT6 Astra', on: '2026-09-13', languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'eleven of the thirty lines rewritten: "on exertion" restored in all '
+            + 'three, zh caregiving un-narrowed from family care, food insecurity put '
+            + 'into plain words in all three, "belum" (not YET enrolled) corrected',
+    }),
+});
 
 /**
  * A safety-critical string knowingly shipped without review, with an owner and a

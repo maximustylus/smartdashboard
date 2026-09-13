@@ -139,6 +139,30 @@ describe('a machine cross-check is not a review', () => {
         });
     });
 
+    // A cross-check is a claim about what was done. Undated or unattributed, it is
+    // a rumour, and the whole reason this field exists is to be more honest than
+    // `reviewedBy` would have been.
+    it('dates and attributes every cross-check', () => {
+        Object.entries(CROSS_CHECKS).forEach(([key, check]) => {
+            expect(typeof check.by, `${key} cross-check has no source`).toBe('string');
+            expect(String(check.on), `${key} cross-check has no date`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+            expect(Array.isArray(check.languages), `${key} names no languages`).toBe(true);
+            check.languages.forEach((l) => expect(TRANSLATION_LANGUAGES).toContain(l));
+        });
+    });
+
+    // ⚠️ THE ASSERTION THE FIELD EXISTS FOR. A machine pass must never be mistaken
+    //    for a human read, in either direction: it is recorded here, and `reviewedBy`
+    //    stays empty until a person reads it.
+    it('leaves reviewedBy untouched for everything it cross-checked', () => {
+        Object.keys(CROSS_CHECKS).forEach((key) => {
+            expect(
+                unreviewedLanguages(key).length,
+                `${key} was cross-checked and someone filled in reviewedBy`,
+            ).toBeGreaterThan(0);
+        });
+    });
+
     // The whole point: a cross-check must not move the gate. If recording one ever
     // reduces the blocking set, the distinction has collapsed.
     it('does not open the gate for anything', () => {
