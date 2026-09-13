@@ -100,7 +100,9 @@ export const DICTIONARY = {
       /* 12 */(input) =>
         /(no|none|don'?t)/i.test(input)
           ? 'No problem — I will start a fresh record for you today. '
-          : 'I will link your previous records to track your progress over time. ',
+          // `CP33`: this promised tracking that does not exist. The other three
+          // languages already said only "I will link your previous records".
+          : 'I will save that with today\u2019s answers so the two can be matched up later. ',
       /* 13 age_years */ () => 'Thank you. ',
     ],
 

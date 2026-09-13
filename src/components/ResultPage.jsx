@@ -42,8 +42,8 @@ const DICTIONARY = {
     sdohFinText: 'Cost flagged as a barrier, so we have prioritised free and fully subsidised options below.',
     sdohSocText: 'Social connection flagged, so community group and befriending resources have been included.',
     sdohPsychoText: 'Mental wellbeing flagged, so emotional wellness and counselling resources have been added.',
-    trendActive: 'Longitudinal Tracking Active',
-    trendDesc: 'Your results have been linked to your previous assessment so you can track your progress over time.',
+    trendActive: 'Previous assessment linked',
+    trendDesc: 'Your previous ID has been saved with today\u2019s answers, so the two can be matched up later. We cannot show you the comparison yet.',
     pavsTitle: 'Your Physical Activity Check',
     pavsWeekly: 'mins / week',
     pavsDays: 'days / week',
@@ -85,8 +85,8 @@ const DICTIONARY = {
     sdohFinText: 'Kos dikenal pasti sebagai halangan — pilihan percuma dan bersubsidi diutamakan di bawah.',
     sdohSocText: 'Hubungan sosial dikenal pasti — sumber kumpulan komuniti dan rakan disertakan.',
     sdohPsychoText: 'Kesejahteraan mental dikenal pasti — sumber sokongan emosi dan kaunseling ditambah.',
-    trendActive: 'Penjejakan Membujur Aktif',
-    trendDesc: 'Keputusan anda dipautkan ke penilaian lepas untuk memantau kemajuan kesihatan anda.',
+    trendActive: 'Penilaian lepas dipautkan',
+    trendDesc: 'ID lama anda disimpan bersama jawapan hari ini, supaya kedua-duanya boleh dipadankan kemudian. Kami belum boleh menunjukkan perbandingan itu kepada anda.',
     pavsTitle: 'Semakan Aktiviti Fizikal Anda',
     pavsWeekly: 'minit / minggu',
     pavsDays: 'hari / minggu',
@@ -128,8 +128,8 @@ const DICTIONARY = {
     sdohFinText: '费用被标记为障碍 — 免费和全额补贴选项已优先列出。',
     sdohSocText: '社会联系被标记 — 已包含社区团体和交友资源。',
     sdohPsychoText: '心理健康被标记 — 已添加情感支持和心理辅导资源。',
-    trendActive: '纵向跟踪已激活',
-    trendDesc: '您的结果已链接到之前的评估，以跟踪您的健康进展。',
+    trendActive: '已连结之前的评估',
+    trendDesc: '您之前的编号已与今天的答案一起保存，日后可以配对起来。我们目前还无法向您显示比较结果。',
     pavsTitle: '您的体力活动检查',
     pavsWeekly: '分钟 / 周',
     pavsDays: '天 / 周',
@@ -171,8 +171,8 @@ const DICTIONARY = {
     sdohFinText: 'செலவு தடையாக கண்டறியப்பட்டது — இலவச மற்றும் மானிய விருப்பங்கள் முன்னுரிமை அளிக்கப்பட்டுள்ளன.',
     sdohSocText: 'சமூக தொடர்பு கண்டறியப்பட்டது — சமூக குழு மற்றும் நட்பு வளங்கள் சேர்க்கப்பட்டுள்ளன.',
     sdohPsychoText: 'மன நலன் கண்டறியப்பட்டது — உணர்ச்சி ஆதரவு வளங்கள் சேர்க்கப்பட்டுள்ளன.',
-    trendActive: 'நீண்டகால கண்காணிப்பு செயலில் உள்ளது',
-    trendDesc: 'மருத்துவ முன்னேற்றத்தைக் கண்காணிக்க முந்தைய மதிப்பீட்டுடன் இணைக்கப்பட்டுள்ளது.',
+    trendActive: 'முந்தைய மதிப்பீடு இணைக்கப்பட்டது',
+    trendDesc: 'உங்கள் முந்தைய ID இன்றைய பதில்களுடன் சேமிக்கப்பட்டுள்ளது, பின்னர் இரண்டையும் ஒப்பிட முடியும். அந்த ஒப்பீட்டை இப்போது உங்களுக்குக் காட்ட எங்களால் முடியவில்லை.',
     pavsTitle: 'உங்கள் உடல் செயல்பாட்டு சரிபார்ப்பு',
     pavsWeekly: 'நிமிடங்கள் / வாரம்',
     pavsDays: 'நாட்கள் / வாரம்',
@@ -493,6 +493,29 @@ const PrimaryActionBanner = ({ ctaTier, t, lang }) => {
 const SdohFlags = ({ data, t, previousSessionId }) => {
   const hasPsycho = data.psychoFlag || data.sdohPsychological;
   const flags = [
+    /*
+      ⚠️ `CP33` — THIS PANEL PROMISED SOMETHING THAT DOES NOT EXIST.
+
+         It read "Longitudinal Tracking Active — your results have been linked to
+         your previous assessment so you can track your progress over time", in all
+         four languages, on the live site.
+
+         `previousId` has ZERO consumers. It is written to `community_assessments`
+         and read by nothing: not the resident, not the insights rollup, not any
+         Cloud Function. The security rules deny client reads of that collection
+         outright, so no comparison is possible from the browser at all. The only
+         two functions that touch the collection are a deletion sweep and an
+         anonymous counts rollup.
+
+         Same class of defect as the housing claim: a statement on a public surface
+         with no mechanism behind it. The copy now says what is true — the ID is
+         saved so the records CAN be matched later — and says plainly that the
+         comparison cannot be shown yet.
+
+      ⚠️ DO NOT RESTORE THE OLD WORDING WHEN TRACKING IS BUILT. It will need its own
+         decision first: the assessment ID would be the only credential, and it is
+         printed on paper residents carry. `CD23` in the ledger.
+    */
     previousSessionId  && { icon: <TrendingUp size={16} className="text-teal-500 shrink-0 mt-0.5" />,  text: t.trendDesc,       header: t.trendActive, headerCls: 'text-teal-600 dark:text-teal-400' },
     data.sdohFinancial && { icon: <DollarSign size={16} className="text-amber-500 shrink-0 mt-0.5" />, text: t.sdohFinText },
     data.sdohSocial    && { icon: <Users      size={16} className="text-sky-500 shrink-0 mt-0.5" />,   text: t.sdohSocText },

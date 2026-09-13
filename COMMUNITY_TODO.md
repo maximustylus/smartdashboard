@@ -518,6 +518,61 @@ obvious measurement is the wrong one and looks right.
 
 ---
 
+## ⚠️ `CP33` — the report promised tracking that does not exist. FIXED 2026-09-13
+
+Live on the site until today, in all four languages, to every returning resident:
+
+> **Longitudinal Tracking Active** — Your results have been linked to your previous
+> assessment so you can track your progress over time.
+
+**Nothing tracked anything.** `previousId` is written to `community_assessments` and
+read by NOBODY:
+
+| Reader | Reads `previousId`? |
+|---|---|
+| the resident | no — `firestore.rules` denies client reads of that collection outright |
+| the insights rollup (`insights.cjs`) | no — zero occurrences in the file |
+| the retention sweep | no — it deletes by `createdAt` |
+| any other Cloud Function | there are no others that touch the collection |
+
+Found while scoping `CD23`, not by looking for it. Same class as the housing claim
+on the evidence page: a statement on a public surface with no mechanism behind it.
+
+**What was actually false, and where.** Only the English overpromised in the chat
+and the form; the other three languages already said just "link records", which is
+true. The result page overpromised in **all four**. Fixed exactly the false parts and
+left the true copy alone.
+
+The Tamil also said *மருத்துவ முன்னேற்றம்* — "MEDICAL progress" — where the English
+said "progress over time". Gone with the rest, but worth noting as a pattern: the
+Tamil copy medicalises in a portal where that word is banned on public surfaces.
+
+**Verified in the built app**, all four languages, returning-resident state:
+
+    [en] Previous assessment linked · Your previous ID has been saved with today's
+         answers, so the two can be matched up later. We cannot show you the
+         comparison yet.
+    [ms] Penilaian lepas dipautkan · …
+    [zh] 已连结之前的评估 · …
+    [ta] முந்தைய மதிப்பீடு இணைக்கப்பட்டது · …
+
+`ResultPage.claims.test.js` guards it in all four languages, on both sides: the
+promise must be absent AND the honest wording must be present, so a page that simply
+says nothing where it used to reassure somebody also fails.
+
+⚠️ **THE GUARD IS "NOT WHILE IT IS FALSE", NOT "NEVER SAY THIS".** When `CD23` is
+built, that test is updated in the SAME commit as the mechanism, by somebody who has
+just made it true.
+
+⚠️ A third copy of `stripComments` was about to be written for that test, since the
+comment explaining the banned wording contains it. Extracted to
+`scripts/strip-comments.mjs` and shared with `version.test.js` instead.
+`an14.bundle.test.js` keeps its own simpler one deliberately: it guards a security
+assertion about the built bundle, and swapping its implementation as a drive-by on
+an unrelated fix is how a security test quietly stops testing what it used to.
+
+---
+
 ## Owner decisions, 2026-09-13 — four settled
 
 | | Decision | State |
@@ -525,7 +580,7 @@ obvious measurement is the wrong one and looks right.
 | Translation gate | Go live without a native-speaker review | Waiver signed, above |
 | `CD24` fear in the falls chip | **Yes, add it** | Done, four languages, parser re-tested |
 | `fallsAvoiding.ta` | **Change it** — earlier decision reversed | Done, honorific form |
-| `CD23` re-measurement | **The app should show the change** | ⬜ NOT BUILT — see below |
+| `CD23` re-measurement | **The app should show the change** | ⬜ NOT BUILT. Blocked on a privacy decision: the assessment ID would be the only credential and it is printed on paper residents carry. The false claim it exposed is fixed (`CP33`). Ceiling: records are deleted at 24 months, so tracking can never span longer. |
 | SSMC access | Call 6394 8488 / 6394 7171 to enquire | Done, venue now surfaces |
 
 ### The falls chip now mentions fear

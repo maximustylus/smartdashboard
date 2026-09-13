@@ -265,7 +265,9 @@ const D = {
     postalQ: 'First 2 digits of your Postal Code',
     postalHint: 'e.g. 73 (Woodlands) · 75–76 (Yishun) · 75 (Sembawang) · 68 (Admiralty / Canberra)',
     prevIdQ: 'Previous NEXUS Assessment ID',
-    prevIdHint: 'If you completed a previous AURA or NEXUS assessment, paste your ID here to link records and track progress. Leave blank if this is your first assessment.',
+    // `CP33`: only the English claimed progress tracking here. The other three
+    // already said only that records are linked, which is true.
+    prevIdHint: 'If you completed a previous AURA or NEXUS assessment, paste your ID here so the two records can be matched up later. We cannot show you a comparison yet. Leave blank if this is your first assessment.',
     summaryHead: 'Assessment Summary',
     optional: 'Optional',
     // FIX 5: per-step validation hints

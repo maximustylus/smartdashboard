@@ -30,6 +30,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { APP_VERSION, APP_VERSION_LABEL } from './version.js';
 import pkg from '../package.json';
+import { stripComments } from '../scripts/strip-comments.mjs';
 
 // Resolved from the working directory, NOT from `import.meta.url`: under vitest's
 // jsdom environment `import.meta.url` is not a file: URL, so `fileURLToPath`
@@ -70,37 +71,6 @@ const sourceFiles = (dir = SRC, out = []) => {
  * containing `//`) from a real comment, and getting that wrong would silently
  * blind the scan to everything after the first URL in a file.
  */
-const stripComments = (code) => {
-    let out = '';
-    let i = 0;
-    let mode = 'code';           // code | line | block | single | double | tick
-    while (i < code.length) {
-        const c = code[i];
-        const next = code[i + 1];
-        if (mode === 'code') {
-            if (c === '/' && next === '/') { mode = 'line'; i += 2; continue; }
-            if (c === '/' && next === '*') { mode = 'block'; i += 2; continue; }
-            if (c === "'") mode = 'single';
-            else if (c === '"') mode = 'double';
-            else if (c === '`') mode = 'tick';
-            out += c; i += 1; continue;
-        }
-        if (mode === 'line') {
-            if (c === '\n') { mode = 'code'; out += '\n'; }
-            i += 1; continue;
-        }
-        if (mode === 'block') {
-            if (c === '*' && next === '/') { mode = 'code'; i += 2; continue; }
-            if (c === '\n') out += '\n';   // keep line numbers honest
-            i += 1; continue;
-        }
-        // inside a string: copy through, respect escapes, and end on the quote
-        if (c === '\\') { out += c + (next ?? ''); i += 2; continue; }
-        if ((mode === 'single' && c === "'") || (mode === 'double' && c === '"') || (mode === 'tick' && c === '`')) mode = 'code';
-        out += c; i += 1; continue;
-    }
-    return out;
-};
 
 describe('the app version has exactly one source', () => {
     it('reads its version from package.json, not from a literal', () => {
