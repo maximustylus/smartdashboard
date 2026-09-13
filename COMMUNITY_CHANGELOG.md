@@ -29,6 +29,75 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.13.0] — `P9`, the functional measures
+
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
+
+### The shape of the conversation changed
+
+Physical activity is asked first — somebody who abandons after three questions has
+still given the vital sign this portal exists to take. Then sex, then a precise age,
+and everything after that can branch on it.
+
+| | Before | After |
+|---|---|---|
+| Sex | question 9, as "age group and gender" | 4, sex only |
+| Age | question 9, as a band | **5, as a year** |
+| Falls (60+) | 14, *after* record linkage | 11, once the age is known |
+| Grip strength | — | 15 |
+| Standing up from a chair | — | 16 |
+| Where it was measured | — | 17, only if a figure was given |
+| Record linkage | 13 | last |
+
+`falls` and `healthier_sg` were asked after "do you have a previous NEXUS record"
+because the old positional copy binding forced every new step onto the end. That
+binding is gone; `COPY_ORDER` holds it by name.
+
+### Added
+
+- **Grip strength in kilograms and repetitions from a chair**, both optional, both in
+  both pathways. The protocol follows the age: the one-minute test under 60
+  (Strassmann 2013, Swiss, 20-79), the thirty-second chair stand from 60 (CDC STEADI,
+  United States, 60-94). Grip against Tomkinson 2025 (international, 20 to 100+).
+- **Each question names its stopwatch**, and "I am not sure which test" is an answer
+  rather than a blank: it keeps the number and refuses the comparison. A
+  thirty-second count read against one-minute norms would tell somebody they are far
+  weaker than they are, and that is the likeliest way this feature hurts anyone.
+- **Report page 3**, only when a figure was given. Band, number, one sentence about
+  what to do — or the number and the REASON where no comparison could be made. All
+  nine refusal states have words in four languages, because a blank card under a
+  figure somebody just gave reads as "your result was too bad to print".
+- **The sources are cited with their populations named.** None of the three is
+  Singaporean. Nothing is cited where no comparison was made.
+
+### Decisions
+
+- **`CD20`** — neither measurement feeds `calculateRiskScore`, following the `falls`
+  precedent. Charging a deficit for not owning a dynamometer penalises exactly the
+  cohort this portal is for. Skipping both changes nothing about the result.
+- **`CD25`** — a precise age is collected; only the five-year band is stored.
+- **`CD22`** — the measurements go on page 3, decided by measurement rather than
+  preference: pages 1 and 2 had 2px and 77px of spare room (`CP30`).
+
+### Fixed
+
+- **`CP29`** — the precise age was reaching Firestore beside postal sector, sex,
+  ethnicity and housing type. `AuraChat` passes the whole parsed object to
+  `recordTelemetry`, so a new field ships by default and silently. The strip now
+  happens inside `recordTelemetry`, at any depth. Raw kilograms and repetitions never
+  leave the device.
+
+### Still open on this surface
+
+- **`CD13`** — the three safety-critical strings ship unreviewed in Malay, Chinese
+  and Tamil. Waived for this release by the owner, not bypassed. See `CHANGELOG.md`.
+- **`CP30`** — worst-case English report page 1 is 2px from clipping. Routed around,
+  not fixed.
+- **`CP28`** — the chat's step badges are English in all four languages.
+- **`CD21`** / **`CD23`** — source wording and whether re-measurement is real.
+
+---
+
 ## Shipped in [2.1.2] / [2.1.3] — was *[Unreleased] — on `claude/nexus-community-portal`*
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md); `§` references are

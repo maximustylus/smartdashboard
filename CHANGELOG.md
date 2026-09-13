@@ -54,6 +54,78 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.13.0] - 2026-09-13
+
+The community portal asks for two strength measurements and reports them back.
+Physical activity is asked first, then sex and a precise age, and the questions after
+that branch on it.
+
+⚠️ **This release ships three safety instructions that no native speaker has read.**
+See *Known at release*, below.
+
+### Added
+
+- **Grip strength and standing up from a chair**, asked in both pathways immediately
+  before record linkage, and optional throughout. The protocol follows the age — one
+  minute under 60, thirty seconds from 60 — and each question names its stopwatch so
+  a resident timed differently can say so. "I am not sure which test" is a real
+  answer: it keeps the number and refuses the comparison, because a thirty-second
+  count read against one-minute norms would tell somebody they are far weaker than
+  they are. Asked only from age 20, where a published reference exists.
+- **Page 3 of the printed report**, rendered only when a figure was given. Each
+  measurement shows the number, the band and one sentence about what to do. Where no
+  comparison could be made it shows the number and the REASON, because a blank card
+  under a figure somebody just gave reads as "your result was too bad to print". The
+  sources are cited with their reference populations named: none of the three is
+  Singaporean.
+- **A build gate on machine-translated safety instructions.** A string whose job is
+  to stop somebody doing something must be read by a person in every language, or
+  carry a dated, owner-named waiver. It fires on reachability — whether a resident
+  can reach the string through the real import graph — so it goes red when a screen
+  ships, not when a developer types a string.
+- `scripts/pdf-headroom.mjs`, which measures how close the printed report is to
+  losing content.
+
+### Changed
+
+- **The age is a year, not a band.** The strength references are cut in five-year
+  rows from 20 to 100+, so "60+" spans eight of them and cannot be narrowed back
+  down. Both pathways ask for the year; only the band is stored. Records collected
+  before this release still resolve, because the age is still looked for in the old
+  `demographics` answer when there is no age question.
+- **Question order.** Physical activity (1-3), sex (4), age (5), then everything that
+  branches on it, record linkage last. `falls` and `healthier_sg` used to be asked
+  AFTER "do you have a previous NEXUS record", because the old positional copy
+  binding forced new steps onto the end.
+
+### Fixed
+
+- **`CP29`** — the precise age was reaching Firestore. `AuraChat` passes the whole
+  parsed object to `recordTelemetry`, so a field added to `parseClinicalData` ships
+  by default and ships silently. Beside postal sector, sex, ethnicity and housing
+  type, a whole-year age narrows a record to very few people. The strip now happens
+  inside `recordTelemetry`, at any depth, so no caller can leak by forgetting. Raw
+  kilograms and repetitions are removed the same way: they stay on the device.
+- The report footer said "PAGE n OF 2" as a literal, on what can now be a three-page
+  report.
+
+### Known at release
+
+- **`CD13` — three safety-critical strings ship unreviewed in Malay, Chinese and
+  Tamil.** `measures.doNotSelfTest`, `measures.noComparison` and
+  `measures.notADiagnosis` are prohibitions, and the owner's standing rule is that
+  this category is not machine-translated alone. They are machine-translated, on
+  screen, and read by no native speaker. The gate that says so is in the build.
+  `TRANSLATION-BRIEF.md`
+  group 5 carries the strings and their back-translations; roughly fifteen minutes
+  per language clears it.
+- **`CP30` — the printed report is 2px from losing content.** Worst-case English
+  page 1 has 2px of spare room, and the pages clip rather than reflow. Not introduced
+  here and not fixed here; page 3 routes around it. One more line of English copy
+  anywhere on page 1 starts costing residents content, silently.
+- **`CP28` — the chat's step badges are English in all four languages.**
+  Pre-existing, visible on every question.
+
 ## [2.12.4] - 2026-09-12
 
 Community portal. A live defect fixed for residents aged 60 and over, the chat copy
