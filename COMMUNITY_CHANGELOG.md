@@ -58,6 +58,18 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
 ### Changed
 
+- **Both heart-rate safety sentences are now explicit prohibitions, in all four
+  languages** (`CD26`, 2026-09-14). A machine cross-check found the softness was in
+  the **English**: the suppressed-symptoms line ended "Please speak to a doctor
+  before you increase how hard you exercise", and all three translations were
+  faithful to that politeness — so a reviewer checking translation accuracy would
+  have passed every one of them. The English now reads "Do not increase how hard you
+  exercise until you have spoken to a doctor", and Malay, Chinese and Tamil follow.
+  Malay also corrects `kekuatan senaman` to `intensiti senaman`; Tamil replaces
+  வேண்டாம் ("do not" / "no need to") with கூடாது ("must not") in the caution.
+  Recorded as a cross-check, **not** as review: no reviewer name was entered, no
+  waiver was created, the 13 September waiver was not extended, and the gate stays
+  red.
 - **The heart rate zones use the conventional colours** — grey, blue, green, amber,
   red — as Garmin, Polar and Apple use them (`CD27`). They were teal, chosen to
   avoid red because page 1 prints a traffic light in which red means "High Needs".

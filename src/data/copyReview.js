@@ -169,7 +169,7 @@ export const COPY_REVIEW = Object.freeze({
         reachableWhen: 'src/data/measuresCopy.js',
         safetyCritical: true,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
-        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Please speak to a doctor before you increase how hard you exercise.',
+        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Do not increase how hard you exercise until you have spoken to a doctor.',
     }),
 
     // The other 44 strings in that module: the two questions, the band labels, the
@@ -252,6 +252,62 @@ export const CROSS_CHECKS = Object.freeze({
          predated them. They remain unreviewed and the gate remains red, which is
          why none of them appear below.
     */
+    /*
+      2026-09-14 · ChatGPT, over the two `measures.hr*` prohibitions, relayed by the
+      repository owner.
+
+      ⚠️ THIS IS A CROSS-CHECK AND NOT A REVIEW, WHICH IS WHY IT IS HERE AND NOT IN
+         `reviewedBy`. `NOT_A_PERSON` refuses a model in that field on purpose: a
+         model cannot be accountable for a prohibition a resident acts on. The owner
+         asked explicitly that this pass not be recorded as human review and that the
+         gate stay red. It is.
+
+      WHAT IT FOUND THAT THE EARLIER PASS DID NOT, and the reason it was worth
+      running: the softness was in the ENGLISH. `hrSuppressedSymptoms` ended "Please
+      speak to a doctor before you increase how hard you exercise" — a polite
+      request. All three translations were faithful to it, so all four languages were
+      equally soft and a translation reviewer reading for accuracy would have passed
+      every one. No amount of checking the translations would have surfaced that.
+
+      Changes applied, all four languages now carrying an explicit prohibition:
+
+        en   "Please speak to a doctor before..."  →  "Do not increase how hard you
+             exercise until you have spoken to a doctor."
+        ms   "Sila berbincang..."  →  "Jangan tingkatkan intensiti senaman anda
+             sehingga anda berbincang dengan doktor." Also `kekuatan senaman`
+             (strength of exercise) corrected to `intensiti senaman`, and the
+             hrCaution verb restored: `memaksa diri bersenam lebih kuat`.
+        zh   "请先与医生谈一谈"  →  "在咨询医生之前，不要加大运动强度。"
+             谈一谈 was NOT treated as a defect in itself; the construction changed
+             because the English became a prohibition.
+        ta   hrCaution's வேண்டாம் ("do not" / "no need to") → கூடாது ("must not").
+             hrSuppressedSymptoms now "மருத்துவரிடம் பேசும் வரை ... அதிகரிக்கக் கூடாது".
+
+      ⚠️ `doNotSelfTest` STILL USES வேண்டாம் AND WAS DELIBERATELY NOT TOUCHED. It is
+         a safety-critical prohibition carrying the same ambiguity, but it is covered
+         by the 2026-09-13 waiver — and rewriting waived copy would silently
+         invalidate the text the owner actually signed for. It needs its own decision.
+
+      The revised ms, zh and ta remain MACHINE-TRANSLATED AND UNVERIFIED. All three
+      `reviewedBy` values stay null, the waiver was not extended, and `CD26` stays red.
+    */
+    'measures.hrCaution': Object.freeze({
+        by: 'ChatGPT (machine cross-check, not review)', on: '2026-09-14',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'ta: வேண்டாம் ("do not" / "no need to") replaced with கூடாது '
+            + '("must not"), so the prohibition is unambiguous. ms: the verb restored, '
+            + '"memaksa diri bersenam lebih kuat". en and zh unchanged. Still '
+            + 'machine-translated and unverified in all three languages.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        by: 'ChatGPT (machine cross-check, not review)', on: '2026-09-14',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'all three rewritten as explicit prohibitions after the English source '
+            + 'itself was changed from a polite request. ms: "Jangan tingkatkan '
+            + 'intensiti senaman anda sehingga..." and kekuatan senaman corrected to '
+            + 'intensiti senaman. zh: "在咨询医生之前，不要加大运动强度。" ta: '
+            + '"...அதிகரிக்கக் கூடாது." Still machine-translated and unverified.',
+    }),
     'chips.falls': Object.freeze({
         by: 'Gemini 3.1 Pro + ChatGPT6 Astra', on: '2026-09-13',
         languages: Object.freeze(['ms', 'zh', 'ta']),

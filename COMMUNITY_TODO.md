@@ -631,6 +631,60 @@ in translation, what is left is a portal handing an older resident numbers to ch
 `reviewedBy`, or a waiver line signed for these two keys by name. Nothing here ships
 until one of them exists.
 
+#### 2026-09-14 — the wording was corrected first, and the gate stayed red
+
+Owner's instruction, relayed from a ChatGPT pass: correct the wording BEFORE native
+review, create no waiver, mark no language reviewed, and do not weaken the test.
+
+**What that pass found is the reason it was worth running: the softness was in the
+ENGLISH.** `hrSuppressedSymptoms` ended *"Please speak to a doctor before you increase
+how hard you exercise"* — a polite request. All three translations were faithful to
+it, so all four languages were equally soft, and **a translation reviewer reading for
+accuracy would have passed every one of them.** No amount of checking the translations
+would have surfaced that. The English had to change first.
+
+| | before | after |
+|---|---|---|
+| **en** | Please speak to a doctor before you increase how hard you exercise. | Do not increase how hard you exercise until you have spoken to a doctor. |
+| **ms** | Sila berbincang dengan doktor sebelum anda menambah **kekuatan** senaman anda. | **Jangan tingkatkan intensiti** senaman anda sehingga anda berbincang dengan doktor. |
+| **zh** | 请先与医生**谈一谈**。 | 在**咨询**医生之前，**不要**加大运动强度。 |
+| **ta** | …மருத்துவரிடம் **பேசுங்கள்**. | …அதிகரிக்க**க் கூடாது**. |
+
+`hrCaution`: English and Chinese unchanged. Malay gains the verb
+(`memaksa diri **bersenam** lebih kuat`). Tamil's **வேண்டாம்** — which carries both
+"do not" and the weaker "there is no need to" — becomes **கூடாது**, "must not".
+
+`谈一谈` was NOT treated as a defect in itself. The Chinese construction changed
+because the English became a prohibition.
+
+**Recorded as a `CROSS_CHECKS` entry, not as review.** `NOT_A_PERSON` refuses a model
+in `reviewedBy` on purpose: a model cannot be accountable for a prohibition a resident
+acts on. Two entries, one per real registry key — an earlier attempt used a made-up
+composite key `measures.hrPair` and the registry's own test rejected it, correctly.
+
+The `english` snapshot in `copyReview.js` was updated so the gate protects the text
+that now ships; `measuresCopy.test.js` binds the two together and would have failed
+otherwise. **The 13 September waiver was not extended. All three `reviewedBy` values
+remain null. `CD26` is still red:**
+
+    FAIL src/data/copyReview.test.js > ships no safety-critical string that is unreviewed and unwaived
+    FAIL src/data/copyReview.test.js > would block every waived string if the signature were withdrawn
+    Test Files  1 failed | 125 passed (126)
+    Tests       2 failed | 4263 passed (4265)
+
+Page 2 headroom unchanged by the rewrite: Tamil with the medication caution still has
+22px spare, nothing clipped.
+
+#### ⚠️ Still open — `doNotSelfTest` has the same Tamil ambiguity
+
+`measures.doNotSelfTest` is the sentence telling a resident not to attempt a timed
+chair stand alone. It is safety-critical and it **still ends in வேண்டாம்**, the exact
+construction just corrected in `hrCaution`.
+
+It was deliberately not touched. It is covered by the 2026-09-13 waiver, and rewriting
+waived copy would silently invalidate the text the owner actually signed for. Changing
+it is a decision, not a fix, and it is Alif's.
+
 
 ---
 

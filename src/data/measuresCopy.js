@@ -187,9 +187,26 @@ export const MEASURES_COPY = {
         hrSpreadNote: 'People of the same age can differ by around 11 beats per minute either way, so treat every figure here as rough.',
         hrMedicationNote: 'Some medicines slow the heart. If you take one, your pulse will sit below these numbers. That is expected, so do not work harder to reach them.',
 
-        // ⚠️ SAFETY-CRITICAL. Prohibitions, registered in `copyReview.js`.
+        /*
+          ⚠️ SAFETY-CRITICAL. Prohibitions, registered in `copyReview.js`.
+
+          ⚠️ BOTH WERE REWRITTEN ON 2026-09-14 TO BE EXPLICIT PROHIBITIONS, and the
+             reason is recorded because it is not visible in the English.
+
+             `hrSuppressedSymptoms` used to end "Please speak to a doctor before you
+             increase how hard you exercise". That is a polite request, and the three
+             translations were faithful to it — so all four were equally soft, and a
+             translation reviewer reading for accuracy would have passed every one of
+             them. The fix had to start in the English.
+
+             In Tamil, `hrCaution` ended in வேண்டாம், which carries both "do not" and
+             the weaker "there is no need to". It now uses கூடாது, which is
+             unambiguously "must not". `doNotSelfTest` still uses வேண்டாம் and is NOT
+             changed here: it is covered by the 2026-09-13 waiver, and rewriting
+             waived copy would silently invalidate what was signed for.
+        */
         hrCaution: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
-        hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Please speak to a doctor before you increase how hard you exercise.',
+        hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Do not increase how hard you exercise until you have spoken to a doctor.',
 
         /*
           ⚠️ THIS SENTENCE IS DOING WORK THE COLOUR USED TO DO. The zone ramp was
@@ -324,8 +341,8 @@ export const MEASURES_COPY = {
         hrSpreadNote: 'Orang yang sama umur boleh berbeza kira-kira 11 denyutan seminit, jadi anggap setiap angka di sini sebagai anggaran kasar.',
         hrMedicationNote: 'Sesetengah ubat melambatkan denyutan jantung. Jika anda mengambilnya, nadi anda akan berada di bawah nombor ini. Itu dijangka, jadi jangan bersenam lebih kuat untuk mencapainya.',
 
-        hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
-        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Sila berbincang dengan doktor sebelum anda menambah kekuatan senaman anda.',
+        hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri bersenam lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
+        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Jangan tingkatkan intensiti senaman anda sehingga anda berbincang dengan doktor.',
 
         hrColourNote: 'Ini warna zon senaman yang biasa digunakan. Ia tidak bermaksud perkara yang sama seperti warna keputusan penilaian anda.',
         hrColRange: 'Denyutan seminit',
@@ -440,7 +457,7 @@ export const MEASURES_COPY = {
         hrMedicationNote: '有些药物会减慢心跳。如果您在服用这类药物，您的脉搏会低于这些数字。这是正常的，不要为了达到这些数字而加大运动强度。',
 
         hrCaution: '不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。',
-        hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请先与医生谈一谈。',
+        hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在咨询医生之前，不要加大运动强度。',
 
         hrColourNote: '这些是运动强度分区的常用颜色。它们的含义和您的评估结果颜色不同。',
         hrColRange: '次每分钟',
@@ -554,8 +571,8 @@ export const MEASURES_COPY = {
         hrSpreadNote: 'ஒரே வயதினரிடையே நிமிடத்திற்கு சுமார் 11 துடிப்பு வித்தியாசம் இருக்கலாம், எனவே ஒவ்வொரு எண்ணும் தோராயமானதே.',
         hrMedicationNote: 'சில மருந்துகள் இதயத் துடிப்பை மெதுவாக்கும். நீங்கள் அவற்றை எடுத்துக்கொண்டால், உங்கள் நாடித் துடிப்பு இந்த எண்களுக்குக் கீழேயே இருக்கும். அது இயல்பானது, எனவே இவற்றை அடைய அதிகமாக உழைக்க வேண்டாம்.',
 
-        hrCaution: 'வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்த வேண்டாம். மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள்.',
-        hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் மருத்துவரிடம் பேசுங்கள்.',
+        hrCaution: 'வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்தக் கூடாது. மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள்.',
+        hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. மருத்துவரிடம் பேசும் வரை உடற்பயிற்சியின் கடினத்தை அதிகரிக்கக் கூடாது.',
 
         hrColourNote: 'இவை உடற்பயிற்சி மண்டலங்களுக்குப் பயன்படுத்தப்படும் வழக்கமான நிறங்கள். உங்கள் மதிப்பீட்டு முடிவின் நிறத்தின் பொருள் இவற்றுக்கு இல்லை.',
         hrColRange: 'நிமிடத்திற்கு துடிப்பு',
