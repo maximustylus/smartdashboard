@@ -50,11 +50,9 @@
 
 import React from 'react';
 import { spanFor, pctOf } from '../utils/meterScale';
+import { METER_COLOURS } from '../data/zonePalette';
 
-const TRACK = '#e5e7eb';   // slate-200
-const BAND = '#14b8a6';    // teal-500, the same teal the report uses throughout
-const MARKER = '#0f172a';  // slate-900
-const TICK = '#cbd5e1';    // slate-300
+const { track: TRACK, band: BAND, marker: MARKER, tick: TICK } = METER_COLOURS;
 
 const fmt = (n) => (Number.isInteger(n) ? String(n) : String(Math.round(n * 10) / 10));
 

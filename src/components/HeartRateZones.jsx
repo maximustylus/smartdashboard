@@ -71,34 +71,8 @@
 import React from 'react';
 import { measuresCopyFor } from '../data/measuresCopy';
 import { zonesFor } from '../utils/heartRateZones';
+import { HR_ZONE_RAMP } from '../data/zonePalette';
 
-/**
- * The conventional training-zone ramp. `fg` is chosen PER ROW against that row's
- * own fill, not set once for all five: this ramp runs light, dark, dark, light,
- * dark, so a single text colour is unreadable at one end or the other.
- *
- * Text contrast on each swatch, which is what a resident actually has to read:
- *
- *     grey   #94a3b8 + #0f172a ... 6.6:1
- *     blue   #2563eb + #ffffff ... 5.1:1
- *     green  #15803d + #ffffff ... 5.0:1
- *     amber  #f59e0b + #0f172a ... 7.9:1
- *     red    #b91c1c + #ffffff ... 6.5:1
- */
-const RAMP = Object.freeze({
-    'very-light': { bg: '#94a3b8', fg: '#0f172a', border: '#94a3b8' },
-    light: { bg: '#2563eb', fg: '#ffffff', border: '#2563eb' },
-    moderate: { bg: '#15803d', fg: '#ffffff', border: '#15803d' },
-    hard: { bg: '#f59e0b', fg: '#0f172a', border: '#f59e0b' },
-    maximum: { bg: '#b91c1c', fg: '#ffffff', border: '#b91c1c' },
-});
-
-/*
-  ⚠️ 7.5px AND 1.4 ARE MEASURED VALUES, NOT TASTE. `scripts/pdf-headroom.mjs` had
-     this page CLIPPING by 44px in Malay and Tamil, and the thing being cut off the
-     bottom of the download was `hrCaution`, the prohibition. Re-run that script
-     after changing anything here, including a font size.
-*/
 const NOTE = { fontSize: 8, color: '#64748b', lineHeight: 1.45 };
 
 /**
@@ -136,10 +110,18 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
     const spreadNote = (m.hrSpreadNote || '').replace('11', String(spreadBpm));
 
     return (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/*
+              ⚠️ THE SAME HEADING TREATMENT AS THE OTHER BLOCKS ON THIS PAGE.
+                 This was 11px bold sentence case, which is the page's SUB-heading
+                 style, so the biggest block on page 2 announced itself more quietly
+                 than the citation list beneath it.
+            */}
             <div>
-                <div style={{ fontWeight: 900, fontSize: 11, color: '#0f172a' }}>{m.hrHeading}</div>
-                <div style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.45, marginTop: 2 }}>{m.hrIntro}</div>
+                <div style={{ fontWeight: 900, fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2 }}>
+                    {m.hrHeading}
+                </div>
+                <div style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.45, marginTop: 4 }}>{m.hrIntro}</div>
             </div>
 
             <div style={{ fontSize: 10, color: '#475569' }}>
@@ -148,8 +130,24 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {/*
+                  Column headings. Without them the middle column reads as a verdict:
+                  "Light" and "Hard" beside somebody's own report look like a grade
+                  until a heading says the word names an intensity.
+                */}
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 1 }}>
+                    <div style={{ width: 86, flexShrink: 0, fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>
+                        {m.hrColRange}
+                    </div>
+                    <div style={{ fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                        {m.hrColZone}
+                    </div>
+                    <div style={{ fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                        {m.hrColPurpose}
+                    </div>
+                </div>
                 {zones.map((zone) => {
-                    const skin = RAMP[zone.id];
+                    const skin = HR_ZONE_RAMP[zone.id];
                     return (
                         <div key={zone.id} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
                             {/*
@@ -159,7 +157,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                             */}
                             <div
                                 style={{
-                                    background: skin.bg, border: `1px solid ${skin.border}`,
+                                    background: skin.bg, border: `1px solid ${skin.bg}`,
                                     color: skin.fg, borderRadius: 6, padding: '2px 8px',
                                     fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap',
                                     width: 86, textAlign: 'center', flexShrink: 0,
@@ -183,7 +181,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                                  for and stop.
                             */}
                             <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
-                                <div style={{ fontSize: 8.5, fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                                <div style={{ fontSize: 8.5, fontWeight: 800, color: '#0f172a', width: 62, flexShrink: 0 }}>
                                     {m.hrZoneNames[zone.id]}
                                 </div>
                                 <div style={{ fontSize: 8, color: '#475569', lineHeight: 1.35 }}>

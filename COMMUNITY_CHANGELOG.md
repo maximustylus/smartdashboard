@@ -70,6 +70,13 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
   as the convention. Every row also prints its range inside its swatch and its name
   in words, which is what makes the table survive a greyscale photocopy: blue and
   green are within 0.005 of each other in relative luminance.
+- **The heart rate zones got proper headers** (`CD28`), in both media. The block
+  heading was the page's sub-heading style, so the largest block on page 2
+  announced itself more quietly than the citation list beneath it; it now matches
+  its neighbours, and on screen uses the same `<h2>` idiom as every other section.
+  The zone table's three columns were unlabelled, which matters most for the middle
+  one: "Light" and "Hard" beside somebody's own result read as a grade until a
+  heading says they name an intensity.
 - **The measurements page is now page 2**, ahead of governance, at the owner's
   request. Governance is last and its footer is numbered from `totalPages` rather
   than a literal, so the printed numbering cannot disagree with the order the PDF is
@@ -80,6 +87,18 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
 ### Fixed
 
+- **The whole feature was invisible in the app** (`CP38`). `MeasurementsPanel` was
+  rendered once, inside the print template at `position:absolute; top:-10000px`, so
+  a resident who had their grip measured, typed the number in and read their result
+  on screen saw no meter, no band and no heart rate ranges at any point unless they
+  tapped Download and opened the file. **This is the second time this exact defect
+  has shipped here** — the first was the medical disclaimer, described in the same
+  words in `ResultPage.jsx`. `MeasurementsSection.jsx` is the screen-native
+  rendering, and the last test in its suite reads `ResultPage.jsx` and fails if the
+  component ever moves back inside the off-screen wrapper.
+- **`hrColourNote` told screen readers to look at "page 1".** Correct on paper,
+  nonsense in the app. Copy shared by two media cannot describe the furniture of
+  either; no language mentions a page now, and a test holds it there.
 - **The chair-stand meter overstated two repetitions.** Derived from its single
   published point plus the resident's own count, the drawn axis for a woman of 67 who
   stood 13 times against a cut-off of 11 spanned exactly those two repetitions: the
@@ -94,7 +113,7 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
   headroom came back unchanged, which looked like good news and had measured nothing.
   Space was recovered from spacing and repeated wording, **not from type size** — 8px
   on A4 is about six points and these readers are mostly over 60. Tightest page 2 is
-  now 28px spare (Tamil, with the medication caution). Page 1 is untouched and still
+  now 22px spare (Tamil, with the medication caution). Page 1 is untouched and still
   has the 2px worst case recorded under **`CP30`**.
 
 ## Shipped in [2.13.0] — `P9`, the functional measures

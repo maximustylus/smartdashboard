@@ -631,6 +631,78 @@ in translation, what is left is a portal handing an older resident numbers to ch
 `reviewedBy`, or a waiver line signed for these two keys by name. Nothing here ships
 until one of them exists.
 
+
+---
+
+## ⚠️ `CP38` — the whole measurements feature was invisible in the app · **FIXED**
+
+Found by the owner asking for PWA screenshots of it, 2026-09-14: *"Currently I'm
+only seeing screenshots of the pdf report."* There were none to take.
+
+`MeasurementsPanel` was rendered exactly once, at `ResultPage.jsx:1003`, inside the
+print template that lives at `position:absolute; top:-10000px`. It rasterised
+correctly into the downloaded PDF and was seen by nobody else. **A resident who had
+their grip measured, typed the number in, and read their result on the screen saw no
+meter, no band and no heart rate ranges at any point** — unless they happened to tap
+Download and open the file.
+
+**This is the second time this exact defect has shipped in this repository.** The
+first was the medical disclaimer, and the note above `MedicalDisclaimer` in
+`ResultPage.jsx` describes it in the same words: *"It rendered for `html2canvas` and
+for nobody else."* A person who read their risk band and a Primary Action telling
+them to start exercising saw no disclaimer at all.
+
+Fixed by `MeasurementsSection.jsx`, the screen-native rendering: responsive, dark
+theme, same content. It is a second component rather than a prop on the first
+because the two media have genuinely different constraints — a fixed 794x1123
+light-only box measured to the pixel, against a responsive page with no height
+limit — and the print side is the one that fails silently. `MedicalDisclaimer` and
+`DataGovernance` already follow that pattern here.
+
+What is **not** duplicated is anything that could drift and be wrong. Copy comes
+from `measuresCopy.js`, bands from `functionalMeasures.js`, zones from `zonesFor`,
+and the colours from the new `src/data/zonePalette.js`. Both media render the same
+numbers in the same colours, or the shared module is broken and both fail.
+
+**The guard against a third occurrence** is the last test in
+`MeasurementsSection.test.jsx`. It reads `ResultPage.jsx` and asserts the component
+is used AFTER the `── MAIN CONTENT` marker rather than inside the off-screen
+wrapper, because a component can be mounted, correct, and still be at -10000px:
+
+    ⚠️ it is on the screen, not only in the download
+      ✓ is rendered outside the off-screen print wrapper
+
+### `CD28` — proper headers, in both media
+
+Owner: *"The heart rate zones should also receive proper headers."* Two things were
+wrong and both are fixed in the print page and on the screen:
+
+1. **The block heading was the page's SUB-heading style** — 11px bold sentence case
+   — so the largest block on page 2 announced itself more quietly than the citation
+   list beneath it. It now uses the same uppercase, letter-spaced treatment as
+   "Compared against", and on screen the same `<h2>` idiom with an icon that every
+   other section of the result page uses.
+2. **The table had three unlabelled columns.** Three lists that happen to line up is
+   not a table, and the middle one is the reason it matters: "Light" and "Hard"
+   printed beside somebody's own result read as a grade until a heading says they
+   name an intensity. Now `hrColRange` / `hrColZone` / `hrColPurpose`, in all four
+   languages.
+
+The headings cost the tightest print page 13px, taken back out of block gaps.
+
+    scenario             lang  page  natural  spare
+    measured             ta    2        1075     48
+    measured-medication  ta    2        1101     22   ← tightest page 2
+    measured-medication  en    2        1037     86
+    (page 1 unchanged: worst case still 2px — `CP30`)
+
+### `hrColourNote` no longer names a page number
+
+It read *"the colour of your result on page 1"*. That was correct on paper and
+nonsense on the screen, where there are no pages and the sentence sent the reader
+looking for one. Copy shared by two media cannot describe the furniture of either,
+and `MeasurementsSection.test.jsx` now asserts no language mentions a page.
+
 ---
 
 ## ⚠️ `CP30` — the printed report is 2px from losing content, today

@@ -10,6 +10,7 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { recordTelemetry } from '../utils/telemetry';
 import MeasurementsPanel from './MeasurementsPanel';
+import MeasurementsSection from './MeasurementsSection';
 import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
@@ -1253,6 +1254,28 @@ export default function ResultPage() {
                 ))}
               </div>
             </div>
+
+            {/*
+              ⚠️ ON THE SCREEN, AND NOT ONLY IN THE DOWNLOAD. The same panel exists
+                 in the print template further up this file, which lives at
+                 `position:absolute; top:-10000px` and renders for `html2canvas` and
+                 for nobody else. Until this line, a resident who had their grip
+                 measured, typed the number in, and read their result saw no meter
+                 and no heart rate ranges at any point unless they tapped Download
+                 and opened the file.
+
+                 That is the identical defect the medical disclaimer above had, for
+                 the identical reason. `MeasurementsSection` is the screen-native
+                 rendering; both read the same copy, the same bands and the same
+                 palette, so the two media cannot disagree about a resident's result.
+            */}
+            <MeasurementsSection
+              functional={data.functional}
+              lang={lang}
+              ageYears={data.ageYears}
+              symptomFlag={data.symptomFlag}
+              medFlag={data.medFlag}
+            />
 
             <DataGovernance />
 
