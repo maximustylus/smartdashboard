@@ -6,7 +6,10 @@
  * The conversational pathway assembles the same shape in `clinicalParse.js`.
  */
 import { toSector } from './singapore/postalSectors';
-import { parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears } from './clinicalFlags';
+import {
+  parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears, isSixtyPlusPerson,
+} from './clinicalFlags';
+import { sitToStandProtocolForAge } from './functionalMeasures';
 import { measurementResults, toStorableMeasurements } from './measurementAnswers';
 
 export const DAYS_MIDPOINT = Object.freeze({
@@ -82,7 +85,39 @@ export const deriveFormClinicalData = (answers = {}) => {
   const sdohPsychological = PSYCHOLOGICAL_FLAG_VALUES.has(f.wellbeing);
   const caregiverStrain = CAREGIVER_FLAG_VALUES.has(f.wellbeing);
 
-  const falls = parseFallsAnswer(f.falls);
+  /*
+    ==========================================================================
+    ⚠️ `CP34` — A HIDDEN FIELD KEEPS ITS ANSWER, AND THIS USED TO READ IT
+    ==========================================================================
+
+    The falls question is rendered only for residents aged 60 and over, and the
+    strength block only where a published reference exists. Hiding a field does
+    NOT clear it. So:
+
+        enter age 65 -> answer "two or more falls" -> change the age to 20
+
+    left `f.falls` populated, this function read it unconditionally, and a
+    20-year-old was derived as `fallsCount: 2, fallsRisk: true, fallsAsked: true`.
+    That reached the record, printed on the handover slip as fact, and changed the
+    routing, because `selectCTA` branches on falls. It also silently disagreed with
+    the chat, which never asks the question at all at that age.
+
+    Found by `communitySimulation.test.js` on its first run, by walking the same
+    person through both pathways — not by any unit test, because every unit here
+    was behaving exactly as written.
+
+    ⚠️ FIXED AT THE DERIVATION, NOT BY CLEARING THE FIELD ON CHANGE. Clearing would
+       also throw away a correct answer when somebody fixes a typo in their age and
+       changes it back, and it would leave the same trap for the next conditional
+       field somebody adds. THE GATE THAT DECIDES WHETHER TO ASK IS NOW THE GATE
+       THAT DECIDES WHETHER TO READ — one rule, and it is the same helper the UI
+       calls, so the two cannot drift.
+
+    An unasked question parses as an empty answer, which `parseFallsAnswer` already
+    reports as `asked: false` — never as "no falls". That distinction is `CP26`.
+  */
+  const wasAskedFalls = isSixtyPlusPerson({ age_years: f.ageYears });
+  const falls = parseFallsAnswer(wasAskedFalls ? f.falls : '');
   const healthierSgEnrolled = parseHealthierSg(f.healthierSg);
   const previousId = answerText(f.previousId).trim().toUpperCase() || null;
 
@@ -99,10 +134,13 @@ export const deriveFormClinicalData = (answers = {}) => {
        `functionalStorable` is the band-only record. `telemetry.js` strips the
        former by name, so neither pathway can leak it by forgetting.
   */
+  // Same rule for the strength block: both sources start at 20, the block is not
+  // rendered below that, and a figure typed at 65 must not survive a change to 18.
+  const wasAskedMeasurements = sitToStandProtocolForAge(ageYears) !== null;
   const functional = measurementResults({
-    gripAnswer: f.gripKg,
-    stsAnswer: f.sitToStand,
-    settingAnswer: f.measureSetting,
+    gripAnswer: wasAskedMeasurements ? f.gripKg : '',
+    stsAnswer: wasAskedMeasurements ? f.sitToStand : '',
+    settingAnswer: wasAskedMeasurements ? f.measureSetting : '',
     ageYears,
     sex: answerText(f.gender, ''),
   });

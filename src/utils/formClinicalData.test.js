@@ -15,19 +15,78 @@ const answers = (overrides = {}) => ({
   incomeAdequacy: 'Adequate',
   social: 'I have several people I can rely on',
   wellbeing: 'Feeling good overall',
+  /*
+    ⚠️ THE AGE AND THE FALLS ANSWER HAVE TO AGREE, SINCE `CP34`. This fixture used
+       to be a 52-year-old who had answered the falls question — a resident who
+       cannot exist, because the question is only rendered from 60. It passed
+       because `deriveFormClinicalData` read the field regardless, which was the
+       defect. The age is now 65 so the answer is one a real person could give.
+  */
   falls: 'No falls',
   healthierSg: 'Yes, I am enrolled',
   foodInsecure: false,
   housing: 'HDB 3-5 Room',
   race: 'Chinese',
   postalCode: '560123',
-  ageYears: '52',
+  ageYears: '65',
   gender: 'Female',
   previousId: ' nx-ab12cd ',
   ...overrides,
 });
 
 describe('deriveFormClinicalData', () => {
+  /**
+   * ==============================================================================
+   * ⚠️ `CP34` — A HIDDEN FIELD KEEPS ITS ANSWER
+   * ==============================================================================
+   *
+   * The falls question renders only for residents aged 60 and over, and the
+   * strength block only where a published reference exists. Hiding a field does not
+   * clear it, and this function used to read them regardless:
+   *
+   *     enter age 65 -> answer "two or more falls" -> change the age to 20
+   *
+   * derived `fallsCount: 2, fallsRisk: true, fallsAsked: true` for a 20-year-old.
+   * It reached the record, printed on the handover slip as fact, and changed the
+   * routing. The chat never asks at that age, so the two pathways also disagreed
+   * about the same person.
+   */
+  const stale = (over) => ({
+    pavsDays: '3–4 days', pavsMins: '45–60 mins', strength: '2 days a week',
+    medical: [], barriers: [], social: 'I have one or two close people',
+    wellbeing: 'Feeling good overall', foodInsecure: false, housing: 'HDB 4 Room',
+    race: 'Chinese', postalCode: '730123', gender: 'Female', previousId: '',
+    healthierSg: 'Yes, I am enrolled', ageYears: '65',
+    falls: FALLS_CHIPS.en[2], gripKg: '22', sitToStand: '12',
+    measureSetting: 'At a community event',
+    ...over,
+  });
+
+  it('ignores a falls answer left behind when the age dropped below 60', () => {
+    const r = deriveFormClinicalData(stale({ ageYears: '20' }));
+    expect(r.fallsCount).toBe(0);
+    expect(r.fallsRisk).toBe(false);
+    // ⚠️ NOT ASKED, which is different from "no falls" and must stay different.
+    expect(r.fallsAsked).toBe(false);
+  });
+
+  it('ignores strength figures left behind when the age dropped below 20', () => {
+    const r = deriveFormClinicalData(stale({ ageYears: '18' }));
+    expect(r.functional.grip.value).toBeNull();
+    expect(r.functional.sitToStand.value).toBeNull();
+    expect(r.functionalStorable).toEqual({ grip: null, sitToStand: null });
+  });
+
+  // And the answers of somebody who WAS asked must still be read, or the fix would
+  // have quietly deleted the feature rather than corrected it.
+  it('still reads both when the age says the question was asked', () => {
+    const r = deriveFormClinicalData(stale({}));
+    expect(r.fallsAsked).toBe(true);
+    expect(r.fallsCount).toBe(2);
+    expect(r.functional.grip.ok).toBe(true);
+    expect(r.functional.sitToStand.protocol).toBe('sts-30s');
+  });
+
   it('converts a completed low-risk form into the shared result contract', () => {
     expect(deriveFormClinicalData(answers())).toEqual({
       pavsScore: 182,
@@ -51,8 +110,8 @@ describe('deriveFormClinicalData', () => {
       ethnicity: 'Chinese',
       housingType: 'HDB 3-5 Room',
       postalSector: '56',
-      age: '41-60',
-      ageYears: 52,
+      age: '60+',
+      ageYears: 65,
       gender: 'Female',
       previousId: 'NX-AB12CD',
       /*
@@ -64,7 +123,8 @@ describe('deriveFormClinicalData', () => {
       */
       functional: {
         grip: { ok: false, reason: 'missing', value: null },
-        sitToStand: { ok: false, reason: 'missing', value: null, protocol: 'sts-60s' },
+        // 65, so the thirty-second chair stand is the protocol their age selects.
+        sitToStand: { ok: false, reason: 'missing', value: null, protocol: 'sts-30s' },
         setting: null,
       },
       functionalStorable: { grip: null, sitToStand: null },

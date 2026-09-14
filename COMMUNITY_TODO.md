@@ -518,6 +518,71 @@ obvious measurement is the wrong one and looks right.
 
 ---
 
+## ⚠️ `CP34` — a hidden form field kept its answer. FIXED 2026-09-14
+
+Found by `communitySimulation.test.js` **on its first run**, by walking the same
+person through both pathways. No unit test could have caught it: every unit was
+behaving exactly as written.
+
+    enter age 65  ->  answer "two or more falls"  ->  change the age to 20
+
+The falls dropdown is rendered only from 60, and hiding a field does not clear it.
+`deriveFormClinicalData` read `f.falls` unconditionally, so a 20-year-old derived as:
+
+    age 20, stale falls  ::  fallsAsked=true  fallsCount=2  fallsRisk=true
+
+That reached the record, printed on the handover slip to a community centre as
+fact, and changed the routing, because `selectCTA` branches on falls. The chat
+never asks at that age, so the two pathways silently disagreed about the same
+person — the `CP9` shape again.
+
+The strength block had the same hole: a figure typed at 65 survived a change to 18.
+
+**Fixed at the derivation, not by clearing the field on change.** Clearing would
+also throw away a correct answer when somebody fixes a typo in their age and changes
+it back, and it would leave the same trap for the next conditional field anybody
+adds. THE GATE THAT DECIDES WHETHER TO ASK IS NOW THE GATE THAT DECIDES WHETHER TO
+READ — the same helper the UI calls, so the two cannot drift.
+
+An unasked question parses as an empty answer, which reports `asked: false` and
+never "no falls". That distinction is `CP26` and it is preserved.
+
+⚠️ **TWO EXISTING FIXTURES DESCRIBED A RESIDENT WHO CANNOT EXIST** — a 52-year-old
+who had answered the falls question. They passed only because the defect let them.
+Aged to 65 so the answers are ones a real person could give.
+
+⚠️ **NOT INTRODUCED BY `P9`.** The same trap existed with the old age-group select:
+choose 60+, answer falls, change to 21-40. `P9` makes it easier to reach, because
+the age is now a free-typed field people correct.
+
+---
+
+## `communitySimulation.test.js` — the whole assessment, every kind of resident
+
+Added 2026-09-14 ahead of the merge. Runs the WHOLE public assessment, first
+question to derived flags, for **735 residents x 4 languages**, and asserts what is
+only visible end to end:
+
+- nothing throws, anywhere in the pipeline
+- the walk terminates, asks each question at most once, and never offers a question
+  whose predicate reads an answer not yet given
+- every prompt shown is real text in the ACTIVE language
+- the progress counter is 1..total and total equals what was asked
+- **all four languages ask the same questions of the same person** (`CP26`)
+- nothing a resident can read contains `undefined`, `NaN`, `null`, `[object Object]`
+- what may be stored carries neither raw figure nor exact age, checked by WALKING
+  the output rather than naming the fields it knows about
+- **skipping both measurements changes neither score nor routing** (`CD20`) — the
+  promise that keeps the feature optional in fact and not only in wording
+- the chat and the form agree on every shared flag, for the same person
+
+⚠️ It drives the real step machinery, the real copy and the real parsers, so it
+catches ordering, gating, language and derivation faults. **It cannot catch anything
+about rendering, layout or the PDF.** `scripts/pdf-headroom.mjs` and the Playwright
+walks cover that, and saying so is the honest limit of the file.
+
+---
+
 ## ⚠️ `CP33` — the report promised tracking that does not exist. FIXED 2026-09-13
 
 Live on the site until today, in all four languages, to every returning resident:
