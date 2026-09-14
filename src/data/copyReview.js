@@ -142,6 +142,36 @@ export const COPY_REVIEW = Object.freeze({
         english: 'These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above.',
     }),
 
+    /*
+      ⚠️ TWO MORE PROHIBITIONS, ADDED WITH THE HEART RATE BLOCK AND DELIBERATELY NOT
+         COVERED BY THE 2026-09-13 WAIVER.
+
+         That waiver names three keys and was signed against three specific,
+         stated risks. These are different strings carrying different risks, and
+         extending somebody else's signature to cover work they have not seen is
+         the failure mode this whole module exists to prevent. The gate goes red
+         until the owner either supplies reviewers or signs for these two by name.
+
+         `hrCaution` is the harder of the two. It sits directly beneath a table of
+         heart rate ranges, and a table of ranges reads as a set of targets. If the
+         prohibition softens in translation, what is left is a portal handing an
+         older resident numbers to chase.
+    */
+    'measures.hrCaution': Object.freeze({
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
+        safetyCritical: true,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+        english: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
+        safetyCritical: true,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Please speak to a doctor before you increase how hard you exercise.',
+    }),
+
     // The other 44 strings in that module: the two questions, the band labels, the
     // nine reasons a comparison was refused, the eight places a measurement is
     // taken. Registered as ONE entry rather than 44, because a reviewer reads the

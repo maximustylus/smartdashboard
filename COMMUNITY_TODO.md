@@ -470,6 +470,129 @@ two clean bands: the reason strings are far longer than a band label. A page siz
 against the happy path clips exactly the residents it was most important to
 explain things to.
 
+
+---
+
+## `P9b` — the measurements page gets a picture · **BUILT, NOT SHIPPABLE** (`CD26`)
+
+Owner's direction, 2026-09-14, after trying v2.13.0 live: *"page needs to move to
+page 2. Page 2 where the grip strength and sit to stand measurements are shown needs
+a bit more visual. Im thinking of percentile graphs"*, and then, with a screenshot of
+the remaining space: *"Possible to build a heart rate graph based on user's age so
+they can see the heart rate ranges and the general benefits and the coloured zones
+using the astrand's equation and tanaka's equation"*.
+
+### It is a meter, not a percentile graph, and that is the whole design
+
+A percentile graph needs a distribution, and two of the three references do not
+publish one:
+
+| measure | what the source actually publishes |
+|---|---|
+| grip (Tomkinson 2025) | 11 percentiles per age and sex |
+| 1-minute STS (Strassmann 2013) | 5 points: p2.5, p25, p50, p75, p97.5 |
+| **30-second chair stand (STEADI)** | **ONE cut-off, and nothing above it** |
+
+The third is the test **every resident aged 60 and over takes**. Drawing a smooth
+curve through one published point means drawing a shape invented here and
+attributing it to the CDC. So `functionalMeasures.js` now exposes `scale` — the
+figures a chart is ALLOWED to draw — and `ReferenceMeter` draws those and nothing
+between them. It degrades from eleven marks to five to one without ever changing
+what it claims. `CD18` already refused to REPORT a rank for grip; plotting one would
+have reintroduced it through a picture.
+
+### Two defects the previews caught that no test would have
+
+1. **The cut-off meter overstated two repetitions.** With the axis derived from the
+   single published point plus the resident's own count, a woman of 67 who stood up
+   13 times against a cut-off of 11 got a meter whose entire span was those two
+   repetitions: the teal band filled nine tenths of the track, her marker sat near
+   the end of it. Every number printed beside it was correct. The drawing said she
+   was near the top of a scale that has no top. Fixed by giving the cut-off case a
+   real axis (`axisFrom: 0`, `axisTo` = the protocol's plausible maximum) and
+   covered by test.
+2. **`81 to 97` printed in Malay, Chinese and Tamil.** The zone chip's connector was
+   an English word written into the component instead of copy. Now a hyphen.
+
+### Heart rate: both equations shown, only one used
+
+    Tanaka (2001) .... 208 - 0.7 x age ...... healthy adults .......... computes the zones
+    Astrand .......... 216.6 - 0.84 x age ... STATED POPULATION 4-34 ... shown, never used
+
+Astrand's own sample stops at 34 and this page is mostly read by people past 60.
+Both figures are printed because both were asked for, and a resident comparing them
+learns something true; the zones are computed from Tanaka alone, and the page says
+in words why. `ESTIMATE_SPREAD_BPM` (about 11 bpm between individuals of the same
+age) is printed beside them, because the uncertainty is most of the width of a zone
+and arithmetic that looks exact would otherwise be read as personal thresholds.
+
+**Two suppressions, and the symptom one is checked BEFORE the age lookup.** A
+resident who reported symptoms on exertion is shown no table at all — a table of
+intensity ranges is an invitation to exert. Ordering that check second would make
+the suppression depend on the calculation succeeding. Medication (`medFlag`) does
+NOT suppress: it makes the estimate wrong in a known direction, so the table is
+shown with a caution, because hiding it would remove the explanation along with it.
+
+### The ramp is teal, and deliberately not the reference image's red
+
+Page 1 of the same report prints a traffic light where **red means "High Needs"**. A
+red top zone on page 2 would read, to somebody holding both pages, as a second
+verdict about them. It is not one: the top zone labels an intensity, and reaching it
+is neither good nor bad. Sequential teal encodes order without encoding alarm;
+lightness descends monotonically and every row also prints its own bpm range and its
+name in words, so the table survives being photocopied in black and white.
+
+### Headroom, measured — and it caught a real clip
+
+The measurements page moved to **page 2** at the owner's request (a resident who had
+themselves measured should not have to go past a disclaimer page to reach their own
+figures). Governance is last and is numbered from `totalPages`.
+
+First run after the heart rate block went in:
+
+    measured-medication  ms  page 2   -44px  ← CLIPPED
+    measured-medication  ta  page 2   -44px  ← CLIPPED
+    measured             ms  page 2   -14px  ← CLIPPED
+    measured             ta  page 2   -14px  ← CLIPPED
+
+**What was falling off the bottom was `hrCaution`, the safety string.** Space was
+recovered from spacing and from repeated wording, **not from type size** — 8px on A4
+is already about six points and these readers are mostly over 60. Three sentences
+saying "this number is soft" became one paragraph; five per-row restatements of the
+talk test became one line below the table; the two equation citations moved into the
+page's existing "Compared against" block.
+
+    scenario             lang  page  natural  spare
+    measured             en    2        1024     99
+    measured             ta    2        1076     47
+    measured-medication  ta    2        1104     19   ← tightest page 2
+    measured-symptoms    en    2         818    305
+    measured-refused     zh    2         814    309
+    (page 1 unchanged: worst case still 2px — `CP30`, untouched by this work)
+
+### ⚠️ `CD26` — TWO NEW PROHIBITIONS, AND THE GATE IS RED · **OWNER'S CALL**
+
+`measures.hrCaution` and `measures.hrSuppressedSymptoms` are registered in
+`copyReview.js` as safety-critical. Neither is covered by the 2026-09-13 waiver, and
+**they were not added to it.** That waiver names three keys and was signed against
+three specific stated risks; extending somebody else's signature to cover work they
+have not seen is the failure this module exists to prevent.
+
+So the build is red, on purpose, exactly as the rule says it should be:
+
+    FAIL src/data/copyReview.test.js > ships no safety-critical string that is unreviewed and unwaived
+    FAIL src/data/copyReview.test.js > would block every waived string if the signature were withdrawn
+    Test Files  1 failed | 124 passed (125)
+    Tests       2 failed | 4248 passed (4250)
+
+`hrCaution` is the harder of the two. It sits directly beneath a table of heart rate
+ranges, and a table of ranges reads as a set of targets. If the prohibition softens
+in translation, what is left is a portal handing an older resident numbers to chase.
+
+**Two ways to clear it, and both are Alif's:** a named reviewer per language in
+`reviewedBy`, or a waiver line signed for these two keys by name. Nothing here ships
+until one of them exists.
+
 ---
 
 ## ⚠️ `CP30` — the printed report is 2px from losing content, today

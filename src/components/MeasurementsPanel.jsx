@@ -1,20 +1,31 @@
 /**
  * ==============================================================================
- * MEASUREMENTS PANEL — the strength figures, for page 3 of the printed report
+ * MEASUREMENTS PANEL — the strength figures, on their own page of the report
  * ==============================================================================
  *
- * ⚠️ PAGE 3, AND NOT PAGE 1 OR 2, FOR A MEASURED REASON. `CP30`: the report's
- *    pages are fixed 794x1123 boxes with `overflow: hidden`, so a page that grows
- *    loses its bottom from the PDF silently while still looking right on screen.
+ * ⚠️ ITS OWN PAGE, NOT A BLOCK ON AN EXISTING ONE. `CP30`: the report's pages are
+ *    fixed 794x1123 boxes with `overflow: hidden`, so a page that grows loses its
+ *    bottom from the PDF silently while still looking right on screen.
  *    `scripts/pdf-headroom.mjs` measured the room left before this was written:
  *
- *        worst-case / en / page 1 ....  2px spare
- *        worst-case / ms / page 1 ... 32px spare
- *        every page 2 ............... 77px spare
+ *        worst-case / en / cover page ....  2px spare
+ *        worst-case / ms / cover page ... 32px spare
+ *        governance page ................ 77px spare
  *
- *    Neither page has room for two measurements plus their source citations. A
- *    third page costs nothing to anybody who skips the questions, because it is
- *    not rendered at all when there is nothing to put on it.
+ *    Neither has room for two measurements plus their source citations. A separate
+ *    page costs nothing to anybody who skips the questions, because it is not
+ *    rendered at all when there is nothing to put on it.
+ *
+ *    ⚠️ THE SAME MEASUREMENT RULE NOW BINDS THIS PAGE TOO. It carries two meters
+ *       and a heart rate table, and it has the same hard ceiling. Re-run
+ *       `scripts/pdf-headroom.mjs` after adding ANYTHING here. A block that
+ *       overflows does not wrap and does not warn: it is simply cut off the
+ *       bottom of the download, and only in the download.
+ *
+ * ⚠️ IT SITS AHEAD OF GOVERNANCE, at the owner's request. A resident who had
+ *    themselves measured should not have to go past a disclaimer page to reach
+ *    their own figures. `ResultPage` numbers the footers from `totalPages` so the
+ *    two orders cannot drift apart.
  *
  * ⚠️ `notADiagnosis` IS ON THIS PAGE BECAUSE THIS IS THE PAGE WITH THE NUMBERS ON
  *    IT. A resident reads a band, and a band beside a number looks like a finding.
@@ -28,6 +39,9 @@
 import React from 'react';
 import { measuresCopyFor, residentBand } from '../data/measuresCopy';
 import { GRIP_SOURCE, CHAIR_STAND_SOURCE, STS_60S_SOURCE } from '../data/functionalNorms';
+import ReferenceMeter from './ReferenceMeter';
+import HeartRateZones from './HeartRateZones';
+import { zonesFor, HR_EQUATIONS } from '../utils/heartRateZones';
 
 const SOURCE_BY_ID = {
     [GRIP_SOURCE.id]: GRIP_SOURCE,
@@ -35,8 +49,15 @@ const SOURCE_BY_ID = {
     [STS_60S_SOURCE.id]: STS_60S_SOURCE,
 };
 
+/*
+  ⚠️ THE PADDING AND THE PANEL GAP BELOW ARE BOTH MEASURED. This page carries two
+     meters and a heart rate table now, and `scripts/pdf-headroom.mjs` had it
+     clipping in Malay and Tamil. Space was taken from spacing and from repeated
+     wording, NOT from type size: 8px on A4 is already about six points, and the
+     readers this page is for are mostly over 60.
+*/
 const ROW = {
-    border: '1px solid #e2e8f0', borderRadius: 12, padding: '14px 18px',
+    border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 16px',
     background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 4,
 };
 
@@ -61,6 +82,17 @@ const Measurement = ({ result, label, unit, m }) => {
             {band ? (
                 <>
                     <div style={{ fontWeight: 700, fontSize: 11, color: '#0f766e' }}>{m.bands[band]}</div>
+                    {/*
+                      ⚠️ THE METER IS INSIDE THE `band` BRANCH ON PURPOSE. The other
+                         branch is every case where no comparison was made: age
+                         outside the published range, sex not given, the wrong
+                         stopwatch, "I do not know which test". Drawing a scale there
+                         would put the resident's number on a picture of a reference
+                         we have just finished telling them does not apply to them.
+                         `ReferenceMeter` also returns null without a `scale`, so this
+                         is two guards rather than one.
+                    */}
+                    <ReferenceMeter result={result} unit={unit} m={m} />
                     {/*
                       The grip bands collapse to three; the thirty-second chair stand
                       has only two, because STEADI publishes one cut-off and nothing
@@ -98,7 +130,7 @@ const Measurement = ({ result, label, unit, m }) => {
     );
 };
 
-export default function MeasurementsPanel({ functional, lang }) {
+export default function MeasurementsPanel({ functional, lang, ageYears, symptomFlag, medFlag }) {
     const m = measuresCopyFor(lang);
     const grip = functional?.grip;
     const sitToStand = functional?.sitToStand;
@@ -116,8 +148,18 @@ export default function MeasurementsPanel({ functional, lang }) {
     // nobody was compared to is a citation for something that did not happen.
     const sourceIds = [...new Set([grip?.sourceId, sitToStand?.sourceId].filter(Boolean))];
 
+    /*
+      Computed here rather than inside `HeartRateZones`, because the SAME answer
+      decides two things: whether the block renders, and whether the two equations
+      belong in the citation list below. A resident who reported symptoms on
+      exertion is shown no equations, so citing them would be a reference for
+      something they never saw.
+    */
+    const heartRate = zonesFor(ageYears, { symptomFlag, medFlag });
+    const showsEquations = Array.isArray(heartRate.zones);
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <div>
                 <div style={{ fontWeight: 900, fontSize: 13, color: '#0f172a', letterSpacing: 0.3 }}>
                     {m.reportHeading}
@@ -142,15 +184,33 @@ export default function MeasurementsPanel({ functional, lang }) {
             )}
 
             {/* ⚠️ SAFETY-CRITICAL, AND ON THIS PAGE BECAUSE THE NUMBERS ARE. */}
-            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '12px 18px' }}>
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '10px 14px' }}>
                 <div style={{ fontSize: 10, color: '#4c0519', lineHeight: 1.7 }}>{m.notADiagnosis}</div>
             </div>
 
-            {sourceIds.length > 0 && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 18px' }}>
+            {/*
+              ⚠️ AFTER THE MEASUREMENTS, BEFORE THE CITATIONS, AND NOT ON PAGE 1.
+                 These are reference ranges worked out from an age, not something
+                 measured. Placing them above a figure the resident actually gave
+                 would rank an estimate over a measurement. `HeartRateZones` renders
+                 nothing when the age is unknown and a single sentence when the
+                 resident reported symptoms on exertion.
+            */}
+            <HeartRateZones result={heartRate} lang={lang} />
+
+            {(sourceIds.length > 0 || showsEquations) && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px' }}>
                     <div style={{ fontWeight: 900, fontSize: 9, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 2 }}>
                         {m.comparedAgainst}
                     </div>
+                    {showsEquations && (
+                        <div style={{ fontSize: 9, color: '#475569', lineHeight: 1.6, marginBottom: 5 }}>
+                            {HR_EQUATIONS.tanaka.short}
+                            {HR_EQUATIONS.tanaka.doi && <> · doi:{HR_EQUATIONS.tanaka.doi}</>}
+                            {' · '}
+                            {HR_EQUATIONS.astrand.short}
+                        </div>
+                    )}
                     {sourceIds.map((id) => {
                         const source = SOURCE_BY_ID[id];
                         if (!source) return null;

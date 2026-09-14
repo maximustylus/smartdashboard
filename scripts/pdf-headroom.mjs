@@ -84,22 +84,46 @@ const flags = (over) => ({
 });
 
 /*
-  `P9` page 3. The worst case for it is NOT two clean bands: it is two refusals,
+  The measurements page. The worst case is NOT two clean bands: it is two refusals,
   because the reason strings are far longer than a band label and
   `protocol-age-mismatch` is the longest of them. A page sized against the happy
   path clips exactly the residents it was most important to explain things to.
+
+  ⚠️ `scale` IS NOT OPTIONAL IN THESE FIXTURES, AND LEAVING IT OUT ONCE PRODUCED A
+     FALSE PASS. `ReferenceMeter` returns null without it, so a fixture missing
+     `scale` measures a page with NO METERS ON IT and reports the headroom as
+     unchanged. That looks like good news and means nothing was measured. The
+     figures below are the real published rows for a 67-year-old woman:
+     `GRIP_NORMS_KG.female` 65-69 and `CHAIR_STAND_BELOW_AVERAGE.female` 65-69.
 */
+const GRIP_F_65_69 = [14.3, 16.6, 19.5, 21.6, 23.3, 25, 26.6, 28.4, 30.5, 33.4, 35.8];
+
 const measurements = (kind) => (kind === 'banded' ? {
     grip: {
-        ok: true, band: 'low', value: 22, unit: 'kg', ageBand: '65-69', sex: 'female',
+        // 18kg is below the p20 of 19.5, so this really is the `low` band rather
+        // than a band label pinned to a value that would not produce it.
+        ok: true, band: 'low', value: 18, unit: 'kg', ageBand: '65-69', sex: 'female',
+        lowThreshold: 19.5,
         setting: 'community-event', sourceId: 'tomkinson-2025-absolute',
         referencePopulation: 'international',
+        scale: {
+            resolution: 'percentiles',
+            levels: [5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 95],
+            points: GRIP_F_65_69,
+            usualFrom: 19.5,
+            usualTo: 30.5,
+        },
     },
     sitToStand: {
         ok: true, band: 'at-or-above-average', value: 12, unit: 'reps', protocol: 'sts-30s',
         seconds: 30, implausibleForProtocol: true, ageBand: '65-69', sex: 'female',
         belowAverageThreshold: 11, setting: 'community-event', sourceId: 'cdc-steadi-2017',
         referencePopulation: 'united-states',
+        // One published point and no upper bound. See `functionalMeasures.js`.
+        scale: {
+            resolution: 'cut-off', levels: null, points: [11], usualFrom: 11, usualTo: null,
+            axisFrom: 0, axisTo: 35,
+        },
     },
     setting: 'community-event',
 } : {
@@ -117,7 +141,25 @@ const SCENARIOS = {
         score: 182, postalSector: '73', sessionId: 'NX-HEADROOM3', ctaTier: 'COMMUNITY',
         previousSessionId: null, data: flags({ functional: measurements('banded') }),
     },
-    // Two refusals rather than two bands: the longest this page can get.
+    /*
+      ⚠️ THE TALLEST THE MEASUREMENTS PAGE GETS. Two meters, and a heart rate block
+         carrying the extra medication caution, which is only printed for somebody
+         who said they take something that slows the heart. `medFlag` without
+         `symptomFlag` is the combination that renders the most: symptoms suppress
+         the whole table and are therefore SHORTER, not longer.
+    */
+    'measured-medication': {
+        score: 182, postalSector: '73', sessionId: 'NX-HEADROOM5', ctaTier: 'COMMUNITY',
+        previousSessionId: null,
+        data: flags({ functional: measurements('banded'), medFlag: true }),
+    },
+    // The suppression path: measurements shown, heart rate table withheld.
+    'measured-symptoms': {
+        score: 182, postalSector: '73', sessionId: 'NX-HEADROOM6', ctaTier: 'COMMUNITY',
+        previousSessionId: null,
+        data: flags({ functional: measurements('banded'), symptomFlag: true }),
+    },
+    // Two refusals rather than two bands: the longest the measurement rows get.
     'measured-refused': {
         score: 182, postalSector: '73', sessionId: 'NX-HEADROOM4', ctaTier: 'COMMUNITY',
         previousSessionId: null, data: flags({ functional: measurements('refused') }),

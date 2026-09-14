@@ -608,10 +608,15 @@ export default function ResultPage() {
     } catch { return false; }
   });
 
-  const printRef  = useRef(null);
-  const printRef2 = useRef(null);
-  // Page 3 exists only when there is something to put on it. See `MeasurementsPanel`.
-  const printRef3 = useRef(null);
+  const printRef = useRef(null);
+  /*
+    ⚠️ NAMED FOR THEIR CONTENT, NOT THEIR POSITION. These were `printRef2` and
+       `printRef3` when governance was always page 2. Measurements now come second
+       when they exist, so a positional name would be wrong for half of all readers
+       and would quietly mislead the next person editing the PDF builder.
+  */
+  const printRefMeasures = useRef(null);
+  const printRefGovernance = useRef(null);
 
   /**
    * ⚠️ A FINISHED ASSESSMENT USED TO DIE ON RELOAD. The result arrived only as
@@ -644,10 +649,10 @@ export default function ResultPage() {
   const { score, data, postalSector, sessionId, previousSessionId, ctaTier } = safe;
 
   /*
-    ⚠️ ONE SOURCE OF TRUTH FOR WHETHER PAGE 3 EXISTS. The template below and the
-       PDF builder above must agree, or the download gets a blank third page (or
-       loses a page that is on screen). `hasMeasurementsToShow` is the rule, in
-       `measurementAnswers.js`, and both read it.
+    ⚠️ ONE SOURCE OF TRUTH FOR WHETHER THE MEASUREMENTS PAGE EXISTS. The template
+       below and the PDF builder above must agree, or the download gets a blank
+       page (or loses one that is on screen). `hasMeasurementsToShow` is the rule,
+       in `measurementAnswers.js`, and both read it.
   */
   const showMeasurements = hasMeasurementsToShow(data?.functional);
   const totalPages       = showMeasurements ? 3 : 2;
@@ -739,7 +744,7 @@ export default function ResultPage() {
   };
 
   const handleDownloadPDF = async () => {
-    if (!printRef.current || !printRef2.current) return;
+    if (!printRef.current || !printRefGovernance.current) return;
     recordTelemetry(postalSector, { action: 'download_pdf', score, language: lang, ctaTier });
 
     const captureOpts = {
@@ -755,12 +760,12 @@ export default function ResultPage() {
 
     try {
       const light = { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') };
-      const [canvas1, canvas2, canvas3] = await Promise.all([
-        html2canvas(printRef.current,  captureOpts),
-        html2canvas(printRef2.current, light),
-        // `null` rather than a skipped slot, so the destructure above stays aligned
-        // whether or not there is a third page.
-        printRef3.current ? html2canvas(printRef3.current, light) : Promise.resolve(null),
+      const [canvasCover, canvasMeasures, canvasGovernance] = await Promise.all([
+        html2canvas(printRef.current, captureOpts),
+        // `null` rather than a skipped slot, so the destructure stays aligned
+        // whether or not the resident gave any measurement.
+        printRefMeasures.current ? html2canvas(printRefMeasures.current, light) : Promise.resolve(null),
+        html2canvas(printRefGovernance.current, light),
       ]);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -796,13 +801,20 @@ export default function ResultPage() {
         });
       };
 
-      addCanvasPage(canvas1, printRef.current);
-      pdf.addPage();
-      addCanvasPage(canvas2, printRef2.current);
-      if (canvas3 && printRef3.current) {
+      /*
+        ⚠️ THE ORDER HERE IS THE ORDER IN THE TEMPLATE, AND BOTH MOVED TOGETHER.
+           Measurements are page 2 and governance is last. If only one of the two
+           had been reordered, the printed footer would number the pages one way
+           and the PDF would bind them the other, which is the kind of defect that
+           looks like a rendering glitch and is actually a wrong document.
+      */
+      addCanvasPage(canvasCover, printRef.current);
+      if (canvasMeasures && printRefMeasures.current) {
         pdf.addPage();
-        addCanvasPage(canvas3, printRef3.current);
+        addCanvasPage(canvasMeasures, printRefMeasures.current);
       }
+      pdf.addPage();
+      addCanvasPage(canvasGovernance, printRefGovernance.current);
 
       pdf.save(`NEXUS_AURA_Result_${riskTier}_${activeSessionId}.pdf`);
     } catch (err) { console.error('[NEXUS] PDF generation error:', err); }
@@ -974,8 +986,42 @@ export default function ResultPage() {
           <PdfFooter pageNum={1} totalPages={totalPages} />
         </div>
 
-        {/* ── PAGE 2: Governance ──────────────────────────────────────── */}
-        <div ref={printRef2} style={PDF_PAGE_STYLE}>
+        {/* ── PAGE 2: Strength measurements ──────────────────────────────
+            Rendered ONLY when the resident gave a figure. Everybody who skipped
+            the questions gets exactly the two-page report they got before `P9`,
+            and no blank page in their download.
+
+            ⚠️ MOVED AHEAD OF GOVERNANCE AT THE OWNER'S REQUEST. A resident who
+               took the trouble to have themselves measured should not have to go
+               past a disclaimer page to find their own figures. Governance keeps
+               its place as the last page, where a reader expects the small print
+               to be. */}
+        {showMeasurements && (
+          <div ref={printRefMeasures} style={PDF_PAGE_STYLE}>
+            <PdfHeader subtitle={t.reportTitle} {...headerProps} />
+            <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <MeasurementsPanel
+                functional={data.functional}
+                lang={lang}
+                /*
+                  The heart rate block lives inside this panel and needs all three.
+                  `ageYears` never leaves the device: `telemetry.js` strips it by
+                  name before anything is written, so reading it here for the
+                  resident's own report does not widen what is stored.
+                */
+                ageYears={data.ageYears}
+                symptomFlag={data.symptomFlag}
+                medFlag={data.medFlag}
+              />
+            </div>
+            <PdfFooter pageNum={2} totalPages={totalPages} />
+          </div>
+        )}
+        {/* ── LAST PAGE: Governance ───────────────────────────────────────
+            Always present, always last. It is numbered `totalPages` rather than a
+            literal, because it is page 2 for a resident who gave no measurement
+            and page 3 for one who did. */}
+        <div ref={printRefGovernance} style={PDF_PAGE_STYLE}>
 
           {/* Same subtitle source as page 1, so the two headers are identical. */}
           <PdfHeader subtitle={t.reportTitle} {...headerProps} />
@@ -1088,22 +1134,9 @@ export default function ResultPage() {
 
           </div>
 
-          <PdfFooter pageNum={2} totalPages={totalPages} />
+          <PdfFooter pageNum={totalPages} totalPages={totalPages} />
         </div>
 
-        {/* ── PAGE 3: Strength measurements ──────────────────────────────
-            Rendered ONLY when the resident gave a figure. Everybody who skipped
-            the questions gets exactly the two-page report they got before `P9`,
-            and no blank page in their download. */}
-        {showMeasurements && (
-          <div ref={printRef3} style={PDF_PAGE_STYLE}>
-            <PdfHeader subtitle={t.reportTitle} {...headerProps} />
-            <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
-              <MeasurementsPanel functional={data.functional} lang={lang} />
-            </div>
-            <PdfFooter pageNum={3} totalPages={totalPages} />
-          </div>
-        )}
       </div>
 
       {/* ── BACKGROUND ORBS ─────────────────────────────────────────────────── */}

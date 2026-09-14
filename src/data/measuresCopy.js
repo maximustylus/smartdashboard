@@ -161,6 +161,52 @@ export const MEASURES_COPY = {
         implausibleLow: 'That count is unusually low for this test. Please check the number before you rely on it.',
         maybeWrongProtocol: 'This count is below the lowest figure published for the one-minute test. If you were timed for thirty seconds rather than a full minute, this comparison does not apply to you. Please check with whoever measured you before you rely on it.',
 
+        /*
+          ⚠️ PLACEHOLDERS ARE FILLED BY `ReferenceMeter`, NOT BY A TEMPLATE ENGINE.
+             `{from}`, `{to}`, `{cut}` and `{unit}` are replaced literally. A
+             translation that drops one prints the brace to a resident, so
+             `measuresCopy.test.js` asserts every language carries the same set.
+        */
+        meterCaption: 'The teal band is the usual range for your age: {from} to {to} {unit}. The dark line is your number.',
+        meterCaptionCutOff: 'The teal band starts at {cut} {unit}, the published below-average point for your age. Nothing is published above it, so no upper edge is drawn. The dark line is your number.',
+
+        /*
+          ⚠️ `hrIntro` SAYS TWO THINGS, NOT THREE. It used to end "they are a guide
+             to how hard different efforts feel, not targets to reach", which is
+             already carried by `hrTalkTest` and, more firmly, by the safety-critical
+             `hrCaution` directly below the table. Three statements of one idea cost
+             two lines in Tamil, and what those two lines pushed off the bottom of
+             the page was `hrCaution` itself.
+        */
+        hrHeading: 'Your heart rate ranges',
+        hrIntro: 'These are worked out from your age. Nobody has measured your heart rate here.',
+        hrMaxLabel: 'Estimated maximum heart rate',
+        hrBpm: 'bpm',
+        hrEquationNote: 'Two published equations give different answers for your age: {tanaka} bpm and {astrand} bpm. The ranges above use the first.',
+        hrAstrandOutside: 'The second was built from people aged 4 to 34, so it is shown only for comparison.',
+        hrSpreadNote: 'People of the same age can differ by around 11 beats per minute either way, so treat every figure here as rough.',
+        hrMedicationNote: 'Some medicines slow the heart. If you take one, your pulse will sit below these numbers. That is expected, so do not work harder to reach them.',
+
+        // ⚠️ SAFETY-CRITICAL. Prohibitions, registered in `copyReview.js`.
+        hrCaution: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
+        hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Please speak to a doctor before you increase how hard you exercise.',
+
+        hrZoneNames: {
+            'very-light': 'Very light',
+            light: 'Light',
+            moderate: 'Moderate',
+            hard: 'Hard',
+            maximum: 'Maximum',
+        },
+        hrTalkTest: 'As a rough check: you can hold a conversation in the lighter ranges, and manage only a few words in the harder ones.',
+        hrZoneBenefits: {
+            'very-light': 'Warming up and recovering',
+            light: 'Builds everyday stamina',
+            moderate: 'Improves fitness',
+            hard: 'Builds speed and capacity',
+            maximum: 'Very hard, and only briefly',
+        },
+
         settings: {
             'community-event': 'At a community event',
             'active-ageing-centre': 'At an active ageing centre',
@@ -240,6 +286,37 @@ export const MEASURES_COPY = {
         implausibleHigh: 'Jumlah itu luar biasa tinggi bagi ujian ini. Sila semak nombor itu sebelum anda bergantung padanya.',
         implausibleLow: 'Jumlah itu luar biasa rendah bagi ujian ini. Sila semak nombor itu sebelum anda bergantung padanya.',
         maybeWrongProtocol: 'Jumlah ini lebih rendah daripada angka terendah yang diterbitkan bagi ujian satu minit. Jika anda diukur selama tiga puluh saat dan bukan satu minit penuh, perbandingan ini tidak terpakai kepada anda. Sila semak dengan sesiapa yang mengukur anda sebelum anda bergantung padanya.',
+
+        meterCaption: 'Jalur hijau kebiruan ialah julat biasa bagi umur anda: {from} hingga {to} {unit}. Garis gelap ialah nombor anda.',
+        meterCaptionCutOff: 'Jalur hijau kebiruan bermula pada {cut} {unit}, iaitu titik bawah purata yang diterbitkan bagi umur anda. Tiada angka diterbitkan di atasnya, jadi tiada hujung atas dilukis. Garis gelap ialah nombor anda.',
+
+        hrHeading: 'Julat kadar denyutan jantung anda',
+        hrIntro: 'Ini dikira daripada umur anda. Tiada sesiapa mengukur kadar denyutan jantung anda di sini.',
+        hrMaxLabel: 'Anggaran kadar denyutan jantung maksimum',
+        hrBpm: 'denyutan seminit',
+        hrEquationNote: 'Dua persamaan terbitan memberi jawapan berbeza bagi umur anda: {tanaka} dan {astrand} denyutan seminit. Julat di atas menggunakan yang pertama.',
+        hrAstrandOutside: 'Yang kedua dibina daripada orang berumur 4 hingga 34 tahun, jadi ia ditunjukkan untuk perbandingan sahaja.',
+        hrSpreadNote: 'Orang yang sama umur boleh berbeza kira-kira 11 denyutan seminit, jadi anggap setiap angka di sini sebagai anggaran kasar.',
+        hrMedicationNote: 'Sesetengah ubat melambatkan denyutan jantung. Jika anda mengambilnya, nadi anda akan berada di bawah nombor ini. Itu dijangka, jadi jangan bersenam lebih kuat untuk mencapainya.',
+
+        hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
+        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Sila berbincang dengan doktor sebelum anda menambah kekuatan senaman anda.',
+
+        hrZoneNames: {
+            'very-light': 'Sangat ringan',
+            light: 'Ringan',
+            moderate: 'Sederhana',
+            hard: 'Kuat',
+            maximum: 'Maksimum',
+        },
+        hrTalkTest: 'Sebagai panduan kasar: anda boleh berbual dalam julat yang lebih ringan, dan hanya mampu berkata beberapa patah perkataan dalam julat yang lebih kuat.',
+        hrZoneBenefits: {
+            'very-light': 'Memanaskan badan dan pemulihan',
+            light: 'Membina daya tahan harian',
+            moderate: 'Meningkatkan kecergasan',
+            hard: 'Menambah kelajuan dan keupayaan',
+            maximum: 'Sangat kuat, dan sebentar sahaja',
+        },
 
         settings: {
             'community-event': 'Di acara komuniti',
@@ -321,6 +398,37 @@ export const MEASURES_COPY = {
         implausibleLow: '这个次数对这项测试来说异常低。在依据它之前，请先核对这个数字。',
         maybeWrongProtocol: '这个次数低于一分钟测试已发表的最低数值。如果您是被计时三十秒而不是整整一分钟，这项比较并不适用于您。在依据它之前，请先向为您测量的人确认。',
 
+        meterCaption: '青绿色的一段是您这个年龄的常见范围：{from} 到 {to} {unit}。深色竖线是您的数字。',
+        meterCaptionCutOff: '青绿色的一段从 {cut} {unit} 开始，这是您这个年龄已发表的低于平均值的界线。上面没有发表任何数字，所以没有画出上限。深色竖线是您的数字。',
+
+        hrHeading: '您的心率范围',
+        hrIntro: '这些是按您的年龄推算出来的。这里没有人测量过您的心率。',
+        hrMaxLabel: '估算的最高心率',
+        hrBpm: '次每分钟',
+        hrEquationNote: '两条已发表的公式对您这个年龄给出不同的答案：{tanaka} 和 {astrand} 次每分钟。上面的范围采用第一条。',
+        hrAstrandOutside: '第二条是根据 4 至 34 岁的人建立的，只列出来作比较。',
+        hrSpreadNote: '同样年龄的人之间可能相差大约 11 次每分钟，所以这里每个数字都只是粗略的参考。',
+        hrMedicationNote: '有些药物会减慢心跳。如果您在服用这类药物，您的脉搏会低于这些数字。这是正常的，不要为了达到这些数字而加大运动强度。',
+
+        hrCaution: '不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。',
+        hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请先与医生谈一谈。',
+
+        hrZoneNames: {
+            'very-light': '很轻',
+            light: '轻',
+            moderate: '中等',
+            hard: '较吃力',
+            maximum: '最高',
+        },
+        hrTalkTest: '粗略的判断方法：在较轻的范围里可以正常聊天，在较吃力的范围里只能说出几个字。',
+        hrZoneBenefits: {
+            'very-light': '热身和恢复',
+            light: '打好日常体力的底子',
+            moderate: '提升体能',
+            hard: '提升速度和耐力',
+            maximum: '非常吃力，时间很短',
+        },
+
         settings: {
             'community-event': '在社区活动上',
             'active-ageing-centre': '在乐龄活动中心',
@@ -401,6 +509,37 @@ export const MEASURES_COPY = {
         implausibleLow: 'இந்தச் சோதனைக்கு இந்த எண்ணிக்கை வழக்கத்திற்கு மாறாகக் குறைவு. இதை நம்பும் முன் எண்ணைச் சரிபாருங்கள்.',
         maybeWrongProtocol: 'ஒரு நிமிட சோதனைக்கு வெளியிடப்பட்ட மிகக் குறைந்த எண்ணிக்கையை விட இது குறைவு. ஒரு முழு நிமிடத்திற்குப் பதிலாக முப்பது வினாடிகள் மட்டுமே உங்களுக்கு நேரம் பார்க்கப்பட்டிருந்தால், இந்த ஒப்பீடு உங்களுக்குப் பொருந்தாது. இதை நம்பும் முன் உங்களை அளந்தவரிடம் சரிபாருங்கள்.',
 
+        meterCaption: 'பச்சை நீலப் பட்டை உங்கள் வயதுக்கான வழக்கமான வரம்பு: {from} முதல் {to} {unit} வரை. அடர் நிறக் கோடு உங்கள் எண்.',
+        meterCaptionCutOff: 'பச்சை நீலப் பட்டை {cut} {unit} இல் தொடங்குகிறது, இது உங்கள் வயதுக்கு வெளியிடப்பட்ட சராசரிக்குக் கீழான புள்ளி. அதற்கு மேல் எதுவும் வெளியிடப்படவில்லை, எனவே மேல் எல்லை வரையப்படவில்லை. அடர் நிறக் கோடு உங்கள் எண்.',
+
+        hrHeading: 'உங்கள் இதயத் துடிப்பு வரம்புகள்',
+        hrIntro: 'இவை உங்கள் வயதிலிருந்து கணக்கிடப்பட்டவை. இங்கே யாரும் உங்கள் இதயத் துடிப்பை அளக்கவில்லை.',
+        hrMaxLabel: 'மதிப்பிடப்பட்ட அதிகபட்ச இதயத் துடிப்பு',
+        hrBpm: 'நிமிடத்திற்கு துடிப்பு',
+        hrEquationNote: 'வெளியிடப்பட்ட இரண்டு சமன்பாடுகள் உங்கள் வயதுக்கு வெவ்வேறு விடைகளைத் தருகின்றன: நிமிடத்திற்கு {tanaka} மற்றும் {astrand} துடிப்பு. மேலே உள்ள வரம்புகள் முதலாவதைப் பயன்படுத்துகின்றன.',
+        hrAstrandOutside: 'இரண்டாவது 4 முதல் 34 வயதினரிடமிருந்து உருவாக்கப்பட்டது, எனவே ஒப்பிடுவதற்காக மட்டுமே.',
+        hrSpreadNote: 'ஒரே வயதினரிடையே நிமிடத்திற்கு சுமார் 11 துடிப்பு வித்தியாசம் இருக்கலாம், எனவே ஒவ்வொரு எண்ணும் தோராயமானதே.',
+        hrMedicationNote: 'சில மருந்துகள் இதயத் துடிப்பை மெதுவாக்கும். நீங்கள் அவற்றை எடுத்துக்கொண்டால், உங்கள் நாடித் துடிப்பு இந்த எண்களுக்குக் கீழேயே இருக்கும். அது இயல்பானது, எனவே இவற்றை அடைய அதிகமாக உழைக்க வேண்டாம்.',
+
+        hrCaution: 'வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்த வேண்டாம். மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள்.',
+        hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் மருத்துவரிடம் பேசுங்கள்.',
+
+        hrZoneNames: {
+            'very-light': 'மிக இலகுவானது',
+            light: 'இலகுவானது',
+            moderate: 'மிதமானது',
+            hard: 'கடினமானது',
+            maximum: 'அதிகபட்சம்',
+        },
+        hrTalkTest: 'தோராயமான சோதனை: இலகுவான வரம்புகளில் பேசிக்கொண்டே இருக்க முடியும், கடினமான வரம்புகளில் சில சொற்கள் மட்டுமே பேச முடியும்.',
+        hrZoneBenefits: {
+            'very-light': 'உடலைத் தயார்படுத்தவும் இளைப்பாறவும்',
+            light: 'அன்றாட சகிப்புத்தன்மையை வளர்க்கிறது',
+            moderate: 'உடற்தகுதியை மேம்படுத்துகிறது',
+            hard: 'வேகத்தையும் திறனையும் கூட்டுகிறது',
+            maximum: 'மிகக் கடினமானது, சிறிது நேரம் மட்டும்',
+        },
+
         settings: {
             'community-event': 'சமூக நிகழ்ச்சியில்',
             'active-ageing-centre': 'செயல்மிகு முதியோர் மையத்தில்',
@@ -418,4 +557,17 @@ export const MEASURES_COPY = {
 export const measuresCopyFor = (lang) => MEASURES_COPY[lang] || MEASURES_COPY.en;
 
 /** The three strings `copyReview.js` gates, named here so the two cannot drift. */
-export const SAFETY_CRITICAL_KEYS = Object.freeze(['doNotSelfTest', 'noComparison', 'notADiagnosis']);
+/**
+ * The prohibitions in this module. Every one of these is a string whose job is to
+ * STOP somebody, and `copyReview.js` must carry a matching `measures.<key>` entry
+ * for each. `measuresCopy.test.js` asserts the two lists agree in both directions,
+ * so a prohibition added here without a registry entry fails the build rather than
+ * shipping ungated, and a registry entry left behind after a string is deleted
+ * fails it too.
+ */
+export const SAFETY_CRITICAL_KEYS = Object.freeze([
+    'doNotSelfTest', 'noComparison', 'notADiagnosis',
+    // Added with the heart rate block. See `copyReview.js` for why the existing
+    // waiver was not extended to cover them.
+    'hrCaution', 'hrSuppressedSymptoms',
+]);
