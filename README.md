@@ -106,7 +106,7 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 | Application version | `IMPLEMENTED` — **v2.13.0** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
 | AU18 response parser | `IMPLEMENTED` and `VERIFIED`, released in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. It was deployed after v2.12.3 without changing the displayed version; v2.12.4 closes that gap. |
-| Community functional measures | `PROPOSED` | No grip-strength or sit-to-stand feature has been built. Decisions `CD17`–`CD25` remain with the owner; `CD17`, `CD18`, `CD19` and `CD25` block implementation. |
+| Community functional measures | `IMPLEMENTED` — **v2.13.0** | Grip strength and sit-to-stand are asked in both pathways, banded against published references, and reported on page 3 of the printed report. Optional throughout: neither figure feeds the risk score (`CD20`). `CD21` and `CD23` remain with the owner. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
 The deployed application reports **v2.13.0**, which adds the community portal’s two strength measurements, the precise-age pathway split and the printed report page that carries them. See [`CHANGELOG.md`](CHANGELOG.md) for the authoritative release record.
@@ -392,7 +392,7 @@ The live record lives beside the code. [`IDS.md`](IDS.md) is the legend for ever
 | [`AURA-VERIFICATION-TURNS.md`](AURA-VERIFICATION-TURNS.md) · `docs/P8.8-owner-read-2026-09-05.md` | The 20 real turns that gate any claim that AURA *follows* the guardrails, and the drafted read from three live runs on 2026-09-05 — owner verdicts pending |
 | [`docs/AURA-CHATBOT-INFO-CARD.md`](docs/AURA-CHATBOT-INFO-CARD.md) | The IMDA-aligned chatbot info card for AURA's generative surfaces — owner-approved, served in-app at `/aura-info` |
 | [`COMMUNITY_TODO.md`](COMMUNITY_TODO.md) · [`COMMUNITY_CHANGELOG.md`](COMMUNITY_CHANGELOG.md) | The public portal (`/individuals`): the `CP`n defect / `CD`n decision ledger and the surface's changelog |
-| [`docs/FUNCTIONAL-MEASURES-ADDIE.md`](docs/FUNCTIONAL-MEASURES-ADDIE.md) | `PROPOSED` grip-strength and sit-to-stand plan for the public portal; nothing built, with `CD17`–`CD25` awaiting owner decisions |
+| [`docs/FUNCTIONAL-MEASURES-ADDIE.md`](docs/FUNCTIONAL-MEASURES-ADDIE.md) | `IMPLEMENTED` in v2.13.0; the document itself remains the ADDIE record and carries `HISTORICAL`/`SUPERSEDED` labels on the parts overtaken by what shipped grip-strength and sit-to-stand plan for the public portal; nothing built, with `CD17`–`CD25` awaiting owner decisions |
 | [`TRANSLATION-BRIEF.md`](TRANSLATION-BRIEF.md) | The `CD10` brief: what needs translating into ms/zh/ta, and why machine-translating clinical advice is dangerous |
 | `docs/NEXUS-roster-walkthrough.pptx` · `docs/CLAUDE-DESIGN-PROMPTS.md` | The AHP walkthrough deck (v2.1.0 screens; the roster toolbar has since changed) and the prompt pack for restyling it |
 | `docs/CD13-translation-review.xlsx` | The native-speaker review workbook for the 19 machine-translated strings |
@@ -433,7 +433,7 @@ The next work is governed by the live ledgers:
 - [`AURA-TODO.md`](AURA-TODO.md): staff AURA, public chat and intelligence findings. The engineering queue is currently empty; ten items require owner decisions.
 - [`ROSTER_TODO.md`](ROSTER_TODO.md): deterministic roster queue and `Q`-series owner decisions. Current gaps include single-cell editing, half-day sessions, registration as an eligibility axis, supervision pairing and on-call semantics.
 - [`COMMUNITY_TODO.md`](COMMUNITY_TODO.md): no unblocked engineering finding remains. App Check console work, translation review, resource-content freshness policy and the other owner decisions remain open.
-- [`docs/FUNCTIONAL-MEASURES-ADDIE.md`](docs/FUNCTIONAL-MEASURES-ADDIE.md): a `PROPOSED` plan only. No implementation is authorised while its blocking decisions remain open.
+- [`docs/FUNCTIONAL-MEASURES-ADDIE.md`](docs/FUNCTIONAL-MEASURES-ADDIE.md): the ADDIE record behind the functional measures, **shipped in v2.13.0**. Parts of it were overtaken by what was built and carry `HISTORICAL` / `SUPERSEDED` labels; `CD21` (source wording) and `CD23` (re-measurement) remain with the owner.
 
 ***
 

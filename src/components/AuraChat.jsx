@@ -7,6 +7,7 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { readTheme, writeTheme } from '../utils/theme';
 
 import { firstActiveStep, nextActiveStep, activeStepCount, activeStepPosition } from '../utils/chatSteps';
+import { parseAgeYears } from '../utils/clinicalFlags';
 // The word-level matchers moved with the parser into `clinicalParse.js` (`AC5`);
 // what stays is the one gate this component evaluates itself.
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
@@ -404,6 +405,45 @@ const AuraChatbot = () => {
 
     setMessages(prev => [...prev, { sender: 'user', text }]);
     setUserInput('');
+
+    /*
+      ========================================================================
+      ⚠️ `CP37` — AN AGE THE PORTAL CANNOT READ USED TO COST A PERSON THEIR
+                  WHOLE PATHWAY, SILENTLY
+      ========================================================================
+
+      `age_years` is free text with no chips and had no validation. Anything
+      `parseAgeYears` cannot read — "seventy five", "75+", Tamil numerals — was
+      accepted, acknowledged with "Thank you.", and stored as an age of nothing.
+      Everything downstream then branched on an age nobody had:
+
+          "75"           -> 60+ pathway: falls screen, both measurements,
+                            the CareLine referral an isolated 75-year-old needs
+          "75+"          -> Unknown: none of it, and no sign anything was missed
+
+      `"75+"` is not a hypothetical. Before `P9` the age was asked with chips that
+      INCLUDED "60+", so residents have been taught to answer exactly that way, and
+      `parseAgeYears` refuses open-ended bands by design — correctly, because a band
+      cannot pick a five-year reference row.
+
+      The form already blocks an unreadable age (`ConventionalForm.jsx`, `CP34`
+      neighbourhood). The chat accepted it. This is the parity, and it lands on the
+      cohort this portal exists for: a question re-asked costs one exchange, an age
+      lost costs the falls screen, both strength questions, and the routing.
+    */
+    if (DOMAIN_CONFIG[currentStep]?.key === 'age_years' && parseAgeYears(text) === null) {
+      setIsTyping(true);
+      setTimeout(() => {
+        setMessages(prev => [...prev, {
+          sender: 'bot',
+          text: langData.ageRetry,
+          step: currentStep,
+          _id: Date.now(),
+        }]);
+        setIsTyping(false);
+      }, 400);
+      return;
+    }
 
     const stepKey     = DOMAIN_CONFIG[currentStep]?.key || ('step_' + currentStep);
     const updatedData = { ...collectedData, [stepKey]: text };

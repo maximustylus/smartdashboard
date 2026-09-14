@@ -518,6 +518,102 @@ obvious measurement is the wrong one and looks right.
 
 ---
 
+## Pre-merge simulation and audit, 2026-09-14 — seven defects found, seven fixed
+
+Three agents audited the branch while a permutation simulation and a browser sweep
+ran against it. Everything below was verified before being acted on, because one
+audit finding was wrong (see the foot of this section).
+
+| | What it was | Found by |
+|---|---|---|
+| `CP35` | **The exact age, grip in kg and rep count were posted to Gemini on every chat turn.** | gap hunt |
+| `CP36` | A part-finished assessment saved before this deploy resumed at a moved index and filed answers under the wrong questions. | gap hunt |
+| `CP37` | An age the portal could not read ("75+", "seventy five") silently cost a resident the whole 60+ pathway. | gap hunt |
+| `B1` | The wrong-stopwatch guard did not fire in the case it exists for. | gap hunt |
+| `F2`/`F3` | The report named "thirty seconds" above a sentence saying the duration was unknown, and claimed to have kept a number that did not exist. | both audits, independently |
+| `F4` | The README stated twice that this feature does not exist. | QC audit |
+| `F5` | **My own `CP34` write-up stated a mechanism that is not real.** | QC audit |
+
+### `CP35` — the second door, opened in the same change that documented the first
+
+`priorAnswerLines` walked `COMMUNITY_DOMAINS`. `P9` added four domains to that list
+so the endpoint would ACCEPT the new answers — and that same list decides what is
+forwarded to the model. From the age question onward, every turn sent:
+
+    age_years: 78
+    grip_kg: 16.5
+    sit_to_stand: 7
+
+to a third party, to generate a one-sentence acknowledgement. Three files state
+those figures stay on the device; `telemetry.js` strips them by name to enforce it
+against Firestore. This was the same `CP29` shape — a list that enumerates
+everything, and a new field that ships by default — reopened by the person who had
+just written about it.
+
+**The rule is now inverted.** Sending is opt-in per domain (`MODEL_VISIBLE_DOMAINS`).
+Accepting an answer and forwarding it are two different permissions. Forgetting now
+costs context in an acknowledgement, which is recoverable.
+
+### `B1` — the guard that compared a value to itself
+
+`protocol-age-mismatch` is unreachable from either pathway: both derive the protocol
+from the age and then check it against the protocol derived from the age. The flat
+plausibility floor of 10 did not catch the case that matters — a 55-year-old typing
+a thirty-second count of 14 was told, confidently, that they were far below the
+one-minute range.
+
+The floor is now **the lowest value the source publishes** for that person (`p2.5`),
+and the warning names the wrong-stopwatch case specifically. The band is still shown,
+because the number may be genuine; what changed is that it is no longer shown alone.
+
+Also fixed: the warning read "unusually **high**" in all four languages while firing
+on counts far too low, so a 65-year-old who could not stand up once was told their
+count was unusually high.
+
+### ⚠️ `F5` — I recorded a false mechanism, and an audit caught it
+
+The `CP34` entry said the stale falls answer "changed the routing, because
+`selectCTA` branches on falls". **It does not.** `ctaRouting.js` reads seven fields
+and none is a falls field. I wrote it without checking.
+
+Corrected rather than softened, because the truth is worse: the real consumers are
+the printed handover slip a resident carries to a community centre, and
+`CommunityInsightsPanel`, which labels the field "Fall in past 12 months (60+)" — so
+one stale flag from a 20-year-old pollutes a population statistic a health system
+plans from.
+
+### ⚠️ One audit finding was WRONG, and checking it mattered
+
+An audit reported that the telemetry document carries 25 to 26 top-level keys
+against a rules cap of 20, concluding that **every community write is being
+rejected**. Measured directly:
+
+    CHAT  top-level keys = 8   :: event, sessionId, previousSessionId, payload,
+                                 computedRisk, ctaTier, postalSector, createdAt
+    FORM  top-level keys = 11  :: sessionId, action, language, score, ctaTier,
+                                  flags, enrichment, perception, demographics,
+                                  postalSector, createdAt
+
+`request.resource.data.keys()` is top-level only; the audit counted nested fields.
+Both are comfortably inside the cap and no rules change is needed. Recorded because
+acting on it would have meant widening a security rule to fix nothing.
+
+### ⚠️ Also my mistake: seven scratch files committed
+
+`git add -A` in commit `45b05bd` swept up seven throwaway probe scripts another
+agent had left in the repository root. Removed. They never reached the bundle, since
+Vite builds from the import graph — but committing a public-health repository
+without reading what is staged is the process failure, and next time they may not be
+seven harmless files.
+
+### What the simulation and the sweep found
+
+    vitest:  735 residents x 4 languages, all invariants hold
+    browser: 64 residents walked to completion in the real app
+             page errors: 0   broken tokens on screen: 0
+
+---
+
 ## ⚠️ `CP34` — a hidden form field kept its answer. FIXED 2026-09-14
 
 Found by `communitySimulation.test.js` **on its first run**, by walking the same
@@ -531,10 +627,17 @@ The falls dropdown is rendered only from 60, and hiding a field does not clear i
 
     age 20, stale falls  ::  fallsAsked=true  fallsCount=2  fallsRisk=true
 
-That reached the record, printed on the handover slip to a community centre as
-fact, and changed the routing, because `selectCTA` branches on falls. The chat
-never asks at that age, so the two pathways silently disagreed about the same
-person — the `CP9` shape again.
+That reached the record and printed on the handover slip to a community centre as
+fact. The chat never asks at that age, so the two pathways silently disagreed about
+the same person — the `CP9` shape again.
+
+⚠️ **THE FIRST VERSION OF THIS ENTRY SAID IT "CHANGED THE ROUTING, BECAUSE
+`selectCTA` BRANCHES ON FALLS". IT DOES NOT.** `ctaRouting.js` reads seven fields
+and none is a falls field. I wrote that without checking it and an audit caught it.
+Corrected rather than softened, because the real impact is worse: the printed slip,
+and `CommunityInsightsPanel`, which labels the field "Fall in past 12 months (60+)"
+— so one stale flag from a 20-year-old pollutes a population statistic a health
+system plans from.
 
 The strength block had the same hole: a figure typed at 65 survived a change to 18.
 

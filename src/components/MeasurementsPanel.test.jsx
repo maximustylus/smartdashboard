@@ -104,10 +104,75 @@ describe('a compared measurement', () => {
         expect(text).toContain(MEASURES_COPY.en.populations['united-states']);
     });
 
-    it('warns when a count does not fit the test it came from', () => {
-        const odd = { ...banded, sitToStand: { ...banded.sitToStand, implausibleForProtocol: true } };
-        render(<MeasurementsPanel functional={odd} lang="en" />);
-        expect(screen.getByText(MEASURES_COPY.en.implausible)).toBeTruthy();
+    it.each([['high', 'implausibleHigh'], ['low', 'implausibleLow']])(
+        'warns in the %s direction, not always "unusually high"', (direction, key) => {
+            const odd = {
+                ...banded,
+                sitToStand: {
+                    ...banded.sitToStand, implausibleForProtocol: true,
+                    implausibleDirection: direction, maybeWrongProtocol: false,
+                },
+            };
+            render(<MeasurementsPanel functional={odd} lang="en" />);
+            expect(screen.getByText(MEASURES_COPY.en[key])).toBeTruthy();
+        },
+    );
+
+    /*
+      ⚠️ THE CASE THE WHOLE FEATURE HAS TO SURVIVE: a thirty-second count read
+         against one-minute norms. It gets its own sentence, and it REPLACES the
+         generic warning rather than stacking with it — two warnings about the same
+         number is how a reader decides to trust neither.
+    */
+    it('names the wrong-stopwatch case specifically', () => {
+        const odd = {
+            ...banded,
+            sitToStand: {
+                ...banded.sitToStand, protocol: 'sts-60s',
+                implausibleForProtocol: true, implausibleDirection: 'low',
+                maybeWrongProtocol: true,
+            },
+        };
+        const { container } = render(<MeasurementsPanel functional={odd} lang="en" />);
+        expect(screen.getByText(MEASURES_COPY.en.maybeWrongProtocol)).toBeTruthy();
+        expect(container.textContent).not.toContain(MEASURES_COPY.en.implausibleLow);
+    });
+
+    /*
+      ⚠️ `F2`/`F3`, FOUND BY TWO INDEPENDENT REVIEWS. A resident who said they did
+         not know how long they were timed for got the heading "thirty seconds"
+         printed directly above a sentence saying the duration is unknown — the exact
+         confusion this feature exists to prevent, printed by the feature itself. And
+         the copy said "we have kept your number" when the chip REPLACED the number,
+         so there was none on the row.
+    */
+    it('does not name a duration for a test whose duration is unknown', () => {
+        const unsure = {
+            grip: null,
+            sitToStand: {
+                ok: false, reason: 'protocol-not-known-by-resident', value: null,
+                protocol: 'unsure', setting: 'community-event',
+            },
+            setting: 'community-event',
+        };
+        const { container } = render(<MeasurementsPanel functional={unsure} lang="en" />);
+        expect(container.textContent).toContain(MEASURES_COPY.en.stsLabel.unsure);
+        expect(container.textContent, 'named the thirty-second test it just said it could not identify')
+            .not.toContain(MEASURES_COPY.en.stsLabel['sts-30s']);
+        expect(container.textContent, 'named the one-minute test instead')
+            .not.toContain(MEASURES_COPY.en.stsLabel['sts-60s']);
+    });
+
+    it('does not claim a number was kept when there is no number', () => {
+        const unsure = {
+            grip: null,
+            sitToStand: {
+                ok: false, reason: 'protocol-not-known-by-resident', value: null, protocol: 'unsure',
+            },
+            setting: null,
+        };
+        const { container } = render(<MeasurementsPanel functional={unsure} lang="en" />);
+        expect(container.textContent).not.toMatch(/kept your number/i);
     });
 });
 

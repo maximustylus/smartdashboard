@@ -88,7 +88,16 @@ export const settingIdFor = (text) => {
  *    `null` naturally rather than by being special-cased twice.
  */
 export const numberIn = (text) => {
-    const matches = String(text ?? '').match(/\d+(?:\.\d+)?/g);
+    const raw = String(text ?? '');
+    /*
+      ⚠️ A MINUS SIGN IS NOT A STRAY CHARACTER. `\d+` skipped over it, so "-5" came
+         back as 5 — a valid five-kilogram reading, banded "below the usual range"
+         with advice attached, from an input the form's `type="number"` accepts.
+         Rejected outright rather than absolute-valued: somebody who typed a negative
+         has not told us five.
+    */
+    if (/-\s*\d/.test(raw)) return null;
+    const matches = raw.match(/\d+(?:\.\d+)?/g);
     if (!matches || matches.length !== 1) return null;
     const value = Number(matches[0]);
     return Number.isFinite(value) ? value : null;

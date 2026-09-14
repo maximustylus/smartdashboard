@@ -557,6 +557,8 @@ export const parseAgeYears = (answer) => {
 
     // Bounded to a plausible adult lifespan, so a postal sector, a year of birth or
     // a number of minutes cannot be read as somebody's age.
+    // A negative is not an age. `parseAgeYears('-40')` returned 40 before this.
+    if (/-\s*\d/.test(text)) return null;
     const candidates = [...new Set(
         (text.match(/\b\d{1,3}\b/g) || []).map(Number).filter((n) => n >= 18 && n <= 120),
     )];

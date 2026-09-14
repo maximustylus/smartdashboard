@@ -78,8 +78,21 @@ const Measurement = ({ result, label, unit, m }) => {
                 </div>
             )}
 
-            {result.implausibleForProtocol === true && (
-                <div style={{ fontSize: 10, color: '#b45309', lineHeight: 1.6 }}>{m.implausible}</div>
+            {/*
+              ⚠️ THE WARNING NAMES THE DIRECTION, AND THE WRONG-STOPWATCH CASE GETS
+                 ITS OWN SENTENCE. A single "unusually high" string used to be shown
+                 for counts far too LOW as well, and the case this feature most needs
+                 to survive — a thirty-second count read against one-minute norms —
+                 got no warning at all, because the old flat floor of 10 did not
+                 catch a plausible-looking 14.
+            */}
+            {result.maybeWrongProtocol === true && (
+                <div style={{ fontSize: 10, color: '#b45309', lineHeight: 1.6 }}>{m.maybeWrongProtocol}</div>
+            )}
+            {result.implausibleForProtocol === true && result.maybeWrongProtocol !== true && (
+                <div style={{ fontSize: 10, color: '#b45309', lineHeight: 1.6 }}>
+                    {result.implausibleDirection === 'high' ? m.implausibleHigh : m.implausibleLow}
+                </div>
             )}
         </div>
     );
@@ -90,7 +103,14 @@ export default function MeasurementsPanel({ functional, lang }) {
     const grip = functional?.grip;
     const sitToStand = functional?.sitToStand;
 
-    const stsLabel = m.stsLabel[sitToStand?.protocol] || m.stsLabel['sts-30s'];
+    /*
+      ⚠️ `unsure` HAS ITS OWN LABEL, AND THE FALLBACK IS NO LONGER A DURATION. This
+         read `|| m.stsLabel['sts-30s']`, so a resident who said they did not know how
+         long they were timed for got "thirty seconds" as the heading, directly above
+         a sentence saying the duration is unknown. The fallback now names no
+         duration at all, which is the only honest thing to print when none is known.
+    */
+    const stsLabel = m.stsLabel[sitToStand?.protocol] || m.stsLabel.unsure;
 
     // Only the sources a comparison was actually made against. Listing a paper
     // nobody was compared to is a citation for something that did not happen.

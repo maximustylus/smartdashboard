@@ -87,6 +87,52 @@ binding is gone; `COPY_ORDER` holds it by name.
   happens inside `recordTelemetry`, at any depth. Raw kilograms and repetitions never
   leave the device.
 
+### Fixed after the first cut of this entry
+
+Four commits landed after the release commit and none of them were recorded here
+until an audit caught it. A changelog that stops before the branch tip is how a
+reviewer signs off on work they have not seen.
+
+- **`CP33`** — the report told every returning resident their progress was being
+  tracked. `previousId` has ZERO consumers: the rules deny client reads, the insights
+  rollup never mentions it, and the only other function that touches the collection
+  deletes by date. Fixed in all four languages, with a two-sided guard — the promise
+  must be absent AND the honest wording present, so a page that simply says nothing
+  where it used to reassure somebody also fails.
+- **`CP34`** — a hidden form field kept its answer. Age 65, answer falls, correct the
+  age to 20, and a 20-year-old derived as having fallen twice with falls risk true.
+  The gate that decides whether to ASK is now the gate that decides whether to READ.
+- **Two Malay and one Tamil parser faults**, surfaced by reviewers correcting copy
+  that is also parser input. "Tidak pernah jatuh" returned `falls=1` — every Malay
+  speaker who had never fallen recorded as having fallen. Caught by running the
+  parser before committing, not by reading the diff.
+- **`CP31`** — the Tamil chip was phrased around a parser bug rather than the bug
+  being fixed. Both reviewers proposed the natural wording independently, which is
+  what showed the constraint was in the wrong place.
+- **`CP32`** — the form offered falls and Healthier SG answers in English to every
+  language, on a question asked only of residents aged 60 and over.
+- The public AURA info card named **v2.12.2** while the app shipped 2.13.0. It is
+  bundled with `?raw` and served at `/aura-info`, so the stale version was live. A
+  test now fails the build when it drifts.
+
+### The waiver was exercised, not just built
+
+⚠️ On **2026-09-13 the owner signed `REVIEW_WAIVERS`** for all three safety-critical
+prohibitions. The gate failed on them exactly as designed; the build is green only
+because somebody signed. Recorded here because an accountability mechanism that logs
+only its own existence, and not the decisions taken under it, is decoration.
+
+### Simulation before merge
+
+`communitySimulation.test.js` walks the whole assessment for 735 residents across
+four languages — every age boundary the sources define (19/20, 59/60, 79/80, 94/95),
+both sexes plus "prefer not to say", every measurement state, every falls answer.
+It asserts that all four languages ask the SAME questions of the same person, that
+nothing broken reaches a screen, that no raw figure or exact age can be stored, and
+that **skipping both measurements changes neither the score nor the routing**.
+
+It found `CP34` on its first run.
+
 ### Still open on this surface
 
 - **`CD13`** — the three safety-critical strings ship unreviewed in Malay, Chinese

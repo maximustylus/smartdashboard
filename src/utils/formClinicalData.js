@@ -98,9 +98,20 @@ export const deriveFormClinicalData = (answers = {}) => {
 
     left `f.falls` populated, this function read it unconditionally, and a
     20-year-old was derived as `fallsCount: 2, fallsRisk: true, fallsAsked: true`.
-    That reached the record, printed on the handover slip as fact, and changed the
-    routing, because `selectCTA` branches on falls. It also silently disagreed with
-    the chat, which never asks the question at all at that age.
+
+    ⚠️ AN EARLIER VERSION OF THIS NOTE SAID IT "CHANGED THE ROUTING, BECAUSE
+       `selectCTA` BRANCHES ON FALLS". IT DOES NOT. `ctaRouting.js` reads seven
+       fields and none of them is a falls field; the claim was written without
+       being checked and an audit caught it. The real consumers are worse, not
+       better:
+
+         `HandoverSlip.jsx`           a 20-year-old carries a printed slip to a
+                                      community centre asserting a fall
+         `CommunityInsightsPanel.jsx` the field is labelled "Fall in past 12 months
+                                      (60+)", so one stale flag pollutes a
+                                      population statistic a health system plans from
+
+    It also silently disagreed with the chat, which never asks at that age.
 
     Found by `communitySimulation.test.js` on its first run, by walking the same
     person through both pathways — not by any unit test, because every unit here

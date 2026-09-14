@@ -85,6 +85,21 @@ See *Known at release*, below.
   ships, not when a developer types a string.
 - `scripts/pdf-headroom.mjs`, which measures how close the printed report is to
   losing content.
+- `src/utils/communitySimulation.test.js`, which runs the whole assessment for 735
+  residents across four languages and asserts what is only visible end to end. It
+  found `CP34` on its first run.
+- `scripts/copy-reachability.mjs` and `scripts/strip-comments.mjs`, test scaffolding
+  kept outside `src/` so it is not in the bundle graph.
+
+### ⚠️ Deploy order
+
+**The Cloud Function must deploy before or with hosting.**
+`functions/communityAck.js` gains four domains (`age_years`, `grip_kg`,
+`sit_to_stand`, `measure_setting`). If hosting goes out first, the browser asks
+those four questions and the endpoint rejects every answer with "Unknown assessment
+domain." — a rerun of `CP27`, on the very questions this release exists for. The two
+lists cannot import each other: the client is ESM, the function is CommonJS behind
+its own package and its own deploy.
 
 ### Changed
 
@@ -108,14 +123,55 @@ See *Known at release*, below.
   kilograms and repetitions are removed the same way: they stay on the device.
 - The report footer said "PAGE n OF 2" as a literal, on what can now be a three-page
   report.
+- **`CP33`** — the report told every returning resident "Longitudinal Tracking
+  Active: your results have been linked to your previous assessment so you can track
+  your progress over time", in all four languages. Nothing tracked anything.
+  `previousId` is written and read by nobody: the security rules deny client reads of
+  that collection outright, the insights rollup never mentions the field, and the only
+  other function that touches the collection deletes by date. Same class as the
+  housing claim on the evidence page. The copy now says what is true and says plainly
+  that the comparison cannot be shown yet.
+- **`CP34`** — a hidden form field kept its answer. Entering age 65, answering "two
+  or more falls", then correcting the age to 20 derived `fallsCount: 2, fallsRisk:
+  true, fallsAsked: true` for a 20-year-old — written to the record, printed on the
+  handover slip as fact, and it changed the routing. The chat never asks at that age,
+  so the two pathways disagreed about the same person. The gate that decides whether
+  to ASK a conditional question is now the gate that decides whether to READ its
+  answer. Not introduced by this release; the same trap existed with the old
+  age-group select.
+- **Two Malay and one Tamil parser faults, found by reviewers correcting the copy.**
+  The falls chips are parser input and the matcher is word-bounded, so a reworded
+  chip silently stops matching. Applied as written, "Tidak pernah jatuh" returned
+  `falls=1, fallsRisk=true` — every Malay speaker who had never fallen recorded as
+  having fallen — and the reworded avoidance chip lost the fear-of-falling flag.
+  Tokens extended, old ones kept so answers already collected still parse.
+- **`CP31`** — the Tamil copy was working around a parser bug. `அல்லது` ("or")
+  begins with `அல்ல`, a negator, and Tamil negation is adjacent, so "two or more"
+  read as a denial of "two". It had been worked around in the COPY, with a word
+  wedged in to break the adjacency. Two independent reviewers proposed the natural
+  wording without knowing that history. Fixed in the parser; the Tamil now reads as
+  Tamil.
+- **`CP32`** — the conventional form offered the falls and Healthier SG answers in
+  English to every language, on a question asked only of residents aged 60 and over.
+  Both pathways now build those options from one set of chips.
 
 ### Known at release
 
 - **`CD13` — three safety-critical strings ship unreviewed in Malay, Chinese and
-  Tamil.** `measures.doNotSelfTest`, `measures.noComparison` and
-  `measures.notADiagnosis` are prohibitions, and the owner's standing rule is that
-  this category is not machine-translated alone. They are machine-translated, on
-  screen, and read by no native speaker. The gate that says so is in the build.
+  Tamil, ON A WAIVER SIGNED BY THE OWNER ON 2026-09-13.** `measures.doNotSelfTest`,
+  `measures.noComparison` and `measures.notADiagnosis` are prohibitions, and the
+  owner's standing rule is that this category is not machine-translated alone. They
+  are machine-translated, on screen, and read by no native speaker.
+
+  The build gate FAILED on them, as designed, and **the build is green only because
+  the owner signed `REVIEW_WAIVERS` for all three** after being shown what it
+  permits: a machine turning "do not try this on your own" into "you might prefer
+  someone with you", which reads perfectly and is not a prohibition. That is a debt
+  with a name and a date, not a resolved item; `reviewDebt()` still returns all three
+  and `scripts/copy-review-sheet.mjs` still prints them as outstanding.
+
+  Two machine cross-checks were run and **covered none of these three** — both
+  reviewed the workbook as it stood before the strings were added to it.
   `TRANSLATION-BRIEF.md`
   group 5 carries the strings and their back-translations; roughly fifteen minutes
   per language clears it.

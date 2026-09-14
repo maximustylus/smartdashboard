@@ -47,6 +47,9 @@ export const DICTIONARY = {
     ctaHealthierSG: 'Your Healthier SG Connection',
     ctaResources: 'Additional Resources',
     error: 'A connection error occurred while saving your profile. Please try again.',
+    // `CP37`: shown when an age cannot be read. It must ASK AGAIN rather than
+    // accept nothing, because an age nobody has costs the whole 60+ pathway.
+    ageRetry: 'Sorry, I could not read that as an age. Please type the number of years only, for example 67.',
     progressLabel: (step, total) => `Step ${step + 1} of ${total}`,
     // 13 prompts — indices match DOMAIN_CONFIG
     prompts: [
@@ -163,6 +166,7 @@ export const DICTIONARY = {
     ctaHealthierSG: 'Sambungan Healthier SG Anda',
     ctaResources: 'Sumber Tambahan',
     error: 'Ralat sambungan berlaku. Sila cuba lagi.',
+    ageRetry: 'Maaf, saya tidak dapat membaca itu sebagai umur. Sila taip bilangan tahun sahaja, contohnya 67.',
     progressLabel: (step, total) => `Langkah ${step + 1} daripada ${total}`,
     prompts: [
       'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan senaman sederhana atau kuat? (cth. berjalan pantas, berbasikal, berenang)',
@@ -255,6 +259,7 @@ export const DICTIONARY = {
     ctaHealthierSG: '您与 Healthier SG 的联系',
     ctaResources: '其他资源',
     error: '保存时发生连接错误，请重试。',
+    ageRetry: '抱歉，我无法将它识别为年龄。请只输入岁数，例如 67。',
     progressLabel: (step, total) => `第 ${step + 1} 步，共 ${total} 步`,
     prompts: [
       '你好，我是 AURA 👋 在典型的一周里，您通常有几天进行中等或剧烈强度的运动？（例如快走、骑车、游泳）',
@@ -347,6 +352,7 @@ export const DICTIONARY = {
     ctaHealthierSG: 'Healthier SG இணைப்பு',
     ctaResources: 'கூடுதல் வளங்கள்',
     error: 'சேமிக்கும் போது இணைப்பு பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
+    ageRetry: 'மன்னிக்கவும், அதை வயதாக என்னால் படிக்க முடியவில்லை. ஆண்டுகளின் எண்ணிக்கையை மட்டும் தட்டச்சு செய்யுங்கள், எடுத்துக்காட்டாக 67.',
     progressLabel: (step, total) => `படி ${step + 1} / ${total}`,
     prompts: [
       'வணக்கம், நான் AURA 👋 வழக்கமான வாரத்தில், நீங்கள் எத்தனை நாட்கள் மிதமான அல்லது தீவிரமான உடற்பயிற்சி செய்கிறீர்கள்? (எ.கா. வேகமாக நடைபயிற்சி, சைக்கிள், நீச்சல்)',

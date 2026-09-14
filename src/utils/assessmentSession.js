@@ -124,12 +124,48 @@ export const getSessionId = () => {
  *   resume half of the other one's shape into the wrong component
  * @param {object} state
  */
-export const saveProgress = (pathway, state) => writeJson(IN_PROGRESS_KEY, { pathway, state });
+/**
+ * ==============================================================================
+ * ⚠️ `CP36` — A SAVED ASSESSMENT MUST NOT SURVIVE A CHANGE IN QUESTION ORDER
+ * ==============================================================================
+ *
+ * `AuraChat` saves `currentStep` as a BARE INDEX into `DOMAIN_CONFIG`. `P9`
+ * reordered that list, so eleven of the fifteen old indices now name a different
+ * question. A resident whose tab was open across the deploy — routine on a
+ * community-centre terminal left running all day — reloads and resumes at an index
+ * that has moved underneath them.
+ *
+ * Replayed from a saved `currentStep` of 8, where the transcript on screen still
+ * read "are you male or female?":
+ *
+ *     they type "Female"  ->  stored as  food_insecurity: "Female"
+ *     never asked again:  demographics, age_years, falls, and all three measurements
+ *     resulting record:   gender Unknown, age Unknown, food insecurity overwritten
+ *
+ * No error, no blank screen. A filed record that is wrong in four places.
+ *
+ * ⚠️ THE STAMP IS THE FIX, AND IT MUST BE BUMPED BY HAND. Any change to the ORDER
+ *    or MEMBERSHIP of `DOMAIN_CONFIG` invalidates every saved index, so bump
+ *    `PROGRESS_SHAPE` in the same commit. Losing a part-finished assessment is a bad
+ *    day for one person; filing their answers under other people's questions is
+ *    worse, and it is silent.
+ *
+ * Keyed by NAME rather than index would be better still and is the right eventual
+ * fix. This is the safe one to make before a deploy: it discards rather than
+ * guesses, and it cannot be wrong in a way nobody sees.
+ */
+export const PROGRESS_SHAPE = 'p9-2026-09-14';
+
+export const saveProgress = (pathway, state) =>
+    writeJson(IN_PROGRESS_KEY, { pathway, state, shape: PROGRESS_SHAPE });
 
 /** The saved answers for this pathway, or `null`. */
 export const loadProgress = (pathway) => {
     const stored = readJson(IN_PROGRESS_KEY);
     if (!stored || stored.pathway !== pathway) return null;
+    // Saved before the stamp existed, or under a different question order. Either
+    // way the indices inside it no longer mean what they meant. See `PROGRESS_SHAPE`.
+    if (stored.shape !== PROGRESS_SHAPE) return null;
     return stored.state ?? null;
 };
 

@@ -8,7 +8,17 @@ data is handled, and how to raise a concern.**
 | **Card status** | ✅ **In effect.** Approved 2026-08-28 by **Muhammad Alif (owner)** — the named sign-off `AURA-GUARDRAILS.md` Rule 12 requires. The owner read draft v0.3 in full and approved it as written; the same session's `AU29` fix and 9.5 decision are folded into this version, recorded in the changelog below. |
 | **Card version** | 1.3 |
 | **Last updated** | 2026-09-06 |
-| **Describes** | NEXUS **v2.12.2** (app) · AURA engine tier **v2.3** · guardrails **v1.0** |
+| **Describes** | NEXUS **v2.13.0** (app) · AURA engine tier **v2.3** · guardrails **v1.0** |
+> **The app version on the "Describes" line is a factual pointer, not card content.**
+> It moves with `package.json` at each release and does NOT make a new card version
+> or require a fresh sign-off under `AURA-GUARDRAILS.md` Rule 12 — the card's
+> statements about what AURA does, how it is kept safe and how data is handled are
+> what Rule 12 governs, and those are unchanged. `auraInfoCard.version.test.js`
+> fails the build when this line drifts from `package.json`, because this file is
+> bundled with `?raw` and served to the public at `/aura-info`: a stale version here
+> is a stale version on the live site, which is the exact failure `src/version.js`
+> exists to prevent. It had already drifted two releases before that guard existed.
+
 | **Framework** | Structured after the **IMDA Transparency Guidelines for Generative AI Chatbots** (Infocomm Media Development Authority, Singapore, published 20 July 2026), Annex B sample format. The guidelines are voluntary; NEXUS adopts them as its transparency baseline. |
 
 > **This is a consolidated card for a family of AURA surfaces** (the guidelines allow one

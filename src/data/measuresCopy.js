@@ -108,6 +108,16 @@ export const MEASURES_COPY = {
         stsLabel: {
             'sts-60s': 'Standing up from a chair, one minute',
             'sts-30s': 'Standing up from a chair, thirty seconds',
+            /*
+              ⚠️ `unsure` EXISTS BECAUSE ITS ABSENCE CONTRADICTED THE SENTENCE
+                 UNDERNEATH IT. `MeasurementsPanel` fell back to the thirty-second
+                 label when the protocol was unknown, so a resident who said "I do
+                 not know how long I was timed for" read a heading naming the exact
+                 test the paragraph below said was unknown. On a printed report, in
+                 all four languages. It is the confusion this feature exists to
+                 prevent, printed by the feature itself.
+            */
+            unsure: 'Standing up from a chair',
         },
         stsUnsure: 'I am not sure how long it was timed for',
         settingPrompt: 'Where was this measured?',
@@ -139,9 +149,17 @@ export const MEASURES_COPY = {
             'protocol-unknown': 'We have kept your number, but we do not know which test it came from, so we are not going to compare it.',
             'protocol-age-mismatch': 'We have kept your number. It looks like it came from a different version of this test than the one we compare at your age, so a comparison could tell you something wrong. Please show it to whoever measured you.',
             'reference-unavailable': 'We have kept your number, but the published range for this test is not loaded yet, so we are not going to compare it.',
-            'protocol-not-known-by-resident': 'We have kept your number. Because we do not know whether the stopwatch ran for thirty seconds or a minute, we are not going to compare it. The two are very different.',
+            'protocol-not-known-by-resident': 'Because we do not know whether the stopwatch ran for thirty seconds or a minute, we are not going to compare this. The two tests are very different, so guessing would not be fair to you.',
         },
-        implausible: 'That count is unusually high for this test. Please check the number before you rely on it.',
+        /*
+          ⚠️ TWO DIRECTIONS, BECAUSE THE FLAG FIRES BOTH WAYS. One string reading
+             "unusually high" was shown for a count below the floor too — telling a
+             65-year-old who could not stand up once that their count was unusually
+             high.
+        */
+        implausibleHigh: 'That count is unusually high for this test. Please check the number before you rely on it.',
+        implausibleLow: 'That count is unusually low for this test. Please check the number before you rely on it.',
+        maybeWrongProtocol: 'This count is below the lowest figure published for the one-minute test. If you were timed for thirty seconds rather than a full minute, this comparison does not apply to you. Please check with whoever measured you before you rely on it.',
 
         settings: {
             'community-event': 'At a community event',
@@ -185,6 +203,7 @@ export const MEASURES_COPY = {
         stsLabel: {
             'sts-60s': 'Bangun dari kerusi, satu minit',
             'sts-30s': 'Bangun dari kerusi, tiga puluh saat',
+            unsure: 'Bangun dari kerusi',
         },
         stsUnsure: 'Saya tidak pasti berapa lama masa yang dikira',
         settingPrompt: 'Di mana ukuran ini diambil?',
@@ -216,9 +235,11 @@ export const MEASURES_COPY = {
             'protocol-unknown': 'Kami telah simpan nombor anda, tetapi kami tidak tahu ujian mana ia datang, jadi kami tidak akan membandingkannya.',
             'protocol-age-mismatch': 'Kami telah simpan nombor anda. Ia nampak datang daripada versi ujian yang berbeza daripada versi yang kami bandingkan pada umur anda, jadi perbandingan boleh memberitahu anda sesuatu yang salah. Sila tunjukkan kepada sesiapa yang mengukur anda.',
             'reference-unavailable': 'Kami telah simpan nombor anda, tetapi julat terbitan bagi ujian ini belum dimuatkan, jadi kami tidak akan membandingkannya.',
-            'protocol-not-known-by-resident': 'Kami telah simpan nombor anda. Kerana kami tidak tahu sama ada jam randik berjalan selama tiga puluh saat atau satu minit, kami tidak akan membandingkannya. Kedua-duanya sangat berbeza.',
+            'protocol-not-known-by-resident': 'Kerana kami tidak tahu sama ada jam randik berjalan selama tiga puluh saat atau satu minit, kami tidak akan membandingkannya. Kedua-dua ujian itu sangat berbeza, jadi tekaan tidak adil kepada anda.',
         },
-        implausible: 'Jumlah itu luar biasa tinggi bagi ujian ini. Sila semak nombor itu sebelum anda bergantung padanya.',
+        implausibleHigh: 'Jumlah itu luar biasa tinggi bagi ujian ini. Sila semak nombor itu sebelum anda bergantung padanya.',
+        implausibleLow: 'Jumlah itu luar biasa rendah bagi ujian ini. Sila semak nombor itu sebelum anda bergantung padanya.',
+        maybeWrongProtocol: 'Jumlah ini lebih rendah daripada angka terendah yang diterbitkan bagi ujian satu minit. Jika anda diukur selama tiga puluh saat dan bukan satu minit penuh, perbandingan ini tidak terpakai kepada anda. Sila semak dengan sesiapa yang mengukur anda sebelum anda bergantung padanya.',
 
         settings: {
             'community-event': 'Di acara komuniti',
@@ -262,6 +283,7 @@ export const MEASURES_COPY = {
         stsLabel: {
             'sts-60s': '从椅子上站起来，一分钟',
             'sts-30s': '从椅子上站起来，三十秒',
+            unsure: '从椅子上站起来',
         },
         stsUnsure: '我不确定计时了多久',
         settingPrompt: '这是在哪里测量的？',
@@ -293,9 +315,11 @@ export const MEASURES_COPY = {
             'protocol-unknown': '我们保存了您的数字，但我们不知道它来自哪一项测试，所以我们不会进行比较。',
             'protocol-age-mismatch': '我们保存了您的数字。它看起来来自与我们在您这个年龄所比较的版本不同的测试版本，因此比较可能会给您错误的信息。请把它拿给为您测量的人看。',
             'reference-unavailable': '我们保存了您的数字，但这项测试的已发表范围尚未载入，所以我们不会进行比较。',
-            'protocol-not-known-by-resident': '我们保存了您的数字。因为我们不知道秒表是计时三十秒还是一分钟，所以我们不会进行比较。两者差别很大。',
+            'protocol-not-known-by-resident': '因为我们不知道秒表是计时三十秒还是一分钟，所以我们不会进行比较。这两项测试差别很大，猜测对您并不公平。',
         },
-        implausible: '这个次数对这项测试来说异常高。在依据它之前，请先核对这个数字。',
+        implausibleHigh: '这个次数对这项测试来说异常高。在依据它之前，请先核对这个数字。',
+        implausibleLow: '这个次数对这项测试来说异常低。在依据它之前，请先核对这个数字。',
+        maybeWrongProtocol: '这个次数低于一分钟测试已发表的最低数值。如果您是被计时三十秒而不是整整一分钟，这项比较并不适用于您。在依据它之前，请先向为您测量的人确认。',
 
         settings: {
             'community-event': '在社区活动上',
@@ -339,6 +363,7 @@ export const MEASURES_COPY = {
         stsLabel: {
             'sts-60s': 'நாற்காலியிலிருந்து எழுந்து நிற்றல், ஒரு நிமிடம்',
             'sts-30s': 'நாற்காலியிலிருந்து எழுந்து நிற்றல், முப்பது வினாடிகள்',
+            unsure: 'நாற்காலியிலிருந்து எழுந்து நிற்றல்',
         },
         stsUnsure: 'எவ்வளவு நேரம் அளக்கப்பட்டது என்று எனக்குத் தெரியவில்லை',
         settingPrompt: 'இது எங்கே அளக்கப்பட்டது?',
@@ -370,9 +395,11 @@ export const MEASURES_COPY = {
             'protocol-unknown': 'உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம், ஆனால் அது எந்தச் சோதனையிலிருந்து வந்தது என்று தெரியாததால் நாங்கள் அதை ஒப்பிடப் போவதில்லை.',
             'protocol-age-mismatch': 'உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம். உங்கள் வயதில் நாங்கள் ஒப்பிடும் வடிவத்திலிருந்து வேறுபட்ட ஒரு சோதனை வடிவத்திலிருந்து இது வந்ததாகத் தெரிகிறது, எனவே ஒப்பிடுவது உங்களுக்குத் தவறான தகவலைத் தரக்கூடும். உங்களை அளந்தவரிடம் இதைக் காட்டுங்கள்.',
             'reference-unavailable': 'உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம், ஆனால் இந்தச் சோதனைக்கான வெளியிடப்பட்ட வரம்பு இன்னும் ஏற்றப்படவில்லை, எனவே நாங்கள் அதை ஒப்பிடப் போவதில்லை.',
-            'protocol-not-known-by-resident': 'உங்கள் எண்ணை நாங்கள் வைத்துள்ளோம். நிறுத்தக் கடிகாரம் முப்பது வினாடிகள் ஓடியதா அல்லது ஒரு நிமிடம் ஓடியதா என்று தெரியாததால் நாங்கள் அதை ஒப்பிடப் போவதில்லை. இரண்டும் மிகவும் வேறுபட்டவை.',
+            'protocol-not-known-by-resident': 'நிறுத்தக் கடிகாரம் முப்பது வினாடிகள் ஓடியதா அல்லது ஒரு நிமிடம் ஓடியதா என்று தெரியாததால் நாங்கள் இதை ஒப்பிடப் போவதில்லை. இந்த இரண்டு சோதனைகளும் மிகவும் வேறுபட்டவை, எனவே ஊகிப்பது உங்களுக்கு நியாயமாக இருக்காது.',
         },
-        implausible: 'இந்தச் சோதனைக்கு இந்த எண்ணிக்கை வழக்கத்திற்கு மாறாக அதிகம். இதை நம்பும் முன் எண்ணைச் சரிபாருங்கள்.',
+        implausibleHigh: 'இந்தச் சோதனைக்கு இந்த எண்ணிக்கை வழக்கத்திற்கு மாறாக அதிகம். இதை நம்பும் முன் எண்ணைச் சரிபாருங்கள்.',
+        implausibleLow: 'இந்தச் சோதனைக்கு இந்த எண்ணிக்கை வழக்கத்திற்கு மாறாகக் குறைவு. இதை நம்பும் முன் எண்ணைச் சரிபாருங்கள்.',
+        maybeWrongProtocol: 'ஒரு நிமிட சோதனைக்கு வெளியிடப்பட்ட மிகக் குறைந்த எண்ணிக்கையை விட இது குறைவு. ஒரு முழு நிமிடத்திற்குப் பதிலாக முப்பது வினாடிகள் மட்டுமே உங்களுக்கு நேரம் பார்க்கப்பட்டிருந்தால், இந்த ஒப்பீடு உங்களுக்குப் பொருந்தாது. இதை நம்பும் முன் உங்களை அளந்தவரிடம் சரிபாருங்கள்.',
 
         settings: {
             'community-event': 'சமூக நிகழ்ச்சியில்',

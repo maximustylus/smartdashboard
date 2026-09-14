@@ -22,7 +22,7 @@ import { measurementResults, toStorableMeasurements } from './measurementAnswers
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
   matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
-  parseAgeBand, exactAge,
+  parseAgeBand, exactAge, isSixtyPlusPerson,
   matchesFemale, matchesMale,
   isNoPreviousId, parseFallsAnswer, parseHealthierSg,
   parsePavsDays, parsePavsMinutes,
@@ -87,7 +87,15 @@ export const parseClinicalData = (raw) => {
 
   // Falls & function — asked of the 60+ cohort only, so `asked: false` here means
   // "not applicable or not translated", NEVER "no falls".
-  const falls = parseFallsAnswer(raw.falls);
+  /*
+    ⚠️ THE SAME GATE THE FORM USES (`CP34`). The chat cannot reach a stale falls
+       answer today, because it asks the age first and offers no way back — but that
+       is conversational ordering, which is an assumption, not an invariant, and
+       `DOMAIN_CONFIG` now carries a comment saying the order is safe to change.
+       One pathway fixed and the other left relying on habit is how the two drift
+       apart again. Symmetry is the point.
+  */
+  const falls = parseFallsAnswer(isSixtyPlusPerson(raw) ? raw.falls : '');
   // `null` for both "not sure" and "not asked" — the portal does not know, and
   // that must not be read as "not enrolled".
   const healthierSgEnrolled = parseHealthierSg(raw.healthier_sg);
