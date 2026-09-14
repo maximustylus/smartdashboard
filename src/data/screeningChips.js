@@ -60,19 +60,19 @@ export const FALLS_CHIPS = Object.freeze({
         'No falls',
         'One fall',
         'Two or more falls',
-        'A fall, and I now avoid some activities',
+        'A fall, and I now avoid some activities for fear of falling',
     ]),
     ms: Object.freeze([
-        'Tiada jatuh',
+        'Tidak pernah jatuh',
         'Jatuh satu kali',
         'Jatuh dua kali atau lebih',
-        'Pernah jatuh, dan kini saya mengelak sesetengah aktiviti',
+        'Pernah jatuh, dan kini saya mengelak sesetengah aktiviti kerana takut jatuh',
     ]),
     zh: Object.freeze([
         '没有跌倒',
         '跌倒一次',
         '跌倒两次或以上',
-        '曾经跌倒，现在会避免某些活动',
+        '曾经跌倒，现在因为害怕跌倒而避免某些活动',
     ]),
     /**
      * ⚠️ CHIP 2 IS NOT THE MOST NATURAL TAMIL, AND THE PARSER IS WHY.
@@ -86,8 +86,8 @@ export const FALLS_CHIPS = Object.freeze({
     ta: Object.freeze([
         'விழுந்ததில்லை',
         'ஒரு முறை விழுந்தேன்',
-        'இரண்டு முறை அல்லது அதிகமாக',
-        'விழுந்தேன், இப்போது சில செயல்களைத் தவிர்க்கிறேன்',
+        'இரண்டு அல்லது அதற்கு மேற்பட்ட முறை விழுந்தேன்',
+        'விழுந்தேன், மீண்டும் விழுந்துவிடுவோமோ என்ற பயத்தில் இப்போது சில செயல்களைத் தவிர்க்கிறேன்',
     ]),
 });
 

@@ -56,13 +56,17 @@ describe('every language can ask every question', () => {
         });
     });
 
-    // Acknowledgements legitimately stop before the two appended steps; a missing
-    // one is silent rather than harmful, unlike a missing prompt which skips the
-    // question entirely. Asserted so the difference stays deliberate.
+    /*
+      Acknowledgements legitimately stop before the appended steps; a missing one is
+      silent, unlike a missing prompt which skips the question entirely. Asserted as
+      an EXACT list rather than a maximum, so a step that loses its acknowledgement
+      by accident shows up here instead of quietly joining the exemption.
+    */
+    const NO_ACKNOWLEDGEMENT = ['falls', 'healthier_sg', 'grip_kg', 'sit_to_stand', 'measure_setting'];
+
     it.each(LANGS)('%s may omit acknowledgements only for the appended steps', (lang) => {
         const { reflections } = copyFor(lang);
-        COPY_ORDER.forEach((key) => {
-            if (reflections[key] === undefined) expect(['falls', 'healthier_sg']).toContain(key);
-        });
+        const silent = COPY_ORDER.filter((key) => reflections[key] === undefined);
+        expect([...silent].sort()).toEqual([...NO_ACKNOWLEDGEMENT].sort());
     });
 });

@@ -434,6 +434,550 @@ were found by the test rather than by reading:**
   first. A bare token would have turned *"the portal does not know"* into *"this
   person is not enrolled"*, for every Malay speaker who was unsure, silently.
 
+## `P9` — the report page landed 2026-09-12
+
+Page 3 of the printed report, rendered **only when the resident gave a figure**.
+Everybody who skips the questions gets exactly the two-page report they get today,
+with no blank page in their download. The footer's "PAGE n OF 2" was a literal and
+is now passed in, so a three-page report does not insist it has two.
+
+Each measurement shows the number, the band, and one sentence about what to do.
+Where no comparison could be made it shows the NUMBER and the REASON, because a
+blank card under a figure somebody just gave reads as "your result was too bad to
+print". All nine refusal states are covered by test.
+
+`measuresCopy.reportIntro` is a separate string from `intro`. The question-time
+line says "you can skip this and your result will not change", which is nonsense
+printed beside figures the person already gave.
+
+**The sources are named, with their populations.** None of the three is
+Singaporean, and a resident comparing themselves to a Swiss or United States
+sample is entitled to know that is what they are doing. Nothing is cited when no
+comparison was made: a citation for a comparison that did not happen is worse than
+none. That closes the citation half of `CD21`; the wording still wants the owner's
+sign-off.
+
+Headroom after the change, measured not assumed:
+
+    scenario           lang  page  natural  spare
+    measured           en    3         646    477
+    measured-refused   en    3         505    618
+    measured-refused   zh    3         489    634
+    (pages 1 and 2 unchanged: 71px and 77px, exactly as before)
+
+The `measured-refused` scenario exists because the worst case for page 3 is NOT
+two clean bands: the reason strings are far longer than a band label. A page sized
+against the happy path clips exactly the residents it was most important to
+explain things to.
+
+---
+
+## ⚠️ `CP30` — the printed report is 2px from losing content, today
+
+`PDF_PAGE_STYLE` is a fixed 794x1123 box with `overflow: hidden`, and the PDF is a
+rasterised screenshot of it. A page that grows does not spill onto another page and
+does not shrink to fit. **The bottom is cut off.** It still looks right on screen,
+where the same content sits in a scrolling column, so nothing warns and no test
+fails. A resident downloads a report with the last thing on it missing.
+
+`scripts/pdf-headroom.mjs` measures it. Run 2026-09-12, before any `P9` change:
+
+    scenario     lang  page  natural  spare
+    low-risk     en    1        1052     71
+    low-risk     ms    1        1037     86
+    low-risk     zh    1         988    135
+    low-risk     ta    1         988    135
+    worst-case   en    1        1121      2  ← tight
+    worst-case   ms    1        1091     32  ← tight
+    worst-case   zh    1        1056     67
+    worst-case   ta    1        1056     67
+    (page 2 is static: 77px spare in every language and scenario)
+
+    Tightest: worst-case / en / page 1 with 2px spare.
+
+**Two pixels.** A resident who raises every flag and reads English is two pixels
+from losing the bottom of their own plan. One more line of English copy anywhere on
+page 1 — a longer call to action, a new resource row, a wrapped sentence at a
+different font size — and content starts disappearing from people's PDFs with
+nothing to say it did.
+
+⚠️ **CONSEQUENCE FOR `P9`: THE MEASUREMENTS CANNOT GO ON PAGE 1 OR PAGE 2.** Neither
+has room for a two-row block plus its source citations. They go on a third page,
+which exists only when the resident gave a figure, so everybody who skips gets
+exactly the report they get today.
+
+`CP30` itself stays OPEN. The third page routes around it; it does not fix it, and
+page 1 is still two pixels from the edge for the next person who edits it.
+
+⚠️ Measuring this needs a detached clone with `height: auto`. The page is a
+fixed-height flex column, so its children stretch: `scrollHeight`, the bottom edge
+of the last child and the content area's own box ALL report exactly 1123 whether
+the content needs 300px or 3000. Three attempts at this measurement returned "0px
+spare" and meant nothing. The script's header says so, at length, because the
+obvious measurement is the wrong one and looks right.
+
+---
+
+## Pre-merge simulation and audit, 2026-09-14 — seven defects found, seven fixed
+
+Three agents audited the branch while a permutation simulation and a browser sweep
+ran against it. Everything below was verified before being acted on, because one
+audit finding was wrong (see the foot of this section).
+
+| | What it was | Found by |
+|---|---|---|
+| `CP35` | **The exact age, grip in kg and rep count were posted to Gemini on every chat turn.** | gap hunt |
+| `CP36` | A part-finished assessment saved before this deploy resumed at a moved index and filed answers under the wrong questions. | gap hunt |
+| `CP37` | An age the portal could not read ("75+", "seventy five") silently cost a resident the whole 60+ pathway. | gap hunt |
+| `B1` | The wrong-stopwatch guard did not fire in the case it exists for. | gap hunt |
+| `F2`/`F3` | The report named "thirty seconds" above a sentence saying the duration was unknown, and claimed to have kept a number that did not exist. | both audits, independently |
+| `F4` | The README stated twice that this feature does not exist. | QC audit |
+| `F5` | **My own `CP34` write-up stated a mechanism that is not real.** | QC audit |
+
+### `CP35` — the second door, opened in the same change that documented the first
+
+`priorAnswerLines` walked `COMMUNITY_DOMAINS`. `P9` added four domains to that list
+so the endpoint would ACCEPT the new answers — and that same list decides what is
+forwarded to the model. From the age question onward, every turn sent:
+
+    age_years: 78
+    grip_kg: 16.5
+    sit_to_stand: 7
+
+to a third party, to generate a one-sentence acknowledgement. Three files state
+those figures stay on the device; `telemetry.js` strips them by name to enforce it
+against Firestore. This was the same `CP29` shape — a list that enumerates
+everything, and a new field that ships by default — reopened by the person who had
+just written about it.
+
+**The rule is now inverted.** Sending is opt-in per domain (`MODEL_VISIBLE_DOMAINS`).
+Accepting an answer and forwarding it are two different permissions. Forgetting now
+costs context in an acknowledgement, which is recoverable.
+
+### `B1` — the guard that compared a value to itself
+
+`protocol-age-mismatch` is unreachable from either pathway: both derive the protocol
+from the age and then check it against the protocol derived from the age. The flat
+plausibility floor of 10 did not catch the case that matters — a 55-year-old typing
+a thirty-second count of 14 was told, confidently, that they were far below the
+one-minute range.
+
+The floor is now **the lowest value the source publishes** for that person (`p2.5`),
+and the warning names the wrong-stopwatch case specifically. The band is still shown,
+because the number may be genuine; what changed is that it is no longer shown alone.
+
+Also fixed: the warning read "unusually **high**" in all four languages while firing
+on counts far too low, so a 65-year-old who could not stand up once was told their
+count was unusually high.
+
+### ⚠️ `F5` — I recorded a false mechanism, and an audit caught it
+
+The `CP34` entry said the stale falls answer "changed the routing, because
+`selectCTA` branches on falls". **It does not.** `ctaRouting.js` reads seven fields
+and none is a falls field. I wrote it without checking.
+
+Corrected rather than softened, because the truth is worse: the real consumers are
+the printed handover slip a resident carries to a community centre, and
+`CommunityInsightsPanel`, which labels the field "Fall in past 12 months (60+)" — so
+one stale flag from a 20-year-old pollutes a population statistic a health system
+plans from.
+
+### ⚠️ One audit finding was WRONG, and checking it mattered
+
+An audit reported that the telemetry document carries 25 to 26 top-level keys
+against a rules cap of 20, concluding that **every community write is being
+rejected**. Measured directly:
+
+    CHAT  top-level keys = 8   :: event, sessionId, previousSessionId, payload,
+                                 computedRisk, ctaTier, postalSector, createdAt
+    FORM  top-level keys = 11  :: sessionId, action, language, score, ctaTier,
+                                  flags, enrichment, perception, demographics,
+                                  postalSector, createdAt
+
+`request.resource.data.keys()` is top-level only; the audit counted nested fields.
+Both are comfortably inside the cap and no rules change is needed. Recorded because
+acting on it would have meant widening a security rule to fix nothing.
+
+### ⚠️ Also my mistake: seven scratch files committed
+
+`git add -A` in commit `45b05bd` swept up seven throwaway probe scripts another
+agent had left in the repository root. Removed. They never reached the bundle, since
+Vite builds from the import graph — but committing a public-health repository
+without reading what is staged is the process failure, and next time they may not be
+seven harmless files.
+
+### What the simulation and the sweep found
+
+    vitest:  735 residents x 4 languages, all invariants hold
+    browser: 64 residents walked to completion in the real app
+             page errors: 0   broken tokens on screen: 0
+
+---
+
+## ⚠️ `CP34` — a hidden form field kept its answer. FIXED 2026-09-14
+
+Found by `communitySimulation.test.js` **on its first run**, by walking the same
+person through both pathways. No unit test could have caught it: every unit was
+behaving exactly as written.
+
+    enter age 65  ->  answer "two or more falls"  ->  change the age to 20
+
+The falls dropdown is rendered only from 60, and hiding a field does not clear it.
+`deriveFormClinicalData` read `f.falls` unconditionally, so a 20-year-old derived as:
+
+    age 20, stale falls  ::  fallsAsked=true  fallsCount=2  fallsRisk=true
+
+That reached the record and printed on the handover slip to a community centre as
+fact. The chat never asks at that age, so the two pathways silently disagreed about
+the same person — the `CP9` shape again.
+
+⚠️ **THE FIRST VERSION OF THIS ENTRY SAID IT "CHANGED THE ROUTING, BECAUSE
+`selectCTA` BRANCHES ON FALLS". IT DOES NOT.** `ctaRouting.js` reads seven fields
+and none is a falls field. I wrote that without checking it and an audit caught it.
+Corrected rather than softened, because the real impact is worse: the printed slip,
+and `CommunityInsightsPanel`, which labels the field "Fall in past 12 months (60+)"
+— so one stale flag from a 20-year-old pollutes a population statistic a health
+system plans from.
+
+The strength block had the same hole: a figure typed at 65 survived a change to 18.
+
+**Fixed at the derivation, not by clearing the field on change.** Clearing would
+also throw away a correct answer when somebody fixes a typo in their age and changes
+it back, and it would leave the same trap for the next conditional field anybody
+adds. THE GATE THAT DECIDES WHETHER TO ASK IS NOW THE GATE THAT DECIDES WHETHER TO
+READ — the same helper the UI calls, so the two cannot drift.
+
+An unasked question parses as an empty answer, which reports `asked: false` and
+never "no falls". That distinction is `CP26` and it is preserved.
+
+⚠️ **TWO EXISTING FIXTURES DESCRIBED A RESIDENT WHO CANNOT EXIST** — a 52-year-old
+who had answered the falls question. They passed only because the defect let them.
+Aged to 65 so the answers are ones a real person could give.
+
+⚠️ **NOT INTRODUCED BY `P9`.** The same trap existed with the old age-group select:
+choose 60+, answer falls, change to 21-40. `P9` makes it easier to reach, because
+the age is now a free-typed field people correct.
+
+---
+
+## `communitySimulation.test.js` — the whole assessment, every kind of resident
+
+Added 2026-09-14 ahead of the merge. Runs the WHOLE public assessment, first
+question to derived flags, for **735 residents x 4 languages**, and asserts what is
+only visible end to end:
+
+- nothing throws, anywhere in the pipeline
+- the walk terminates, asks each question at most once, and never offers a question
+  whose predicate reads an answer not yet given
+- every prompt shown is real text in the ACTIVE language
+- the progress counter is 1..total and total equals what was asked
+- **all four languages ask the same questions of the same person** (`CP26`)
+- nothing a resident can read contains `undefined`, `NaN`, `null`, `[object Object]`
+- what may be stored carries neither raw figure nor exact age, checked by WALKING
+  the output rather than naming the fields it knows about
+- **skipping both measurements changes neither score nor routing** (`CD20`) — the
+  promise that keeps the feature optional in fact and not only in wording
+- the chat and the form agree on every shared flag, for the same person
+
+⚠️ It drives the real step machinery, the real copy and the real parsers, so it
+catches ordering, gating, language and derivation faults. **It cannot catch anything
+about rendering, layout or the PDF.** `scripts/pdf-headroom.mjs` and the Playwright
+walks cover that, and saying so is the honest limit of the file.
+
+---
+
+## ⚠️ `CP33` — the report promised tracking that does not exist. FIXED 2026-09-13
+
+Live on the site until today, in all four languages, to every returning resident:
+
+> **Longitudinal Tracking Active** — Your results have been linked to your previous
+> assessment so you can track your progress over time.
+
+**Nothing tracked anything.** `previousId` is written to `community_assessments` and
+read by NOBODY:
+
+| Reader | Reads `previousId`? |
+|---|---|
+| the resident | no — `firestore.rules` denies client reads of that collection outright |
+| the insights rollup (`insights.cjs`) | no — zero occurrences in the file |
+| the retention sweep | no — it deletes by `createdAt` |
+| any other Cloud Function | there are no others that touch the collection |
+
+Found while scoping `CD23`, not by looking for it. Same class as the housing claim
+on the evidence page: a statement on a public surface with no mechanism behind it.
+
+**What was actually false, and where.** Only the English overpromised in the chat
+and the form; the other three languages already said just "link records", which is
+true. The result page overpromised in **all four**. Fixed exactly the false parts and
+left the true copy alone.
+
+The Tamil also said *மருத்துவ முன்னேற்றம்* — "MEDICAL progress" — where the English
+said "progress over time". Gone with the rest, but worth noting as a pattern: the
+Tamil copy medicalises in a portal where that word is banned on public surfaces.
+
+**Verified in the built app**, all four languages, returning-resident state:
+
+    [en] Previous assessment linked · Your previous ID has been saved with today's
+         answers, so the two can be matched up later. We cannot show you the
+         comparison yet.
+    [ms] Penilaian lepas dipautkan · …
+    [zh] 已连结之前的评估 · …
+    [ta] முந்தைய மதிப்பீடு இணைக்கப்பட்டது · …
+
+`ResultPage.claims.test.js` guards it in all four languages, on both sides: the
+promise must be absent AND the honest wording must be present, so a page that simply
+says nothing where it used to reassure somebody also fails.
+
+⚠️ **THE GUARD IS "NOT WHILE IT IS FALSE", NOT "NEVER SAY THIS".** When `CD23` is
+built, that test is updated in the SAME commit as the mechanism, by somebody who has
+just made it true.
+
+⚠️ A third copy of `stripComments` was about to be written for that test, since the
+comment explaining the banned wording contains it. Extracted to
+`scripts/strip-comments.mjs` and shared with `version.test.js` instead.
+`an14.bundle.test.js` keeps its own simpler one deliberately: it guards a security
+assertion about the built bundle, and swapping its implementation as a drive-by on
+an unrelated fix is how a security test quietly stops testing what it used to.
+
+---
+
+## Owner decisions, 2026-09-13 — four settled
+
+| | Decision | State |
+|---|---|---|
+| Translation gate | Go live without a native-speaker review | Waiver signed, above |
+| `CD24` fear in the falls chip | **Yes, add it** | Done, four languages, parser re-tested |
+| `fallsAvoiding.ta` | **Change it** — earlier decision reversed | Done, honorific form |
+| `CD23` re-measurement | **The app should show the change** | ⬜ NOT BUILT. Blocked on a privacy decision: the assessment ID would be the only credential and it is printed on paper residents carry. The false claim it exposed is fixed (`CP33`). Ceiling: records are deleted at 24 months, so tracking can never span longer. |
+| SSMC access | Call 6394 8488 / 6394 7171 to enquire | Done, venue now surfaces |
+
+### The falls chip now mentions fear
+
+Astra found the gap: the review instruction requires the chip to convey avoidance
+**out of fear**, and the English did not mention it. The translations were faithful
+to a source that was wrong. Now, in four languages, with the parser re-run chip by
+chip: all sixteen still parse identically to English at the same index.
+
+### `CP32` — the form offered seven answers in English to every language
+
+Every other option list on the conventional form was translated. Falls and Healthier
+SG were not, so a Malay, Chinese or Tamil speaker reached the falls question — asked
+only of residents aged 60 and over, **the cohort least likely to read English** — and
+chose between "No falls / One fall / Two or more falls".
+
+Fixed at the cause rather than the symptom: the form now builds its options from the
+chat's chips instead of keeping a second hand-maintained copy. Two copies of one
+answer set is how the pathways drift, and the chat's copy is already guarded against
+the parser by a test the form's private copy was never covered by.
+
+### SSMC@KKH now surfaces
+
+    grip     :: ssmc_kkh  ·  6394 8488 / 6394 7171
+    sts-30s  :: ssmc_kkh
+    sts-60s  :: ssmc_kkh
+
+⚠️ The copy says **call and ask**, not "come in", and does not state a price. Those
+are the two things owner confirmation did not cover: whether a referral is needed and
+what a given payment class pays. This is a factual claim on a public surface (`CP8`)
+that sends a cost-constrained resident on a bus journey, so it claims only what the
+evidence supports.
+
+---
+
+## Two machine cross-checks, 2026-09-13 — and what they did not cover
+
+Gemini 3.1 Pro and ChatGPT6 Astra both reviewed `docs/CD13-translation-review.xlsx`.
+
+⚠️ **NEITHER COVERED THE THREE `measures.*` STRINGS.** Both ran against the workbook
+as it stood before Group 5 was appended, so the three prohibitions blocking the build
+are exactly as unreviewed as they were. The gate has not moved. That is the single
+most important line in this section.
+
+### What they found in the nineteen they did cover
+
+| | |
+|---|---|
+| Both agreed | ms "no falls" chip; "GP" unexplained in ms and ta |
+| Astra alone | the ms Healthier SG question referred **programmes to you** rather than **you to programmes**; **"on exertion" dropped** from the chest-pain slip line in all three languages; "belum" says "not YET enrolled" |
+| Disagreed | ms and zh avoidance chips, ms caregiving line — kept as shipped |
+
+**Where two reviewers disagree and neither finds an error, what ships stays.** One
+model's fluency preference against another's "this matches the English" is not
+grounds to change copy, least of all parser input.
+
+**Astra found what a back-translation cannot.** "Programmes referred to you" is
+fluent, faithful-looking Malay that says the wrong thing. Dropping "on exertion" from
+the chest-pain flag leaves a grammatical sentence that describes a different symptom,
+on the one line carrying the absolute contraindication.
+
+### ⚠️ Two corrections would have broken the parser
+
+Chip text is parser input, and a reviewer reading for language cannot see that.
+
+| Correction | Applied as written | Effect |
+|---|---|---|
+| ms "Tidak pernah jatuh" | `falls=1, fallsRisk=true` | every Malay speaker who never fell recorded as having fallen |
+| ms "mengelakkan diri daripada…" | `avoidsActivity: false` | the fear-of-falling flag lost for Malay speakers |
+| ta "இரண்டு அல்லது அதற்கு மேற்பட்ட…" | `falls=1` | two-or-more read as one |
+
+`clinicalFlags.i18n.test.js` catches all three, and was run with the tokens removed
+to prove it does rather than to assume it. The first two were fixed by extending the
+token list, keeping the old tokens so answers already collected still parse.
+
+### `CP31` — the Tamil copy was working around a parser bug
+
+The third is different. `அல்லது` ("or") begins with `அல்ல`, a negator, and Tamil
+negation is adjacent — so "இரண்டு அல்லது…" read as a denial of "two". That was worked
+around **in the copy**: the chip said "இரண்டு முறை அல்லது அதிகமாக", with முறை wedged
+in to break the adjacency. It parsed, and it is not how anybody would say it.
+
+Both reviewers proposed the natural wording without knowing that history, which is
+the signal that the constraint was in the wrong place. A parser that forces awkward
+copy onto residents to protect itself has the dependency backwards, and every future
+reviewer would have proposed the same correction again. Fixed in the parser; the
+Tamil now reads as Tamil.
+
+### Still owed, and now visible
+
+- `slip.flagLines` **was never in the registry at all.** Ten lines printed on the slip
+  a resident carries to a community centre, translated for group 4 and never entered,
+  so `reviewDebt` under-reported and no reviewer working from the registry would have
+  been shown them. Found because a cross-check was recorded against them and the test
+  refused a cross-check for a string it did not know — written to catch a typo, caught
+  a gap.
+- ⚠️ **A DECISION FOR THE OWNER, RE-OPENED BY BOTH REVIEWERS.** `fallsAvoiding.ta`
+  uses the neuter `தவிர்க்கிறது` ("it avoids") where a person is being described.
+  Raised once before and **settled by the owner: left as it is**. Both models have now
+  flagged it independently, and they propose different fixes — Gemini the verbal noun
+  `தவிர்ப்பது`, Astra the honorific `தவிர்க்கிறார்`. Not changed. The prior decision
+  stands until the owner says otherwise; recorded here because the evidence behind it
+  has changed.
+- ⚠️ **A GAP IN THE ENGLISH, NOT THE TRANSLATIONS.** Astra flagged the same thing in
+  all three languages: the review instruction says the avoidance chip must convey
+  avoidance **out of fear**, and the English chip — "A fall, and I now avoid some
+  activities" — does not mention fear. The translations match the English faithfully.
+  The English is what needs deciding first.
+
+---
+
+## ⚠️ THE BUILD IS GREEN BECAUSE SOMEBODY SIGNED, NOT BECAUSE IT IS REVIEWED
+
+**2026-09-13 — the owner signed a waiver for all three `measures.*` strings.**
+
+    node scripts/copy-review-sheet.mjs
+
+    measures.doNotSelfTest  [⚠️ ON SCREEN, UNREVIEWED — waived by Repository owner
+                             (maximustylus) on 2026-09-13]
+    measures.noComparison   [same]
+    measures.notADiagnosis  [same]
+
+    9 strings outstanding, 3 safety-critical.
+    None are failing the build.
+
+    ⚠️  3 of them are ON SCREEN AND UNREVIEWED, and the build is green only
+        because somebody signed for them.
+
+The owner was shown in plain terms what the waiver permits, including the specific
+failure it exposes: a machine turning *"do not try this on your own"* into *"you
+might prefer someone with you"*, which reads perfectly and is not a prohibition.
+They chose to ship for community testing.
+
+**This is a debt, not a resolution.** `reviewDebt()` still returns all three, the
+sheet still lists them, and nothing about the strings has changed. To clear it
+properly: three reviewer names in `reviewedBy`, then delete the waiver entries.
+`docs/CD13-translation-review.xlsx` group 5 has everything a reviewer needs.
+
+⚠️ **THE WAIVER COVERS THE WORDS, NOT THE KEY.** Reword any of the three, in any
+language, and the signature is over text nobody decided about. `copyReview.test.js`
+asserts the shipped English still matches the `english` recorded in the registry
+and fails the build if it drifts, so a silent reword cannot ride the old signature.
+
+⚠️ **TWO MACHINE CROSS-CHECKS COVERED NONE OF THESE THREE.** Gemini and Astra both
+reviewed the workbook as it stood before Group 5 was added to it. Nothing has
+checked these three, in any language, by any means.
+
+---
+
+## `P9` — the measurement questions landed 2026-09-12
+
+Three questions, immediately before record linkage, in both pathways:
+
+| | Asked when | Answer |
+|---|---|---|
+| Grip strength | a published reference covers the age (20+) | kilograms, or skip |
+| Standing up from a chair | the same | repetitions, or skip, or "not sure which test" |
+| Where it was measured | either figure was given | one of eight settings |
+
+**The protocol comes from the age**, one minute under 60 and thirty seconds from
+60, and the question NAMES its stopwatch so a resident timed differently can say
+so. Verified in the built app: a 45-year-old is asked about one minute, a
+67-year-old about thirty seconds, in all four languages, zero page errors.
+
+**"I am not sure which test" is an answer, not a blank.** It keeps the number and
+refuses the comparison. A thirty-second count read against one-minute norms would
+tell somebody they are far weaker than they are, and that is the likeliest way
+this feature hurts anyone.
+
+**Neither figure feeds `calculateRiskScore`** (`CD20`). Skipping both changes
+nothing about the result.
+
+⚠️ `CP29` **FOUND AND FIXED HERE, INTRODUCED BY ME IN THE COMMIT BEFORE.** The chat
+passes the WHOLE parsed object to `recordTelemetry` as its payload. When `ageYears`
+was added to `parseClinicalData`, the precise age therefore started going to
+Firestore beside postal sector, sex, ethnicity and housing type. I caught it in the
+form and missed it in the chat.
+
+The fix is not at the call site, because that is where it failed: the strip now
+happens INSIDE `recordTelemetry`, so no caller can leak by forgetting. `ageYears`
+and the raw measurement figures are removed at any depth before the write.
+`telemetry.test.js` covers it.
+
+---
+
+## `P9` — the pathway split landed 2026-09-12
+
+The conversation now runs: physical activity, then sex, then a precise age, then
+everything that branches on it.
+
+| | Before | After |
+|---|---|---|
+| Activity questions | 1-3 | 1-3 |
+| Sex | 9, as "age group and gender" | 4, sex only |
+| Age | 9, as a band | **5, as a year** |
+| Falls (60+) | 14, after record linkage | 11, after the age is known |
+| Record linkage | 13 | last |
+
+**Why a year and not a band.** The published strength references are cut in
+five-year rows from 20 to 100+. "60+" spans eight of them, so a record collected
+as a band can never be compared and nobody can be told why. `parseAgeYears`
+returns `null` for a range rather than picking an end of it: a guess here does not
+produce a missing comparison, it produces a WRONG one, shown to somebody as if it
+were about them.
+
+**Only the band is stored.** The year is used to pick the reference row and is then
+dropped. The telemetry payload already carries postal sector, sex, ethnicity and
+housing type, and a whole-year age beside them narrows a record to very few people
+in a sector.
+
+**Both pathways changed together.** The form's age-group select is gone too, and
+`pathwayParity.test.js` now asserts that neither pathway offers bands again and
+that both gate the falls question through `isSixtyPlusPerson`. That gate has now
+broken twice for the same cohort: first as a `/60\s*\+/` substring test that only
+matched the chip text (`CP26`), then it would have broken again reading
+`demographics` for an age that had moved out of it.
+
+Verified in the built app, four languages, zero page errors: the progress total
+goes 15 → 16 at the age question for a 67-year-old and stays 15 for a 45-year-old.
+The only console errors are blocked Firebase calls in the sandbox.
+
+⚠️ `CP28` **OPEN, PRE-EXISTING, NOT INTRODUCED HERE.** The step badges
+("👤 About You", "🎂 Your Age", "🩺 Health & Safety Check") are English in all four
+languages, and always have been — every badge in `DOMAIN_CONFIG` is a literal. It
+is visible to a Chinese or Tamil speaker on every question. Out of scope for `P9`
+and logged rather than left unsaid.
+
+---
+
 ⚠️ **STILL OWED, AND IT IS A REAL DEBT — `CD13`.** Everything translated so far is
 machine-translated and **reviewed by no native speaker**. Two models were involved
 and that is not a second opinion, since neither can read back what it wrote.
@@ -446,6 +990,43 @@ named sign-off per sheet. Ten minutes per reviewer; what remains is three reader
 |---|---|---|
 | Group 1 — falls & Healthier SG | 9 × 3 | Claude |
 | Group 4 — the ten slip flag lines | 10 × 3 | Google Gemini 3.1 Pro |
+| Group 5 — P9 functional measures | 3 × 3 **safety-critical** | Claude |
+
+**2026-09-12: group 5 landed, and it is a different kind of string.** Groups 1 and 4
+are questions and observations: a mistranslation collects a wrong answer or reads
+awkwardly. The three in group 5 are **prohibitions**, and the owner's own standing
+rule is that this category is not machine-translated alone:
+
+| Key | What it has to stop |
+|---|---|
+| `measures.doNotSelfTest` | somebody attempting a timed chair stand alone, unassisted |
+| `measures.noComparison` | somebody reading a comparison that was never made |
+| `measures.notADiagnosis` | somebody treating a number as a diagnosis |
+
+A prohibition degrades quietly. *"Do not try this on your own"* comes back as a
+suggestion and still reads perfectly well, so a reviewer skimming for accuracy
+passes it. That is why these three are gated rather than tracked.
+
+**The gate is now in code, not in this document.** `src/data/copyReview.js` is the
+registry, `src/data/copyReview.test.js` fails the build, and
+`scripts/copy-reachability.mjs` decides when. The trigger is **when a resident can
+read the string**, resolved against the real import graph, not when somebody types
+it: the copy exists in four languages today and no component imports it, so the
+build is green. It goes red the moment the entry screen lands, which is exactly when
+a reviewer is needed and not weeks before.
+
+    $ node scripts/copy-review-sheet.mjs
+    7 strings outstanding, 3 safety-critical.
+    None are on a resident-facing screen yet, so none are failing the build.
+
+⚠️ **THE BUILD WILL GO RED WHEN THE UI IS WIRED.** That is the mechanism working, not
+a regression. It clears one of two ways, and only these two: three names against the
+three strings in `reviewedBy`, or a dated, owner-named entry in `REVIEW_WAIVERS`. A
+waiver is a debt somebody signs, not a way past the gate.
+
+`copyReview.test.js` proves the gate can actually fire — it simulates the import and
+asserts the build fails — because a gate that never goes red looks identical to a
+gate that is satisfied.
 
 `TRANSLATION-BRIEF.md` carries a back-translation of every string and names the four
 a reviewer must check, because they change a value rather than a sentence:

@@ -36,7 +36,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseFallsAnswer, parseHealthierSg } from './clinicalFlags';
+import { parseFallsAnswer, parseHealthierSg, matchesSymptom } from './clinicalFlags';
 import { FALLS_CHIPS, HSG_CHIPS, CHIP_LANGUAGES } from '../data/screeningChips';
 
 const OTHERS = CHIP_LANGUAGES.filter((lang) => lang !== 'en');
@@ -156,5 +156,44 @@ describe('the chip sets are complete', () => {
             falls: 0, avoidsActivity: false, fallsRisk: false, asked: false,
         });
         expect(parseHealthierSg('')).toBeNull();
+    });
+});
+
+/**
+ * ==============================================================================
+ * "OR" IS NOT "NOT", AND THE TAMIL COPY SHOULD NOT HAVE TO WORK AROUND IT
+ * ==============================================================================
+ *
+ * `அல்லது` ("or") begins with `அல்ல`, a negator, and Tamil negation is adjacent —
+ * so "இரண்டு அல்லது…" ("two or…") read as a denial of "two", and the two-or-more
+ * chip parsed as ONE fall.
+ *
+ * That was worked around in the COPY for months: the chip said
+ * "இரண்டு முறை அல்லது அதிகமாக", with முறை wedged in to break the adjacency. It
+ * parsed, and it is not how anybody would say it. Two independent reviewers, on
+ * 2026-09-13, proposed the natural wording without knowing that history, and it
+ * parsed as one fall exactly as before.
+ *
+ * The constraint belonged in the parser. A parser that forces awkward copy onto
+ * residents to protect itself has the dependency backwards, and every future
+ * reviewer would have proposed the same correction again.
+ */
+describe('a Tamil word that merely begins with a negator', () => {
+    it('reads "two or more" as two, in the natural wording', () => {
+        expect(parseFallsAnswer('இரண்டு அல்லது அதற்கு மேற்பட்ட முறை விழுந்தேன்').falls).toBe(2);
+    });
+
+    // The awkward wording shipped for months, so answers exist in that form.
+    it('still reads the wording that shipped before the fix', () => {
+        expect(parseFallsAnswer('இரண்டு முறை அல்லது அதிகமாக').falls).toBe(2);
+    });
+
+    // ⚠️ AND THE NEGATOR MUST STILL NEGATE. Loosening `அல்ல` far enough to let
+    //    `அல்லது` through would, if done carelessly, stop reading a real Tamil
+    //    denial — and the one this parser cannot afford to miss is chest pain.
+    it('still reads a real Tamil denial as a denial', () => {
+        expect(matchesSymptom('நெஞ்சு வலி இல்லை')).toBe(false);
+        expect(matchesSymptom('நெஞ்சு வலி அல்ல')).toBe(false);
+        expect(matchesSymptom('நெஞ்சு வலி')).toBe(true);
     });
 });

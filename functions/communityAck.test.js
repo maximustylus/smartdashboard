@@ -110,13 +110,66 @@ describe('priorAnswers — rebuilt, never filtered in place', () => {
         expect(priorAnswerLines(child)).toEqual(['  strength: 2 days a week']);
     });
 
-    it('emits at most one line per domain, in a fixed order', () => {
+    it('emits at most one line per ALLOWED domain, in a fixed order', () => {
         const every = {};
         COMMUNITY_DOMAINS.forEach((d) => { every[d] = 'x'; });
         const lines = priorAnswerLines(every);
-        expect(lines).toHaveLength(COMMUNITY_DOMAINS.length);
-        expect(lines[0]).toContain(COMMUNITY_DOMAINS[0]);
+        // One line per allowed domain, and FEWER than the domains the endpoint
+        // accepts — accepting an answer and forwarding it to a model are now two
+        // different permissions, which is the whole of `CP35`.
+        expect(lines.length).toBeLessThan(COMMUNITY_DOMAINS.length);
+        expect(new Set(lines).size).toBe(lines.length);
     });
+
+    /**
+     * ==========================================================================
+     * ⚠️ `CP35` — WHAT MUST NEVER REACH THE MODEL
+     * ==========================================================================
+     *
+     * `priorAnswerLines` used to walk `COMMUNITY_DOMAINS`. `P9` added `age_years`,
+     * `grip_kg`, `sit_to_stand` and `measure_setting` to that list so the endpoint
+     * would ACCEPT them — and this function, enumerating the same list, began
+     * posting a resident's exact age, their grip in kilograms and their repetition
+     * count to a third-party model on every later turn, to generate a one-sentence
+     * acknowledgement.
+     *
+     * Three files state those figures stay on the device and `telemetry.js` strips
+     * them by name to enforce it against Firestore. This was a second door out of
+     * the same room. The rule is now inverted: sending is opt-in per domain, so a
+     * new domain is silent until somebody adds it here deliberately.
+     */
+    it('never sends the exact age, the raw measurements, or a linking id', () => {
+        const everything = {
+            age_years: '78',
+            grip_kg: '16.5',
+            sit_to_stand: '7',
+            measure_setting: 'At a Sport and Exercise Medicine centre',
+            previous_id: 'NX-AB12CD',
+            pavs_days: '3-4 days',
+        };
+        const blob = priorAnswerLines(everything).join('\n');
+
+        ['age_years', 'grip_kg', 'sit_to_stand', 'measure_setting', 'previous_id']
+            .forEach((domain) => {
+                expect(blob, `${domain} was sent to the model`).not.toContain(domain);
+            });
+        // Not the key names only — the VALUES must be absent too.
+        ['78', '16.5', 'NX-AB12CD', 'Sport and Exercise Medicine']
+            .forEach((value) => {
+                expect(blob, `the value "${value}" was sent to the model`).not.toContain(value);
+            });
+        // And the screening answers the model legitimately needs still go.
+        expect(blob).toContain('pavs_days: 3-4 days');
+    });
+
+    // The endpoint must still ACCEPT the domains it does not forward, or the
+    // resident's answer is rejected and never acknowledged — that is `CP27`.
+    it.each(['age_years', 'grip_kg', 'sit_to_stand', 'measure_setting'])(
+        'still accepts %s as an answerable domain', (domain) => {
+            expect(COMMUNITY_DOMAINS).toContain(domain);
+            expect(validateAckRequest(valid({ domain })).ok).toBe(true);
+        },
+    );
 
     it('truncates a long value rather than refusing the whole request', () => {
         const [line] = priorAnswerLines({ wellbeing: 'z'.repeat(5000) });

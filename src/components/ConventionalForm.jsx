@@ -59,7 +59,12 @@ import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, saveProgress, loadProgress, clearProgress } from '../utils/assessmentSession';
 import { isValidSector } from '../utils/singapore/postalSectors';
-import { isSixtyPlus } from '../utils/clinicalFlags';
+import { isSixtyPlusPerson, parseAgeYears } from '../utils/clinicalFlags';
+import { measuresCopyFor } from '../data/measuresCopy';
+import { FALLS_CHIPS, HSG_CHIPS } from '../data/screeningChips';
+import { MEASUREMENT_SETTINGS } from '../data/functionalNorms';
+import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
+import { numberIn } from '../utils/measurementAnswers';
 import { DAYS_MIDPOINT, MINS_MIDPOINT, deriveFormClinicalData } from '../utils/formClinicalData';
 import { selectCTA } from '../utils/ctaRouting';
 
@@ -123,18 +128,38 @@ const SOCIAL_OPTIONS = [
   would render an empty row rather than an English one. Falling back to `en` keeps
   the question answerable. Tracked as `CD10` — see `TRANSLATION-BRIEF.md`.
 */
-const FALLS_OPTIONS = [
-  { value: 'No falls',           en: 'No falls',           ms: 'No falls',           zh: 'No falls',           ta: 'No falls' },
-  { value: 'One fall',           en: 'One fall',           ms: 'One fall',           zh: 'One fall',           ta: 'One fall' },
-  { value: 'Two or more falls',  en: 'Two or more falls',  ms: 'Two or more falls',  zh: 'Two or more falls',  ta: 'Two or more falls' },
-  { value: 'A fall, and I now avoid some activities', en: 'A fall, and I now avoid some activities', ms: 'A fall, and I now avoid some activities', zh: 'A fall, and I now avoid some activities', ta: 'A fall, and I now avoid some activities' },
-];
+/**
+ * ==============================================================================
+ * ⚠️ `CP32` — THESE SEVEN ANSWERS WERE ENGLISH IN ALL FOUR LANGUAGES
+ * ==============================================================================
+ *
+ * Every other option list on this form is translated. These two were not: a Malay,
+ * Chinese or Tamil speaker reached the falls question — asked only of residents
+ * aged 60 and over, the cohort least likely to read English — and was offered
+ * "No falls / One fall / Two or more falls" to choose between. The chat has had
+ * these in four languages since `CP26`.
+ *
+ * They are now BUILT FROM THE CHAT'S CHIPS rather than translated separately,
+ * which fixes the cause and not just the symptom. Two hand-maintained copies of
+ * one answer set is how the pathways drift, and `clinicalFlags.i18n.test.js`
+ * already guards the chips against the parser — a guard the form's private copy
+ * was never covered by.
+ *
+ * ⚠️ `value` IS THE ENGLISH, AND MUST STAY THE ENGLISH. It is what gets stored and
+ *    what `deriveFormClinicalData` parses. Only the LABEL changes with language.
+ *    Making `value` follow the language would store four different strings for one
+ *    answer and quietly split every count by language.
+ */
+const optionsFromChips = (chips) => chips.en.map((value, i) => ({
+  value,
+  en: value,
+  ms: chips.ms[i],
+  zh: chips.zh[i],
+  ta: chips.ta[i],
+}));
 
-const HEALTHIER_SG_OPTIONS = [
-  { value: 'Yes, I am enrolled', en: 'Yes, I am enrolled', ms: 'Yes, I am enrolled', zh: 'Yes, I am enrolled', ta: 'Yes, I am enrolled' },
-  { value: 'No, not enrolled',   en: 'No, not enrolled',   ms: 'No, not enrolled',   zh: 'No, not enrolled',   ta: 'No, not enrolled' },
-  { value: 'I am not sure',      en: 'I am not sure',      ms: 'I am not sure',      zh: 'I am not sure',      ta: 'I am not sure' },
-];
+const FALLS_OPTIONS = optionsFromChips(FALLS_CHIPS);
+const HEALTHIER_SG_OPTIONS = optionsFromChips(HSG_CHIPS);
 
 const WELLBEING_OPTIONS = [
   { value: 'Feeling good overall',                           en: 'Feeling good overall',                             ms: 'Perasaan baik secara keseluruhannya',        zh: '整体感觉不错',            ta: 'ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன்'        },
@@ -160,12 +185,15 @@ const HOUSING_OPTIONS = [
   { value: 'Private Property', en: 'Private Property (condo / landed)', ms: 'Hartanah Persendirian', zh: '私人房产',            ta: 'தனியார் சொத்து'          },
 ];
 
-const AGE_OPTIONS = [
-  { value: 'Under 21', en: 'Under 21', ms: 'Bawah 21', zh: '21岁以下', ta: '21க்கு கீழ்' },
-  { value: '21-40',    en: '21–40',    ms: '21–40',    zh: '21–40岁',  ta: '21–40'        },
-  { value: '41-60',    en: '41–60',    ms: '41–60',    zh: '41–60岁',  ta: '41–60'        },
-  { value: '60+',      en: '60+',      ms: '60+',      zh: '60岁以上', ta: '60+'          },
-];
+/*
+  ⚠️ THE AGE BANDS THAT USED TO BE HERE HAVE GONE, AND THAT IS THE POINT OF `P9`.
+     The published strength references are cut in FIVE-YEAR bands from 20 to 100+,
+     so "60+" spans eight rows of the table and cannot be narrowed afterwards. The
+     form asks for a year, exactly as the chat now does, and the band is DERIVED
+     from it in `formClinicalData.js` for everything that still branches on one.
+
+     Only the band is stored or sent anywhere. See the telemetry call below.
+*/
 
 const GENDER_OPTIONS = [
   { value: 'Male',   en: 'Male',   ms: 'Lelaki',    zh: '男', ta: 'ஆண்'  },
@@ -232,11 +260,14 @@ const D = {
     improveQ: 'If you could change one thing about healthcare in your neighbourhood, what would it be?',
     demoHead: 'About You',
     demoIntro: 'These details help us ensure resources reach every community equitably. All responses are de-identified.',
-    ageQ: 'Age Group', genderQ: 'Gender', raceQ: 'Ethnicity',
+    ageQ: 'Age in years', ageHint: 'Please give your age in whole years, for example 67. The ranges we compare strength against change every five years, so a group is not close enough.',
+    genderQ: 'Gender', raceQ: 'Ethnicity',
     postalQ: 'First 2 digits of your Postal Code',
     postalHint: 'e.g. 73 (Woodlands) · 75–76 (Yishun) · 75 (Sembawang) · 68 (Admiralty / Canberra)',
     prevIdQ: 'Previous NEXUS Assessment ID',
-    prevIdHint: 'If you completed a previous AURA or NEXUS assessment, paste your ID here to link records and track progress. Leave blank if this is your first assessment.',
+    // `CP33`: only the English claimed progress tracking here. The other three
+    // already said only that records are linked, which is true.
+    prevIdHint: 'If you completed a previous AURA or NEXUS assessment, paste your ID here so the two records can be matched up later. We cannot show you a comparison yet. Leave blank if this is your first assessment.',
     summaryHead: 'Assessment Summary',
     optional: 'Optional',
     // FIX 5: per-step validation hints
@@ -254,7 +285,9 @@ const D = {
       aware:    'Please answer the community awareness question.',
       referred: 'Please answer the referral question.',
       rating:   "Please select a rating (choose 'Not applicable' if you haven't used community services).",
-      ageGroup: 'Please select your age group.',
+      ageYears: 'Please enter your age in whole years, between 18 and 120.',
+      gripKg: 'Please enter your grip strength as a single number in kilograms, or leave it blank.',
+      sitToStand: 'Please enter how many times you stood up as a single number, or leave it blank.',
       gender:   'Please select your gender.',
       race:     'Please select your ethnicity.',
       postalCode: 'Please enter the first 2 digits of your postal code.',
@@ -302,7 +335,8 @@ const D = {
     improveQ: 'Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',
     demoHead: 'Mengenai Anda',
     demoIntro: 'Maklumat ini membantu kami memastikan sumber sampai ke semua komuniti secara saksama. Semua jawapan tidak dapat dikenal pasti.',
-    ageQ: 'Kumpulan Umur', genderQ: 'Jantina', raceQ: 'Etnik',
+    ageQ: 'Umur dalam tahun', ageHint: 'Sila berikan umur anda dalam tahun penuh, contohnya 67. Julat perbandingan kekuatan berubah setiap lima tahun, jadi kumpulan umur tidak cukup tepat.',
+    genderQ: 'Jantina', raceQ: 'Etnik',
     postalQ: '2 digit pertama Poskod anda',
     postalHint: 'cth. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',
     prevIdQ: 'ID Penilaian NEXUS Sebelumnya',
@@ -323,7 +357,9 @@ const D = {
       aware:    'Sila jawab soalan kesedaran komuniti.',
       referred: 'Sila jawab soalan rujukan.',
       rating:   "Sila pilih penilaian (pilih 'Tidak berkenaan' jika belum menggunakan).",
-      ageGroup: 'Sila pilih kumpulan umur anda.',
+      ageYears: 'Sila masukkan umur anda dalam tahun penuh, antara 18 dan 120.',
+      gripKg: 'Sila masukkan kekuatan genggaman anda sebagai satu nombor dalam kilogram, atau biarkan kosong.',
+      sitToStand: 'Sila masukkan berapa kali anda bangun sebagai satu nombor, atau biarkan kosong.',
       gender:   'Sila pilih jantina anda.',
       race:     'Sila pilih etnik anda.',
       postalCode: 'Sila masukkan 2 digit pertama poskod anda.',
@@ -371,7 +407,8 @@ const D = {
     improveQ: '如果您能改变社区医疗的一件事，那会是什么？',
     demoHead: '关于您',
     demoIntro: '这些信息帮助我们确保资源公平地覆盖每个社区。所有信息均已去识别化。',
-    ageQ: '年龄组', genderQ: '性别', raceQ: '族裔',
+    ageQ: '年龄（岁）', ageHint: '请填写您的实际年龄（整岁），例如 67。力量对照的范围每五年就不同，因此年龄组不够精确。',
+    genderQ: '性别', raceQ: '族裔',
     postalQ: '邮政编码前2位',
     postalHint: '例如 73（兀兰）· 75–76（义顺）· 68（甘巴旺）',
     prevIdQ: '之前的 NEXUS 评估 ID',
@@ -392,7 +429,9 @@ const D = {
       aware:    '请回答社区认知问题。',
       referred: '请回答转介问题。',
       rating:   '请选择评分（如未使用过社区服务，请选"不适用"）。',
-      ageGroup: '请选择您的年龄组。',
+      ageYears: '请输入您的实际年龄（整岁），介于 18 至 120 之间。',
+      gripKg: '请以公斤为单位输入一个数字作为您的握力，或留空。',
+      sitToStand: '请输入您站起来的次数（一个数字），或留空。',
       gender:   '请选择您的性别。',
       race:     '请选择您的族裔。',
       postalCode: '请输入您邮政编码的前2位数字。',
@@ -440,7 +479,8 @@ const D = {
     improveQ: 'சுகாதார சேவையில் ஒன்றை மாற்ற முடிந்தால், அது என்னவாக இருக்கும்?',
     demoHead: 'உங்களை பற்றி',
     demoIntro: 'இந்த தகவல் ஒவ்வொரு சமூகத்திற்கும் வளங்கள் நியாயமாக சேர உதவுகிறது.',
-    ageQ: 'வயது குழு', genderQ: 'பாலினம்', raceQ: 'இனம்',
+    ageQ: 'வயது (ஆண்டுகளில்)', ageHint: 'உங்கள் வயதை முழு ஆண்டுகளில் தாருங்கள், எடுத்துக்காட்டாக 67. வலிமையை ஒப்பிடும் வரம்புகள் ஐந்து ஆண்டுகளுக்கு ஒருமுறை மாறுகின்றன, எனவே வயதுக் குழு போதுமான துல்லியம் அல்ல.',
+    genderQ: 'பாலினம்', raceQ: 'இனம்',
     postalQ: 'அஞ்சல் குறியீட்டின் முதல் 2 இலக்கங்கள்',
     postalHint: 'எ.கா. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',
     prevIdQ: 'முந்தைய NEXUS மதிப்பீட்டு ID',
@@ -461,7 +501,9 @@ const D = {
       aware:    'சமூக விழிப்புணர்வு கேள்விக்கு பதிலளிக்கவும்.',
       referred: 'பரிந்துரை கேள்விக்கு பதிலளிக்கவும்.',
       rating:   'மதிப்பீட்டை தேர்ந்தெடுக்கவும்.',
-      ageGroup: 'உங்கள் வயது குழுவை தேர்ந்தெடுக்கவும்.',
+      ageYears: 'உங்கள் வயதை முழு ஆண்டுகளில் உள்ளிடவும், 18 முதல் 120 வரை.',
+      gripKg: 'உங்கள் கைப்பிடி வலிமையை கிலோகிராமில் ஒரே எண்ணாக உள்ளிடவும், அல்லது காலியாக விடவும்.',
+      sitToStand: 'நீங்கள் எத்தனை முறை எழுந்தீர்கள் என்பதை ஒரே எண்ணாக உள்ளிடவும், அல்லது காலியாக விடவும்.',
       gender:   'உங்கள் பாலினத்தை தேர்ந்தெடுக்கவும்.',
       race:     'உங்கள் இனத்தை தேர்ந்தெடுக்கவும்.',
       postalCode: 'அஞ்சல் குறியீட்டின் முதல் 2 இலக்கங்களை உள்ளிடவும்.',
@@ -577,7 +619,8 @@ export default function ConventionalForm() {
     pavsDays: '', pavsMins: '', strength: '', medical: [], wellbeing: '',
     barriers: [], social: '', foodInsecure: null, incomeAdequacy: '', housing: '',
     aware: null, referred: null, rating: '', trust: '3', improve: '',
-    ageGroup: '', gender: '', race: '', postalCode: '', previousId: '',
+    ageYears: '', gender: '', race: '', postalCode: '', previousId: '',
+    gripKg: '', sitToStand: '', measureSetting: '',
     falls: '', healthierSg: '',
   };
   // Spread over the empty shape rather than used directly: a saved object from an
@@ -656,7 +699,11 @@ export default function ConventionalForm() {
       if (!f.rating)           return 'rating';
     }
     if (step === 3) {
-      if (!f.ageGroup)               return 'ageGroup';
+      // ⚠️ A PLAUSIBLE ADULT AGE, NOT MERELY A NON-EMPTY BOX. `parseAgeYears`
+      //    returns `null` for anything that is not one, and an age this form
+      //    accepted but nothing downstream could read would take the strength
+      //    comparison away silently, at the end, with no way to tell the person why.
+      if (parseAgeYears(f.ageYears) === null) return 'ageYears';
       if (!f.gender)                 return 'gender';
       if (!f.race)                   return 'race';
       // ⚠️ VALIDATES THE SECTOR, NOT THE LENGTH. `'99'` and `'74'` are two
@@ -668,7 +715,15 @@ export default function ConventionalForm() {
       //    `asked: false`, which is correct for an under-60 who never saw the
       //    question — but for a 60+ respondent who skipped it, "not asked" would be
       //    a lie about whether the cohort was screened.
-      if (isSixtyPlus(f.ageGroup) && !f.falls) return 'falls';
+      if (isSixtyPlusPerson({ age_years: f.ageYears }) && !f.falls) return 'falls';
+      /*
+        ⚠️ OPTIONAL, BUT NOT "ANYTHING GOES". `CD20` keeps these out of the risk
+           score entirely, so a blank is free and must stay free. A figure that was
+           TYPED and cannot be read is different: it silently produces no comparison
+           at the end, with no way for the person to know why. Caught here instead.
+      */
+      if (f.gripKg.trim() !== '' && numberIn(f.gripKg) === null) return 'gripKg';
+      if (f.sitToStand.trim() !== '' && numberIn(f.sitToStand) === null) return 'sitToStand';
     }
     return null;
   };
@@ -696,7 +751,14 @@ export default function ConventionalForm() {
         score, ctaTier, flags,
         enrichment: { food: f.foodInsecure, income: f.incomeAdequacy, housing: f.housing },
         perception: { aware: f.aware, referred: f.referred, rating: f.rating, trust: f.trust, barriers: f.barriers, improve: f.improve },
-        demographics: { age: f.ageGroup, gender: f.gender, race: f.race, sector },
+        /*
+          ⚠️ `flags.age` IS THE BAND, AND SENDING `f.ageYears` HERE WOULD BE A REAL
+             REGRESSION. This payload already carries postal sector, gender,
+             ethnicity and housing type; a whole-year age alongside them narrows a
+             record to very few people in a sector. The band is what the rollup
+             counts and it is all that leaves the device.
+        */
+        demographics: { age: flags.age, gender: f.gender, race: f.race, sector },
       });
 
       // The answers have become a result; the in-progress copy is no longer the
@@ -914,10 +976,10 @@ export default function ConventionalForm() {
           <div className="grid md:grid-cols-2 gap-5">
             <div>
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{t.ageQ}<Req /></label>
-              <select value={f.ageGroup} onChange={e => set('ageGroup', e.target.value)} className={selCls}>
-                <option value="">{t.sel}</option>
-                {AGE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o[lang] || o.en}</option>)}
-              </select>
+              <input type="number" inputMode="numeric" min={18} max={120} value={f.ageYears}
+                onChange={e => set('ageYears', e.target.value.replace(/\D/g, '').slice(0, 3))}
+                className={inputCls} placeholder="67" />
+              <Note text={t.ageHint} />
             </div>
             <div>
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{t.genderQ}<Req /></label>
@@ -944,11 +1006,11 @@ export default function ConventionalForm() {
               ⚠️ 60+ ONLY, MATCHING THE CHAT'S `when` PREDICATE. For an older adult
               being considered for an Active Ageing Centre, falls history matters
               more than a weekly minutes figure — and asking a 24-year-old is noise.
-              The condition reads `f.ageGroup` directly because the form knows the
-              answer already; the chat uses `chatSteps.js` because it has to decide
-              mid-conversation.
+              The form knows the answer already; the chat uses `chatSteps.js` because
+              it has to decide mid-conversation. Both now call `isSixtyPlusPerson`,
+              so there is one rule and `pathwayParity.test.js` holds them to it.
             */}
-            {isSixtyPlus(f.ageGroup) && (
+            {isSixtyPlusPerson({ age_years: f.ageYears }) && (
               <div className="md:col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                   In the past 12 months, have you had a fall — including a slip or trip where you ended up on the ground?<Req />
@@ -959,6 +1021,71 @@ export default function ConventionalForm() {
                 </select>
               </div>
             )}
+
+            {/*
+              ⚠️ THE SAME GATE AS THE CHAT'S `hasStrengthReference`. Both published
+                 sources start at 20, so below that there is nothing to compare
+                 against and asking collects a figure we would have to explain away.
+
+              ⚠️ `doNotSelfTest` LEADS THIS BLOCK, ABOVE EITHER FIELD. Somebody who
+                 reads "how many times can you stand up from a chair in thirty
+                 seconds" and nothing else may go and try it, alone, at 78. It is
+                 the first thing in the block for that reason, not for layout.
+            */}
+            {sitToStandProtocolForAge(parseAgeYears(f.ageYears)) !== null && (() => {
+              const m = measuresCopyFor(lang);
+              const protocol = sitToStandProtocolForAge(parseAgeYears(f.ageYears));
+              return (
+                <div className="md:col-span-2 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+                  <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                    {m.title}
+                    <span className="text-slate-400 font-normal text-xs ml-1">({t.optional})</span>
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{m.intro}</p>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-500 mt-2 leading-relaxed">
+                    {m.doNotSelfTest}
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-5 mt-4">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        {m.gripLabel}
+                      </label>
+                      <input type="number" inputMode="decimal" min={1} max={120} step="0.5"
+                        value={f.gripKg} onChange={e => set('gripKg', e.target.value)}
+                        className={inputCls} placeholder={m.gripUnit} />
+                      <Note text={m.gripPrompt} />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                        {m.stsLabel[protocol]}
+                      </label>
+                      <input type="number" inputMode="numeric" min={0} max={100} step="1"
+                        value={f.sitToStand} onChange={e => set('sitToStand', e.target.value)}
+                        className={inputCls} placeholder={m.stsUnit} />
+                      <Note text={m.stsPrompt[protocol]} />
+                    </div>
+                    {/*
+                      ⚠️ SHOWN ONLY ONCE THERE IS SOMETHING TO ATTRIBUTE, matching the
+                         chat's `gaveAMeasurement` gate. Asking where a measurement
+                         was taken from somebody who gave none reads as not listening.
+                    */}
+                    {(numberIn(f.gripKg) !== null || numberIn(f.sitToStand) !== null) && (
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                          {m.settingPrompt}
+                        </label>
+                        <select value={f.measureSetting} onChange={e => set('measureSetting', e.target.value)} className={selCls}>
+                          <option value="">{t.sel}</option>
+                          {MEASUREMENT_SETTINGS.map(id => (
+                            <option key={id} value={m.settings[id]}>{m.settings[id]}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">

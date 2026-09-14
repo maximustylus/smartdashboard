@@ -171,12 +171,57 @@ describe('both pathways ask the questions those flags come from', () => {
     it('both gate the falls question with the shared age parser', () => {
         // The chat's gate is the `when` predicate on the `falls` step, which lives in
         // `data/communityDomains.js` since the extraction. The form's is inline.
-        expect(mod('data/communityDomains.js'), 'communityDomains.js').toMatch(/isSixtyPlus\(/);
-        expect(src('ConventionalForm.jsx'), 'ConventionalForm.jsx').toMatch(/isSixtyPlus\(/);
+        //
+        // ⚠️ `isSixtyPlusPerson`, WHICH TAKES THE WHOLE ANSWER SET. The older
+        //    `isSixtyPlus` took `demographics` alone, which was right while that
+        //    answer carried the age band. `P9` moved the age to its own question, so
+        //    a gate still reading `demographics` would find "Female", resolve to
+        //    `Unknown`, and stop asking every resident aged 60 and over about falls.
+        //    Same cohort as `CP26`, same silence, one question later.
+        expect(mod('data/communityDomains.js'), 'communityDomains.js').toMatch(/isSixtyPlusPerson\(/);
+        expect(src('ConventionalForm.jsx'), 'ConventionalForm.jsx').toMatch(/isSixtyPlusPerson\(/);
         expect(mod('data/communityDomains.js'), 'the chat must not re-introduce a substring test for the chip text')
             .not.toMatch(/when:\s*\(data\)\s*=>\s*\/60/);
         expect(src('ConventionalForm.jsx'), 'the form must not compare against the chip text')
             .not.toMatch(/ageGroup === '60\+'/);
+        // Neither may go back to reading `demographics` for an age it no longer holds.
+        expect(mod('data/communityDomains.js'), 'the chat must not gate on the demographics answer')
+            .not.toMatch(/isSixtyPlus\(\s*data\??\.?demographics/);
+    });
+
+    /**
+     * ⚠️ `CP32` — THE FORM OFFERED SEVEN ANSWERS IN ENGLISH TO EVERY LANGUAGE.
+     *
+     *    Every other option list on the form was translated. Falls and Healthier SG
+     *    were not, so a Malay, Chinese or Tamil speaker reached the falls question —
+     *    asked only of residents aged 60 and over, the cohort least likely to read
+     *    English — and chose between "No falls / One fall / Two or more falls".
+     *
+     *    Fixed at the cause: the form now BUILDS its options from the chat's chips
+     *    instead of keeping a second hand-maintained copy. This asserts it still
+     *    does, because a private copy is what drifted the first time.
+     */
+    it('offers the same falls and Healthier SG answers in both pathways', () => {
+        const form = src('ConventionalForm.jsx');
+        expect(form, 'the form must build its options from the shared chips')
+            .toMatch(/optionsFromChips\(FALLS_CHIPS\)/);
+        expect(form).toMatch(/optionsFromChips\(HSG_CHIPS\)/);
+        // And must not have grown a private copy again.
+        expect(form, 'the form has re-introduced hand-written falls options')
+            .not.toMatch(/value: 'No falls',\s*en:/);
+    });
+
+    /**
+     * ⚠️ BOTH ASK FOR A YEAR, AND NEITHER OFFERS A BAND. The strength references are
+     *    cut in five-year rows, so an age group cannot be narrowed back down after
+     *    the fact. A pathway that quietly kept its band select would produce records
+     *    that can never be compared, and the person would never be told why.
+     */
+    it('both ask for a precise age rather than an age band', () => {
+        expect(DICTIONARY.en.prompts.join(' '), 'the chat').toMatch(/how old are you/i);
+        expect(src('ConventionalForm.jsx'), 'the form').toMatch(/parseAgeYears\(f\.ageYears\)/);
+        expect(src('ConventionalForm.jsx'), 'the form must not offer age bands again')
+            .not.toMatch(/const AGE_OPTIONS/);
     });
 
     /**

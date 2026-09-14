@@ -9,6 +9,8 @@ import {
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { recordTelemetry } from '../utils/telemetry';
+import MeasurementsPanel from './MeasurementsPanel';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, saveResult, loadResult } from '../utils/assessmentSession';
@@ -40,8 +42,8 @@ const DICTIONARY = {
     sdohFinText: 'Cost flagged as a barrier, so we have prioritised free and fully subsidised options below.',
     sdohSocText: 'Social connection flagged, so community group and befriending resources have been included.',
     sdohPsychoText: 'Mental wellbeing flagged, so emotional wellness and counselling resources have been added.',
-    trendActive: 'Longitudinal Tracking Active',
-    trendDesc: 'Your results have been linked to your previous assessment so you can track your progress over time.',
+    trendActive: 'Previous assessment linked',
+    trendDesc: 'Your previous ID has been saved with today\u2019s answers, so the two can be matched up later. We cannot show you the comparison yet.',
     pavsTitle: 'Your Physical Activity Check',
     pavsWeekly: 'mins / week',
     pavsDays: 'days / week',
@@ -83,8 +85,8 @@ const DICTIONARY = {
     sdohFinText: 'Kos dikenal pasti sebagai halangan — pilihan percuma dan bersubsidi diutamakan di bawah.',
     sdohSocText: 'Hubungan sosial dikenal pasti — sumber kumpulan komuniti dan rakan disertakan.',
     sdohPsychoText: 'Kesejahteraan mental dikenal pasti — sumber sokongan emosi dan kaunseling ditambah.',
-    trendActive: 'Penjejakan Membujur Aktif',
-    trendDesc: 'Keputusan anda dipautkan ke penilaian lepas untuk memantau kemajuan kesihatan anda.',
+    trendActive: 'Penilaian lepas dipautkan',
+    trendDesc: 'ID lama anda disimpan bersama jawapan hari ini, supaya kedua-duanya boleh dipadankan kemudian. Kami belum boleh menunjukkan perbandingan itu kepada anda.',
     pavsTitle: 'Semakan Aktiviti Fizikal Anda',
     pavsWeekly: 'minit / minggu',
     pavsDays: 'hari / minggu',
@@ -126,8 +128,8 @@ const DICTIONARY = {
     sdohFinText: '费用被标记为障碍 — 免费和全额补贴选项已优先列出。',
     sdohSocText: '社会联系被标记 — 已包含社区团体和交友资源。',
     sdohPsychoText: '心理健康被标记 — 已添加情感支持和心理辅导资源。',
-    trendActive: '纵向跟踪已激活',
-    trendDesc: '您的结果已链接到之前的评估，以跟踪您的健康进展。',
+    trendActive: '已连结之前的评估',
+    trendDesc: '您之前的编号已与今天的答案一起保存，日后可以配对起来。我们目前还无法向您显示比较结果。',
     pavsTitle: '您的体力活动检查',
     pavsWeekly: '分钟 / 周',
     pavsDays: '天 / 周',
@@ -169,8 +171,8 @@ const DICTIONARY = {
     sdohFinText: 'செலவு தடையாக கண்டறியப்பட்டது — இலவச மற்றும் மானிய விருப்பங்கள் முன்னுரிமை அளிக்கப்பட்டுள்ளன.',
     sdohSocText: 'சமூக தொடர்பு கண்டறியப்பட்டது — சமூக குழு மற்றும் நட்பு வளங்கள் சேர்க்கப்பட்டுள்ளன.',
     sdohPsychoText: 'மன நலன் கண்டறியப்பட்டது — உணர்ச்சி ஆதரவு வளங்கள் சேர்க்கப்பட்டுள்ளன.',
-    trendActive: 'நீண்டகால கண்காணிப்பு செயலில் உள்ளது',
-    trendDesc: 'மருத்துவ முன்னேற்றத்தைக் கண்காணிக்க முந்தைய மதிப்பீட்டுடன் இணைக்கப்பட்டுள்ளது.',
+    trendActive: 'முந்தைய மதிப்பீடு இணைக்கப்பட்டது',
+    trendDesc: 'உங்கள் முந்தைய ID இன்றைய பதில்களுடன் சேமிக்கப்பட்டுள்ளது, பின்னர் இரண்டையும் ஒப்பிட முடியும். அந்த ஒப்பீட்டை இப்போது உங்களுக்குக் காட்ட எங்களால் முடியவில்லை.',
     pavsTitle: 'உங்கள் உடல் செயல்பாட்டு சரிபார்ப்பு',
     pavsWeekly: 'நிமிடங்கள் / வாரம்',
     pavsDays: 'நாட்கள் / வாரம்',
@@ -326,10 +328,16 @@ const PDF_FOOTER_STYLE = {
   marginTop: 'auto',
 };
 
-const PdfFooter = ({ pageNum }) => (
+/*
+  ⚠️ THE TOTAL IS PASSED IN, NOT HARDCODED. It read "OF 2" as a literal, which was
+     true until `P9` added a measurements page that exists only for residents who
+     gave a figure. A footer that insists there are two pages on a three-page
+     report is the kind of detail that makes somebody doubt the rest of it.
+*/
+const PdfFooter = ({ pageNum, totalPages = 2 }) => (
   <div style={PDF_FOOTER_STYLE}>
     <div style={{ color: '#64748b', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>NEXUS AURA · SMART DASHBOARD</div>
-    <div style={{ color: '#94a3b8', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF 2</div>
+    <div style={{ color: '#94a3b8', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF {totalPages}</div>
   </div>
 );
 
@@ -485,6 +493,29 @@ const PrimaryActionBanner = ({ ctaTier, t, lang }) => {
 const SdohFlags = ({ data, t, previousSessionId }) => {
   const hasPsycho = data.psychoFlag || data.sdohPsychological;
   const flags = [
+    /*
+      ⚠️ `CP33` — THIS PANEL PROMISED SOMETHING THAT DOES NOT EXIST.
+
+         It read "Longitudinal Tracking Active — your results have been linked to
+         your previous assessment so you can track your progress over time", in all
+         four languages, on the live site.
+
+         `previousId` has ZERO consumers. It is written to `community_assessments`
+         and read by nothing: not the resident, not the insights rollup, not any
+         Cloud Function. The security rules deny client reads of that collection
+         outright, so no comparison is possible from the browser at all. The only
+         two functions that touch the collection are a deletion sweep and an
+         anonymous counts rollup.
+
+         Same class of defect as the housing claim: a statement on a public surface
+         with no mechanism behind it. The copy now says what is true — the ID is
+         saved so the records CAN be matched later — and says plainly that the
+         comparison cannot be shown yet.
+
+      ⚠️ DO NOT RESTORE THE OLD WORDING WHEN TRACKING IS BUILT. It will need its own
+         decision first: the assessment ID would be the only credential, and it is
+         printed on paper residents carry. `CD23` in the ledger.
+    */
     previousSessionId  && { icon: <TrendingUp size={16} className="text-teal-500 shrink-0 mt-0.5" />,  text: t.trendDesc,       header: t.trendActive, headerCls: 'text-teal-600 dark:text-teal-400' },
     data.sdohFinancial && { icon: <DollarSign size={16} className="text-amber-500 shrink-0 mt-0.5" />, text: t.sdohFinText },
     data.sdohSocial    && { icon: <Users      size={16} className="text-sky-500 shrink-0 mt-0.5" />,   text: t.sdohSocText },
@@ -579,6 +610,8 @@ export default function ResultPage() {
 
   const printRef  = useRef(null);
   const printRef2 = useRef(null);
+  // Page 3 exists only when there is something to put on it. See `MeasurementsPanel`.
+  const printRef3 = useRef(null);
 
   /**
    * ⚠️ A FINISHED ASSESSMENT USED TO DIE ON RELOAD. The result arrived only as
@@ -609,6 +642,15 @@ export default function ResultPage() {
   // `null`, not '00' — an absent result has no location, and '00' is not a sector.
   const safe = resultState || { score: 0, data: {}, postalSector: null };
   const { score, data, postalSector, sessionId, previousSessionId, ctaTier } = safe;
+
+  /*
+    ⚠️ ONE SOURCE OF TRUTH FOR WHETHER PAGE 3 EXISTS. The template below and the
+       PDF builder above must agree, or the download gets a blank third page (or
+       loses a page that is on screen). `hasMeasurementsToShow` is the rule, in
+       `measurementAnswers.js`, and both read it.
+  */
+  const showMeasurements = hasMeasurementsToShow(data?.functional);
+  const totalPages       = showMeasurements ? 3 : 2;
 
   const riskTier        = getRiskTier(score);
   // The id the record was written under, not a fresh one. This used to mint a
@@ -712,9 +754,13 @@ export default function ResultPage() {
     };
 
     try {
-      const [canvas1, canvas2] = await Promise.all([
+      const light = { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') };
+      const [canvas1, canvas2, canvas3] = await Promise.all([
         html2canvas(printRef.current,  captureOpts),
-        html2canvas(printRef2.current, { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') }),
+        html2canvas(printRef2.current, light),
+        // `null` rather than a skipped slot, so the destructure above stays aligned
+        // whether or not there is a third page.
+        printRef3.current ? html2canvas(printRef3.current, light) : Promise.resolve(null),
       ]);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
@@ -753,6 +799,10 @@ export default function ResultPage() {
       addCanvasPage(canvas1, printRef.current);
       pdf.addPage();
       addCanvasPage(canvas2, printRef2.current);
+      if (canvas3 && printRef3.current) {
+        pdf.addPage();
+        addCanvasPage(canvas3, printRef3.current);
+      }
 
       pdf.save(`NEXUS_AURA_Result_${riskTier}_${activeSessionId}.pdf`);
     } catch (err) { console.error('[NEXUS] PDF generation error:', err); }
@@ -921,7 +971,7 @@ export default function ResultPage() {
             </div>
           </div>
 
-          <PdfFooter pageNum={1} />
+          <PdfFooter pageNum={1} totalPages={totalPages} />
         </div>
 
         {/* ── PAGE 2: Governance ──────────────────────────────────────── */}
@@ -1038,8 +1088,22 @@ export default function ResultPage() {
 
           </div>
 
-          <PdfFooter pageNum={2} />
+          <PdfFooter pageNum={2} totalPages={totalPages} />
         </div>
+
+        {/* ── PAGE 3: Strength measurements ──────────────────────────────
+            Rendered ONLY when the resident gave a figure. Everybody who skipped
+            the questions gets exactly the two-page report they got before `P9`,
+            and no blank page in their download. */}
+        {showMeasurements && (
+          <div ref={printRef3} style={PDF_PAGE_STYLE}>
+            <PdfHeader subtitle={t.reportTitle} {...headerProps} />
+            <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <MeasurementsPanel functional={data.functional} lang={lang} />
+            </div>
+            <PdfFooter pageNum={3} totalPages={totalPages} />
+          </div>
+        )}
       </div>
 
       {/* ── BACKGROUND ORBS ─────────────────────────────────────────────────── */}

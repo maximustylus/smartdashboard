@@ -18,10 +18,11 @@
  * lines, not about the chat.
  */
 import { toSector } from './singapore/postalSectors';
+import { measurementResults, toStorableMeasurements } from './measurementAnswers';
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
   matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
-  parseAgeBand,
+  parseAgeBand, exactAge, isSixtyPlusPerson,
   matchesFemale, matchesMale,
   isNoPreviousId, parseFallsAnswer, parseHealthierSg,
   parsePavsDays, parsePavsMinutes,
@@ -86,7 +87,15 @@ export const parseClinicalData = (raw) => {
 
   // Falls & function — asked of the 60+ cohort only, so `asked: false` here means
   // "not applicable or not translated", NEVER "no falls".
-  const falls = parseFallsAnswer(raw.falls);
+  /*
+    ⚠️ THE SAME GATE THE FORM USES (`CP34`). The chat cannot reach a stale falls
+       answer today, because it asks the age first and offers no way back — but that
+       is conversational ordering, which is an assumption, not an invariant, and
+       `DOMAIN_CONFIG` now carries a comment saying the order is safe to change.
+       One pathway fixed and the other left relying on habit is how the two drift
+       apart again. Symmetry is the point.
+  */
+  const falls = parseFallsAnswer(isSixtyPlusPerson(raw) ? raw.falls : '');
   // `null` for both "not sure" and "not asked" — the portal does not know, and
   // that must not be read as "not enrolled".
   const healthierSgEnrolled = parseHealthierSg(raw.healthier_sg);
@@ -100,11 +109,25 @@ export const parseClinicalData = (raw) => {
   if (matchesFemale(demoStr))       gender = 'Female';
   else if (matchesMale(demoStr))    gender = 'Male';
 
-  // ⚠️ ONE PARSER, SHARED WITH THE FALLS GATE AND THE FORM. This was three
-  //    `includes` calls that only recognised the chip text, so a typed age became
-  //    `Unknown` — losing the falls screen AND both 60+ CTA tiers, since
-  //    `selectCTA` branches on this value.
-  const age = parseAgeBand(demoStr);
+  /**
+   * ⚠️ ONE PARSER, SHARED WITH THE FALLS GATE AND THE FORM. This was three
+   *    `includes` calls that only recognised the chip text, so a typed age became
+   *    `Unknown` — losing the falls screen AND both 60+ CTA tiers, since
+   *    `selectCTA` branches on this value.
+   *
+   * ⚠️ THE AGE NOW ARRIVES IN ITS OWN ANSWER, and `demographics` is the fallback
+   *    rather than the source. `P9` moved it, because the strength references are
+   *    cut in five-year bands and "60+" cannot be narrowed back down. The band is
+   *    still derived, because `selectCTA`, `calculateRiskScore` and the resource
+   *    plan all branch on it and none of them should learn a new shape for this.
+   *
+   *    Reading `demographics` alone here would have returned `Unknown` for every
+   *    resident from the moment that question became "are you male or female" —
+   *    silently costing the 60+ CTA tiers for the entire cohort. The fallback is
+   *    what keeps a record collected before this change readable afterwards.
+   */
+  const ageYears = exactAge(raw);
+  const age = ageYears !== null ? parseAgeBand(String(ageYears)) : parseAgeBand(demoStr);
 
   // NEW: Ethnicity & Housing Type
   const ethnicity = raw.ethnicity || 'Unknown';
@@ -135,7 +158,32 @@ export const parseClinicalData = (raw) => {
   const isNoId     = isNoPreviousId(prevStr);
   const previousId = isNoId ? null : prevStr.trim().toUpperCase();
 
+  /*
+    ── The two strength measurements, `P9` ────────────────────────────────────
+
+    ⚠️ TWO SHAPES, AND THE DIFFERENCE IS A PRIVACY BOUNDARY, NOT A STYLE CHOICE.
+
+       `functional`         the full results, INCLUDING the kilograms and the
+                            repetitions. For the resident's own screen only.
+                            `telemetry.js` strips this field by name before writing.
+       `functionalStorable` bands and provenance, nothing continuous. This is what
+                            may be aggregated.
+
+    ⚠️ NEITHER FEEDS `calculateRiskScore`. `CD20`, following the `falls` precedent:
+       charging somebody a deficit for not owning a dynamometer penalises exactly
+       the cohort this portal exists for. Skipping both changes nothing.
+  */
+  const functional = measurementResults({
+    gripAnswer: raw.grip_kg,
+    stsAnswer: raw.sit_to_stand,
+    settingAnswer: raw.measure_setting,
+    ageYears,
+    sex: gender,
+  });
+
   return {
+    functional,
+    functionalStorable: toStorableMeasurements(functional),
     pavsScore, pavsDays, pavsMinutes, strengthDays,
     symptomFlag, medFlag,
     sdohFinancial, sdohSocial, sdohPsychological, sdohFoodInsecure,
@@ -143,7 +191,7 @@ export const parseClinicalData = (raw) => {
     fallsCount: falls.falls, fallsRisk: falls.fallsRisk,
     fearOfFalling: falls.avoidsActivity, fallsAsked: falls.asked,
     healthierSgEnrolled,
-    gender, age, ethnicity, housingType, postalSector, previousId,
+    gender, age, ageYears, ethnicity, housingType, postalSector, previousId,
     psychoFlag: sdohPsychological,
   };
 };

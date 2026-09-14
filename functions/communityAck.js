@@ -45,6 +45,16 @@ const COMMUNITY_DOMAINS = [
     //    it cannot import the client's list. The contract is held by
     //    `src/components/AuraChat.domainParity.test.jsx` and by nothing else.
     'falls', 'healthier_sg',
+    //    Added with `P9`, which split the precise age out of `demographics` into its
+    //    own question. Same contract, same failure mode if forgotten: the answer is
+    //    rejected with "Unknown assessment domain." and the resident sees no
+    //    acknowledgement for the one question the strength comparison depends on.
+    'age_years',
+    //    And the three `P9` measurement questions. Optional to the resident, but an
+    //    answer the endpoint rejects is an answer AURA never acknowledges, which
+    //    reads as the portal ignoring the one thing they went to a community event
+    //    to find out.
+    'grip_kg', 'sit_to_stand', 'measure_setting',
 ];
 
 /** The four the portal ships. Mirrors `SUPPORTED` in `src/utils/language.js`. */
@@ -99,20 +109,61 @@ const validateAckRequest = (data) => {
 };
 
 /**
- * The prior answers, as lines for the model turn.
+ * ==============================================================================
+ * ⚠️ `CP35` — WHAT MAY BE SENT TO THE MODEL, AS AN ALLOWLIST
+ * ==============================================================================
  *
- * ⚠️ REBUILT FROM THE KNOWN DOMAIN LIST, NOT FILTERED IN PLACE. Iterating the
- *    caller's keys and skipping unknown ones leaves the door open to whatever the
- *    next reviewer forgets — a prototype-polluting key, a symbol, a key whose name
- *    is itself an injection. Walking `COMMUNITY_DOMAINS` and pulling values out
- *    means the shape of the output cannot be influenced at all: at most one line
- *    per known domain, each labelled with a name from this file. (The count is
- *    deliberately not written down here; `AC14` is what happens when it is.)
+ * This used to walk `COMMUNITY_DOMAINS`, which was right when every domain was a
+ * screening answer. `P9` added `age_years`, `grip_kg`, `sit_to_stand` and
+ * `measure_setting` to that list so the endpoint would accept them — and this
+ * function, enumerating the same list, began posting a resident's EXACT AGE, their
+ * grip in kilograms and their repetition count to Gemini on every turn after they
+ * gave them, to generate a one-sentence acknowledgement.
+ *
+ * Three files in this codebase state that those figures stay on the device, and
+ * `src/utils/telemetry.js` strips them by name to enforce it against Firestore.
+ * This was a second door out of the same room, opened in the same change that
+ * documented the first. It is exactly the `CP29` shape: a list that enumerates
+ * everything, and a new field that ships by default.
+ *
+ * ⚠️ SO THE RULE IS INVERTED. Sending is now opt-in per domain. A domain added to
+ *    `COMMUNITY_DOMAINS` is accepted by the endpoint and NOT sent to the model
+ *    until somebody puts it here deliberately. Forgetting now costs context in an
+ *    acknowledgement, which is recoverable; the old default cost a resident their
+ *    privacy, which is not.
+ *
+ * The original reason for rebuilding from a fixed list rather than filtering the
+ * caller's keys still holds and is why this is a list and not a `delete`: iterating
+ * the caller's object leaves the door open to a prototype-polluting key, a symbol,
+ * or a key whose name is itself an injection. The shape of the output cannot be
+ * influenced at all — at most one line per allowed domain, each labelled with a
+ * name from this file.
  */
+const MODEL_VISIBLE_DOMAINS = [
+    // Screening answers. The model needs these to write an acknowledgement that
+    // does not contradict what the person has already said.
+    'pavs_days', 'pavs_mins', 'strength', 'medical', 'barriers', 'social',
+    'food_insecurity', 'wellbeing', 'falls', 'healthier_sg',
+    // Coarse context the record already carries at this granularity.
+    'demographics', 'ethnicity', 'housing_type', 'postal_code',
+
+    // ⚠️ DELIBERATELY ABSENT, AND NOT AN OVERSIGHT:
+    //
+    //   `age_years`        a whole-year age. The record stores a five-year band
+    //                      precisely so this number does not travel.
+    //   `grip_kg`          a continuous physiological value.
+    //   `sit_to_stand`     the same.
+    //   `measure_setting`  names a venue a resident attended.
+    //   `previous_id`      an identifier that links their records together.
+    //
+    // None of them makes an acknowledgement better, and every one of them makes a
+    // resident more identifiable to whoever holds the prompt log.
+];
+
 const priorAnswerLines = (prior) => {
     if (!prior || typeof prior !== 'object') return [];
     const lines = [];
-    COMMUNITY_DOMAINS.forEach((key) => {
+    MODEL_VISIBLE_DOMAINS.forEach((key) => {
         const value = Object.prototype.hasOwnProperty.call(prior, key) ? prior[key] : undefined;
         if (typeof value === 'string' && value.trim() !== '') {
             lines.push('  ' + key + ': ' + value.slice(0, MAX_PRIOR_ANSWER_CHARS));

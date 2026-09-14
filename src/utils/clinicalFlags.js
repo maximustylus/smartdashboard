@@ -111,6 +111,25 @@ const NEGATORS_BEFORE = [
 const TAMIL_NEGATORS = ['இல்லை', 'இல்ல', 'அல்ல', 'கிடையாது'];
 
 /**
+ * ⚠️ TAMIL WORDS THAT BEGIN WITH A NEGATOR AND ARE NOT ONE.
+ *
+ *    `அல்லது` means "or". It starts with `அல்ல`, which is a negator, and Tamil
+ *    negation is adjacent — so "இரண்டு அல்லது…" ("two or…") read as a denial of
+ *    "two" and the two-or-more chip parsed as ONE fall.
+ *
+ *    That was worked around in the copy: the shipped chip says
+ *    "இரண்டு முறை அல்லது அதிகமாக", with முறை wedged in to break the adjacency. It
+ *    parses, and it is not how anybody would say it. TWO independent reviewers
+ *    proposed the natural "இரண்டு அல்லது அதற்கு மேற்பட்ட…" wording, and it parsed
+ *    as one fall, exactly as before.
+ *
+ *    The constraint belongs here, not in the Tamil. A parser that forces awkward
+ *    copy onto residents to protect itself has the dependency backwards, and the
+ *    next reviewer would have proposed the same correction again.
+ */
+const TAMIL_NOT_NEGATORS = ['அல்லது'];
+
+/**
  * English phrases that dismiss the term BEFORE them: "cost is not a problem",
  * "my heart is fine".
  *
@@ -181,7 +200,12 @@ const hasCue = (fragment, cues, edge) => cues.some((cue) => {
         // Word-bounded — "no" must not match inside "know" or "another".
         return new RegExp(`(^|[^\\w])${escapeRegex(cue)}([^\\w]|$)`, 'i').test(` ${fragment} `);
     }
-    return edge === 'end' ? fragment.trimEnd().endsWith(cue) : fragment.trimStart().startsWith(cue);
+    if (edge === 'end') return fragment.trimEnd().endsWith(cue);
+    const start = fragment.trimStart();
+    // See `TAMIL_NOT_NEGATORS`: a longer word that merely BEGINS with a negator is
+    // not a denial. Checked before the negator itself, or `அல்ல` wins on `அல்லது`.
+    if (TAMIL_NOT_NEGATORS.some((word) => start.startsWith(word))) return false;
+    return start.startsWith(cue);
 });
 
 /** Whether the match at [start, end) in `value` is inside a denial. */
@@ -325,9 +349,23 @@ export const matchesMale = buildMatcher(['male', 'lelaki', '男', 'ஆண்']);
  *    "இரண்டு முறை அல்லது அதிகமாக" puts முறை between them and means the same. The
  *    parity test is what surfaced it.
  */
+/*
+  ⚠️ BOTH MALAY TOKENS ARE HERE, AND THE OLD ONE STAYS. The chip was reworded on a
+     reviewer's correction ("Tiada jatuh" -> "Tidak pernah jatuh"), and the matcher
+     is WORD-BOUNDED, so `tiada` stopped matching the moment the chip changed. Run
+     against the parser before the change went in: the new wording returned
+     `falls=1, fallsRisk=true`. Every Malay speaker who had never fallen would have
+     been recorded as having fallen, and the handover slip would have printed it to
+     a community centre as fact.
+
+     `tiada` is kept rather than replaced because assessments were collected under
+     the old chip and their answers must still parse. A token list is cheap; a
+     record that silently stops reading is not.
+*/
 const matchesNoFalls = buildMatcher([
     'no falls', 'none', 'no',
-    'tiada',                    // ms · "Tiada jatuh"
+    'tiada',                    // ms · the pre-2026-09-13 chip, "Tiada jatuh"
+    'tidak pernah',             // ms · the current chip, "Tidak pernah jatuh"
     '没有跌倒',                  // zh · and NOT bare 没有, which is a general negator
     'விழுந்ததில்லை',            // ta · "have not fallen", one word
 ]);
@@ -339,7 +377,15 @@ const matchesTwoOrMore = buildMatcher([
 ]);
 const matchesAvoidance = buildMatcher([
     'avoid', 'afraid', 'scared', 'stopped',
-    'mengelak',                 // ms
+    /*
+      ⚠️ `mengelakkan` IS NOT MATCHED BY `mengelak`. The matcher is word-bounded,
+         so the longer form is a different word, not a longer one. The reworded
+         chip returned `avoidsActivity: false` against the parser before this
+         token was added — which loses the fear-of-falling flag for Malay
+         speakers, the one thing that chip exists to carry.
+    */
+    'mengelak',                 // ms · the pre-2026-09-13 chip
+    'mengelakkan',              // ms · the current chip
     '避免',                      // zh
     'தவிர்க்கிறேன்',            // ta
 ]);
@@ -476,6 +522,72 @@ export const parseAgeBand = (answer) => {
 
 /** Whether the falls and function screen applies to this person. */
 export const isSixtyPlus = (answer) => parseAgeBand(answer) === '60+';
+
+/**
+ * ==============================================================================
+ * A PRECISE AGE, OR NOTHING
+ * ==============================================================================
+ *
+ * `parseAgeBand` answers "which of three groups", which is all the portal needed
+ * until `P9`. The published strength references are cut in FIVE-YEAR bands from 20
+ * to 100+, and a 61-year-old and a 79-year-old sit eight decile rows apart. You
+ * cannot recover that from "60+", which is why `CD25` settled on asking the year.
+ *
+ * ⚠️ A RANGE IS NOT AN AGE, AND THIS RETURNS `null` FOR ONE. "41-60" and "60+" are
+ *    bands somebody tapped, not ages somebody gave. Reading either as a number
+ *    would silently compare a 60-year-old against the 41-year-old row, or pick
+ *    whichever end the regex reached first. The honest answer is that we were not
+ *    told, and `functionalMeasures` already has a result for that.
+ *
+ * ⚠️ AMBIGUITY ALSO RETURNS `null`. Two plausible ages in one answer is not a
+ *    sentence to guess at. Guessing here does not produce a missing comparison, it
+ *    produces a WRONG one, shown to somebody as if it were about them.
+ */
+export const parseAgeYears = (answer) => {
+    const text = String(answer ?? '')
+        .toLowerCase()
+        .replace(/[\u2010-\u2015\u2212]/g, '-');   // en/em dash, minus → hyphen
+
+    // An open-ended band. Somebody tapped a group; they did not tell us a year.
+    if (/\b\d{1,3}\s*(\+|plus\b|and (over|above)\b)/.test(text)) return null;
+    if (/\b(over|above|under|below)\s*\d{1,3}\b/.test(text)) return null;
+
+    // A closed range, same reason.
+    if (/\b\d{1,3}\s*-\s*\d{1,3}\b/.test(text)) return null;
+
+    // Bounded to a plausible adult lifespan, so a postal sector, a year of birth or
+    // a number of minutes cannot be read as somebody's age.
+    // A negative is not an age. `parseAgeYears('-40')` returned 40 before this.
+    if (/-\s*\d/.test(text)) return null;
+    const candidates = [...new Set(
+        (text.match(/\b\d{1,3}\b/g) || []).map(Number).filter((n) => n >= 18 && n <= 120),
+    )];
+    return candidates.length === 1 ? candidates[0] : null;
+};
+
+/**
+ * The age to compare a measurement against: the year if we were told one, and
+ * nothing otherwise. Both the chat and the form ask separately now, so this is the
+ * one place that decides which answer wins.
+ */
+export const exactAge = (data) => parseAgeYears(data?.age_years) ?? parseAgeYears(data?.demographics);
+
+/**
+ * Whether the falls and function screen applies to this person.
+ *
+ * ⚠️ TAKES THE WHOLE ANSWER SET, NOT ONE ANSWER. It used to take `demographics`
+ *    alone, which was correct while that string carried the age band. Age moved to
+ *    its own question in `P9`, and a gate still reading `demographics` would have
+ *    found "Female" there, returned `Unknown`, and stopped asking every resident
+ *    aged 60 and over about falls — the same failure as `CP26`, from the same
+ *    cause, one question later.
+ */
+export const isSixtyPlusPerson = (data) => {
+    const years = exactAge(data);
+    if (years !== null) return years >= 60;
+    return isSixtyPlus(data?.demographics);
+};
+
 
 export { parseFallsAnswer, parseHealthierSg };
 

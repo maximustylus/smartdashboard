@@ -10,7 +10,27 @@
  * evidence that a person reviewed those claims.
  */
 export const COMMUNITY_RESOURCES = Object.freeze({
-  ssmc_kkh:          { id: 'ssmc_kkh',          url: 'https://for.sg/exercise',                                          logo: '/logos/ssmckkh.png',      en: { title: 'SSMC@KKH Exercise Resources',          desc: 'Expert exercise guidance and safety resources from KKH and SingHealth for the community.' },                          ms: { title: 'Sumber Senaman SSMC@KKH',              desc: 'Panduan senaman pakar dan sumber keselamatan untuk komuniti.' },                                               zh: { title: 'SSMC@KKH 运动资源',                    desc: '为社区提供的专家运动指导和安全资源。' },                                                        ta: { title: 'SSMC@KKH உடற்பயிற்சி வளங்கள்',        desc: 'சமூகத்திற்கான நிபுணர் மருத்துவ உடற்பயிற்சி வளங்கள்.' } },
+  ssmc_kkh:          { id: 'ssmc_kkh',          url: 'https://for.sg/exercise',                                          logo: '/logos/ssmckkh.png',      en: { title: 'SSMC@KKH Exercise Resources',          desc: 'Expert exercise guidance and safety resources from KKH and SingHealth for the community.' },                          ms: { title: 'Sumber Senaman SSMC@KKH',              desc: 'Panduan senaman pakar dan sumber keselamatan untuk komuniti.' },                                               zh: { title: 'SSMC@KKH 运动资源',                    desc: '为社区提供的专家运动指导和安全资源。' },                                                        ta: { title: 'SSMC@KKH உடற்பயிற்சி வளங்கள்',        desc: 'சமூகத்திற்கான நிபுணர் மருத்துவ உடற்பயிற்சி வளங்கள்.' } ,
+    /*
+      ⚠️ THIS IS WHAT MAKES THE VENUE VISIBLE, AND IT IS A FACTUAL CLAIM ON A
+         PUBLIC SURFACE (`CP8`). `measurementVenues` filters out any venue
+         without it, precisely so a half-confirmed place is never shown with
+         the cost left vague — this sends a cost-constrained resident on a
+         bus journey, and the worst outcome is somebody travelling to a place
+         that turns them away.
+
+      ⚠️ IT SAYS "CALL AND ASK", NOT "COME IN", AND NOT WHAT IT COSTS. Those
+         are the two things owner confirmation did NOT cover. The numbers are
+         owner-supplied (2026-09-13); whether a referral is needed and what a
+         given payment class pays is not something this portal knows, so it
+         does not say. Telling somebody to phone and ask is the strongest
+         claim the evidence supports.
+    */
+    access: { phone: Object.freeze(['6394 8488', '6394 7171']),
+      en: 'Call to ask about an assessment. Whether you need a referral, and what it costs, depends on your payment class, so please ask when you call.',
+      ms: 'Hubungi untuk bertanya tentang penilaian. Sama ada anda memerlukan rujukan, dan berapa kosnya, bergantung pada kelas pembayaran anda, jadi sila tanya semasa anda menelefon.',
+      zh: '请致电查询评估事宜。是否需要转介，以及费用多少，取决于您的付费等级，请在致电时询问。',
+      ta: 'மதிப்பீடு குறித்து விசாரிக்க அழையுங்கள். உங்களுக்குப் பரிந்துரை தேவையா, செலவு எவ்வளவு என்பது உங்கள் கட்டணப் பிரிவைப் பொறுத்தது, எனவே அழைக்கும்போது கேட்டுக்கொள்ளுங்கள்.' } },
   spag:              { id: 'spag',               url: 'https://for.sg/spag',                                              logo: '/logos/sportsg.png',      en: { title: 'Singapore Physical Activity Guidelines', desc: 'National guidelines for physical activity and sedentary behaviour.' },                                     ms: { title: 'Garis Panduan Aktiviti Fizikal SG',    desc: 'Garis panduan kebangsaan untuk aktiviti fizikal.' },                                                zh: { title: '新加坡体力活动指南',                    desc: '国家体力活动指南。' },                                                                                ta: { title: 'சிங்கப்பூர் உடல் செயல்பாட்டு வழிகாட்டுதல்கள்', desc: 'தேசிய உடல் செயல்பாட்டு வழிகாட்டுதல்கள்.' } },
   healthier_sg:      { id: 'healthier_sg',       url: 'https://www.healthiersg.gov.sg/',                                  logo: '/logos/healthiersg.png',  en: { title: 'Healthier SG GP Check-In',             desc: 'Schedule a fully subsidised annual check-in with your enrolled GP.' },                                     ms: { title: 'Semakan GP Healthier SG',              desc: 'Jadualkan pemeriksaan tahunan bersubsidi penuh dengan doktor anda.' },                                      zh: { title: 'Healthier SG 全科医生复查',              desc: '安排全额补贴的年度检查。' },                                                                        ta: { title: 'Healthier SG GP சோதனை',                desc: 'மருத்துவரிடம் முழு மானியத்துடன் கூடிய பரிசோதனையை திட்டமிடுங்கள்.' } },
   start2move:        { id: 'start2move',         url: 'https://www.healthhub.sg/programmes/letsmoveit/start2move',        logo: '/logos/hpb.png',          en: { title: 'HPB Start2Move (Free)',                desc: 'A free 6-session beginner programme to help you start exercising safely.' },                               ms: { title: 'Program Start2Move HPB (Percuma)',     desc: 'Program percuma 6 sesi untuk pemula.' },                                                              zh: { title: 'HPB Start2Move（免费）',               desc: '免费的6节初学者计划，帮助您安全锻炼。' },                                                             ta: { title: 'HPB Start2Move (இலவசம்)',               desc: 'இலவச 6 அமர்வு தொடக்க திட்டம்.' } },

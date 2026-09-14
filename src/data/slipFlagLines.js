@@ -56,13 +56,21 @@
  *    provenance recorded as verified is worse than one recorded as machine, because
  *    it removes the reason anybody would look again.
  *
- * ⚠️ ONE KNOWN QUERY, LEFT AS IT IS BY THE OWNER'S DECISION. `fallsAvoiding.ta`
- *    ends `…தவிர்க்கிறது` — the third-person NEUTER verb ("it avoids") where the
- *    honorific `தவிர்க்கிறார்` would be the expected form for describing a person.
- *    The English is a participle with no explicit subject, so the compression may
- *    be deliberate. Raised, considered, and kept. Recorded so it is not
- *    re-discovered and "fixed" by somebody who also cannot read Tamil — which
- *    includes whoever wrote this line.
+ * ⚠️ ONE KNOWN QUERY, RAISED TWICE, AND NOW CHANGED. `fallsAvoiding.ta` used to end
+ *    `…தவிர்க்கிறது` — the third-person NEUTER verb ("it avoids") where a person is
+ *    being described. It was raised once, considered, and kept on the owner's
+ *    decision, on the reasoning that the English is a participle with no explicit
+ *    subject so the compression might be deliberate.
+ *
+ *    On 2026-09-13 two independent reviewers flagged the same line without knowing
+ *    that history, which is different evidence from one unresolved query. They
+ *    proposed DIFFERENT fixes — a verbal noun and the honorific — which is itself
+ *    the signal that the shipped form was the odd one out. Put back to the owner
+ *    with that, and the decision reversed: it now reads `விழுந்துள்ளார் … 
+ *    தவிர்க்கிறார்`, the respectful human form.
+ *
+ *    Recorded in full because the earlier decision was also recorded, and a reversal
+ *    that erases what it reversed teaches the next person nothing.
  *
  * ⚠️ `CommunityInsightsPanel.jsx` HAS A SIMILAR-LOOKING LABEL MAP AND IS NOT THIS.
  *    It labels POPULATION RATES for staff — "Below 150 min/week", "1–2 room HDB" —
@@ -81,14 +89,14 @@
 export const SLIP_FLAG_LINES = Object.freeze({
     symptoms: Object.freeze({
         en: 'Chest pain or dizziness on exertion',
-        ms: 'Sakit dada atau pening semasa melakukan aktiviti',
-        zh: '活动时出现胸痛或头晕',
-        ta: 'செயல்பாட்டின் போது நெஞ்சு வலி அல்லது தலைச்சுற்றல்',
+        ms: 'Sakit dada atau pening semasa melakukan aktiviti fizikal',
+        zh: '身体活动时出现胸痛或头晕',
+        ta: 'உடல் உழைப்பின்போது நெஞ்சு வலி அல்லது தலைச்சுற்றல்',
     }),
     condition: Object.freeze({
         en: 'Ongoing health condition reported',
-        ms: 'Keadaan kesihatan berterusan dilaporkan',
-        zh: '报告有持续性健康状况',
+        ms: 'Masalah kesihatan yang berterusan dilaporkan',
+        zh: '报告有持续存在的健康问题',
         ta: 'தொடர்ச்சியான உடல்நலப் பிரச்சனை தெரிவிக்கப்பட்டுள்ளது',
     }),
     falls: Object.freeze({
@@ -108,12 +116,12 @@ export const SLIP_FLAG_LINES = Object.freeze({
         en: 'Fall in the past 12 months, and now avoiding some activities',
         ms: 'Pernah jatuh dalam masa 12 bulan yang lalu, dan kini mengelak beberapa aktiviti',
         zh: '过去 12 个月内曾跌倒，现在会避免一些活动',
-        ta: 'கடந்த 12 மாதங்களில் கீழே விழுந்தது, இப்போது சில செயல்பாடுகளைத் தவிர்க்கிறது',
+        ta: 'கடந்த 12 மாதங்களில் கீழே விழுந்துள்ளார்; இப்போது சில செயல்பாடுகளைத் தவிர்க்கிறார்',
     }),
     caregiver: Object.freeze({
         en: 'Unpaid caregiving strain',
         ms: 'Tekanan tugas penjagaan tanpa bayaran',
-        zh: '无酬家庭照护压力',
+        zh: '无偿照护带来的压力',
         ta: 'ஊதியமில்லாப் பராமரிப்புச் சுமை',
     }),
     psychological: Object.freeze({
@@ -131,19 +139,19 @@ export const SLIP_FLAG_LINES = Object.freeze({
     financial: Object.freeze({
         en: 'Cost or distance is a barrier',
         ms: 'Kos atau jarak merupakan penghalang',
-        zh: '费用或距离是一个门槛',
+        zh: '费用或距离构成障碍',
         ta: 'செலவு அல்லது தூரம் ஒரு தடையாக உள்ளது',
     }),
     food: Object.freeze({
         en: 'Food insecurity reported',
-        ms: 'Ketidakjaminan makanan dilaporkan',
-        zh: '报告有饮食保障不稳的问题',
-        ta: 'உணவுப் பாதுகாப்பின்மை தெரிவிக்கப்பட்டுள்ளது',
+        ms: 'Dilaporkan bahawa akses kepada makanan yang cukup, selamat dan berkhasiat tidak terjamin',
+        zh: '报告无法稳定获得足够、安全且有营养的食物',
+        ta: 'போதுமான, பாதுகாப்பான, சத்தான உணவு தொடர்ந்து கிடைப்பதில் உறுதியின்மை உள்ளதாகத் தெரிவிக்கப்பட்டுள்ளது',
     }),
     notEnrolledHsg: Object.freeze({
         en: 'Not enrolled with a Healthier SG GP',
-        ms: 'Belum mendaftar dengan GP Healthier SG',
-        zh: '未登记加入 Healthier SG 家庭医生计划',
+        ms: 'Tidak berdaftar dengan doktor keluarga Healthier SG',
+        zh: '未向 Healthier SG 家庭医生登记',
         ta: 'Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்யவில்லை',
     }),
 });

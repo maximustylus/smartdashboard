@@ -29,6 +29,121 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.13.0] — `P9`, the functional measures
+
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
+
+### The shape of the conversation changed
+
+Physical activity is asked first — somebody who abandons after three questions has
+still given the vital sign this portal exists to take. Then sex, then a precise age,
+and everything after that can branch on it.
+
+| | Before | After |
+|---|---|---|
+| Sex | question 9, as "age group and gender" | 4, sex only |
+| Age | question 9, as a band | **5, as a year** |
+| Falls (60+) | 14, *after* record linkage | 11, once the age is known |
+| Grip strength | — | 15 |
+| Standing up from a chair | — | 16 |
+| Where it was measured | — | 17, only if a figure was given |
+| Record linkage | 13 | last |
+
+`falls` and `healthier_sg` were asked after "do you have a previous NEXUS record"
+because the old positional copy binding forced every new step onto the end. That
+binding is gone; `COPY_ORDER` holds it by name.
+
+### Added
+
+- **Grip strength in kilograms and repetitions from a chair**, both optional, both in
+  both pathways. The protocol follows the age: the one-minute test under 60
+  (Strassmann 2013, Swiss, 20-79), the thirty-second chair stand from 60 (CDC STEADI,
+  United States, 60-94). Grip against Tomkinson 2025 (international, 20 to 100+).
+- **Each question names its stopwatch**, and "I am not sure which test" is an answer
+  rather than a blank: it keeps the number and refuses the comparison. A
+  thirty-second count read against one-minute norms would tell somebody they are far
+  weaker than they are, and that is the likeliest way this feature hurts anyone.
+- **Report page 3**, only when a figure was given. Band, number, one sentence about
+  what to do — or the number and the REASON where no comparison could be made. All
+  nine refusal states have words in four languages, because a blank card under a
+  figure somebody just gave reads as "your result was too bad to print".
+- **The sources are cited with their populations named.** None of the three is
+  Singaporean. Nothing is cited where no comparison was made.
+
+### Decisions
+
+- **`CD20`** — neither measurement feeds `calculateRiskScore`, following the `falls`
+  precedent. Charging a deficit for not owning a dynamometer penalises exactly the
+  cohort this portal is for. Skipping both changes nothing about the result.
+- **`CD25`** — a precise age is collected; only the five-year band is stored.
+- **`CD22`** — the measurements go on page 3, decided by measurement rather than
+  preference: pages 1 and 2 had 2px and 77px of spare room (`CP30`).
+
+### Fixed
+
+- **`CP29`** — the precise age was reaching Firestore beside postal sector, sex,
+  ethnicity and housing type. `AuraChat` passes the whole parsed object to
+  `recordTelemetry`, so a new field ships by default and silently. The strip now
+  happens inside `recordTelemetry`, at any depth. Raw kilograms and repetitions never
+  leave the device.
+
+### Fixed after the first cut of this entry
+
+Four commits landed after the release commit and none of them were recorded here
+until an audit caught it. A changelog that stops before the branch tip is how a
+reviewer signs off on work they have not seen.
+
+- **`CP33`** — the report told every returning resident their progress was being
+  tracked. `previousId` has ZERO consumers: the rules deny client reads, the insights
+  rollup never mentions it, and the only other function that touches the collection
+  deletes by date. Fixed in all four languages, with a two-sided guard — the promise
+  must be absent AND the honest wording present, so a page that simply says nothing
+  where it used to reassure somebody also fails.
+- **`CP34`** — a hidden form field kept its answer. Age 65, answer falls, correct the
+  age to 20, and a 20-year-old derived as having fallen twice with falls risk true.
+  The gate that decides whether to ASK is now the gate that decides whether to READ.
+- **Two Malay and one Tamil parser faults**, surfaced by reviewers correcting copy
+  that is also parser input. "Tidak pernah jatuh" returned `falls=1` — every Malay
+  speaker who had never fallen recorded as having fallen. Caught by running the
+  parser before committing, not by reading the diff.
+- **`CP31`** — the Tamil chip was phrased around a parser bug rather than the bug
+  being fixed. Both reviewers proposed the natural wording independently, which is
+  what showed the constraint was in the wrong place.
+- **`CP32`** — the form offered falls and Healthier SG answers in English to every
+  language, on a question asked only of residents aged 60 and over.
+- The public AURA info card named **v2.12.2** while the app shipped 2.13.0. It is
+  bundled with `?raw` and served at `/aura-info`, so the stale version was live. A
+  test now fails the build when it drifts.
+
+### The waiver was exercised, not just built
+
+⚠️ On **2026-09-13 the owner signed `REVIEW_WAIVERS`** for all three safety-critical
+prohibitions. The gate failed on them exactly as designed; the build is green only
+because somebody signed. Recorded here because an accountability mechanism that logs
+only its own existence, and not the decisions taken under it, is decoration.
+
+### Simulation before merge
+
+`communitySimulation.test.js` walks the whole assessment for 735 residents across
+four languages — every age boundary the sources define (19/20, 59/60, 79/80, 94/95),
+both sexes plus "prefer not to say", every measurement state, every falls answer.
+It asserts that all four languages ask the SAME questions of the same person, that
+nothing broken reaches a screen, that no raw figure or exact age can be stored, and
+that **skipping both measurements changes neither the score nor the routing**.
+
+It found `CP34` on its first run.
+
+### Still open on this surface
+
+- **`CD13`** — the three safety-critical strings ship unreviewed in Malay, Chinese
+  and Tamil. Waived for this release by the owner, not bypassed. See `CHANGELOG.md`.
+- **`CP30`** — worst-case English report page 1 is 2px from clipping. Routed around,
+  not fixed.
+- **`CP28`** — the chat's step badges are English in all four languages.
+- **`CD21`** / **`CD23`** — source wording and whether re-measurement is real.
+
+---
+
 ## Shipped in [2.1.2] / [2.1.3] — was *[Unreleased] — on `claude/nexus-community-portal`*
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md); `§` references are

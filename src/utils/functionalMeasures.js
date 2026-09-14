@@ -143,6 +143,7 @@ const P60 = PERCENTILE_LEVELS.indexOf(60);
 const P80 = PERCENTILE_LEVELS.indexOf(80);
 
 // Strassmann reports quartiles, so its columns are indexed separately from grip's.
+const P025_STS = STS_60S_PERCENTILE_LEVELS.indexOf(2.5);
 const P25_STS = STS_60S_PERCENTILE_LEVELS.indexOf(25);
 const P75_STS = STS_60S_PERCENTILE_LEVELS.indexOf(75);
 
@@ -280,6 +281,31 @@ export const sitToStandResult = (input) => {
         const stsRow = rowForAge(STS_60S_NORMS_REPS[normalisedSex], age);
         if (stsRow === null) return { ok: false, reason: 'no-reference-for-age', value, protocol };
 
+        /*
+          ==================================================================
+          ⚠️ THE WRONG-STOPWATCH GUARD, WHICH DID NOT FIRE WHERE IT MATTERS
+          ==================================================================
+
+          The case this feature most needs to survive: a 55-year-old measured at a
+          community event with a THIRTY-SECOND stopwatch, who types 14. Read against
+          one-minute norms that is "below the usual range", stated confidently, when
+          the same count over thirty seconds is unremarkable.
+
+          Three things were supposed to stand against it and none did. The prompt
+          names the duration, which is wording, not a guard. `protocol-age-mismatch`
+          compares the age-derived protocol to itself from both call sites, so it is
+          unreachable. And the flat floor of 10 did not catch 14 — a thirty-second
+          count for an adult sits around 8 to 25, entirely inside the old window.
+
+          The floor is now THE LOWEST VALUE THE SOURCE PUBLISHES for this person,
+          `p2.5`. Below that, the number is not merely low, it is outside the range
+          the paper describes at all — which is exactly what a thirty-second count
+          looks like when read as a minute. The band is still computed and shown,
+          because the number may be genuine; what changes is that it is shown WITH
+          the warning, rather than as a confident finding.
+        */
+        const belowPublishedRange = value < stsRow.p[P025_STS];
+
         // Quartile cuts. "Typical" is the interquartile range inclusive, so the
         // boundary values themselves read as typical rather than as outliers.
         let stsBand = 'typical';
@@ -293,7 +319,13 @@ export const sitToStandResult = (input) => {
             unit: 'reps',
             protocol,
             seconds: spec.seconds,
-            implausibleForProtocol: implausible,
+            implausibleForProtocol: implausible || belowPublishedRange,
+            // Which DIRECTION, so the copy can say the right thing. It used to say
+            // "unusually high" in every language while also firing on counts far too
+            // low — telling a 65-year-old who could not stand up once that their
+            // count was unusually high.
+            implausibleDirection: (implausible ? value > plausible.max : false) ? 'high' : 'low',
+            maybeWrongProtocol: belowPublishedRange,
             ageBand: ageBandLabel(age),
             sex: normalisedSex,
             typicalRange: [stsRow.p[P25_STS], stsRow.p[P75_STS]],
@@ -314,6 +346,8 @@ export const sitToStandResult = (input) => {
         protocol,
         seconds: spec.seconds,
         implausibleForProtocol: implausible,
+        implausibleDirection: value > plausible.max ? 'high' : 'low',
+        maybeWrongProtocol: false,
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         belowAverageThreshold: row.belowAverage,
