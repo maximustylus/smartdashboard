@@ -191,6 +191,16 @@ export const MEASURES_COPY = {
         hrCaution: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
         hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Please speak to a doctor before you increase how hard you exercise.',
 
+        /*
+          ⚠️ THIS SENTENCE IS DOING WORK THE COLOUR USED TO DO. The zone ramp was
+             teal until the owner asked for the conventional grey/blue/green/amber/
+             red on 2026-09-14. Page 1 of this same report prints a traffic light in
+             which RED MEANS "HIGH NEEDS", so a red top zone can read as a second
+             verdict to somebody holding both pages. The top zone labels an
+             intensity; reaching it is neither good nor bad. Delete this line and
+             that ambiguity comes back with nothing carrying it.
+        */
+        hrColourNote: 'These are the usual exercise zone colours. They do not mean the same thing as the colour of your result on page 1.',
         hrZoneNames: {
             'very-light': 'Very light',
             light: 'Light',
@@ -302,6 +312,7 @@ export const MEASURES_COPY = {
         hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
         hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Sila berbincang dengan doktor sebelum anda menambah kekuatan senaman anda.',
 
+        hrColourNote: 'Ini warna zon senaman yang biasa digunakan. Ia tidak bermaksud perkara yang sama seperti warna keputusan anda di muka surat 1.',
         hrZoneNames: {
             'very-light': 'Sangat ringan',
             light: 'Ringan',
@@ -413,6 +424,7 @@ export const MEASURES_COPY = {
         hrCaution: '不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。',
         hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请先与医生谈一谈。',
 
+        hrColourNote: '这些是运动强度分区的常用颜色。它们的含义和第 1 页您的结果颜色不同。',
         hrZoneNames: {
             'very-light': '很轻',
             light: '轻',
@@ -524,6 +536,7 @@ export const MEASURES_COPY = {
         hrCaution: 'வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்த வேண்டாம். மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள்.',
         hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் மருத்துவரிடம் பேசுங்கள்.',
 
+        hrColourNote: 'இவை உடற்பயிற்சி மண்டலங்களுக்குப் பயன்படுத்தப்படும் வழக்கமான நிறங்கள். பக்கம் 1 இல் உள்ள உங்கள் முடிவின் நிறத்தின் பொருள் இவற்றுக்கு இல்லை.',
         hrZoneNames: {
             'very-light': 'மிக இலகுவானது',
             light: 'இலகுவானது',

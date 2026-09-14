@@ -7,25 +7,55 @@
  * shown; this renders it and never recomputes anything.
  *
  * ------------------------------------------------------------------------------
- * ⚠️ THE RAMP IS TEAL, AND IT IS TEAL SPECIFICALLY TO AVOID RED
+ * ⚠️ THE RAMP IS THE CONVENTIONAL ONE: GREY, BLUE, GREEN, AMBER, RED
  * ------------------------------------------------------------------------------
  *
- * The reference chart this was drawn from runs green through yellow to red, which
- * is the convention for training zones. It cannot be used here. Page 1 of this
- * same report prints a traffic light, where RED MEANS "HIGH NEEDS". A red band at
- * the top of a heart rate table on page 2 would read, to a resident holding both
- * pages, as a second verdict about them. It is not one: the top zone is a label
- * for an intensity, and reaching it is neither good nor bad.
+ * Owner's decision, 2026-09-14: *"I need heart rate chart to follow the heart rate
+ * zone colours. Garmin, Polar, Apple, Acxta etc uses those heart rate colours"*.
  *
- * So the ramp is a sequential teal, light to dark, which encodes ORDER without
- * encoding ALARM. Checked with `scripts/validate_palette.js`: lightness descends
- * monotonically (0.88, 0.66, 0.37, 0.14, 0.03), adjacent steps stay separable
- * under protanopia and deuteranopia, and each row's text colour is chosen against
- * its own background rather than set once for all five.
+ * This overrides an earlier teal ramp chosen here to avoid red. The objection was
+ * raised and settled by the owner, and the reasoning is recorded rather than
+ * deleted, because it names a real hazard that the copy now has to carry instead:
  *
- * Colour is never the only channel. Every row prints its own beats-per-minute
- * range and its name in words, so the table survives being photocopied in black
- * and white, which is how a fair number of these reports will actually be read.
+ *     Page 1 of this same report prints a traffic light in which RED MEANS
+ *     "HIGH NEEDS". A red band at the top of a heart rate table on page 2 can
+ *     read, to a resident holding both pages, as a second verdict about them.
+ *     It is not one. The top zone labels an INTENSITY, and reaching it is
+ *     neither good nor bad.
+ *
+ * Since the colour can no longer carry that distinction, `hrColourNote` says it in
+ * words, directly under the table. The residents most likely to conflate the two
+ * are the ones who got a red result on page 1, which is exactly the group this
+ * portal exists to reach, so this is not a decorative caption.
+ *
+ * ------------------------------------------------------------------------------
+ * ⚠️ WHAT WAS CHECKED, AND THE ONE CHECK THAT DELIBERATELY FAILS
+ * ------------------------------------------------------------------------------
+ *
+ * `scripts/validate_palette.js "#94a3b8,#2563eb,#15803d,#f59e0b,#b91c1c" --mode light`
+ *
+ *     PASS  lightness band          all five inside the band
+ *     PASS  CVD separation          worst adjacent pair ΔE 17.4 protan (floor is 8)
+ *     PASS  normal-vision floor     worst adjacent pair ΔE 24.4 (floor is 15)
+ *     FAIL  chroma floor            #94a3b8 "reads gray"
+ *     WARN  contrast vs surface     relief required: visible labels
+ *
+ * The chroma failure is the intended reading, not a defect: zone one IS grey in
+ * every product the owner named. The contrast warning is discharged by the labels
+ * below, which the skill treats as the required relief rather than as optional.
+ *
+ * ⚠️ THE FIRST DRAFT OF THIS PALETTE FAILED, AND IT FAILED WHERE IT ALWAYS DOES.
+ *    Straight orange beside straight red (`#f97316` / `#f87171`) came back at
+ *    ΔE 8.0 for NORMAL vision — under the floor of 15, meaning readers with full
+ *    colour vision cannot reliably tell zone four from zone five. Amber and a
+ *    deeper red separate them while still reading as the convention.
+ *
+ * Colour is never the only channel here. Every row prints its own beats-per-minute
+ * range INSIDE its swatch and its name in words beside it, so the table survives
+ * both colour-vision deficiency and a greyscale photocopy, which is how a fair
+ * number of these reports will actually be read. That matters more than usual for
+ * this ramp: blue and green sit within 0.005 of each other in relative luminance,
+ * so a photocopy cannot separate them and the words are doing the work.
  *
  * ------------------------------------------------------------------------------
  * ⚠️ NO ZONES AT ALL FOR A RESIDENT WHO REPORTED SYMPTOMS ON EXERTION
@@ -43,16 +73,24 @@ import { measuresCopyFor } from '../data/measuresCopy';
 import { zonesFor } from '../utils/heartRateZones';
 
 /**
- * Sequential teal. `bg` is the row's fill, `fg` is chosen against that fill: the
- * two light steps take slate-900, the two dark steps take white. One shared text
- * colour across a ramp this long fails at one end or the other.
+ * The conventional training-zone ramp. `fg` is chosen PER ROW against that row's
+ * own fill, not set once for all five: this ramp runs light, dark, dark, light,
+ * dark, so a single text colour is unreadable at one end or the other.
+ *
+ * Text contrast on each swatch, which is what a resident actually has to read:
+ *
+ *     grey   #94a3b8 + #0f172a ... 6.6:1
+ *     blue   #2563eb + #ffffff ... 5.1:1
+ *     green  #15803d + #ffffff ... 5.0:1
+ *     amber  #f59e0b + #0f172a ... 7.9:1
+ *     red    #b91c1c + #ffffff ... 6.5:1
  */
 const RAMP = Object.freeze({
-    'very-light': { bg: '#f0fdfa', fg: '#0f172a', border: '#99f6e4' },
-    light: { bg: '#5eead4', fg: '#0f172a', border: '#5eead4' },
-    moderate: { bg: '#14b8a6', fg: '#042f2e', border: '#14b8a6' },
-    hard: { bg: '#0f766e', fg: '#ffffff', border: '#0f766e' },
-    maximum: { bg: '#042f2e', fg: '#ffffff', border: '#042f2e' },
+    'very-light': { bg: '#94a3b8', fg: '#0f172a', border: '#94a3b8' },
+    light: { bg: '#2563eb', fg: '#ffffff', border: '#2563eb' },
+    moderate: { bg: '#15803d', fg: '#ffffff', border: '#15803d' },
+    hard: { bg: '#f59e0b', fg: '#0f172a', border: '#f59e0b' },
+    maximum: { bg: '#b91c1c', fg: '#ffffff', border: '#b91c1c' },
 });
 
 /*
@@ -98,7 +136,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
     const spreadNote = (m.hrSpreadNote || '').replace('11', String(spreadBpm));
 
     return (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 3 }}>
             <div>
                 <div style={{ fontWeight: 900, fontSize: 11, color: '#0f172a' }}>{m.hrHeading}</div>
                 <div style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.45, marginTop: 2 }}>{m.hrIntro}</div>
@@ -109,7 +147,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                 <span style={{ fontWeight: 900, color: '#0f766e' }}>{hrMax} {m.hrBpm}</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {zones.map((zone) => {
                     const skin = RAMP[zone.id];
                     return (
@@ -122,7 +160,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                             <div
                                 style={{
                                     background: skin.bg, border: `1px solid ${skin.border}`,
-                                    color: skin.fg, borderRadius: 6, padding: '3px 8px',
+                                    color: skin.fg, borderRadius: 6, padding: '2px 8px',
                                     fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap',
                                     width: 86, textAlign: 'center', flexShrink: 0,
                                 }}
@@ -157,7 +195,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                 })}
             </div>
 
-            <div style={NOTE}>{m.hrTalkTest}</div>
+            <div style={NOTE}>{m.hrTalkTest} {m.hrColourNote}</div>
             {/*
               Shown only to somebody who said they take one. Printing it for
               everybody would turn a specific, useful warning into boilerplate that

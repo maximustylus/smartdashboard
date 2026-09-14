@@ -58,6 +58,18 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
 ### Changed
 
+- **The heart rate zones use the conventional colours** — grey, blue, green, amber,
+  red — as Garmin, Polar and Apple use them (`CD27`). They were teal, chosen to
+  avoid red because page 1 prints a traffic light in which red means "High Needs".
+  That hazard is real and did not go away with the decision, so a sentence now
+  carries it: `hrColourNote` says under the table, in all four languages, that these
+  are the usual exercise zone colours and do not mean the same thing as the result
+  colour. The first palette draft failed validation where this palette always does —
+  straight orange beside straight red at ΔE 8.0 for **normal** vision, under the
+  floor of 15. Amber and a deeper red separate them at ΔE 24.4 while still reading
+  as the convention. Every row also prints its range inside its swatch and its name
+  in words, which is what makes the table survive a greyscale photocopy: blue and
+  green are within 0.005 of each other in relative luminance.
 - **The measurements page is now page 2**, ahead of governance, at the owner's
   request. Governance is last and its footer is numbered from `totalPages` rather
   than a literal, so the printed numbering cannot disagree with the order the PDF is
@@ -82,7 +94,7 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
   headroom came back unchanged, which looked like good news and had measured nothing.
   Space was recovered from spacing and repeated wording, **not from type size** — 8px
   on A4 is about six points and these readers are mostly over 60. Tightest page 2 is
-  now 19px spare (Tamil, with the medication caution). Page 1 is untouched and still
+  now 28px spare (Tamil, with the medication caution). Page 1 is untouched and still
   has the 2px worst case recorded under **`CP30`**.
 
 ## Shipped in [2.13.0] — `P9`, the functional measures

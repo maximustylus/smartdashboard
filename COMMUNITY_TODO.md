@@ -533,14 +533,49 @@ the suppression depend on the calculation succeeding. Medication (`medFlag`) doe
 NOT suppress: it makes the estimate wrong in a known direction, so the table is
 shown with a caution, because hiding it would remove the explanation along with it.
 
-### The ramp is teal, and deliberately not the reference image's red
+### `CD27` — the ramp is the conventional one, and the copy now carries what the colour used to
 
-Page 1 of the same report prints a traffic light where **red means "High Needs"**. A
-red top zone on page 2 would read, to somebody holding both pages, as a second
-verdict about them. It is not one: the top zone labels an intensity, and reaching it
-is neither good nor bad. Sequential teal encodes order without encoding alarm;
-lightness descends monotonically and every row also prints its own bpm range and its
-name in words, so the table survives being photocopied in black and white.
+Built teal first, to avoid red. Owner's decision, 2026-09-14: *"I need heart rate
+chart to follow the heart rate zone colours. Garmin, Polar, Apple, Acxta etc uses
+those heart rate colours"*. Applied: **grey, blue, green, amber, red.**
+
+The objection that produced the teal ramp was raised before the decision and is not
+retracted by it, because it names a hazard that still exists:
+
+> Page 1 of this same report prints a traffic light in which **red means "High
+> Needs"**. A red top zone on page 2 can read, to a resident holding both pages, as
+> a second verdict about them. It is not one. The top zone labels an INTENSITY, and
+> reaching it is neither good nor bad. The residents most likely to conflate the two
+> are the ones who got a red result on page 1, which is the group this portal exists
+> to reach.
+
+Since the colour can no longer carry that distinction, a sentence does:
+`hrColourNote`, printed directly under the table in all four languages, says these
+are the usual exercise zone colours and do not mean the same thing as the result
+colour. Deleting that line puts the ambiguity back with nothing holding it.
+
+**The first draft of the palette failed a check, and it failed where this palette
+always does.** Straight orange beside straight red came back at ΔE 8.0 for NORMAL
+vision, under the floor of 15 — readers with full colour vision could not reliably
+tell zone four from zone five:
+
+    scripts/validate_palette.js "#94a3b8,#2563eb,#15803d,#f59e0b,#b91c1c" --mode light
+
+    PASS  lightness band        all five inside the band
+    PASS  CVD separation        worst adjacent pair ΔE 17.4 protan  (floor 8)
+    PASS  normal-vision floor   worst adjacent pair ΔE 24.4         (floor 15)
+    FAIL  chroma floor          #94a3b8 "reads gray"
+    WARN  contrast vs surface   relief required: visible labels
+
+The chroma failure is the intended reading, not a defect: zone one **is** grey in
+every product the owner named. The contrast warning is discharged by the labels.
+
+Colour is never the only channel. Every row prints its bpm range **inside** its
+swatch and its name in words beside it. That matters more than usual for this ramp:
+blue and green sit within 0.005 of each other in relative luminance, so a greyscale
+photocopy cannot separate them and the words are doing the work. Text contrast on
+each swatch is 5.0:1 or better, with the foreground chosen per row, because the ramp
+runs light, dark, dark, light, dark and one shared text colour fails at an end.
 
 ### Headroom, measured — and it caught a real clip
 
@@ -564,11 +599,14 @@ page's existing "Compared against" block.
 
     scenario             lang  page  natural  spare
     measured             en    2        1024     99
-    measured             ta    2        1076     47
-    measured-medication  ta    2        1104     19   ← tightest page 2
+    measured             ta    2        1069     54
+    measured-medication  ta    2        1095     28   ← tightest page 2
     measured-symptoms    en    2         818    305
-    measured-refused     zh    2         814    309
+    measured-refused     zh    2         795    328
     (page 1 unchanged: worst case still 2px — `CP30`, untouched by this work)
+
+Adding `hrColourNote` cost the tightest page 8px of its margin, which was taken back
+out of chip padding and row gaps — spacing again, never type size.
 
 ### ⚠️ `CD26` — TWO NEW PROHIBITIONS, AND THE GATE IS RED · **OWNER'S CALL**
 
