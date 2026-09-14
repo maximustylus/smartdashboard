@@ -111,7 +111,6 @@ describe('the heart rate block', () => {
     */
     const asRgb = (hex) => {
         const n = parseInt(hex.slice(1), 16);
-        // eslint-disable-next-line no-bitwise
         return `rgb(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255})`;
     };
 

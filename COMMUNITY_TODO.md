@@ -703,6 +703,50 @@ nonsense on the screen, where there are no pages and the sentence sent the reade
 looking for one. Copy shared by two media cannot describe the furniture of either,
 and `MeasurementsSection.test.jsx` now asserts no language mentions a page.
 
+
+---
+
+## The downloaded file itself, verified · `scripts/pdf-verify.mjs`
+
+Moving measurements to page 2 changed TWO things that had to change together: the
+order of the templates, and the order the builder binds them in. If only one had
+moved, the printed footer would number the pages one way and the PDF would bind
+them the other — which looks like a rendering glitch and is actually a wrong
+document. `pdf-headroom.mjs` cannot see this: it measures the templates and never
+opens a PDF.
+
+So the real file was checked, by driving the app and tapping Download:
+
+    case                    pages   page 1     page 2       page 3
+    gave a measurement        3     15 links   1 link       6 links
+    skipped the questions     2     15 links   6 links      —
+
+Fifteen links on page 1 are the resource cards. The single link on the
+measurements page is the header's own, which every page carries. The six are the
+Healthier SG card, which exists on the governance template and nowhere else — so
+finding them identifies that page beyond doubt, and they are **last in both
+shapes**. Footers read `PAGE 2 OF 3` and `PAGE 3 OF 3` with measurements, and
+`PAGE 2 OF 2` without.
+
+⚠️ **The assertions are about links because the pages are rasterised JPEGs.** The
+finished PDF has no text layer at all, so `pdftotext` returns nothing and there is
+no heading to match on. The annotations are the only structured content that
+survives.
+
+**The check was verified by breaking the thing it guards**, rather than by being
+green once. Binding governance before measurements while leaving the templates
+alone — the exact half-reorder described above — produced:
+
+    ⚠️  the downloaded report is wrong:
+      - gave a measurement: the last page carries no healthiersg.gov.sg link, so governance is not last
+      - gave a measurement: governance links found on page 2, which is not the last page
+    exit 1
+
+A check that has never failed proves nothing, and this repository has already
+shipped one that measured nothing: the headroom fixtures lacked `scale`, so the
+meter did not render and the result came back unchanged, which looked like good
+news.
+
 ---
 
 ## ⚠️ `CP30` — the printed report is 2px from losing content, today
