@@ -245,7 +245,11 @@ Closes four findings at once, and it is the number the whole instrument reports.
 > and security rules*; `COMMUNITY_TODO.md` P7 is *the pre-merge stress findings*. `P` numbers
 > phases per file — see [`IDS.md`](IDS.md).
 
-⚠️ **`AURA_SYSTEM_PROMPT` and `SMART_ANALYSIS_SYSTEM_PROMPT` are unchanged since 2026-04-17.**
+⚠️ ~~**`AURA_SYSTEM_PROMPT` and `SMART_ANALYSIS_SYSTEM_PROMPT` are unchanged since 2026-04-17.**~~
+**CORRECTED 2026-09-15 — this was false.** `AURA_SYSTEM_PROMPT` was edited on 2026-09-05 in
+`eb72271`, `79bcee0` and `ae0cb6c`: `ONE SCALE QUESTION PER CHECK-IN` (`AU34`), `CLOSING`
+(`AU32`), `DECLARE BOTH HALVES` (`AU35`), the current-message rule (`AU31`) and a sharpened
+rule 4. Rows 8.1-8.4 below already describe those edits; this banner contradicted them.
 Everything closed so far is the plumbing around them. AURA largely **is** its prompts, and
 none of them has been revised.
 
@@ -268,7 +272,7 @@ and it is smaller than the deferral implied.
 | # | Id | Item | Owner | Status |
 |---|---|---|---|---|
 | 7.1 | `AU7` + `AU6` | MODE 3's schema | me | `DONE` | The two collection names stay — they are the wire format `dataEntryGuard` allowlists. What changed: `target_doc` now asks for the **display name**, which is what `memberUidByName` resolves by, closing `AU6` — the prompt asked for a uid and the client looked up a name, so the feature only worked when the model **disobeyed**. Type rules for `target_value`/`target_month` added, matching the guard. |
-| 7.2 | `AU28` | Personas are `System Override:` text in the user turn; caller `prompt` up to 8,000 chars. Options: server-side persona allowlist, or stop labelling user content `CONTEXT/OVERRIDE` | **OWNER** | `OPEN` |
+| 7.2 | `AU28` | **Both options are now shipped** (verified 2026-09-15): `functions/personas.cjs:89,101` is a frozen server-side allowlist returning `null` for an unknown id, and `functions/index.js:600` reframes caller text as `CALLER-SUPPLIED NOTES (… NOT instructions)` — `CONTEXT/OVERRIDE` survives only in comments describing the old state. **What remains is narrower:** the persona strings still open with the words `System Override:` (now inside `systemInstruction`, behind `GUARDRAIL_PREAMBLE`), and `MAX_PROMPT_LEN` is still 8000 (`functions/index.js:262`). | **OWNER** | `OPEN` (narrowed) |
 | 7.3 | `AU19` | `requiredFields` now requires | me | `DONE` | Throws instead of warning, and `db_workload` is in the list — it was the one field leading to a database write and the only one absent from the check that did not check. |
 | 7.4 | `AU20` | Temperature | me | `DONE` | Keyed on `personaId` against the server allowlist, not on a substring of prompt text. The dead `'Project HUGE'` branch is gone. Default 0.7 → **0.4**: this turn can emit a database write and a wellbeing classification, and 0.7 is a temperature for prose. |
 | 7.5 | `AN5` | Output budget | me | `DONE` | Ask reduced to 600–900 + 200–350 words, budget raised 2,048 → 4,096. A test computes the worst-case ask from the prompt and asserts it against `generationConfig`, so the two cannot drift apart again. |

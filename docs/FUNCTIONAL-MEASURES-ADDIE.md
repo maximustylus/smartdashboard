@@ -1,6 +1,6 @@
 # Functional measures in NEXUS Community: ADDIE ideation
 
-**Status:** `PROPOSED` — ideation revised, nothing built. **Phase:** `OWNER DECISION`
+**Status:** `SHIPPED` — built in v2.13.0, extended in v2.14.0. **Phase:** `HISTORICAL`
 before any build hand-off.
 **Written:** 2026-09-08 · **Ledger ids opened:** `CD17`–`CD25` (owner's).
 **Scope:** the `/individuals/*` surface. Roster side untouched.
@@ -8,6 +8,19 @@ before any build hand-off.
 their tables, protocols and licence implications have not been independently verified in
 this repository. That review is part of `CD21` and precedes implementation.
 
+> ⚠️ **HISTORICAL — this is the design record, not a description of what shipped.**
+> It is frozen at the point of hand-off. The feature was built in **v2.13.0** and extended
+> in **v2.14.0**; for what actually exists, read `CHANGELOG.md` and `COMMUNITY_TODO.md`.
+> Decisions this document lists as open have mostly been settled — `CD17`, `CD18`, `CD19`,
+> `CD20`, `CD22` and `CD25` are recorded as settled in the code and the changelogs, and
+> `CD26`, `CD27` and `CD28` were opened after it was written and appear nowhere below.
+> **`CD21` and `CD23` are the two that genuinely remain with the owner.**
+>
+> Two specifics a reader should not take from this document: §3.2's five-times
+> sit-to-stand *in seconds* was reversed by Revision 1 and never shipped (the protocols
+> are 60-second and 30-second, counted in repetitions), and §5's deferral of heart rate
+> behind `CD24` was overtaken — a heart-rate block shipped in v2.14.0 under `CD27`.
+>
 > **This document does not authorise a build.** Nine decisions in §6 belong to the
 > owner, and four of them (`CD17`, `CD18`, `CD19`, `CD25`) determine what is built
 > and what a member of the public is told about their own body. `COMMUNITY_TODO.md`

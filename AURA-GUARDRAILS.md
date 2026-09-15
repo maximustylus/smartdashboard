@@ -325,7 +325,7 @@ language model. Only the rows marked **CODE** fail closed.
 | **P3** Source over invention | **PROMPT** | Preamble forbids invented citations and requires **every** reference to be marked `model-recalled (unverified)`. ⚠️ It does **not** offer a `verified` label, because AURA has **no retrieval** and could never truthfully apply one: *"Never label anything 'verified'"*. An earlier version of this row said the preamble asks for one or the other, which described an option the prompt forbids. | ⚠️ instructed |
 | **P4** Surface conflicts | **PROMPT** | Preamble forbids hedging between two authorities and requires a choice with a reason. Not machine-checkable. | ⚠️ instructed |
 | **P5** Every element earns its place | **PROMPT** | Preamble forbids padding and decorative structure. Not machine-checkable. | ⚠️ instructed |
-| **P6** Classify before you paste | ❌ **NOT ENFORCED** | ⚠️ **The attachment path accepts five files of any size and any declared type with no scan, no size bound and no log** (`AU15`, `AU17`). This rule's own controlling documents are the cluster generative AI policy and PDPA. **AURA is not currently a control for P6 and must not be described as one.** | ❌ **gap** |
+| **P6** Classify before you paste | ❌ **NOT ENFORCED** | ⚠️ ~~**The attachment path accepts five files of any size and any declared type with no scan, no size bound and no log**~~ — **STALE, corrected 2026-09-15.** `AU15` shipped `functions/attachmentRules.cjs`: `MAX_ATTACHMENTS 5`, per-file and total character bounds, a five-entry `ALLOWED_ATTACHMENT_TYPES`, wired at `functions/index.js:329` and audit-logged at `:650`. **The ❌ verdict stands** — what is still absent is CLASSIFICATION, which `attachmentRules.cjs:20` says itself. Size, type and logging are bounded (`AU15`, `AU17`). This rule's own controlling documents are the cluster generative AI policy and PDPA. **AURA is not currently a control for P6 and must not be described as one.** | ❌ **gap** |
 | **P7** A named human answers | **CODE + PROMPT** | The MODE 3 write requires a human click; the analysis is lead-only (`AN4`). The `.docx` export, both `smart_database` audit rows and the archived year-end report carry an AI-provenance footer (Rule 12). The preamble tells the model to present output as a draft. ⚠️ **Reports archived before 2026-08-24 carry none**, and the reader shows the panel only when the field is present. | ✅ partial |
 | **8** Surgical edits | **PROMPT** | Preamble requires clause-level edits and forbids unrequested rewrites. | ⚠️ instructed |
 | **9** Read before you write | **PROMPT** | Preamble requires the model to quote the controlling clause it relies on, not merely to have been given it. | ⚠️ instructed |
@@ -341,8 +341,11 @@ language model. Only the rows marked **CODE** fail closed.
 
 *Per P1. This block is required and is not omitted when empty.*
 
-1. **P6 is not implemented and AURA is not a control for it.** The attachment path is
-   unrestricted (`AU15`). Closing it is `AURA-TODO.md` P1.2 and is not done.
+1. **P6 is not implemented and AURA is not a control for it.** ~~The attachment path is
+   unrestricted (`AU15`). Closing it is `AURA-TODO.md` P1.2 and is not done.~~
+   **CORRECTED 2026-09-15:** `AU15` is `DONE` (`AURA-TODO.md` row 1.2) and the path is
+   bounded for size, count, declared type and logging. The assumption still holds for the
+   reason P6 exists — nothing CLASSIFIES the content — but the sentence above was false.
 2. **P3 cannot be fully satisfied by AURA as built.** It has no retrieval, so every citation it
    produces is model-recalled by construction. The preamble requires it to say so; whether it
    does on every turn is **unverified** — no test can check model output.
@@ -355,7 +358,10 @@ language model. Only the rows marked **CODE** fail closed.
    controlling. Where they differ, they prevail.
 6. **This document has one named approver and no second reviewer.** Per Rule 12 that is stated
    rather than implied.
-7. **The preamble has never been run against a real model.** It adds roughly 4,500 characters to
+7. ~~**The preamble has never been run against a real model.**~~ **CORRECTED 2026-09-15 — it has.**
+   Three live runs on 2026-09-05; the result is `docs/P8.8-owner-read-2026-09-05.md`, and the
+   runner is `.github/workflows/verify-aura.yml`. The 18 verdicts in that read are still
+   unsigned, which is the live gap. It adds roughly 4,500 characters to
    `chatWithAura` and `generateSmartAnalysis` and roughly 600 to the two short endpoints. Every
    assertion in `functions/guardrails.test.js` is that the text **reached** the model; not one of
    them says the model **followed** it, and none can. What a preamble of this length does to
