@@ -29,6 +29,50 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.14.1] — `CP39`, the chips were drawn through their own heading
+
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
+
+### Fixed
+
+- **CP39** — on page 2 of the printed report, the first heart rate range chip was
+  drawn over the words "Beats per minute", which then read as struck out, and the
+  numbers in all five chips sat on the floor of their pill rather than in the middle
+  of it. Found in a **production download** a resident could have been handed, five
+  hours after v2.14.0 went live.
+
+The row was `alignItems: stretch`. The chip took the row's height and, being a plain
+padded block, grew upward into the headings. `alignItems: center` fixes that half.
+
+The other half is html2canvas: it places the text baseline lower in the line box than
+the browser does, so the digits sat **4.6 CSS px** below the centre of a 19px chip.
+Flex-centring the text inside the chip did not move it; an explicit height with a
+matching line height clipped the digits through the middle. What works is to leave the
+top padding at zero, hold the line box to exactly the font size, and put the whole 8px
+underneath — the box moves down around the text instead of the text moving inside the
+box. 1.7px below centre, at the same chip height, so headroom is unchanged.
+
+The app view is not rendered through html2canvas and needed none of this; it centres
+with flex and always did.
+
+### What this cost, and what it changed about how the report gets checked
+
+Nothing in the repository could see either half of this defect.
+
+    pdf-headroom.mjs   measures whether content FITS. It passed, correctly,
+                       through every broken state. Height was never the problem.
+    pdf-verify.mjs     checks page count and where links are stamped. Both right.
+    vitest             asserts the chips render with the right colours and the
+                       right numbers in them. They did.
+
+And **reading a crop did not see it either**. The first attempt at this fix cleared
+the collision, was eyeballed against a render, and left the digits exactly as low as
+they had been — the correction went into the commit message of the fix itself. The
+check that found it is a measurement, not a look: `pdftoppm` at 300dpi, then the ink
+bounding box inside each pill compared against the pill's own box.
+
+---
+
 ## Shipped in [2.14.0] — `P9b`, the measurements page gets a picture
 
 **The copy-review gate was cleared on 2026-09-15 by the repository owner's signature

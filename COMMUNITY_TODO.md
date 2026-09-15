@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 34 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP38` |
+| `DONE`, evidenced | 35 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` |
 | `OPEN`, mine | 2 | `CP28` (chat step badges are English in all four languages) · `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -71,7 +71,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 > ⚠️ **This table is the authoritative status for this surface.** `COMMUNITY_CHANGELOG.md`
 > carries an older *Known issues* table under its v2.1.2/2.1.3 entry; that one is a frozen
 > record of what that release knew and is labelled `HISTORICAL`. Read this one.
-> Last reconciled against the ledger body and the code: **2026-09-15, at v2.14.0.**
+> Last reconciled against the ledger body and the code: **2026-09-15, at v2.14.1.**
 
 **`CD13` opened 2026-08-23** — a native-speaker review of the 19 strings already
 shipped in ms/zh/ta. Everything translated so far is machine output (group 1 by
@@ -613,6 +613,50 @@ page's existing "Compared against" block.
 
 Adding `hrColourNote` cost the tightest page 8px of its margin, which was taken back
 out of chip padding and row gaps — spacing again, never type size.
+
+### `CP39` — the chips were drawn through their own heading · **FIXED in v2.14.1**
+
+Found five hours after v2.14.0 went live, in a **production PDF** — a report a
+resident could have been handed. Not in a preview, not by a test, not by the headroom
+script.
+
+    what it looked like   the first range chip was drawn OVER the words "Beats per
+                          minute", so the heading read as struck out, and the numbers
+                          in all five chips sat on the floor of their pill
+
+Two causes stacked in one block:
+
+1. The row was `alignItems: stretch`. The chip took the row's height and, as a plain
+   padded block, grew UPWARD into the headings. `alignItems: center` fixes this half.
+2. html2canvas places the text baseline lower in the line box than the browser does.
+   The digits sat **4.6 CSS px** below the centre of a 19px chip. Zero top padding, a
+   line box held to the font size, and the whole 8px underneath: the box moves down
+   around the text instead of the text moving inside the box. Now 1.7px, at the same
+   chip height, so headroom is untouched.
+
+### ⚠️ The lesson from `CP39`: three checks passed and a fourth was an eyeball
+
+This one is worth more than the fix. Everything this repository has for checking the
+report passed it, and each was right to:
+
+    pdf-headroom.mjs   measures whether content FITS inside the 1123px box. It
+                       passed through every broken state, correctly. Height was
+                       never the problem, and that is exactly what it cannot see.
+    pdf-verify.mjs     checks page count and which page the links are stamped on.
+                       Both were right.
+    vitest             asserts the chips carry the right colours and the right
+                       numbers. They did.
+
+**And then the eyeball failed too.** The first attempt at the fix cleared the
+collision, was checked by looking at a 300dpi crop, and left the digits exactly as low
+as they had been — the render was read as "centred" when it was 4.6px out. The defect
+only closed once it was *measured*: `pdftoppm` at 300dpi, then the ink bounding box
+inside each pill against the pill's own box. The numbers above come from that.
+
+The chip's `style` block in `HeartRateZones.jsx` carries this as a comment, because
+the four values in it look like typos for symmetric padding and are not.
+
+---
 
 ### ⚠️ `CD26` — TWO NEW PROHIBITIONS, AND THE GATE IS RED · **OWNER'S CALL**
 
