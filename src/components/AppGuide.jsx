@@ -24,8 +24,29 @@ const GUIDE_STEPS = [
         content: "Track the department's 'Social Battery.' Log your energy levels—anonymously via Ghost Protocol—to help the team balance clinical loads effectively."
     },
     {
-        title: "Roster: Auto-Healer",
-        content: "AURA's Zero-Conflict rostering architecture. It predicts case volumes and automatically routes the right skill-mix to the right wards."
+        /*
+          ⚠️ THIS PANEL DESCRIBED A PRODUCT THAT DOES NOT EXIST (`Q7`). It read:
+             "AURA's Zero-Conflict rostering architecture. It predicts case volumes
+             and automatically routes the right skill-mix to the right wards."
+
+             Nothing forecasts anything: `grep -rniE "forecast|predict"` over both
+             engines returns nothing, and there is no ward model at all. The live
+             path is `prepareRosterWrite` -> `generateRoster`, a cyclic rotation
+             assigning the lead of task *i* by `staffOrder[i % staff.length]` — it
+             reads no skills, no grades and no leave.
+
+             The constraint-aware engine that DOES respect those things,
+             `generateRosterV2`, is wired to the DEMO PATH ONLY (see the import
+             comment in `RosterView.jsx`), so the sentence was untrue for every
+             real user reading this guide. `README.md` carried the same claim and
+             was corrected in the 2026-09-10 rewrite; this was the last live copy
+             of it.
+
+             Anything added here must be true of the LIVE path, or say plainly
+             which mode it belongs to.
+        */
+        title: "Roster: Rotation and Swaps",
+        content: "Generate a rotation across your team over a date range, then work with it: request a swap and AURA narrows the list to colleagues eligible for that shift. Demo Mode runs a constraint-aware engine that also respects skill sets, leave and daily limits, and names every slot it could not fill rather than quietly leaving it out."
     },
     {
         title: "Admin Panel",
