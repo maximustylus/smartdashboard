@@ -8,7 +8,7 @@ data is handled, and how to raise a concern.**
 | **Card status** | ✅ **In effect.** Approved 2026-08-28 by **Muhammad Alif (owner)** — the named sign-off `AURA-GUARDRAILS.md` Rule 12 requires. The owner read draft v0.3 in full and approved it as written; the same session's `AU29` fix and 9.5 decision are folded into this version, recorded in the changelog below. |
 | **Card version** | 1.3 |
 | **Last updated** | 2026-09-06 |
-| **Describes** | NEXUS **v2.13.0** (app) · AURA engine tier **v2.3** · guardrails **v1.0** |
+| **Describes** | NEXUS **v2.14.0** (app) · AURA engine tier **v2.3** · guardrails **v1.0** |
 > **The app version on the "Describes" line is a factual pointer, not card content.**
 > It moves with `package.json` at each release and does NOT make a new card version
 > or require a fresh sign-off under `AURA-GUARDRAILS.md` Rule 12 — the card's

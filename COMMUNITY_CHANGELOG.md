@@ -29,7 +29,7 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
-## [Unreleased] — `P9b`, the measurements page gets a picture
+## Shipped in [2.14.0] — `P9b`, the measurements page gets a picture
 
 **The copy-review gate was cleared on 2026-09-15 by the repository owner's signature
 for the two heart-rate strings, on its own waiver line.** The 13 September waiver was
