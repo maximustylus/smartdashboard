@@ -4,19 +4,28 @@
 status is `COMMUNITY_TODO.md`** (its status table row for `CP10`/`CD10`, and §7.7 for
 group 1's provenance); when a group ships, update that file and then this one, not the
 other way round. `CD13` — the native-speaker review of what has been machine-translated —
-has its instrument at `docs/CD13-translation-review.xlsx` and has not been run.
+has its instrument at `docs/CD13-translation-review.xlsx` and **still has not been run**.
+
+> ⚠️ **Updated 2026-09-15.** Group 1's Malay rows below were corrected on 2026-09-13 and
+> this brief had drifted from what ships; they now match. Group 5 shipped and grew to
+> five safety-critical strings, two of which appeared in no earlier version of this
+> document. Groups 2, 3 and 4 are unchanged and still English only.
 
 The portal serves four languages, so each item needs **three** translations:
 **Bahasa Melayu (`ms`)**, **中文 (`zh`)**, **தமிழ் (`ta`)**.
 
-## Status (as of 2026-08-23)
+## Status (reconciled 2026-09-15, at v2.14.0)
 
 | Group | What it is | State |
 |---|---|---|
-| **1** — the two new questions | 9 strings | ✅ **shipped**, machine-translated, **unreviewed** |
+| **1** — the two new questions | 9 strings | ✅ **shipped**, machine-translated, **unreviewed**. Four Malay rows corrected 2026-09-13 |
 | **2** — in-chat action cards | 49 strings | ⬜ English only |
 | **3** — the notices | 6 blocks | ⬜ English only |
 | **4** — the printed handover slip | 24 strings | 🟡 **the 10 flag lines shipped**, bilingual; the other 14 English only |
+| **5** — functional measures | 49 strings | ✅ **shipped** v2.13.0 / v2.14.0, machine-translated, **unreviewed**. ⚠️ **5 are safety-critical and live under owner waivers** |
+
+**Nothing in this brief has been read by a native speaker.** Groups 1 and 5 are live in
+all four languages on that basis.
 
 ## What changed about the position, and why
 
@@ -84,7 +93,8 @@ Group 4, then Group 3.
 
 ## Group 1 — the two new questions · 9 strings · ✅ **SHIPPED, UNREVIEWED**
 
-`src/data/screeningChips.js` (chips) and `src/components/AuraChat.jsx` (prompts).
+`src/data/screeningChips.js` (chips) and `src/data/communityChatCopy.js` (prompts —
+they moved out of `AuraChat.jsx` when the copy was extracted and keyed).
 All four languages now ask both questions. **Please review the back-translations
 below** — they are machine translations and nobody who reads Tamil, Chinese or
 Malay has checked them.
@@ -134,7 +144,7 @@ ground?*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh — termasuk tergelincir atau tersandung sehingga anda terjatuh ke lantai? | Two brief questions about balance. In the past 12 months, have you ever fallen — including slipping or tripping so that you fell to the floor? |
+| `ms` | Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai? | Two brief questions about balance. In the past 12 months, have you fallen, including slipping or tripping so that you fell to the ground or floor? ⚠️ **Corrected 2026-09-13**: was "ke lantai" (a floor), which excluded somebody who fell outdoors. |
 | `zh` | 关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。 | Two brief questions about balance. In the past 12 months, have you fallen? Including cases of slipping or tripping and falling to the ground. |
 | `ta` | சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட? | Two small questions regarding balance. In the past 12 months have you fallen — including slipping or tripping and falling on the ground? |
 
@@ -142,7 +152,7 @@ ground?*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Tiada jatuh | No falls |
+| `ms` | Tidak pernah jatuh | Have never fallen. ⚠️ **Corrected 2026-09-13**: was "Tiada jatuh", which the parser read as ONE fall — every Malay speaker who had never fallen was recorded as having fallen. The parser was fixed too; this wording is now what ships. |
 | `zh` | 没有跌倒 | Have not fallen |
 | `ta` | விழுந்ததில்லை | Have not fallen |
 
@@ -166,7 +176,7 @@ ground?*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Pernah jatuh, dan kini saya mengelak sesetengah aktiviti | Have fallen, and now I avoid some activities |
+| `ms` | Pernah jatuh, dan kini saya mengelak sesetengah aktiviti kerana takut jatuh | Have fallen, and now I avoid some activities because of a fear of falling. ⚠️ **Corrected 2026-09-13**: the fear clause was added at the owner's direction; without it the chip did not set `avoidsActivity`. |
 | `zh` | 曾经跌倒，现在会避免某些活动 | Have fallen before, now avoid certain activities |
 | `ta` | விழுந்தேன், இப்போது சில செயல்களைத் தவிர்க்கிறேன் | I fell, now I avoid some activities |
 
@@ -175,7 +185,7 @@ changes which programmes you can be referred to.*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Yang terakhir — adakah anda berdaftar dengan doktor Healthier SG? Ia menentukan program mana yang boleh dirujuk kepada anda. | The last one — are you registered with a Healthier SG doctor? It determines which programmes you can be referred to. |
+| `ms` | Soalan terakhir: adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai. | Last question: are you registered with a Healthier SG family doctor? This affects which programmes you can be referred to join. ⚠️ **Corrected 2026-09-13**: the earlier wording referred programmes TO YOU rather than you to programmes, and omitted "keluarga" (family). |
 | `zh` | 最后一个问题 — 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。 | Last question — have you registered with a Healthier SG family doctor? This affects which programmes you can be referred to. |
 | `ta` | கடைசியாக — நீங்கள் Healthier SG மருத்துவரிடம் பதிவு செய்துள்ளீர்களா? இது உங்களை எந்தத் திட்டங்களுக்குப் பரிந்துரைக்க முடியும் என்பதை மாற்றும். | Lastly — have you registered with a Healthier SG doctor? This will change which programmes you can be referred to. |
 
@@ -210,7 +220,7 @@ the two prompts read as questions a 70-year-old would answer rather than as form
 
 ---
 
-## Group 2 — the in-chat action cards · 36 strings · **clinically the most important**
+## Group 2 — the in-chat action cards · 49 strings · **clinically the most important**
 
 `src/components/AuraChat.jsx`, the `CTA` object. Ten tiers, each with a
 `primaryStep`, a `healthierSG` line and one to three `resources` lines. The
@@ -322,7 +332,7 @@ clearance and to call 995 if symptoms are severe.
 
 ---
 
-## Group 3 — the notices · 4 blocks
+## Group 3 — the notices · 6 blocks
 
 Prose, not chips. Meaning matters more than length.
 
@@ -426,34 +436,66 @@ flag lines, not substituted for it.
 
 ---
 
-## Group 5 — functional measures · 47 strings · ⚠️ **3 OF THEM GATE THE BUILD**
+## Group 5 — functional measures · 49 strings · ⚠️ **5 SAFETY INSTRUCTIONS, LIVE AND UNREAD**
 
-`src/data/measuresCopy.js`. Written 2026-09-12, machine-translated, on no screen
-yet. This is the copy for the two strength measurements: grip strength in
-kilograms, and how many times somebody can stand up from a chair.
+`src/data/measuresCopy.js`. Written 2026-09-12, machine-translated, and **now live**:
+shipped in v2.13.0 and v2.14.0, on the result screen and in the downloaded PDF. This
+is the copy for the two strength measurements — grip strength in kilograms and how
+many times somebody can stand up from a chair — plus the heart rate ranges added in
+v2.14.0.
 
-### ⚠️ Why three of these are not like anything else in this brief
+> ⚠️ **READ THIS BEFORE THE TABLES.** This group is no longer a gate to clear before
+> shipping. It shipped. **Five safety-critical strings are in front of residents in
+> Malay, Chinese and Tamil and no native speaker has read any of them.** They are live
+> on the repository owner's signed waivers, dated 2026-09-13 (three strings) and
+> 2026-09-15 (two more, added with the heart rate block).
+>
+> A review now is a **correction path, not a release gate**. Anything found is a fix to
+> ship, not a launch to unblock. That lowers the urgency and raises the stakes: the
+> text is already being read by the people it was written for.
+
+### ⚠️ Why five of these are not like anything else in this brief
 
 Everything in groups 1 to 4 is a question or an observation. A mistranslation there
 collects a wrong answer or reads awkwardly, which is bad and recoverable.
 
-**Three strings in this group are prohibitions.** Their entire job is to stop
-somebody doing something, and that is the category the owner has already ruled on:
-*"I have not machine-translated urgent clinical advice and will not."*
+**Five strings in this group exist to stop somebody, or to stop them mistaking what
+they are reading.** That is the category the owner had already ruled on:
+*"I have not machine-translated urgent clinical advice and will not."* All five went
+out machine-translated anyway, under waivers rather than review.
+
+⚠️ **They do not all carry the same force, and that is deliberate.**
+`doNotSelfTest` and `hrCaution` are prohibitions. `noComparison` and `notADiagnosis`
+are denials — they stop a reader taking something as a finding. `hrSuppressedSymptoms`
+**instructs rather than forbids**, by the owner's explicit choice on 2026-09-15. Do not
+flatten one into another.
 
 A prohibition degrades in a way nothing else in this brief does. *"Do not try this
 on your own"* can come back as *"you may prefer to have someone with you"* and read
 perfectly naturally, so a reviewer skimming for accuracy passes it. The sentence is
 fine. The instruction is gone.
 
-**So the one thing to check in this group is that each of the three is still an
-instruction, not a suggestion.** Everything else is secondary.
+**So the one thing to check is that each still lands as an instruction rather than a
+suggestion** — and, for `hrSuppressedSymptoms`, that a reader knows to see somebody
+before exercising harder. Everything else is secondary.
 
-These three are enforced in code, not by this document. `src/data/copyReview.js`
-holds the registry and the build fails once a screen shows them. Today it does not,
-so the build is green; it goes red the day the entry screen lands.
+These are enforced in code, not by this document. `src/data/copyReview.js` holds the
+registry and the build fails once a resident-facing module imports them.
 
-### The three that gate the build
+⚠️ **That gate fired exactly as designed, twice, and was opened by signature both
+times.** It went red on 2026-09-13 when the measures panel landed, and red again on
+2026-09-15 when `hrCaution` and `hrSuppressedSymptoms` were registered. Neither was
+cleared by a reviewer. `reviewedBy` is `null` for `ms`, `zh` and `ta` on **every**
+entry in the registry — verify with:
+
+```
+$ grep -c 'reviewedBy: Object.freeze({ ms: null, zh: null, ta: null })' src/data/copyReview.js
+11
+```
+
+Eleven out of eleven registry entries. Not one language of one string has been read.
+
+### The five that are gated
 
 **`measures.doNotSelfTest`** — EN: *Please do not try either test on your own now.
 These are measured with someone there to help.*
@@ -493,16 +535,47 @@ that is the right register for somebody who is not unwell.
 | `zh` | 这些数字描述的是您今天的力量。它们不是诊断，也没有改变您上面的结果。 | These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above. |
 | `ta` | இந்த எண்கள் இன்றைய உங்கள் வலிமையை விவரிக்கின்றன. இவை நோய் கண்டறிதல் அல்ல, மேலே உள்ள உங்கள் முடிவை இவை மாற்றவும் இல்லை. | These numbers describe your strength today. These are not a disease diagnosis, and they have not changed your result above. |
 
-### ⚠️ These three are NOT in the original review workbook — they are now
+**`measures.hrCaution`** — EN: *Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.*
+
+⚠️ Must read as a **prohibition**. It sits directly beneath a table of heart rate
+numbers, and a table of numbers reads as a set of targets. If this softens, what is
+left is the portal handing an older resident figures to chase.
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Jangan gunakan nombor ini untuk memaksa diri bersenam lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan. | Do not use these numbers to force yourself to exercise harder than usual. If you experience chest pain, dizziness or unusual shortness of breath, stop and get medical help. |
+| `zh` | 不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。 | Do not use these numbers to force yourself to exert more than usual. If chest pain, dizziness or unusual breathlessness appears, please stop and seek medical assistance. |
+| `ta` | வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்தக் கூடாது. மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள். | These numbers must not be used to strain yourself more than usual. If chest pain, dizziness or unusual breathlessness occurs, stop and seek medical help. ⚠️ Uses கூடாது ("must not"), replacing வேண்டாம் on 2026-09-14 — the latter also reads as "there is no need to". |
+
+**`measures.hrSuppressedSymptoms`** — EN: *You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Consult your healthcare professional before you increase how hard you exercise.*
+
+⚠️ **This one INSTRUCTS; it does not forbid.** That is the owner’s explicit choice,
+made on 2026-09-15 after the difference was put to them: it tells the reader to consult
+and does not forbid exercising harder first. Do not “correct” it to match the one above.
+It is the ENTIRE heart rate section for somebody who has already reported symptoms on
+exertion, so what must survive is that a reader knows to see someone first.
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda. | You told us that you experience symptoms when exercising hard, so we are not showing heart rate ranges. Refer to your health professional before you increase the intensity of your exercise. |
+| `zh` | 您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请咨询您的医护人员。 | You have told us that you feel unwell when you exert yourself, so we are not showing heart rate ranges. Before increasing exercise intensity, please consult your medical personnel. |
+| `ta` | நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் உங்கள் சுகாதார நிபுணரிடம் ஆலோசனை பெறுங்கள். | You have told us that symptoms occur when you exert yourself, so heart rate ranges are not being shown. Before increasing the difficulty of your exercise, seek advice from your health professional. |
+
+### ⚠️ Three of the five are NOT in the original review workbook — and two are in no workbook at all
 
 `docs/CD13-translation-review.xlsx` was built on 2026-08-24 for the nineteen strings
-in groups 1 and 4. It did not contain these three, so a review pass run against that
-file would have come back complete while leaving the build red and the prohibitions
-unread.
+in groups 1 and 4. It did not contain the three measures prohibitions, so a review pass
+run against that file would have come back complete while leaving them unread.
 
-Group 5 was appended to all three language sheets on 2026-09-13, marked in red, with
-the English, the shipped translation, a back-translation and a one-line statement of
-what must survive. About five minutes per language.
+Those three were appended to all three language sheets on 2026-09-13, marked in red,
+with the English, the shipped translation, a back-translation and a one-line statement
+of what must survive.
+
+⚠️ **`hrCaution` and `hrSuppressedSymptoms` are in no workbook at all.** They were
+written on 2026-09-14, revised on 2026-09-14 and 2026-09-15, and waived the same day.
+A reviewer working from the spreadsheet alone will not see them and will report the
+group complete. **Use the tables in this document for those two, or add them to the
+workbook first.** This is the same trap the paragraph above describes, one release on.
 
 ### ⚠️ Running these past other models is evidence, not a review
 
@@ -548,11 +621,14 @@ there so a reviewer can see what was intended, and the translation is what count
 | 2 — action cards | 49 | 147 |
 | 3 — notices | 6 blocks | 18 |
 | 4 — handover slip | 24 | 72 |
-| 5 — functional measures | 47 | 141 |
-| | **135** | **405** |
+| 5 — functional measures | 49 | 147 |
+| | **137** | **411** |
 
 Group 2 is the bulk and the highest clinical stakes; Group 1 is the one where every
-day it is missing costs data you cannot recover later. **Group 5 is the only one
-that can stop a build**, and only three of its strings do: the three prohibitions.
-Reading those three is roughly fifteen minutes per language, and it is the thing
-standing between the functional measures feature and being shippable.
+day it is missing costs data you cannot recover later.
+
+⚠️ **Group 5 is no longer what stands between the feature and shipping — it shipped.**
+Its five safety-critical strings are live in all four languages on the owner's signed
+waivers, read by nobody. Reading those five is roughly fifteen minutes per language,
+and it is now the difference between a correction caught early and one a resident
+finds. **Start there.**
