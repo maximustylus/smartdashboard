@@ -236,7 +236,7 @@ wants. Needs the owner's current console rules.
 | 8.1 | Opus-alone | Pin `@google/generative-ai`; strip the trailing whitespace in `package.json`. |
 | 8.2 | Opus-alone | `version-steward`: reconcile `package.json` `1.0.0` ↔ README `v1.5` ↔ badge `AURA v2.3`; create `CHANGELOG.md`; establish the first tag. |
 | 8.3 | Opus-alone | Replace the 7 `alert()` calls (`RosterView.jsx` 78, 80, 96, 99, 129, 141, 150) with the existing `ConfirmationModal`/a status banner, making `README.md:181` true. **Deferred until after P2** — four of the seven sit in paths P2 rewrites. |
-| 8.4 | **Fable-supervised** | Correct the case-volume / skill-mix claims (`README.md:35`, `AppGuide.jsx:28`). **BLOCKED on Q7** *(written `D7`)*. |
+| 8.4 | **Fable-supervised** | ~~Correct the case-volume / skill-mix claims~~ **DONE 2026-09-15.** `README.md` corrected 2026-09-10; `AppGuide.jsx:28` corrected today, with the reason recorded in the file so the sentence is not reinstated. `grep -rnE 'content: "[^"]*predicts case volumes' src/ README.md` → 0 hits (a plain grep returns 1: the comment recording why). The `Q7` BUILD decision remains open and is unaffected *(written `D7`)*. |
 | 8.5 | Opus-alone | Update `README.md:18` ("forces open its UI") and `:159` to match reality after P3/P6. |
 
 ---
@@ -579,7 +579,7 @@ this table is the status.
 | `Q4` | Partition the roster per team and year; the multi-institution question | **Answered by v2.0.0** — `teams/{teamId}/rosters/{year}`, a configurable domain allowlist |
 | `Q5` | Which directory roles are rosterable? | **Moot since v2.0.0** — the directory is gone; a member is rostered unless the lead sets `rostered: false` |
 | `Q6` | Deploy `firestore.rules` | **Answered 2026-08-18, deployed 2026-08-19**, and on every merge since |
-| `Q7` | The case-volume / skill-mix claim in the README and `AppGuide.jsx` is untrue | **OPEN.** A legitimate route exists (NHPPD × Average Daily Census → required hours → FTE → slot counts); nothing is built, and the claim should not be repeated until it is |
+| `Q7` | The case-volume / skill-mix claim in the README and `AppGuide.jsx` is untrue | **CLAIM REMOVED 2026-09-15; the BUILD decision is still open.** Both live copies are gone: `README.md` in the 2026-09-10 rewrite, and `AppGuide.jsx:28` today — it now describes the rotation and swap flow that exists, and marks the constraint-aware engine as Demo Mode only. Evidence: `grep -rnE 'content: "[^"]*predicts case volumes' src/ README.md` → **0 hits** (was 1). ⚠️ The plain `grep -rn "predicts case volumes"` still returns **1** — the block comment in `AppGuide.jsx` that quotes the removed sentence so it is not reinstated. No user sees it; the command above is scoped to the rendered `content:` strings for that reason. ⚠️ **The decision itself remains the owner's:** a legitimate route exists (NHPPD × Average Daily Census → required hours → FTE → slot counts); nothing is built, and the claim must not return until it is. |
 | `Q8` | Was the 6 May 2026 schema change a major version? | **Answered in effect** — `version-steward` shipped 1.6.0 as a minor with the argument noted; v2.0.0 has since been the major |
 | `Q10` | Is *non-exempt* the right word for AH7–AH10? | **Answered** — yes |
 | `Q11` | May a technologist hold a junior grade? | **Answered** — yes |
