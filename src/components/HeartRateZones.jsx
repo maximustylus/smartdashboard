@@ -135,7 +135,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                   "Light" and "Hard" beside somebody's own report look like a grade
                   until a heading says the word names an intensity.
                 */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 3 }}>
                     <div style={{ width: 86, flexShrink: 0, fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>
                         {m.hrColRange}
                     </div>
@@ -149,18 +149,59 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                 {zones.map((zone) => {
                     const skin = HR_ZONE_RAMP[zone.id];
                     return (
-                        <div key={zone.id} style={{ display: 'flex', alignItems: 'stretch', gap: 8 }}>
+                        <div key={zone.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             {/*
                               The range is printed INSIDE the colour, so the swatch is
                               never a bare decoration that has to be decoded from a
                               key somewhere else on the page.
                             */}
                             <div
+                                /*
+                                  ⚠️ ALL THE PADDING IS ON THE BOTTOM. THAT IS DELIBERATE,
+                                     AND IT IS NOT A TYPO FOR SYMMETRIC PADDING.
+
+                                     v2.14.0 shipped this block broken. The row was
+                                     `alignItems: stretch`, so the chip took the
+                                     row's height and, as a plain padded block, grew
+                                     UPWARD into the column headings — drawing the
+                                     pill straight through "Beats per minute" so it
+                                     read as struck out.
+
+                                     `alignItems: center` on the row fixes the
+                                     collision. It does not fix the second half of
+                                     the defect: html2canvas puts the text baseline
+                                     lower in the line box than the browser does, so
+                                     the digits sat on the floor of the pill.
+                                     Measured off a 300dpi render of a real
+                                     download, the shipped chip was 4.6 CSS px below
+                                     centre; flex-centring the text inside the chip
+                                     did not move it, and an explicit height with a
+                                     matching lineHeight clipped the digits in half.
+
+                                     What works is to leave the top padding at zero,
+                                     hold the line box to exactly the font size, and
+                                     put the whole 8px underneath. That pushes the
+                                     pill's own box down around the text instead of
+                                     trying to move the text inside the box. Same
+                                     chip height as before (~19px), 1.7px below
+                                     centre instead of 4.6px.
+
+                                     ⚠️ CHANGE THESE FOUR NUMBERS AND YOU MUST
+                                        MEASURE A RENDERED PDF, not read a headroom
+                                        number. The headroom script passed through
+                                        every broken state, correctly — height was
+                                        never the problem, and that is precisely
+                                        what it cannot see. The measurement is
+                                        pdftoppm at 300dpi plus an ink-bounding-box
+                                        check inside each pill; eyeballing a crop
+                                        called the 4.6px version "centred".
+                                                              */
                                 style={{
                                     background: skin.bg, border: `1px solid ${skin.bg}`,
-                                    color: skin.fg, borderRadius: 6, padding: '2px 8px',
+                                    color: skin.fg, borderRadius: 6, padding: '0 8px 8px',
                                     fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap',
-                                    width: 86, textAlign: 'center', flexShrink: 0,
+                                    lineHeight: 1,
+                                    width: 86, flexShrink: 0, textAlign: 'center',
                                 }}
                             >
                                 {/*
@@ -180,7 +221,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                                  below the table, and the rows say what the range is
                                  for and stop.
                             */}
-                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
                                 <div style={{ fontSize: 8.5, fontWeight: 800, color: '#0f172a', width: 62, flexShrink: 0 }}>
                                     {m.hrZoneNames[zone.id]}
                                 </div>
