@@ -1,0 +1,105 @@
+# Deletes a remote branch from inside Actions, where the workflow's GITHUB_TOKEN
+# has contents:write. Exists for the same reason `tag-release.yml` does: the
+# remote Claude sandbox's git credentials can push branches but not delete them
+# (403 on a delete refspec), so branch cleanup from a cloud session goes through
+# this dispatch instead.
+#
+# ⚠️ THIS IS A SHARPER TOOL THAN `tag-release.yml`, so it carries three interlocks
+#    that the tag workflow does not need:
+#
+#      1. THE DEFAULT BRANCH CAN NEVER BE DELETED. Read from the API at run time,
+#         not hard-coded, so renaming the default branch cannot defeat it. `main`
+#         and `master` are refused by name as well, belt and braces.
+#
+#      2. THE SHA MUST MATCH. You state the commit you believe the branch points
+#         at. If somebody pushed to it between you looking and this running, the
+#         run fails instead of deleting their work. Same idea as a compare-and-set.
+#
+#      3. UNMERGED WORK IS REFUSED BY DEFAULT. If the branch has commits the
+#         default branch does not, the run fails unless `acknowledge_unmerged` is
+#         the literal string `yes-drop-those-commits`. Deleting unmerged work
+#         should require saying so out loud.
+#
+#    On success it prints the restore command. A deleted branch whose commits are
+#    reachable from another ref is recoverable with `git branch <name> <sha>`;
+#    one whose commits are not becomes garbage in ~90 days on GitHub. Interlock 3
+#    is what stands between those two outcomes.
+name: Delete Branch
+'on':
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to delete, e.g. release/v2.12.4 (no refs/heads/ prefix)'
+        required: true
+      sha:
+        description: 'Full commit SHA the branch must currently point at'
+        required: true
+      acknowledge_unmerged:
+        description: 'Only to drop unmerged commits. Must be exactly: yes-drop-those-commits'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const { branch, sha, acknowledge_unmerged } = context.payload.inputs;
+            const { owner, repo } = context.repo;
+
+            if (!/^[A-Za-z0-9._\/-]+$/.test(branch) || branch.includes('..')) {
+              throw new Error(`Refusing malformed branch name: ${branch}`);
+            }
+            if (!/^[0-9a-f]{40}$/.test(sha)) {
+              throw new Error(`Refusing non-full SHA: ${sha}. Give all 40 characters.`);
+            }
+
+            // ── Interlock 1: never the default branch ────────────────────────
+            const { data: repoInfo } = await github.rest.repos.get({ owner, repo });
+            if (branch === repoInfo.default_branch || ['main', 'master'].includes(branch)) {
+              throw new Error(`Refusing to delete the default branch: ${branch}`);
+            }
+
+            // ── Interlock 2: it must still point where you think ─────────────
+            let ref;
+            try {
+              ({ data: ref } = await github.rest.git.getRef({ owner, repo, ref: `heads/${branch}` }));
+            } catch (e) {
+              if (e.status === 404) throw new Error(`No such branch: ${branch}`);
+              throw e;
+            }
+            if (ref.object.sha !== sha) {
+              throw new Error(
+                `${branch} points at ${ref.object.sha}, not ${sha}. ` +
+                'Somebody pushed to it since you looked. Re-check before deleting.',
+              );
+            }
+
+            // ── Interlock 3: unmerged work must be acknowledged ──────────────
+            const { data: cmp } = await github.rest.repos.compareCommitsWithBasehead({
+              owner, repo, basehead: `${repoInfo.default_branch}...${sha}`,
+            });
+            const merged = cmp.status === 'behind' || cmp.status === 'identical';
+            if (!merged) {
+              if (acknowledge_unmerged !== 'yes-drop-those-commits') {
+                throw new Error(
+                  `${branch} is ${cmp.status} of ${repoInfo.default_branch} with ` +
+                  `${cmp.ahead_by} commit(s) that are not on it. Refusing. ` +
+                  'Set acknowledge_unmerged to yes-drop-those-commits if you mean it.',
+                );
+              }
+              core.warning(
+                `Dropping ${cmp.ahead_by} unmerged commit(s) from ${branch}, acknowledged by the caller.`,
+              );
+            }
+
+            await github.rest.git.deleteRef({ owner, repo, ref: `heads/${branch}` });
+            core.notice(
+              `Deleted ${branch} (was ${sha}, ${merged ? 'fully merged' : 'UNMERGED, acknowledged'}). ` +
+              `Restore with: git branch ${branch} ${sha} && git push origin ${branch}`,
+            );
