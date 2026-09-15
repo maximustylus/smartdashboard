@@ -54,6 +54,30 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.14.1] - 2026-09-15
+
+A defect found in a **real production download**, not in a preview: the heart rate
+chips on page 2 were drawn through their own column heading.
+
+### Fixed
+
+- **The heart rate range chips overlapped the column headings, and the numbers sat on
+  the floor of every pill** (`CP39`). Two separate causes in one block. The row was
+  `alignItems: stretch`, so each chip took the row's height and, being a plain padded
+  block, grew *upward* — the first pill was drawn straight through "Beats per minute",
+  which then read as struck out. Underneath that, html2canvas places the text baseline
+  lower in the line box than the browser does, so the digits sat 4.6 CSS px below the
+  centre of the chip. The chip now carries a zero top padding, a line box held to the
+  font size, and the whole 8px underneath: the box moves down around the text instead
+  of the text moving inside the box. Chip height is unchanged, so page headroom is too.
+
+  Both halves were invisible to `pdf-headroom.mjs`, which measures whether content
+  fits and passed through every broken state correctly. They were also invisible to
+  reading a crop: the first attempt at this fix cleared the collision, was eyeballed,
+  and left the digits exactly as low as they had been. What found it was measuring a
+  300dpi render — `pdftoppm`, then the ink bounding box inside each pill against the
+  pill's own box.
+
 ## [2.14.0] - 2026-09-15
 
 The measurements page gets a picture: a reference meter under each strength figure,

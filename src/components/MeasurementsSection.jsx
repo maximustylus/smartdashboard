@@ -224,7 +224,7 @@ const HeartRate = ({ result, m }) => {
                     {zones.map((zone) => {
                         const skin = HR_ZONE_RAMP[zone.id];
                         return (
-                            <div key={zone.id} className="flex items-baseline gap-3">
+                            <div key={zone.id} className="flex items-stretch gap-3">
                                 {/* The range is printed INSIDE the colour, so the
                                     swatch is never a bare decoration that has to be
                                     decoded from a key elsewhere on the page. This is
@@ -232,15 +232,15 @@ const HeartRate = ({ result, m }) => {
                                     requires, and what makes the table survive a
                                     greyscale photocopy. */}
                                 <div
-                                    className="w-[88px] shrink-0 rounded-md px-2 py-1 text-center text-[10px] font-black whitespace-nowrap"
+                                    className="w-[88px] shrink-0 rounded-md px-2 py-1 flex items-center justify-center text-[10px] font-black whitespace-nowrap leading-none"
                                     style={{ background: skin.bg, color: skin.fg }}
                                 >
                                     {zone.fromBpm}-{zone.toBpm}
                                 </div>
-                                <div className="w-[76px] shrink-0 text-[11px] font-bold text-slate-800 dark:text-slate-100">
+                                <div className="w-[76px] shrink-0 self-center text-[11px] font-bold text-slate-800 dark:text-slate-100">
                                     {m.hrZoneNames[zone.id]}
                                 </div>
-                                <div className="text-[11px] leading-snug text-slate-600 dark:text-slate-300">
+                                <div className="self-center text-[11px] leading-snug text-slate-600 dark:text-slate-300">
                                     {m.hrZoneBenefits[zone.id]}
                                 </div>
                             </div>
