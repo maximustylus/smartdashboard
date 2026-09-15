@@ -54,6 +54,70 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.14.0] - 2026-09-15
+
+The measurements page gets a picture: a reference meter under each strength figure,
+heart rate ranges worked out from the resident's age, and the whole block moved to
+page 2 of the report — and onto the screen, where it did not previously exist at all.
+
+⚠️ **This release ships two more safety instructions that no native speaker has read.**
+The wording was corrected across two machine passes first, but `reviewedBy` is null in
+Malay, Chinese and Tamil. Waived by the repository owner on 2026-09-15, signed for the
+two strings by name. See *Known at release*.
+
+### Added
+
+- **A reference meter under each measurement.** Draws only the figures the source
+  publishes: eleven percentile marks for grip, five for the one-minute chair stand,
+  and **one** for the thirty-second chair stand, where the CDC publishes a single
+  cut-off and nothing above it. A percentile curve was asked for and refused —
+  drawing a curve through one point means inventing a shape and attributing it to the
+  source (`CD18`).
+- **Heart rate ranges by age**, with five zones, what each is for, and both requested
+  equations printed. Tanaka computes the numbers; Åstrand is shown for comparison and
+  never used, because its stated population stops at 34 and this page is read mostly
+  by people past 60. No table at all for a resident who reported symptoms on exertion.
+- **`scripts/pdf-verify.mjs`** — drives the app, taps Download, and reads the finished
+  PDF. Catches a wrong page count and links stamped on the wrong page, neither of
+  which `pdf-headroom.mjs` can see.
+
+### Fixed
+
+- **The measurements feature was invisible in the app** (`CP38`). It rendered only
+  into the off-screen print template, so a resident who had their grip measured saw no
+  meter and no heart rate ranges unless they downloaded the PDF. The second time this
+  exact defect has shipped here; a test now reads `ResultPage.jsx` and fails if the
+  component moves back inside the off-screen wrapper.
+- **Page 2 clipped by up to 44px in Malay and Tamil**, and what fell off the bottom
+  was the safety caution. The headroom fixtures had also been measuring nothing.
+- **The chair-stand meter overstated two repetitions** — a two-rep axis made a woman
+  of 67 look near the top of a scale that has no top.
+
+### Changed
+
+- Heart rate zones use the conventional grey/blue/green/amber/red (`CD27`). The
+  obvious orange-and-red pairing failed validation at ΔE 8.0 for **normal** vision,
+  under the floor of 15.
+- Measurements are page 2, ahead of governance; governance is last and numbered from
+  `totalPages`.
+
+### Known at release
+
+- **`measures.hrCaution` and `measures.hrSuppressedSymptoms` have no native-speaker
+  review in any of the three translated languages.** Waived 2026-09-15 by the
+  repository owner, on a separate signature line from the three strings waived on
+  2026-09-13. The risks are stated in `src/data/copyReview.js`.
+- **The two strings deliberately differ in force.** `hrCaution` is a prohibition;
+  `hrSuppressedSymptoms` is an instruction to consult, which does not forbid
+  exercising harder first. The owner chose that after the difference was put to them
+  explicitly.
+- **`measures.doNotSelfTest` carries the same Tamil ambiguity** (வேண்டாம், which reads
+  as both "do not" and "no need to") that was corrected in `hrCaution`. It was not
+  changed: it is covered by the 2026-09-13 waiver, and rewriting waived copy would
+  invalidate what was signed for.
+- `CP30` is unchanged: page 1 of the report is still 2px from losing content in its
+  worst case.
+
 ## [2.13.0] - 2026-09-13
 
 The community portal asks for two strength measurements and reports them back.

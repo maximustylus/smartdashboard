@@ -188,6 +188,22 @@ export const gripStrengthResult = (input) => {
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         lowThreshold: row.p[P20],
+        /*
+          WHAT A CHART IS ALLOWED TO DRAW. `points` are the figures this source
+          actually publishes for this person and nothing else: no interpolation, no
+          smoothing, no invented tail. A meter that draws only these cannot imply a
+          precision the paper does not have, and `resolution` tells the renderer how
+          coarse the underlying table is, so the same component can draw eleven
+          percentiles here and a single cut-off for the thirty-second chair stand
+          without either one pretending to be the other.
+        */
+        scale: {
+            resolution: 'percentiles',
+            levels: [...PERCENTILE_LEVELS],
+            points: [...row.p],
+            usualFrom: row.p[P20],
+            usualTo: row.p[P80],
+        },
         setting: normaliseSetting(setting),
         sourceId: GRIP_SOURCE.id,
         referencePopulation: GRIP_SOURCE.referencePopulation,
@@ -329,6 +345,13 @@ export const sitToStandResult = (input) => {
             ageBand: ageBandLabel(age),
             sex: normalisedSex,
             typicalRange: [stsRow.p[P25_STS], stsRow.p[P75_STS]],
+            scale: {
+                resolution: 'quartiles',
+                levels: [...STS_60S_PERCENTILE_LEVELS],
+                points: [...stsRow.p],
+                usualFrom: stsRow.p[P25_STS],
+                usualTo: stsRow.p[P75_STS],
+            },
             setting: normaliseSetting(setting),
             sourceId: STS_60S_SOURCE.id,
             referencePopulation: STS_60S_SOURCE.referencePopulation,
@@ -351,6 +374,37 @@ export const sitToStandResult = (input) => {
         ageBand: ageBandLabel(age),
         sex: normalisedSex,
         belowAverageThreshold: row.belowAverage,
+        /*
+          ⚠️ ONE POINT, AND `usualTo: null`. STEADI publishes a single below-average
+             cut-off for each age and sex and NOTHING above it. There is no upper
+             bound to draw, no quartile, no percentile. A meter that invented a
+             right-hand edge here would be drawing a finding the source does not
+             contain, and this is the test every resident aged 60 and over takes —
+             so it is the one place a fabricated scale would do the most harm.
+        */
+        scale: {
+            resolution: 'cut-off',
+            levels: null,
+            points: [row.belowAverage],
+            usualFrom: row.belowAverage,
+            usualTo: null,
+            /*
+              ⚠️ A CUT-OFF NEEDS AN AXIS GIVEN TO IT, because one point does not
+                 imply one. Derived from the points alone, the drawn range for a
+                 resident who did 13 against a cut-off of 11 was 11 to 13 — a
+                 two-repetition window in which the teal band filled nine tenths of
+                 the track and the marker sat near the end of it. The picture said
+                 "close to the top of the scale". There is no top, and the person
+                 was two repetitions above a floor.
+
+                 So the axis runs from zero to the most repetitions this protocol
+                 can plausibly record, which are both real quantities: nobody stands
+                 up fewer than zero times, and `SIT_TO_STAND_PLAUSIBLE` is already
+                 the bound this module refuses counts against.
+            */
+            axisFrom: 0,
+            axisTo: plausible.max,
+        },
         setting: normaliseSetting(setting),
         sourceId: CHAIR_STAND_SOURCE.id,
         referencePopulation: CHAIR_STAND_SOURCE.referencePopulation,

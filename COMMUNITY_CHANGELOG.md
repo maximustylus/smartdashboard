@@ -29,6 +29,113 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.14.0] — `P9b`, the measurements page gets a picture
+
+**The copy-review gate was cleared on 2026-09-15 by the repository owner's signature
+for the two heart-rate strings, on its own waiver line.** The 13 September waiver was
+not extended. `reviewedBy` remains null in Malay, Chinese and Tamil: the wording was
+corrected across two machine passes, but no person has read it. See `CD26` in
+[COMMUNITY_TODO.md](COMMUNITY_TODO.md) for the risks stated and accepted.
+
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
+
+### Added
+
+- **A reference meter under each measurement.** It draws only the figures the source
+  publishes: eleven percentile marks for grip, five for the one-minute chair stand,
+  and **one** for the thirty-second chair stand, which is the test every resident
+  aged 60 and over takes and for which STEADI publishes a single cut-off and nothing
+  above it. `functionalMeasures.js` now exposes `scale` — what a chart is allowed to
+  draw — so the picture cannot claim a precision the paper does not have.
+- **Heart rate ranges from the resident's age**, with the five zones, what each is
+  for, and both requested equations printed. Tanaka computes the numbers; Astrand is
+  shown for comparison and never used, because its stated population stops at 34 and
+  this page is read mostly by people past 60. The spread between individuals of the
+  same age is printed beside every figure.
+- **No heart rate table at all** for a resident who reported symptoms on exertion.
+  One sentence in its place, and the two equations are then absent from the citation
+  list as well, because citing a reference somebody was never shown is a citation for
+  something that did not happen.
+
+### Changed
+
+- **The symptoms line is an instruction, and the caution is a prohibition** — the two
+  deliberately differ in force (`CD26`, 2026-09-15). The owner chose "Consult your
+  healthcare professional before you increase how hard you exercise" over the
+  prohibition that briefly replaced it, with the difference put to them explicitly:
+  the chosen form tells the reader to consult and does not forbid exercising harder
+  first. `hrCaution` stays a prohibition. Recorded beside the strings so the
+  inconsistency is not later "fixed" by someone who assumes it is a slip.
+- **Both heart-rate safety sentences were made explicit prohibitions first, in all
+  four languages** (`CD26`, 2026-09-14). A machine cross-check found the softness was in
+  the **English**: the suppressed-symptoms line ended "Please speak to a doctor
+  before you increase how hard you exercise", and all three translations were
+  faithful to that politeness — so a reviewer checking translation accuracy would
+  have passed every one of them. The English now reads "Do not increase how hard you
+  exercise until you have spoken to a doctor", and Malay, Chinese and Tamil follow.
+  Malay also corrects `kekuatan senaman` to `intensiti senaman`; Tamil replaces
+  வேண்டாம் ("do not" / "no need to") with கூடாது ("must not") in the caution.
+  Recorded as a cross-check, **not** as review: no reviewer name was entered, no
+  waiver was created, the 13 September waiver was not extended, and the gate stays
+  red.
+- **The heart rate zones use the conventional colours** — grey, blue, green, amber,
+  red — as Garmin, Polar and Apple use them (`CD27`). They were teal, chosen to
+  avoid red because page 1 prints a traffic light in which red means "High Needs".
+  That hazard is real and did not go away with the decision, so a sentence now
+  carries it: `hrColourNote` says under the table, in all four languages, that these
+  are the usual exercise zone colours and do not mean the same thing as the result
+  colour. The first palette draft failed validation where this palette always does —
+  straight orange beside straight red at ΔE 8.0 for **normal** vision, under the
+  floor of 15. Amber and a deeper red separate them at ΔE 24.4 while still reading
+  as the convention. Every row also prints its range inside its swatch and its name
+  in words, which is what makes the table survive a greyscale photocopy: blue and
+  green are within 0.005 of each other in relative luminance.
+- **The heart rate zones got proper headers** (`CD28`), in both media. The block
+  heading was the page's sub-heading style, so the largest block on page 2
+  announced itself more quietly than the citation list beneath it; it now matches
+  its neighbours, and on screen uses the same `<h2>` idiom as every other section.
+  The zone table's three columns were unlabelled, which matters most for the middle
+  one: "Light" and "Hard" beside somebody's own result read as a grade until a
+  heading says they name an intensity.
+- **The measurements page is now page 2**, ahead of governance, at the owner's
+  request. Governance is last and its footer is numbered from `totalPages` rather
+  than a literal, so the printed numbering cannot disagree with the order the PDF is
+  bound in.
+- Zone benefit lines are short phrases and the talk test is stated **once** below the
+  table instead of five times inside it. This was a layout fix with a real cause: see
+  below.
+
+### Fixed
+
+- **The whole feature was invisible in the app** (`CP38`). `MeasurementsPanel` was
+  rendered once, inside the print template at `position:absolute; top:-10000px`, so
+  a resident who had their grip measured, typed the number in and read their result
+  on screen saw no meter, no band and no heart rate ranges at any point unless they
+  tapped Download and opened the file. **This is the second time this exact defect
+  has shipped here** — the first was the medical disclaimer, described in the same
+  words in `ResultPage.jsx`. `MeasurementsSection.jsx` is the screen-native
+  rendering, and the last test in its suite reads `ResultPage.jsx` and fails if the
+  component ever moves back inside the off-screen wrapper.
+- **`hrColourNote` told screen readers to look at "page 1".** Correct on paper,
+  nonsense in the app. Copy shared by two media cannot describe the furniture of
+  either; no language mentions a page now, and a test holds it there.
+- **The chair-stand meter overstated two repetitions.** Derived from its single
+  published point plus the resident's own count, the drawn axis for a woman of 67 who
+  stood 13 times against a cut-off of 11 spanned exactly those two repetitions: the
+  band filled nine tenths of the track and her marker sat near the end. Every printed
+  number was right; the drawing implied she was near the top of a scale that has no
+  top.
+- **`81 to 97` was printing in Malay, Chinese and Tamil.** The zone chip's connector
+  was an English word written into the component rather than copy.
+- **Page 2 was clipping by up to 44px in Malay and Tamil, and what fell off the
+  bottom was the safety caution.** Found by `scripts/pdf-headroom.mjs`, whose
+  fixtures were also fixed: they lacked `scale`, so the meter did not render and the
+  headroom came back unchanged, which looked like good news and had measured nothing.
+  Space was recovered from spacing and repeated wording, **not from type size** — 8px
+  on A4 is about six points and these readers are mostly over 60. Tightest page 2 is
+  now 22px spare (Tamil, with the medication caution). Page 1 is untouched and still
+  has the 2px worst case recorded under **`CP30`**.
+
 ## Shipped in [2.13.0] — `P9`, the functional measures
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).

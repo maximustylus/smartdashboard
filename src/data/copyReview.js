@@ -142,6 +142,36 @@ export const COPY_REVIEW = Object.freeze({
         english: 'These numbers describe your strength today. They are not a diagnosis, and they have not changed your result above.',
     }),
 
+    /*
+      ⚠️ TWO MORE PROHIBITIONS, ADDED WITH THE HEART RATE BLOCK AND DELIBERATELY NOT
+         COVERED BY THE 2026-09-13 WAIVER.
+
+         That waiver names three keys and was signed against three specific,
+         stated risks. These are different strings carrying different risks, and
+         extending somebody else's signature to cover work they have not seen is
+         the failure mode this whole module exists to prevent. The gate goes red
+         until the owner either supplies reviewers or signs for these two by name.
+
+         `hrCaution` is the harder of the two. It sits directly beneath a table of
+         heart rate ranges, and a table of ranges reads as a set of targets. If the
+         prohibition softens in translation, what is left is a portal handing an
+         older resident numbers to chase.
+    */
+    'measures.hrCaution': Object.freeze({
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
+        safetyCritical: true,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+        english: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        where: 'src/data/measuresCopy.js',
+        reachableWhen: 'src/data/measuresCopy.js',
+        safetyCritical: true,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Consult your healthcare professional before you increase how hard you exercise.',
+    }),
+
     // The other 44 strings in that module: the two questions, the band labels, the
     // nine reasons a comparison was refused, the eight places a measurement is
     // taken. Registered as ONE entry rather than 44, because a reviewer reads the
@@ -222,6 +252,62 @@ export const CROSS_CHECKS = Object.freeze({
          predated them. They remain unreviewed and the gate remains red, which is
          why none of them appear below.
     */
+    /*
+      2026-09-14 · ChatGPT, over the two `measures.hr*` prohibitions, relayed by the
+      repository owner.
+
+      ⚠️ THIS IS A CROSS-CHECK AND NOT A REVIEW, WHICH IS WHY IT IS HERE AND NOT IN
+         `reviewedBy`. `NOT_A_PERSON` refuses a model in that field on purpose: a
+         model cannot be accountable for a prohibition a resident acts on. The owner
+         asked explicitly that this pass not be recorded as human review and that the
+         gate stay red. It is.
+
+      WHAT IT FOUND THAT THE EARLIER PASS DID NOT, and the reason it was worth
+      running: the softness was in the ENGLISH. `hrSuppressedSymptoms` ended "Please
+      speak to a doctor before you increase how hard you exercise" — a polite
+      request. All three translations were faithful to it, so all four languages were
+      equally soft and a translation reviewer reading for accuracy would have passed
+      every one. No amount of checking the translations would have surfaced that.
+
+      Changes applied, all four languages now carrying an explicit prohibition:
+
+        en   "Please speak to a doctor before..."  →  "Do not increase how hard you
+             exercise until you have spoken to a doctor."
+        ms   "Sila berbincang..."  →  "Jangan tingkatkan intensiti senaman anda
+             sehingga anda berbincang dengan doktor." Also `kekuatan senaman`
+             (strength of exercise) corrected to `intensiti senaman`, and the
+             hrCaution verb restored: `memaksa diri bersenam lebih kuat`.
+        zh   "请先与医生谈一谈"  →  "在咨询医生之前，不要加大运动强度。"
+             谈一谈 was NOT treated as a defect in itself; the construction changed
+             because the English became a prohibition.
+        ta   hrCaution's வேண்டாம் ("do not" / "no need to") → கூடாது ("must not").
+             hrSuppressedSymptoms now "மருத்துவரிடம் பேசும் வரை ... அதிகரிக்கக் கூடாது".
+
+      ⚠️ `doNotSelfTest` STILL USES வேண்டாம் AND WAS DELIBERATELY NOT TOUCHED. It is
+         a safety-critical prohibition carrying the same ambiguity, but it is covered
+         by the 2026-09-13 waiver — and rewriting waived copy would silently
+         invalidate the text the owner actually signed for. It needs its own decision.
+
+      The revised ms, zh and ta remain MACHINE-TRANSLATED AND UNVERIFIED. All three
+      `reviewedBy` values stay null, the waiver was not extended, and `CD26` stays red.
+    */
+    'measures.hrCaution': Object.freeze({
+        by: 'ChatGPT (machine cross-check, not review)', on: '2026-09-14',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'ta: வேண்டாம் ("do not" / "no need to") replaced with கூடாது '
+            + '("must not"), so the prohibition is unambiguous. ms: the verb restored, '
+            + '"memaksa diri bersenam lebih kuat". en and zh unchanged. Still '
+            + 'machine-translated and unverified in all three languages.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        by: 'ChatGPT (machine cross-check, not review)', on: '2026-09-14',
+        languages: Object.freeze(['ms', 'zh', 'ta']),
+        outcome: 'all three rewritten as explicit prohibitions after the English source '
+            + 'itself was changed from a polite request. ms: "Jangan tingkatkan '
+            + 'intensiti senaman anda sehingga..." and kekuatan senaman corrected to '
+            + 'intensiti senaman. zh: "在咨询医生之前，不要加大运动强度。" ta: '
+            + '"...அதிகரிக்கக் கூடாது." Still machine-translated and unverified.',
+    }),
     'chips.falls': Object.freeze({
         by: 'Gemini 3.1 Pro + ChatGPT6 Astra', on: '2026-09-13',
         languages: Object.freeze(['ms', 'zh', 'ta']),
@@ -294,6 +380,48 @@ export const REVIEW_WAIVERS = Object.freeze({
       three entries below. `docs/CD13-translation-review.xlsx` group 5 has the
       strings, the translations and back-translations. Fifteen minutes per language.
     */
+    /*
+      ──────────────────────────────────────────────────────────────────────────
+      2026-09-15 · the two heart rate prohibitions
+      ──────────────────────────────────────────────────────────────────────────
+
+      A SEPARATE SIGNATURE FROM THE THREE ABOVE, and deliberately so. Those were
+      signed on 2026-09-13 against three stated risks; these are different strings
+      carrying different risks, and extending somebody's earlier signature over work
+      they had not seen is the failure this module exists to prevent. The owner was
+      asked for these two by name and signed for them by name.
+
+      WHAT WAS DONE BEFORE SIGNING, so the record is not just "shipped unreviewed":
+      the wording was corrected first, across two machine passes, and one of those
+      found something no translation review could have. The English of
+      `hrSuppressedSymptoms` was itself a polite request, and all three translations
+      were FAITHFUL to it — so every language was equally soft and an accuracy check
+      would have passed all four. See `CROSS_CHECKS` above.
+
+      ⚠️ THE TWO STRINGS NOW CARRY DIFFERENT FORCE, AND THAT IS THE RESIDUAL RISK.
+         `hrCaution` is a prohibition. `hrSuppressedSymptoms` is an instruction to
+         consult, which does not forbid exercising harder first. The owner chose that
+         wording after the difference was put to them explicitly. The person reading
+         it has already told this assessment they get symptoms on exertion.
+    */
+    'measures.hrCaution': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-15',
+        why: 'Chose to go live for community testing before a native-speaker review '
+            + 'was available. The wording was corrected first: Tamil வேண்டாம் ("do not" '
+            + '/ "no need to") replaced with கூடாது ("must not"), and the Malay verb '
+            + 'restored. Risk stated and accepted: ms, zh and ta remain '
+            + 'machine-translated, and this is the sentence sitting directly beneath a '
+            + 'table of heart rate numbers that a reader can mistake for targets.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-15',
+        why: 'Same decision, same three unverified languages. Two risks specific to '
+            + 'this string were stated and accepted: it is the ENTIRE heart rate '
+            + 'section for a resident who reported symptoms on exertion, and the owner '
+            + 'chose an instruction ("Consult your healthcare professional before you '
+            + 'increase how hard you exercise") over the prohibition it replaced, '
+            + 'knowing it permits rather than forbids exercising harder first.',
+    }),
     'measures.doNotSelfTest': Object.freeze({
         by: 'Repository owner (maximustylus)', on: '2026-09-13',
         why: 'Chose to go live for community testing before a native-speaker review '

@@ -470,6 +470,394 @@ two clean bands: the reason strings are far longer than a band label. A page siz
 against the happy path clips exactly the residents it was most important to
 explain things to.
 
+
+---
+
+## `P9b` — the measurements page gets a picture · **SHIPPED** (`CD26` waived 2026-09-15)
+
+Owner's direction, 2026-09-14, after trying v2.13.0 live: *"page needs to move to
+page 2. Page 2 where the grip strength and sit to stand measurements are shown needs
+a bit more visual. Im thinking of percentile graphs"*, and then, with a screenshot of
+the remaining space: *"Possible to build a heart rate graph based on user's age so
+they can see the heart rate ranges and the general benefits and the coloured zones
+using the astrand's equation and tanaka's equation"*.
+
+### It is a meter, not a percentile graph, and that is the whole design
+
+A percentile graph needs a distribution, and two of the three references do not
+publish one:
+
+| measure | what the source actually publishes |
+|---|---|
+| grip (Tomkinson 2025) | 11 percentiles per age and sex |
+| 1-minute STS (Strassmann 2013) | 5 points: p2.5, p25, p50, p75, p97.5 |
+| **30-second chair stand (STEADI)** | **ONE cut-off, and nothing above it** |
+
+The third is the test **every resident aged 60 and over takes**. Drawing a smooth
+curve through one published point means drawing a shape invented here and
+attributing it to the CDC. So `functionalMeasures.js` now exposes `scale` — the
+figures a chart is ALLOWED to draw — and `ReferenceMeter` draws those and nothing
+between them. It degrades from eleven marks to five to one without ever changing
+what it claims. `CD18` already refused to REPORT a rank for grip; plotting one would
+have reintroduced it through a picture.
+
+### Two defects the previews caught that no test would have
+
+1. **The cut-off meter overstated two repetitions.** With the axis derived from the
+   single published point plus the resident's own count, a woman of 67 who stood up
+   13 times against a cut-off of 11 got a meter whose entire span was those two
+   repetitions: the teal band filled nine tenths of the track, her marker sat near
+   the end of it. Every number printed beside it was correct. The drawing said she
+   was near the top of a scale that has no top. Fixed by giving the cut-off case a
+   real axis (`axisFrom: 0`, `axisTo` = the protocol's plausible maximum) and
+   covered by test.
+2. **`81 to 97` printed in Malay, Chinese and Tamil.** The zone chip's connector was
+   an English word written into the component instead of copy. Now a hyphen.
+
+### Heart rate: both equations shown, only one used
+
+    Tanaka (2001) .... 208 - 0.7 x age ...... healthy adults .......... computes the zones
+    Astrand .......... 216.6 - 0.84 x age ... STATED POPULATION 4-34 ... shown, never used
+
+Astrand's own sample stops at 34 and this page is mostly read by people past 60.
+Both figures are printed because both were asked for, and a resident comparing them
+learns something true; the zones are computed from Tanaka alone, and the page says
+in words why. `ESTIMATE_SPREAD_BPM` (about 11 bpm between individuals of the same
+age) is printed beside them, because the uncertainty is most of the width of a zone
+and arithmetic that looks exact would otherwise be read as personal thresholds.
+
+**Two suppressions, and the symptom one is checked BEFORE the age lookup.** A
+resident who reported symptoms on exertion is shown no table at all — a table of
+intensity ranges is an invitation to exert. Ordering that check second would make
+the suppression depend on the calculation succeeding. Medication (`medFlag`) does
+NOT suppress: it makes the estimate wrong in a known direction, so the table is
+shown with a caution, because hiding it would remove the explanation along with it.
+
+### `CD27` — the ramp is the conventional one, and the copy now carries what the colour used to
+
+Built teal first, to avoid red. Owner's decision, 2026-09-14: *"I need heart rate
+chart to follow the heart rate zone colours. Garmin, Polar, Apple, Acxta etc uses
+those heart rate colours"*. Applied: **grey, blue, green, amber, red.**
+
+The objection that produced the teal ramp was raised before the decision and is not
+retracted by it, because it names a hazard that still exists:
+
+> Page 1 of this same report prints a traffic light in which **red means "High
+> Needs"**. A red top zone on page 2 can read, to a resident holding both pages, as
+> a second verdict about them. It is not one. The top zone labels an INTENSITY, and
+> reaching it is neither good nor bad. The residents most likely to conflate the two
+> are the ones who got a red result on page 1, which is the group this portal exists
+> to reach.
+
+Since the colour can no longer carry that distinction, a sentence does:
+`hrColourNote`, printed directly under the table in all four languages, says these
+are the usual exercise zone colours and do not mean the same thing as the result
+colour. Deleting that line puts the ambiguity back with nothing holding it.
+
+**The first draft of the palette failed a check, and it failed where this palette
+always does.** Straight orange beside straight red came back at ΔE 8.0 for NORMAL
+vision, under the floor of 15 — readers with full colour vision could not reliably
+tell zone four from zone five:
+
+    scripts/validate_palette.js "#94a3b8,#2563eb,#15803d,#f59e0b,#b91c1c" --mode light
+
+    PASS  lightness band        all five inside the band
+    PASS  CVD separation        worst adjacent pair ΔE 17.4 protan  (floor 8)
+    PASS  normal-vision floor   worst adjacent pair ΔE 24.4         (floor 15)
+    FAIL  chroma floor          #94a3b8 "reads gray"
+    WARN  contrast vs surface   relief required: visible labels
+
+The chroma failure is the intended reading, not a defect: zone one **is** grey in
+every product the owner named. The contrast warning is discharged by the labels.
+
+Colour is never the only channel. Every row prints its bpm range **inside** its
+swatch and its name in words beside it. That matters more than usual for this ramp:
+blue and green sit within 0.005 of each other in relative luminance, so a greyscale
+photocopy cannot separate them and the words are doing the work. Text contrast on
+each swatch is 5.0:1 or better, with the foreground chosen per row, because the ramp
+runs light, dark, dark, light, dark and one shared text colour fails at an end.
+
+### Headroom, measured — and it caught a real clip
+
+The measurements page moved to **page 2** at the owner's request (a resident who had
+themselves measured should not have to go past a disclaimer page to reach their own
+figures). Governance is last and is numbered from `totalPages`.
+
+First run after the heart rate block went in:
+
+    measured-medication  ms  page 2   -44px  ← CLIPPED
+    measured-medication  ta  page 2   -44px  ← CLIPPED
+    measured             ms  page 2   -14px  ← CLIPPED
+    measured             ta  page 2   -14px  ← CLIPPED
+
+**What was falling off the bottom was `hrCaution`, the safety string.** Space was
+recovered from spacing and from repeated wording, **not from type size** — 8px on A4
+is already about six points and these readers are mostly over 60. Three sentences
+saying "this number is soft" became one paragraph; five per-row restatements of the
+talk test became one line below the table; the two equation citations moved into the
+page's existing "Compared against" block.
+
+    scenario             lang  page  natural  spare
+    measured             en    2        1024     99
+    measured             ta    2        1069     54
+    measured-medication  ta    2        1095     28   ← tightest page 2
+    measured-symptoms    en    2         818    305
+    measured-refused     zh    2         795    328
+    (page 1 unchanged: worst case still 2px — `CP30`, untouched by this work)
+
+Adding `hrColourNote` cost the tightest page 8px of its margin, which was taken back
+out of chip padding and row gaps — spacing again, never type size.
+
+### ⚠️ `CD26` — TWO NEW PROHIBITIONS, AND THE GATE IS RED · **OWNER'S CALL**
+
+`measures.hrCaution` and `measures.hrSuppressedSymptoms` are registered in
+`copyReview.js` as safety-critical. Neither is covered by the 2026-09-13 waiver, and
+**they were not added to it.** That waiver names three keys and was signed against
+three specific stated risks; extending somebody else's signature to cover work they
+have not seen is the failure this module exists to prevent.
+
+So the build is red, on purpose, exactly as the rule says it should be:
+
+    FAIL src/data/copyReview.test.js > ships no safety-critical string that is unreviewed and unwaived
+    FAIL src/data/copyReview.test.js > would block every waived string if the signature were withdrawn
+    Test Files  1 failed | 124 passed (125)
+    Tests       2 failed | 4248 passed (4250)
+
+`hrCaution` is the harder of the two. It sits directly beneath a table of heart rate
+ranges, and a table of ranges reads as a set of targets. If the prohibition softens
+in translation, what is left is a portal handing an older resident numbers to chase.
+
+**Two ways to clear it, and both are Alif's:** a named reviewer per language in
+`reviewedBy`, or a waiver line signed for these two keys by name. Nothing here ships
+until one of them exists.
+
+#### 2026-09-14 — the wording was corrected first, and the gate stayed red
+
+Owner's instruction, relayed from a ChatGPT pass: correct the wording BEFORE native
+review, create no waiver, mark no language reviewed, and do not weaken the test.
+
+**What that pass found is the reason it was worth running: the softness was in the
+ENGLISH.** `hrSuppressedSymptoms` ended *"Please speak to a doctor before you increase
+how hard you exercise"* — a polite request. All three translations were faithful to
+it, so all four languages were equally soft, and **a translation reviewer reading for
+accuracy would have passed every one of them.** No amount of checking the translations
+would have surfaced that. The English had to change first.
+
+| | before | after |
+|---|---|---|
+| **en** | Please speak to a doctor before you increase how hard you exercise. | Do not increase how hard you exercise until you have spoken to a doctor. |
+| **ms** | Sila berbincang dengan doktor sebelum anda menambah **kekuatan** senaman anda. | **Jangan tingkatkan intensiti** senaman anda sehingga anda berbincang dengan doktor. |
+| **zh** | 请先与医生**谈一谈**。 | 在**咨询**医生之前，**不要**加大运动强度。 |
+| **ta** | …மருத்துவரிடம் **பேசுங்கள்**. | …அதிகரிக்க**க் கூடாது**. |
+
+`hrCaution`: English and Chinese unchanged. Malay gains the verb
+(`memaksa diri **bersenam** lebih kuat`). Tamil's **வேண்டாம்** — which carries both
+"do not" and the weaker "there is no need to" — becomes **கூடாது**, "must not".
+
+`谈一谈` was NOT treated as a defect in itself. The Chinese construction changed
+because the English became a prohibition.
+
+**Recorded as a `CROSS_CHECKS` entry, not as review.** `NOT_A_PERSON` refuses a model
+in `reviewedBy` on purpose: a model cannot be accountable for a prohibition a resident
+acts on. Two entries, one per real registry key — an earlier attempt used a made-up
+composite key `measures.hrPair` and the registry's own test rejected it, correctly.
+
+The `english` snapshot in `copyReview.js` was updated so the gate protects the text
+that now ships; `measuresCopy.test.js` binds the two together and would have failed
+otherwise. **The 13 September waiver was not extended. All three `reviewedBy` values
+remain null. `CD26` is still red:**
+
+    FAIL src/data/copyReview.test.js > ships no safety-critical string that is unreviewed and unwaived
+    FAIL src/data/copyReview.test.js > would block every waived string if the signature were withdrawn
+    Test Files  1 failed | 125 passed (126)
+    Tests       2 failed | 4263 passed (4265)
+
+Page 2 headroom unchanged by the rewrite: Tamil with the medication caution still has
+22px spare, nothing clipped.
+
+#### 2026-09-15 — `CD26` closed by the owner's signature
+
+A third machine pass (Gemini, relayed) was run. **It was reviewing superseded text**:
+it flagged Tamil வேண்டாம், Chinese 谈一谈 and Malay `Sila berbincang` as still present.
+All three had already been corrected the day before. Its proposed Malay replacement,
+*"Sila dapatkan nasihat doktor"* ("please seek a doctor's advice"), is a polite request
+and would have **undone** the prohibition that had just gone in. Not applied, and NOT
+recorded in `CROSS_CHECKS`: it did not check what ships, so recording it as a
+cross-check of the shipped text would be a false claim.
+
+That is three machine passes on two sentences, not converging: the first wrote the copy
+and then missed that its own English was the root cause; the second found it; the third
+re-flagged fixed items and proposed a regression.
+
+**The owner then chose the final English themselves**, and chose a form softer than
+what it replaced, with the difference put to them explicitly beforehand:
+
+| | |
+|---|---|
+| was | Do **not** increase how hard you exercise **until** you have spoken to a doctor. |
+| now | **Consult** your healthcare professional **before** you increase how hard you exercise. |
+
+The first forbids exercising harder. The second instructs the reader to consult and
+does not forbid it. `hrCaution` remains a prohibition, so **the two strings now carry
+deliberately different force** — recorded in `measuresCopy.js` beside the strings so
+nobody later reads the inconsistency as a drafting slip and "fixes" one to match.
+
+ms, zh and ta follow the English as instructions: `Rujuk profesional kesihatan anda…`,
+`请咨询您的医护人员`, `…சுகாதார நிபுணரிடம் ஆலோசனை பெறுங்கள்`.
+
+**Waived, signed for these two keys by name, on their own line.** The 2026-09-13 waiver
+was not extended — that one covers three different strings signed against three
+different risks. `reviewedBy` stays null in all three languages: nobody has read them.
+
+    Test Files  126 passed (126)
+    Tests       4265 passed (4265)
+
+##### ⚠️ A safety test was edited, and it was made STRICTER
+
+Waiving exposed a gap in `copyReview.test.js` → *"does not open the gate for anything"*.
+Its property is **a machine cross-check must never be what opens the gate**; its
+implementation only checked that a cross-checked string still appeared in
+`blockingReviewGaps`, which conflates *"a cross-check opened it"* with *"anything
+opened it"*. A human signature is allowed to open it. The first key that was ever both
+cross-checked **and** waived made a correct state fail.
+
+Rewritten to name the mechanism instead of the outcome: a cross-checked string may stop
+blocking **only** via a waiver, and that waiver's signature must pass `looksLikeAModel`.
+**Nothing checked the second half before.** Proved by sabotage — signing the waiver
+`by: 'Gemini 3.1 Pro'`:
+
+    × does not open the gate for anything
+      → measures.hrCaution is waived by "Gemini 3.1 Pro", which is not a person.
+        A machine cross-check cannot become a signature by being written on one.
+
+Reverted, 40/40 green.
+
+#### ⚠️ Still open — `doNotSelfTest` has the same Tamil ambiguity
+
+`measures.doNotSelfTest` is the sentence telling a resident not to attempt a timed
+chair stand alone. It is safety-critical and it **still ends in வேண்டாம்**, the exact
+construction just corrected in `hrCaution`.
+
+It was deliberately not touched. It is covered by the 2026-09-13 waiver, and rewriting
+waived copy would silently invalidate the text the owner actually signed for. Changing
+it is a decision, not a fix, and it is Alif's.
+
+
+---
+
+## ⚠️ `CP38` — the whole measurements feature was invisible in the app · **FIXED**
+
+Found by the owner asking for PWA screenshots of it, 2026-09-14: *"Currently I'm
+only seeing screenshots of the pdf report."* There were none to take.
+
+`MeasurementsPanel` was rendered exactly once, at `ResultPage.jsx:1003`, inside the
+print template that lives at `position:absolute; top:-10000px`. It rasterised
+correctly into the downloaded PDF and was seen by nobody else. **A resident who had
+their grip measured, typed the number in, and read their result on the screen saw no
+meter, no band and no heart rate ranges at any point** — unless they happened to tap
+Download and open the file.
+
+**This is the second time this exact defect has shipped in this repository.** The
+first was the medical disclaimer, and the note above `MedicalDisclaimer` in
+`ResultPage.jsx` describes it in the same words: *"It rendered for `html2canvas` and
+for nobody else."* A person who read their risk band and a Primary Action telling
+them to start exercising saw no disclaimer at all.
+
+Fixed by `MeasurementsSection.jsx`, the screen-native rendering: responsive, dark
+theme, same content. It is a second component rather than a prop on the first
+because the two media have genuinely different constraints — a fixed 794x1123
+light-only box measured to the pixel, against a responsive page with no height
+limit — and the print side is the one that fails silently. `MedicalDisclaimer` and
+`DataGovernance` already follow that pattern here.
+
+What is **not** duplicated is anything that could drift and be wrong. Copy comes
+from `measuresCopy.js`, bands from `functionalMeasures.js`, zones from `zonesFor`,
+and the colours from the new `src/data/zonePalette.js`. Both media render the same
+numbers in the same colours, or the shared module is broken and both fail.
+
+**The guard against a third occurrence** is the last test in
+`MeasurementsSection.test.jsx`. It reads `ResultPage.jsx` and asserts the component
+is used AFTER the `── MAIN CONTENT` marker rather than inside the off-screen
+wrapper, because a component can be mounted, correct, and still be at -10000px:
+
+    ⚠️ it is on the screen, not only in the download
+      ✓ is rendered outside the off-screen print wrapper
+
+### `CD28` — proper headers, in both media
+
+Owner: *"The heart rate zones should also receive proper headers."* Two things were
+wrong and both are fixed in the print page and on the screen:
+
+1. **The block heading was the page's SUB-heading style** — 11px bold sentence case
+   — so the largest block on page 2 announced itself more quietly than the citation
+   list beneath it. It now uses the same uppercase, letter-spaced treatment as
+   "Compared against", and on screen the same `<h2>` idiom with an icon that every
+   other section of the result page uses.
+2. **The table had three unlabelled columns.** Three lists that happen to line up is
+   not a table, and the middle one is the reason it matters: "Light" and "Hard"
+   printed beside somebody's own result read as a grade until a heading says they
+   name an intensity. Now `hrColRange` / `hrColZone` / `hrColPurpose`, in all four
+   languages.
+
+The headings cost the tightest print page 13px, taken back out of block gaps.
+
+    scenario             lang  page  natural  spare
+    measured             ta    2        1075     48
+    measured-medication  ta    2        1101     22   ← tightest page 2
+    measured-medication  en    2        1037     86
+    (page 1 unchanged: worst case still 2px — `CP30`)
+
+### `hrColourNote` no longer names a page number
+
+It read *"the colour of your result on page 1"*. That was correct on paper and
+nonsense on the screen, where there are no pages and the sentence sent the reader
+looking for one. Copy shared by two media cannot describe the furniture of either,
+and `MeasurementsSection.test.jsx` now asserts no language mentions a page.
+
+
+---
+
+## The downloaded file itself, verified · `scripts/pdf-verify.mjs`
+
+Moving measurements to page 2 changed TWO things that had to change together: the
+order of the templates, and the order the builder binds them in. If only one had
+moved, the printed footer would number the pages one way and the PDF would bind
+them the other — which looks like a rendering glitch and is actually a wrong
+document. `pdf-headroom.mjs` cannot see this: it measures the templates and never
+opens a PDF.
+
+So the real file was checked, by driving the app and tapping Download:
+
+    case                    pages   page 1     page 2       page 3
+    gave a measurement        3     15 links   1 link       6 links
+    skipped the questions     2     15 links   6 links      —
+
+Fifteen links on page 1 are the resource cards. The single link on the
+measurements page is the header's own, which every page carries. The six are the
+Healthier SG card, which exists on the governance template and nowhere else — so
+finding them identifies that page beyond doubt, and they are **last in both
+shapes**. Footers read `PAGE 2 OF 3` and `PAGE 3 OF 3` with measurements, and
+`PAGE 2 OF 2` without.
+
+⚠️ **The assertions are about links because the pages are rasterised JPEGs.** The
+finished PDF has no text layer at all, so `pdftotext` returns nothing and there is
+no heading to match on. The annotations are the only structured content that
+survives.
+
+**The check was verified by breaking the thing it guards**, rather than by being
+green once. Binding governance before measurements while leaving the templates
+alone — the exact half-reorder described above — produced:
+
+    ⚠️  the downloaded report is wrong:
+      - gave a measurement: the last page carries no healthiersg.gov.sg link, so governance is not last
+      - gave a measurement: governance links found on page 2, which is not the last page
+    exit 1
+
+A check that has never failed proves nothing, and this repository has already
+shipped one that measured nothing: the headroom fixtures lacked `scale`, so the
+meter did not render and the result came back unchanged, which looked like good
+news.
+
 ---
 
 ## ⚠️ `CP30` — the printed report is 2px from losing content, today
