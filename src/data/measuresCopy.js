@@ -204,9 +204,25 @@ export const MEASURES_COPY = {
              unambiguously "must not". `doNotSelfTest` still uses வேண்டாம் and is NOT
              changed here: it is covered by the 2026-09-13 waiver, and rewriting
              waived copy would silently invalidate what was signed for.
+
+          ⚠️ THE TWO SENTENCES ARE DELIBERATELY DIFFERENT IN FORCE, 2026-09-15.
+
+             `hrCaution` is a PROHIBITION: "Do not use these numbers to push
+             yourself harder than usual." Tamil கூடாது, Chinese 不要, Malay Jangan.
+
+             `hrSuppressedSymptoms` is an INSTRUCTION: "Consult your healthcare
+             professional before you increase how hard you exercise." It tells the
+             reader to consult; it does not forbid exercising harder first.
+
+             That is weaker than the prohibition it replaced, and it is the owner's
+             explicit choice, made after the difference was put to them in those
+             words. Recorded here so nobody later reads the inconsistency as a
+             drafting slip and "fixes" one of them to match the other. If this is
+             ever revisited, the question is whether an instruction is enough for a
+             resident who has already reported symptoms on exertion.
         */
         hrCaution: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
-        hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Do not increase how hard you exercise until you have spoken to a doctor.',
+        hrSuppressedSymptoms: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Consult your healthcare professional before you increase how hard you exercise.',
 
         /*
           ⚠️ THIS SENTENCE IS DOING WORK THE COLOUR USED TO DO. The zone ramp was
@@ -342,7 +358,7 @@ export const MEASURES_COPY = {
         hrMedicationNote: 'Sesetengah ubat melambatkan denyutan jantung. Jika anda mengambilnya, nadi anda akan berada di bawah nombor ini. Itu dijangka, jadi jangan bersenam lebih kuat untuk mencapainya.',
 
         hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri bersenam lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
-        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Jangan tingkatkan intensiti senaman anda sehingga anda berbincang dengan doktor.',
+        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda.',
 
         hrColourNote: 'Ini warna zon senaman yang biasa digunakan. Ia tidak bermaksud perkara yang sama seperti warna keputusan penilaian anda.',
         hrColRange: 'Denyutan seminit',
@@ -457,7 +473,7 @@ export const MEASURES_COPY = {
         hrMedicationNote: '有些药物会减慢心跳。如果您在服用这类药物，您的脉搏会低于这些数字。这是正常的，不要为了达到这些数字而加大运动强度。',
 
         hrCaution: '不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。',
-        hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在咨询医生之前，不要加大运动强度。',
+        hrSuppressedSymptoms: '您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请咨询您的医护人员。',
 
         hrColourNote: '这些是运动强度分区的常用颜色。它们的含义和您的评估结果颜色不同。',
         hrColRange: '次每分钟',
@@ -572,7 +588,7 @@ export const MEASURES_COPY = {
         hrMedicationNote: 'சில மருந்துகள் இதயத் துடிப்பை மெதுவாக்கும். நீங்கள் அவற்றை எடுத்துக்கொண்டால், உங்கள் நாடித் துடிப்பு இந்த எண்களுக்குக் கீழேயே இருக்கும். அது இயல்பானது, எனவே இவற்றை அடைய அதிகமாக உழைக்க வேண்டாம்.',
 
         hrCaution: 'வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்தக் கூடாது. மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள்.',
-        hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. மருத்துவரிடம் பேசும் வரை உடற்பயிற்சியின் கடினத்தை அதிகரிக்கக் கூடாது.',
+        hrSuppressedSymptoms: 'நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் உங்கள் சுகாதார நிபுணரிடம் ஆலோசனை பெறுங்கள்.',
 
         hrColourNote: 'இவை உடற்பயிற்சி மண்டலங்களுக்குப் பயன்படுத்தப்படும் வழக்கமான நிறங்கள். உங்கள் மதிப்பீட்டு முடிவின் நிறத்தின் பொருள் இவற்றுக்கு இல்லை.',
         hrColRange: 'நிமிடத்திற்கு துடிப்பு',

@@ -165,12 +165,41 @@ describe('a machine cross-check is not a review', () => {
 
     // The whole point: a cross-check must not move the gate. If recording one ever
     // reduces the blocking set, the distinction has collapsed.
+    /*
+      ⚠️ THIS ASSERTED THE RIGHT PROPERTY THROUGH THE WRONG PROXY, and 2026-09-15 was
+         the first day that mattered.
+
+         The property is: A MACHINE CROSS-CHECK MUST NEVER BE WHAT OPENS THE GATE.
+         The old implementation checked only that a cross-checked string still
+         appeared in `blockingReviewGaps`, which conflated "a cross-check opened it"
+         with "ANYTHING opened it". A human signature is allowed to open it — that is
+         what `REVIEW_WAIVERS` is for — so the moment a key was both cross-checked and
+         waived, a correct state failed the test.
+
+         Rewritten to name the mechanism instead of the outcome, which makes it
+         STRICTER rather than looser: a cross-checked string may stop blocking ONLY
+         via a waiver, and that waiver must be signed by a person. Nothing checked the
+         second half before. `looksLikeAModel` guards `reviewedBy` already; it now
+         guards the signature line too, so a cross-check cannot be laundered into a
+         waiver by writing a model's name on it.
+    */
     it('does not open the gate for anything', () => {
         const blocking = blockingReviewGaps(new Set(reachabilityWatchlist())).map((g) => g.key);
         Object.keys(CROSS_CHECKS).forEach((key) => {
-            if (safetyCriticalKeys().includes(key) && unreviewedLanguages(key).length > 0) {
-                expect(blocking, `${key} was cross-checked and stopped blocking`).toContain(key);
-            }
+            if (!safetyCriticalKeys().includes(key)) return;
+            if (unreviewedLanguages(key).length === 0) return;
+            if (blocking.includes(key)) return;
+
+            const waiver = REVIEW_WAIVERS[key];
+            expect(
+                waiver,
+                `${key} was cross-checked and stopped blocking with no waiver behind it`,
+            ).toBeDefined();
+            expect(
+                looksLikeAModel(waiver.by),
+                `${key} is waived by "${waiver.by}", which is not a person. A machine `
+                + 'cross-check cannot become a signature by being written on one.',
+            ).toBe(false);
         });
     });
 });

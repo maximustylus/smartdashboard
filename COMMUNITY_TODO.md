@@ -473,7 +473,7 @@ explain things to.
 
 ---
 
-## `P9b` — the measurements page gets a picture · **BUILT, NOT SHIPPABLE** (`CD26`)
+## `P9b` — the measurements page gets a picture · **SHIPPED** (`CD26` waived 2026-09-15)
 
 Owner's direction, 2026-09-14, after trying v2.13.0 live: *"page needs to move to
 page 2. Page 2 where the grip strength and sit to stand measurements are shown needs
@@ -674,6 +674,63 @@ remain null. `CD26` is still red:**
 
 Page 2 headroom unchanged by the rewrite: Tamil with the medication caution still has
 22px spare, nothing clipped.
+
+#### 2026-09-15 — `CD26` closed by the owner's signature
+
+A third machine pass (Gemini, relayed) was run. **It was reviewing superseded text**:
+it flagged Tamil வேண்டாம், Chinese 谈一谈 and Malay `Sila berbincang` as still present.
+All three had already been corrected the day before. Its proposed Malay replacement,
+*"Sila dapatkan nasihat doktor"* ("please seek a doctor's advice"), is a polite request
+and would have **undone** the prohibition that had just gone in. Not applied, and NOT
+recorded in `CROSS_CHECKS`: it did not check what ships, so recording it as a
+cross-check of the shipped text would be a false claim.
+
+That is three machine passes on two sentences, not converging: the first wrote the copy
+and then missed that its own English was the root cause; the second found it; the third
+re-flagged fixed items and proposed a regression.
+
+**The owner then chose the final English themselves**, and chose a form softer than
+what it replaced, with the difference put to them explicitly beforehand:
+
+| | |
+|---|---|
+| was | Do **not** increase how hard you exercise **until** you have spoken to a doctor. |
+| now | **Consult** your healthcare professional **before** you increase how hard you exercise. |
+
+The first forbids exercising harder. The second instructs the reader to consult and
+does not forbid it. `hrCaution` remains a prohibition, so **the two strings now carry
+deliberately different force** — recorded in `measuresCopy.js` beside the strings so
+nobody later reads the inconsistency as a drafting slip and "fixes" one to match.
+
+ms, zh and ta follow the English as instructions: `Rujuk profesional kesihatan anda…`,
+`请咨询您的医护人员`, `…சுகாதார நிபுணரிடம் ஆலோசனை பெறுங்கள்`.
+
+**Waived, signed for these two keys by name, on their own line.** The 2026-09-13 waiver
+was not extended — that one covers three different strings signed against three
+different risks. `reviewedBy` stays null in all three languages: nobody has read them.
+
+    Test Files  126 passed (126)
+    Tests       4265 passed (4265)
+
+##### ⚠️ A safety test was edited, and it was made STRICTER
+
+Waiving exposed a gap in `copyReview.test.js` → *"does not open the gate for anything"*.
+Its property is **a machine cross-check must never be what opens the gate**; its
+implementation only checked that a cross-checked string still appeared in
+`blockingReviewGaps`, which conflates *"a cross-check opened it"* with *"anything
+opened it"*. A human signature is allowed to open it. The first key that was ever both
+cross-checked **and** waived made a correct state fail.
+
+Rewritten to name the mechanism instead of the outcome: a cross-checked string may stop
+blocking **only** via a waiver, and that waiver's signature must pass `looksLikeAModel`.
+**Nothing checked the second half before.** Proved by sabotage — signing the waiver
+`by: 'Gemini 3.1 Pro'`:
+
+    × does not open the gate for anything
+      → measures.hrCaution is waived by "Gemini 3.1 Pro", which is not a person.
+        A machine cross-check cannot become a signature by being written on one.
+
+Reverted, 40/40 green.
 
 #### ⚠️ Still open — `doNotSelfTest` has the same Tamil ambiguity
 

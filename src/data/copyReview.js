@@ -169,7 +169,7 @@ export const COPY_REVIEW = Object.freeze({
         reachableWhen: 'src/data/measuresCopy.js',
         safetyCritical: true,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
-        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Do not increase how hard you exercise until you have spoken to a doctor.',
+        english: 'You told us you get symptoms when you exert yourself, so we are not showing heart rate ranges. Consult your healthcare professional before you increase how hard you exercise.',
     }),
 
     // The other 44 strings in that module: the two questions, the band labels, the
@@ -380,6 +380,48 @@ export const REVIEW_WAIVERS = Object.freeze({
       three entries below. `docs/CD13-translation-review.xlsx` group 5 has the
       strings, the translations and back-translations. Fifteen minutes per language.
     */
+    /*
+      ──────────────────────────────────────────────────────────────────────────
+      2026-09-15 · the two heart rate prohibitions
+      ──────────────────────────────────────────────────────────────────────────
+
+      A SEPARATE SIGNATURE FROM THE THREE ABOVE, and deliberately so. Those were
+      signed on 2026-09-13 against three stated risks; these are different strings
+      carrying different risks, and extending somebody's earlier signature over work
+      they had not seen is the failure this module exists to prevent. The owner was
+      asked for these two by name and signed for them by name.
+
+      WHAT WAS DONE BEFORE SIGNING, so the record is not just "shipped unreviewed":
+      the wording was corrected first, across two machine passes, and one of those
+      found something no translation review could have. The English of
+      `hrSuppressedSymptoms` was itself a polite request, and all three translations
+      were FAITHFUL to it — so every language was equally soft and an accuracy check
+      would have passed all four. See `CROSS_CHECKS` above.
+
+      ⚠️ THE TWO STRINGS NOW CARRY DIFFERENT FORCE, AND THAT IS THE RESIDUAL RISK.
+         `hrCaution` is a prohibition. `hrSuppressedSymptoms` is an instruction to
+         consult, which does not forbid exercising harder first. The owner chose that
+         wording after the difference was put to them explicitly. The person reading
+         it has already told this assessment they get symptoms on exertion.
+    */
+    'measures.hrCaution': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-15',
+        why: 'Chose to go live for community testing before a native-speaker review '
+            + 'was available. The wording was corrected first: Tamil வேண்டாம் ("do not" '
+            + '/ "no need to") replaced with கூடாது ("must not"), and the Malay verb '
+            + 'restored. Risk stated and accepted: ms, zh and ta remain '
+            + 'machine-translated, and this is the sentence sitting directly beneath a '
+            + 'table of heart rate numbers that a reader can mistake for targets.',
+    }),
+    'measures.hrSuppressedSymptoms': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-15',
+        why: 'Same decision, same three unverified languages. Two risks specific to '
+            + 'this string were stated and accepted: it is the ENTIRE heart rate '
+            + 'section for a resident who reported symptoms on exertion, and the owner '
+            + 'chose an instruction ("Consult your healthcare professional before you '
+            + 'increase how hard you exercise") over the prohibition it replaced, '
+            + 'knowing it permits rather than forbids exercising harder first.',
+    }),
     'measures.doNotSelfTest': Object.freeze({
         by: 'Repository owner (maximustylus)', on: '2026-09-13',
         why: 'Chose to go live for community testing before a native-speaker review '

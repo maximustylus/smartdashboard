@@ -31,10 +31,11 @@ pathways, and the Cloud Function behind the chat.
 
 ## [Unreleased] — `P9b`, the measurements page gets a picture
 
-**⚠️ NOT SHIPPABLE AS IT STANDS. The copy-review gate is red and that is deliberate:
-two new safety-critical prohibitions have no reviewer and no waiver. See `CD26` in
-[COMMUNITY_TODO.md](COMMUNITY_TODO.md).** No version is claimed here, because
-nothing has shipped.
+**The copy-review gate was cleared on 2026-09-15 by the repository owner's signature
+for the two heart-rate strings, on its own waiver line.** The 13 September waiver was
+not extended. `reviewedBy` remains null in Malay, Chinese and Tamil: the wording was
+corrected across two machine passes, but no person has read it. See `CD26` in
+[COMMUNITY_TODO.md](COMMUNITY_TODO.md) for the risks stated and accepted.
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
@@ -58,8 +59,15 @@ Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
 ### Changed
 
-- **Both heart-rate safety sentences are now explicit prohibitions, in all four
-  languages** (`CD26`, 2026-09-14). A machine cross-check found the softness was in
+- **The symptoms line is an instruction, and the caution is a prohibition** — the two
+  deliberately differ in force (`CD26`, 2026-09-15). The owner chose "Consult your
+  healthcare professional before you increase how hard you exercise" over the
+  prohibition that briefly replaced it, with the difference put to them explicitly:
+  the chosen form tells the reader to consult and does not forbid exercising harder
+  first. `hrCaution` stays a prohibition. Recorded beside the strings so the
+  inconsistency is not later "fixed" by someone who assumes it is a slip.
+- **Both heart-rate safety sentences were made explicit prohibitions first, in all
+  four languages** (`CD26`, 2026-09-14). A machine cross-check found the softness was in
   the **English**: the suppressed-symptoms line ended "Please speak to a doctor
   before you increase how hard you exercise", and all three translations were
   faithful to that politeness — so a reviewer checking translation accuracy would
