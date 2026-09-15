@@ -27,8 +27,8 @@ write reports and ledger rows.
 
 Measured on 2026-08-18, at v1.16.0:
 
-- **All ~1655 tests were hand-authored fixtures** with recorded figures (3745 across
-  112 files by 2026-09-11, still fixtures). That is a
+- **All ~1655 tests were hand-authored fixtures** with recorded figures (4265 across
+  126 files by 2026-09-15, still fixtures). That is a
   deliberate and good property of this repo — every number was obtained by running
   the engine. But it means the engine had **never been run on a configuration
   nobody wrote by hand**.

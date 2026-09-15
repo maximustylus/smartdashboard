@@ -135,8 +135,8 @@ owner decision, `qc-steward`'s surface). Mention it; do not close it.
 ```bash
 npm run lint && npm test -- --run 2>&1 | tail -4 && npm run build 2>&1 | tail -2
 ```
-**3745 tests across 112 files, lint 0, build 0** is the baseline as of `8530343`
-(2026-09-11; was 2744/73 at `8a6aba7`, 3,667/108 at v2.12.3). A drop in test COUNT
+**4265 tests across 126 files, lint 0, build 0** is the baseline as of `d4d57ae`
+(v2.14.0, 2026-09-15; was 3745/112 at `8530343`, 2744/73 at `8a6aba7`). A drop in test COUNT
 is as suspicious as a failure: it means a suite stopped running. ⚠️ On the owner's Mac
 the repo is under iCloud and the in-repo run hangs — copy `src/`, `functions/`,
 `scripts/` and the config files outside `~/Documents`, `npm ci`, and run there
@@ -305,7 +305,7 @@ and `AURA-HANDOFF.md` at tag `docs-archive-2026-09-06`) · `functions/index.js`
 `listLeadRequests`, `approveLeadRequest`; the staff persona prompt from ~`:397`,
 MODE 3 at ~`:428` — `grep -n '^exports\.' functions/index.js` rather than trusting
 these) · `functions/responseParser.cjs` (`AU18`, the one Gemini JSON parser) ·
-`functions/rateLimit.js` · `functions/communityAck.js` · `functions/guardrails.js` ·
+`functions/rateLimit.js` · `functions/communityAck.js` · `functions/guardrails.cjs` ·
 `src/components/AuraPulseBot.jsx` (`confirmLog` ~`:519`; the `target_collection`
 render gate ~`:1394`; `clampEnergy` is gone) · `src/components/AuraChat.jsx`
 (`concludeTriage` ~`:925`; `parseClinicalData` moved to

@@ -191,8 +191,11 @@ guardrail (fail loud, never silent).*
   tokens against a fixed prompt no caller can modify, and answers are framed as data.
 - **Effectiveness, honestly:** parser defects found in audit (`AC1`, `AC2`) are closed with
   evidence. The disclaimer and urgent-action wording are live in English only; the formal
-  clinical review of that wording is an open item (`CD10`), and machine-translated strings
-  are with native-speaker reviewers (`CD13`).
+  clinical review of that wording is an open item (`CD10`). **No translated string on this
+  service has been read by a native speaker.** Around 68 machine-translated strings are
+  unreviewed (`CD13`), and five of them are safety instructions — sentences whose job is to
+  stop somebody — that were shipped under the repository owner's signed waivers on
+  2026-09-13 and 2026-09-15 rather than review.
 - **What you can do:** treat the result as a starting point for a conversation with your GP,
   not a conclusion; seek immediate care for acute symptoms regardless of what any screening
   tool says.
@@ -363,7 +366,10 @@ reports enter that same pipeline.
    aim is not enforced.
 6. **Google's data handling is taken from Google's terms, not verified independently.**
 7. **The medical disclaimer and urgent CTA wording await formal clinical review** (`CD10`),
-   and 19 machine-translated strings await native-speaker review (`CD13`).
+   and roughly **68 machine-translated strings await native-speaker review** (`CD13`) — none
+   has been read by one. **Five are safety instructions that shipped under owner waivers**
+   rather than review, two of them added with the heart-rate block in v2.14.0. The waivers,
+   and the risks accepted in each, are recorded in `src/data/copyReview.js`.
 8. **No quantitative safety metrics exist.** Every effectiveness statement above is
    qualitative by necessity, not by preference.
 9. **No public contact email appears on this card yet**, by design conflict rather than
@@ -439,7 +445,7 @@ the update triggers below exist because these facts move.*
 | Demo sandbox sends nothing to any model (§1) | `src/utils/demoAura.js` — no network call of any kind | Confirmed 2026-08-27 |
 | Medical disclaimer quoted verbatim; Red/Amber/Green tiers (§2, §3) | `src/components/ResultPage.jsx` | Confirmed 2026-08-27 |
 | Community record de-identified by construction; fingerprint removed (§4) | `src/utils/telemetry.js`, `CP3` | Confirmed 2026-08-27, with the "construction, not schema" hedge the audit asked for |
-| Versions: app 2.12.2, engine v2.3, guardrails 1.0 (header) | `package.json`, `AURA-CHANGELOG.md`, `functions/guardrails.cjs` `GUARDRAIL_VERSION` | Confirmed 2026-08-27 at 2.1.0; re-checked 2026-08-28 (2.1.3), 2026-09-03 (2.10.0) and 2026-09-06 (2.12.2). The guardrail preamble is unchanged at 1.0 — v2.11–v2.12's new rules live in the base prompt's MODE sections, which the preamble version does not stamp; noted so the provenance record is read correctly. |
+| Versions: app 2.14.0, engine v2.3, guardrails 1.0 (header) | `package.json`, `AURA-CHANGELOG.md`, `functions/guardrails.cjs` `GUARDRAIL_VERSION` | Confirmed 2026-08-27 at 2.1.0; re-checked 2026-08-28 (2.1.3), 2026-09-03 (2.10.0), 2026-09-06 (2.12.2) and 2026-09-15 (2.14.0). ⚠️ This row drifted two minors behind the header before the 09-15 check: `auraInfoCard.version.test.js` guards only the **Describes** line, so nothing catches this one. The guardrail preamble is unchanged at 1.0 — v2.11–v2.12's new rules live in the base prompt's MODE sections, which the preamble version does not stamp; noted so the provenance record is read correctly. |
 | Model follows its prompt-carried rules (§3) | `docs/P8.8-owner-read-2026-09-05.md`; `.github/workflows/verify-aura.yml` run logs | **Unverifiable from source.** Observed on three live runs 2026-09-05: injection block and JSON contract held throughout; two behavioural failures, both fixed; drafted verdicts **awaiting the owner's signature** |
 | Google's internal data handling (§4) | Google's API terms | **Not independently verified**, stated as such (gap 6) |
 

@@ -6,8 +6,8 @@ We take the security and data privacy of the NEXUS platform very seriously. Curr
 
 | Version | Support Status |
 | ------- | -------------- |
-| 2.13.x  | Supported (current — in production, multi-team) |
-| 2.12.x  | Supported (superseded — upgrade to 2.13.x) |
+| 2.14.x  | Supported (current — in production, multi-team) |
+| 2.13.x  | Supported (superseded — upgrade to 2.14.x) |
 | 2.11.x  | Supported (superseded — upgrade to 2.12.x) |
 | 2.10.x  | Supported (superseded — upgrade to 2.11.x) |
 | 2.9.x   | Supported (superseded — upgrade to 2.10.x) |
@@ -23,7 +23,9 @@ We take the security and data privacy of the NEXUS platform very seriously. Curr
 | 1.18.x  | Supported (rollback target for the v2.0.0 migration) |
 | < 1.18  | Unsupported |
 
-> This table must match the *Supported Versions* table in [`README.md`](README.md); both are
+> ⚠️ This table is the ONLY supported-versions table in the repository. `README.md` deliberately
+> carries none — it names `SECURITY.md` as the authority precisely to avoid a second table that
+> can drift (see `README.md` *Supported versions*). Do not re-create one there. Both this table and
 > downstream of `package.json` `version`, which is the single authoritative copy. It had
 > drifted eight minor versions behind (it still named 1.5.x as the Active Beta at v1.13.0),
 > and drifted again by two minors between v2.8.0 and v2.10.0 — the support boundary moves

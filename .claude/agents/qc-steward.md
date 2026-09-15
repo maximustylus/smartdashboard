@@ -146,8 +146,8 @@ Given a proposed fix, answer these and refuse to hand-wave:
    every consumer agrees. List them.
 3. Run the tests and **paste the actual output** — counts, not adjectives. Use the
    out-of-iCloud copy (see Phase 2); in-repo runs hang.
-   Current baseline: **3745 tests across 112 files, all passing; lint 0; build 0** at
-   `8530343` (2026-09-11). Earlier baselines this file quoted — 1639/28, then
+   Current baseline: **4265 tests across 126 files, all passing; lint 0; build 0** at
+   `d4d57ae` (v2.14.0, 2026-09-15). Earlier baselines this file quoted — 3745/112, 1639/28, then
    3,667/108 at v2.12.3 — are history, not targets. Expected noise in the log:
    `🔥 Coverage response failed: Error: nope` and similar are fixtures exercising
    failure paths, printed to stderr by passing tests. A **drop** in the count is the

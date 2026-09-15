@@ -477,9 +477,20 @@ tag `docs-archive-2026-09-06`).
 
   None of these was visible to the unit suites. All 2,253 tests passed throughout.
 
-### Known issues — **authoritative list for this surface**
+### ~~Known issues — **authoritative list for this surface**~~ · `HISTORICAL` as at 2026-02
 
-Open, and each one is live on the deployed portal today. Full detail in
+> ⚠️ **SUPERSEDED — do not read this table as current.** It was accurate when written and is
+> now wrong about nine of its ten rows. `CP6` `CP7` `CP9` `CP14` `CP15` `CP16` are all `DONE`
+> with evidence; `CP13`'s disclaimer and privacy notice render on the visible result page
+> (`ResultPage.jsx`); `CP17`'s `user-scalable=no` is gone from `index.html`; and `CP12`'s
+> missing catch-all route exists (`src/App.jsx`, `<Route path="*">`). **`CP8` (resource
+> freshness) is the only row still genuinely open.**
+>
+> **The authoritative list is the Status table in
+> [COMMUNITY_TODO.md](COMMUNITY_TODO.md), not this one.** Kept because the release entry it
+> sits under is a frozen record of what that release knew.
+
+Below is what was open **at the time of that release**. Full detail in
 [COMMUNITY_TODO.md](COMMUNITY_TODO.md).
 
 | Id | | Why it is still open |

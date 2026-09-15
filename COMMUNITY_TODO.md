@@ -5,7 +5,7 @@
 readable at tag `docs-archive-2026-09-06`. AURA — the AI behind the chat pathway — has its
 own ledger in [AURA-TODO.md](AURA-TODO.md) (`AU`n / `AC`n / `AN`n). Three things there bear directly on this
 ledger: `AU13` corrects `CP12`'s `Math.random` evidence string, which was false as
-written (row 4.6 now says what the grep returns; the code half of `AU13` is still open);
+written (row 4.6 now says what the grep returns; the code half of `AU13` closed on 2026-09-06 in `9c8ce15`);
 `AC1`/`AC2` are the PAVS parser defects `P4.3` had `OPEN` for weeks — **closed 2026-08-23
 (`a99ffa6`, 70 tests)**, with `parseClinicalData` extracted to `src/utils/clinicalParse.js`
 under `AC5`; and `AN13` found that feed **comments** bypassed the PDPA guard that posts
@@ -60,12 +60,18 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 16 | `CP1` `CP2` `CP3` `CP5` `CP6` `CP7` `CP9` `CP12` `CP13` `CP14` `CP15` `CP16` `CP17` `CP18` `CP19` · `CP27` (P10, on `community`, not yet on `main`) |
-| `OPEN`, mine | 0 | — |
+| `DONE`, evidenced | 34 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP38` |
+| `OPEN`, mine | 2 | `CP28` (chat step badges are English in all four languages) · `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
 | `OWNER DECISION`, content governance | 1 | `CP8`: name the content owner, review interval and stale-claim action. |
-| `OWNER DECISION` | 17 | `CD4` `CD10` `CD11` `CD12` (design) `CD13` (translation review) · `CD14`–`CD16` (consent, referral partner, retention) · `CD17`–`CD25` (proposed functional measures; P9) |
+| `OWNER DECISION` | 10 | `CD4` `CD10` `CD11` `CD12` (design) `CD13` (translation review) · `CD14`–`CD16` (consent, referral partner, retention) · `CD21` `CD23` (the two functional-measures decisions still open) |
+| **Waived, not reviewed** | 5 | `measures.doNotSelfTest` `noComparison` `notADiagnosis` (2026-09-13) · `measures.hrCaution` `hrSuppressedSymptoms` (2026-09-15). Safety instructions live in ms/zh/ta that **no native speaker has read**, shipped on the owner's signature. `CD26` `CD27` `CD28` are settled. |
+
+> ⚠️ **This table is the authoritative status for this surface.** `COMMUNITY_CHANGELOG.md`
+> carries an older *Known issues* table under its v2.1.2/2.1.3 entry; that one is a frozen
+> record of what that release knew and is labelled `HISTORICAL`. Read this one.
+> Last reconciled against the ledger body and the code: **2026-09-15, at v2.14.0.**
 
 **`CD13` opened 2026-08-23** — a native-speaker review of the 19 strings already
 shipped in ms/zh/ta. Everything translated so far is machine output (group 1 by
@@ -373,7 +379,7 @@ public, with none of the benefit.
 
 ---
 
-## P7 — Found by the pre-merge stress test · `CP22`–`CP26` · risk: **high** · **FIXED** (bar `7.7`)
+## P7 — Found by the pre-merge stress test · `CP22`–`CP26` · risk: **high** · **FIXED**
 
 Run `npm run stress:community` to reproduce every number below. These were found
 by driving the built app and fuzzing the pure logic, **not** by the unit suites —
@@ -389,7 +395,7 @@ one of these is a case where it does exactly that and the system is still wrong.
 | 7.4 | **Region and period cells publish a raw respondent count with no minimum** | `CP25`. `MIN_CELL` is applied to `sectors` only; `regions` and `periods` publish `respondents` as-is and band domains at `MIN_COUNT`. At `respondents: 1` the band stops banding: `'<5'` can only mean 1. Measured — one respondent in the North in November 2026 published **eight domains reading `'<5'`**, which is that person's complete flag profile, located to a region and a month. This is the state the dashboard will be in for its first weeks, which is exactly when it will be shown. | me | `DONE` — the floor is uniform now: **no breakdown cell is published below `MIN_CELL`**, sectors, regions and months alike, and the national *breakdown* is withheld below it too while the national headcount stays (a country-wide total locates nobody). Withholding is reported for each. A test walks the whole document and fails on any readable count under the band. |
 | 7.5 | **Typed answers that DENY a symptom set the flag** | `CP22`. The chat renders a free-text input (`AuraChat.jsx:1146`) and prompts *"SELECT AN OPTION OR TYPE FREELY"*; typed text goes to the same substring matchers. `parseFallsAnswer` handles negation — because "No falls" contains "fall" — and **no other matcher does**. Measured: **16 of 22 realistic typed answers set a flag the answer denied**, 0 missed a real report. A fit person typing *"no chest pain"* scores **5 → Red**, is told to consult a GP before any exercise, and the handover slip prints *"Chest pain or dizziness on exertion"* to a centre as fact. **The quick-reply chips are all correct** — this is the text box only. | me | `DONE` — **16 → 1.** `buildMatcher` is negation-aware: a cue must sit in the same clause, immediately before the term (or immediately after it in Tamil, where negation is postfix). Deliberately timid — `and` breaks a denial, `or` does not, and anything ambiguous keeps the flag, so over-triage stays the direction this fails in. Bare `'low'` was also replaced with the phrasings that mean low mood, because `"low back pain"` and `"low income household"` are not denials and negation could not rescue them. **Every chip maps to exactly the same flag as before** — re-verified. 40 new tests. |
 | 7.6 | **The falls screen misses anyone who types their age** | `CP26`. The gate is `when: (data) => /60\s*\+/.test(String(data.demographics))` — literal `60+` only. Measured: `"72"`, `"I am 72"`, `"I am 65 years old"`, `"60 plus"`, `"sixty five"` all fail it. The chips emit `"Male, 60+"`, so tapping works and typing does not — in the one cohort the falls screen exists for. | me | `DONE` — `parseAgeBand` / `isSixtyPlus` in `clinicalFlags.js`, shared by the chat gate, the form gate and both pathways' `age` derivation, which was a second substring test with the same defect and also cost the two 60+ CTA tiers. A closed range is read as a range, so `"41–60"` does not become 60+. 14 tests. |
-| 7.7 | **Falls and Healthier SG are English-only** | `CP26`, and a consequence of `CD10`. `en` shipped **15** prompts, `ms`/`zh`/`ta` shipped **13**. `isStepAvailable` correctly skipped the untranslated two, so a Malay, Chinese or Tamil speaker was never asked about falls or Healthier SG — the older, less English-dominant residents an Active Ageing Centre referral targets got the shortest assessment. | **OWNER** → me | `DONE` — see below. **The translation was the safe half.** |
+| 7.7 | ~~**Falls and Healthier SG are English-only**~~ **CLOSED 2026-09-12** — all four languages now ship prompts 14 and 15 (`src/data/communityChatCopy.js`; verified 2026-09-15 by reading the `falls` and `healthier_sg` entries under each of `en`/`ms`/`zh`/`ta`). The finding as written: | `CP26`, and a consequence of `CD10`. `en` shipped **15** prompts, `ms`/`zh`/`ta` shipped **13**. `isStepAvailable` correctly skipped the untranslated two, so a Malay, Chinese or Tamil speaker was never asked about falls or Healthier SG — the older, less English-dominant residents an Active Ageing Centre referral targets got the shortest assessment. | **OWNER** → me | `DONE` — see below. **The translation was the safe half.** |
 | 7.8 | **`/individuals` is a 404** | The section root has no route (`App.jsx:764`–`768` define `/individuals/*` only). Anyone who trims the URL, or types what they were told verbally, gets the not-found page. It recovers well — it offers "Start a health check" — but a redirect to `/individuals/pathway` is one line. | me | `DONE` — `<Route path="/individuals" element={<Navigate to="/individuals/pathway" replace />} />`. Verified in Chromium. |
 
 ### ⚠️ `7.7` — what shipping the translation actually required
@@ -1489,11 +1495,21 @@ let the review be archived without losing them.
 
 ---
 
-## P9 — `PROPOSED` functional measures · `CD17`–`CD25` · owner's
+## ~~P9 — `PROPOSED` functional measures~~ · **SHIPPED** v2.13.0 / v2.14.0 · `CD21` `CD23` open
+
+> ⚠️ **This section is the pre-build proposal and is kept as the record of it. The feature
+> is deployed.** Grip strength and sit-to-stand shipped in **v2.13.0**; the reference meters,
+> the heart rate block and the on-screen rendering shipped in **v2.14.0**. See `P9` (the
+> report page), `P9b` (the picture) and `CHANGELOG.md`.
+>
+> Of the nine decisions below, **`CD17` `CD18` `CD19` `CD20` `CD22` `CD25` are settled** —
+> recorded in the code (`src/utils/functionalMeasures.js`, `src/data/functionalNorms.js`) and
+> in `COMMUNITY_CHANGELOG.md`. **`CD21` (source wording) and `CD23` (re-measurement) are the
+> two that remain with the owner.** `CD24` was overtaken: heart rate shipped under `CD27`.
 
 [`docs/FUNCTIONAL-MEASURES-ADDIE.md`](docs/FUNCTIONAL-MEASURES-ADDIE.md) explores adding
-grip-strength and sit-to-stand values to the public pathway. Nothing is implemented or
-authorised for build. Revision 1 replaces the original recommendation where they differ.
+grip-strength and sit-to-stand values to the public pathway. Revision 1 replaces the original
+recommendation where they differ.
 
 | # | Id | Decision | Status | Proposed direction |
 |---|---|---|---|---|
@@ -1517,7 +1533,7 @@ accepted policy.
 ## P10 — `CP27` · the chat asked two questions the server would not accept · risk: medium
 
 Found while preparing the P9 build, because P9 appends conditional steps by the
-same mechanism that broke here. Fixed on branch `community`; not yet on `main`.
+same mechanism that broke here. Fixed on branch `community` and merged to `main` (`0feb71d`); live since v2.12.4.
 
 `AuraChat` sends `domain: stepKey` for every answered step. `communityAck`'s
 `validateAckRequest` rejects any domain outside `COMMUNITY_DOMAINS` with *"Unknown

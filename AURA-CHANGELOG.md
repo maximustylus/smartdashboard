@@ -5,7 +5,18 @@ tier. It moves independently of the app version in `package.json` and is **not**
 an app release. `CHANGELOG.md:12` is the source of that rule; this file is the history it
 refers to.
 
-**Currently `v2.3`.** The app is `v2.10.0` *(as of 2026-09-03; `package.json` is the
+> ⚠️ **COVERAGE GAP — this file records no AURA work after 2026-08-28, and the engine changed
+> materially after that.** Shipped but unrecorded below: `functions/modelAvailability.cjs`
+> (2026-09-05, the second half of `AU30` — a rotated key would otherwise have taken AURA down),
+> `functions/workloadIntent.cjs` (a server-side card discard), `src/utils/reworkNote.js`,
+> five `AURA_SYSTEM_PROMPT` rules (`AU31`–`AU35`), `src/utils/pulseKeys.js` `pulseStats`
+> (`AU13`) and `functions/responseParser.cjs` (`AU18`). `AURA-TODO.md` carries all of them
+> with evidence; this file does not. That is exactly the failure its own opening paragraph
+> names — *"a changelog that is not written when the work lands is a changelog that is wrong"* —
+> recurring. Flagged 2026-09-15 rather than back-filled, because writing these entries after
+> the fact is the thing the file warns against.
+
+**Currently `v2.3`.** The app is `v2.10.0` at the time of this snapshot (it is **v2.14.0** as of 2026-09-15) *(as of 2026-09-03; `package.json` is the
 source, this line is a snapshot — it read `v2.1.3` for nine roster-only releases).*
 
 ⚠️ **Open question for the owner (2026-09-03):** the batch below was headed *"Unreleased —
@@ -118,8 +129,10 @@ test count moving **3,015 → 3,232 across 86 files** and the rules emulator at
 
 ~~⚠️ **Deploy note, unchanged:** rules → functions → hosting, in that order, after
 the owner's 20-turn read. Nothing above is live until the merge.~~ **Merged to `main`
-2026-08-28/29 (PRs #2–#4) and live since app v2.1.x.** The 20-turn read did not run
-first; it is still owed (`AURA-TODO.md` P8.8).
+2026-08-28/29 (PRs #2–#4) and live since app v2.1.x.** ~~The 20-turn read did not run
+first; it is still owed~~ — **CORRECTED 2026-09-15: it ran on 2026-09-05**, three live runs,
+result in `docs/P8.8-owner-read-2026-09-05.md`. The 18 owner verdicts remain unsigned
+(`AURA-TODO.md` P8.8).
 
 ### Before that — `c2b45d9`, `a99ffa6`, `addf3a5`, `e3b6bb9`
 
@@ -209,7 +222,7 @@ Recorded in `CHANGELOG.md` under app `[1.4.0]`, reconstructed from the README.
   snapshots and executes peer-to-peer shift-swap matrix rewrites.~~
   > **False as written.** `ROSTER_POSTMORTEM.md` Block **A1** found the rewrite never
   > actually happened. The surface was removed in app v1.10.0; `README.md:18` carries a
-  > 2026-08-15 correction. ⚠️ `README.md:265` still makes the original claim — the
+  > 2026-08-15 correction. ~~⚠️ `README.md:265` still makes the original claim~~ **CORRECTED 2026-09-15: the README no longer carries it** — the 2026-09-10 rewrite removed it, and `grep` for the phrasing returns nothing. `AU23` is `DONE`. The claim — the
   > correction was applied to one line and not the other. **`AU23`.**
 - **Native File Export:** Markdown compiled to `.docx` Blob objects, downloaded from the
   chat UI. *(Still true.)*
@@ -251,7 +264,7 @@ what AURA can do, drawn from `CHANGELOG.md` and `COMMUNITY_TODO.md`:
 
 | When | What | Effect on AURA |
 |---|---|---|
-| app v1.10.0 | The `ROSTER_ALERT` chat surface removed | AURA stopped force-opening for coverage requests; the roster became the surface. Two README lines still describe the old behaviour (**`AU23`**). |
+| app v1.10.0 | The `ROSTER_ALERT` chat surface removed | AURA stopped force-opening for coverage requests; the roster became the surface. ~~Two README lines still describe the old behaviour~~ **CORRECTED 2026-09-15: neither survives the 2026-09-10 README rewrite** (**`AU23`** is `DONE`). |
 | 2026-08-19 | `firestore.rules` deployed and enforcing | The first real boundary under MODE 3's writes. `CHANGELOG.md:249` calls the path enumeration *"the single largest security win"* the rules file has. |
 | `CP6` | `publicTriageChat` closed — 145 lines, unauthenticated, no callers | One of three open AI endpoints shut. |
 | `CP6`/`CP7` | `communityAck` created; `chatWithAura` gained `request.auth` | The public screening stopped calling the staff-facing prompt. ⚠️ `generateSmartAnalysis` was **not** given the same check — **`AN4`**. |
