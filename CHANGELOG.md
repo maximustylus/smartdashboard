@@ -54,6 +54,16 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.15.1] - 2026-09-16
+
+### Fixed
+
+- The report's governance page said the chat pathway does not ask about income
+  adequacy and infers it from access barriers. That was true until v2.15.0, which
+  added the question to the chat, and was printed on every report downloaded in the
+  hours since. The row now describes both pathways and dates the change. Found by
+  reading a rendered page 3, which is the only place that table exists.
+
 ## [2.15.0] - 2026-09-16
 
 Community portal only; see `COMMUNITY_CHANGELOG.md` for the full entry.

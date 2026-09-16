@@ -29,6 +29,17 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.15.1] — the governance page contradicted v2.15.0
+
+One row. The report's *Academic and Evidence Grounding* table said, under
+Financial Adequacy, "Chat pathway: NOT asked; inferred from reported access
+barriers." v2.15.0 added the question to the chat and nobody re-read the table
+that describes what is asked. It is the page a research office reads first, and
+for the hours between the two releases it described the previous version. Now
+reads "Both pathways" and dates the change.
+
+---
+
 ## Shipped in [2.15.0] — `P11`, the two front doors asked different questions
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md). Shipped 2026-09-16.

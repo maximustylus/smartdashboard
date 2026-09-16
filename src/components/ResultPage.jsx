@@ -1077,7 +1077,7 @@ export default function ResultPage() {
                   ['Psychological Wellbeing', 'SINGLE-ITEM screen adapted from BPS-RS II Domain P22 (PHQ-2 aligned, 2-week timeframe). One item, not the two-item PHQ-2, and not separately validated in this form.'],
                   ['Social Isolation', 'SINGLE-ITEM screen adapted from the Lubben Social Network Scale (LSNS-6). One item, not the six-item scale; LSNS-6\u2019s published reliability does not transfer to it.'],
                   ['Food Insecurity', 'SINGLE-ITEM screen adapted from the Lien Centre for Social Innovation Food Insufficiency Screen (2 items).'],
-                  ['Financial Adequacy', 'Self-guided pathway: 3-level screen adapted from the Duke-NUS Perceived Income Adequacy Scale. Chat pathway: NOT asked; inferred from reported access barriers.'],
+                  ['Financial Adequacy', 'Both pathways: 3-level screen adapted from the Duke-NUS Perceived Income Adequacy Scale, read alongside reported access barriers. Asked in the chat since 16 September 2026; before that the chat inferred it from barriers alone.'],
                   ['Housing Risk', 'Self-reported HDB flat type, used as a social-risk proxy. Flat type is asked; tenure (rented or owned) is not.'],
                 ].map(([label, text], i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, paddingBottom: 5, borderBottom: i < 6 ? '1px solid #f1f5f9' : 'none' }}>
