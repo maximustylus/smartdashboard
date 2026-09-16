@@ -29,6 +29,19 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Unreleased — on `community` · `CP28`, the step badges
+
+- **CP28** — the small label above each chat question was an English literal in
+  `DOMAIN_CONFIG`, so a Chinese or Tamil speaker saw "Your Age" and "Housing
+  Environment" on every one of up to twenty-four questions. Logged 2026-09-12,
+  visible again in the v2.15.0 screenshots. `badgeCopy.js` now carries the words
+  for every step in four languages, `badgeFor` keeps the emoji and swaps the
+  words, and `badgeCopy.test.js` fails if a step in `DOMAIN_CONFIG` has no row or
+  a row lacks a language. 25 short strings × 3, machine translated, not
+  safety-critical, under `CD13`.
+
+---
+
 ## Shipped in [2.15.1] — the governance page contradicted v2.15.0
 
 One row. The report's *Academic and Evidence Grounding* table said, under

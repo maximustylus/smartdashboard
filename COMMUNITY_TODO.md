@@ -60,8 +60,8 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 40 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) |
-| `OPEN`, mine | 2 | `CP28` (chat step badges are English in all four languages) · `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
+| `DONE`, evidenced | 41 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (on `community`) |
+| `OPEN`, mine | 1 | `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
 | `OWNER DECISION`, content governance | 1 | `CP8`: name the content owner, review interval and stale-claim action. |
@@ -1408,7 +1408,7 @@ Verified in the built app, four languages, zero page errors: the progress total
 goes 15 → 16 at the age question for a 67-year-old and stays 15 for a 45-year-old.
 The only console errors are blocked Firebase calls in the sandbox.
 
-⚠️ `CP28` **OPEN, PRE-EXISTING, NOT INTRODUCED HERE.** The step badges
+~~⚠️ `CP28` **OPEN, PRE-EXISTING, NOT INTRODUCED HERE.**~~ **FIXED 2026-09-16** on `community`: `badgeCopy.js` carries the words for all 25 steps in four languages and `badgeFor` keeps the emoji; `badgeCopy.test.js` fails if a step or a language is missing. Machine translated, under `CD13`. The original note: the step badges
 ("👤 About You", "🎂 Your Age", "🩺 Health & Safety Check") are English in all four
 languages, and always have been — every badge in `DOMAIN_CONFIG` is a literal. It
 is visible to a Chinese or Tamil speaker on every question. Out of scope for `P9`

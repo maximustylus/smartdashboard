@@ -54,6 +54,12 @@ not changed by this release.
 
 ## [Unreleased]
 
+### Fixed
+
+- `CP28`: the label above each chat question ("Your Age", "Housing Environment")
+  was English in every language. Now follows the chosen language for all 25
+  steps; the emoji stays. Machine translated, under `CD13`.
+
 ## [2.15.1] - 2026-09-16
 
 ### Fixed

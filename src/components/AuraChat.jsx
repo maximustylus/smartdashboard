@@ -39,6 +39,7 @@ const communityAck = httpsCallable(functions, 'communityAck');
 // domain, the answer and the prior answers, and receives one sentence back.
 
 import { DOMAIN_CONFIG } from '../data/communityDomains';
+import { badgeFor } from '../data/badgeCopy';
 
 // `AC14`: `TOTAL_STEPS` lived here with a comment saying "// 13" while the
 // array held 15 — `CP26` appended `falls` and `healthier_sg` and the comment
@@ -268,7 +269,7 @@ const CtaCard = ({ ctaData, langData }) => (
 );
 
 // ─── DOMAIN BADGE ─────────────────────────────────────────────────────────────
-const DomainBadge = ({ step }) => {
+const DomainBadge = ({ step, lang }) => {
   const domain = DOMAIN_CONFIG[step];
   if (!domain) return null;
   const colourMap = {
@@ -279,7 +280,8 @@ const DomainBadge = ({ step }) => {
   };
   return (
     <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-medium border mb-1.5 ${colourMap[domain.group]}`}>
-      {domain.badge}
+      {/* `CP28`: the words follow the language the resident chose; the emoji stays. */}
+      {badgeFor(domain, lang)}
     </span>
   );
 };
@@ -713,7 +715,7 @@ const AuraChatbot = () => {
             <div className={`max-w-[82%] ${msg.sender === 'user' ? '' : ''}`}>
               {/* Domain badge */}
               {msg.sender === 'bot' && msg.step !== undefined && (
-                <DomainBadge step={msg.step} />
+                <DomainBadge step={msg.step} lang={lang} />
               )}
 
               {/* Message bubble */}
