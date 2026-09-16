@@ -78,7 +78,7 @@ export const DICTIONARY = {
       /* 3  medical         */ 'Do you have any ongoing health conditions, such as high blood pressure, prediabetes, or heart disease? And do you ever feel chest pain or dizziness when you are physically active?',
       /* 4  barriers        */ 'What is the main thing that makes it difficult to access health or fitness services in your community? Be honest, because there are no wrong answers.',
       /* 5  social          */ 'Roughly how many people, family or friends, could you call on for support if you needed help? And would you say you have people you can talk to openly?',
-      /* 6  food_insecurity */ 'One more quick question. In the past 12 months, were there times when you were hungry but did not eat because you could not afford enough food?',
+      /* 6  food_insecurity */ 'In the past 12 months, were there times when you were hungry but did not eat because you could not afford enough food?',
       /* 7  wellbeing       */ 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed, for example due to work, caregiving, or financial pressure?',
       /* 8  demographics    */ 'Now two quick things about you, because the advice changes with both. First, are you male or female?',
       /* 9  ethnicity       */ 'What is your ethnic group? This helps us understand the diverse communities we serve.',
@@ -87,7 +87,7 @@ export const DICTIONARY = {
       /* 12 previous_id     */ 'Do you have a previous NEXUS Assessment ID? If yes, paste it below so I can link your records. If not, just select No.',
       /* 13 age_years      */ 'And how old are you? Please type your age in years.',
       /* 14 falls           */ 'Two quick questions about steadiness. In the past 12 months, have you had a fall, including a slip or trip where you ended up on the ground?',
-      /* 15 healthier_sg    */ 'Last one. Are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
+      /* 15 healthier_sg    */ 'Are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
     ],
 
     reflections: [
@@ -194,7 +194,7 @@ export const DICTIONARY = {
       'Adakah anda mempunyai sebarang penyakit kronik seperti darah tinggi, pradiabetes, atau penyakit jantung? Adakah anda pernah rasa sakit dada atau pening ketika aktif?',
       'Apakah cabaran utama anda untuk menggunakan perkhidmatan kesihatan komuniti?',
       'Lebih kurang berapa ramai orang, keluarga atau rakan, yang boleh anda hubungi jika memerlukan bantuan? Adakah anda mempunyai seseorang untuk bercerita?',
-      'Satu soalan lagi. Dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
+      'Dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
       'Dalam dua minggu lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda berasa tertekan, murung, atau terbeban?',
       'Sekarang dua perkara ringkas tentang anda, kerana nasihat berubah mengikut kedua-duanya. Pertama, adakah anda lelaki atau perempuan?',
       'Apakah kumpulan etnik anda? Ini membantu kami memahami komuniti pelbagai yang kami layani.',
@@ -203,7 +203,7 @@ export const DICTIONARY = {
       'Soalan terakhir. Adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada.',
       /* 13 age_years      */ 'Dan berapakah umur anda? Sila taip umur anda dalam tahun.',
       /* 14 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai?',
-      /* 15 healthier_sg   */ 'Soalan terakhir: adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai.',
+      /* 15 healthier_sg   */ 'Adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'Memulakan dari sifar adalah normal. ' : 'Permulaan yang baik. '; },
@@ -289,7 +289,7 @@ export const DICTIONARY = {
       '您是否有任何慢性病，例如高血压、糖尿病前期或心脏病？运动时是否曾感到胸痛或头晕？',
       '什么是您使用社区健康服务的主要障碍？',
       '大概有多少家人或朋友可以在您需要时提供帮助？您是否有可以倾心交谈的人？',
-      '还有一个问题。在过去 12 个月里，您是否因为买不起足够的食物而挨过饿？',
+      '在过去 12 个月里，您是否因为买不起足够的食物而挨过饿？',
       '在过去两周里，您的整体感觉如何？是否感到压力大、情绪低落或不知所措？',
       '现在问两个关于您的简单问题，因为建议会随这两项而不同。首先，您是男性还是女性？',
       '您的种族是什么？这有助于我们更好地了解我们服务的多元社区。',
@@ -298,7 +298,7 @@ export const DICTIONARY = {
       '最后一个问题。您是否有之前的 NEXUS 评估 ID？如有，请粘贴在下方；如没有，请选择"没有"。',
       /* 13 age_years      */ '请问您今年多大年纪？请输入您的年龄（岁）。',
       /* 14 falls          */ '关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。',
-      /* 15 healthier_sg   */ '最后一个问题。您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
+      /* 15 healthier_sg   */ '您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? '从零开始完全正常。' : '这是一个很好的起点。'; },
@@ -393,7 +393,7 @@ export const DICTIONARY = {
       'கடைசி கேள்வி. உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும்.',
       /* 13 age_years      */ 'உங்கள் வயது என்ன? உங்கள் வயதை ஆண்டுகளில் தட்டச்சு செய்யுங்கள்.',
       /* 14 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா? வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட.',
-      /* 15 healthier_sg   */ 'கடைசிக் கேள்வி: நீங்கள் Healthier SG குடும்ப மருத்தவரிடம் பதிவு செய்துள்ளீர்களா? இதைப் பொறுத்து, உங்களை எந்தெந்தத் திட்டங்களுக்குப் பரிந்துரைக்கலாம் என்பது மாறும்.',
+      /* 15 healthier_sg   */ 'நீங்கள் Healthier SG குடும்ப மருத்தவரிடம் பதிவு செய்துள்ளீர்களா? இதைப் பொறுத்து, உங்களை எந்தெந்தத் திட்டங்களுக்குப் பரிந்துரைக்கலாம் என்பது மாறும்.',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'சூன்யத்திலிருந்து தொடங்குவது முற்றிலும் சாதாரணமானது. ' : 'இது ஒரு சிறந்த தொடக்கம். '; },

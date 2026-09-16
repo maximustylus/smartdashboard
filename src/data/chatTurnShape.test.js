@@ -109,3 +109,42 @@ describe('a prompt asks, it does not also acknowledge', () => {
         expect(forZero.length).toBeGreaterThan(10);
     });
 });
+
+describe('only the last question may say it is the last one', () => {
+    /*
+      ⚠️ THE FLOW GREW AND THE COPY DID NOT NOTICE. `healthier_sg` opened "Last
+         one." in four languages, and it stopped being last in v2.13.0 when the
+         measurements were appended after it. `food_insecurity` opened "One more
+         quick question" as the ninth of up to twenty-four. Adding the perception
+         block put a second "Last one." on `one_change`, five questions after the
+         first, with record linkage still to come. Each is a small lie about how
+         much longer this will take, told to the population least likely to finish.
+
+         `previous_id` is unconditional and genuinely last, so it alone may say so.
+    */
+    const LAST = /last one|last question|soalan terakhir|kedua terakhir|最后一个|கடைசி/i;
+    const ONE_MORE = /one more|satu soalan lagi|satu lagi|还有一个|இன்னும் ஒரு/i;
+
+    it.each(LANGS)('%s: no question but the final one claims to be last', (lang) => {
+        const offenders = [];
+        DICTIONARY[lang].prompts.forEach((p, i) => {
+            if (COPY_ORDER[i] === 'previous_id') return;
+            STATES.forEach((data) => {
+                const text = renderPrompt(p, data);
+                if (LAST.test(text)) offenders.push(`${COPY_ORDER[i]}: ${text.slice(0, 60)}`);
+            });
+        });
+        expect([...new Set(offenders)]).toEqual([]);
+    });
+
+    it.each(LANGS)('%s: no question promises there is only one more', (lang) => {
+        const offenders = [];
+        DICTIONARY[lang].prompts.forEach((p, i) => {
+            STATES.forEach((data) => {
+                const text = renderPrompt(p, data);
+                if (ONE_MORE.test(text)) offenders.push(`${COPY_ORDER[i]}: ${text.slice(0, 60)}`);
+            });
+        });
+        expect([...new Set(offenders)]).toEqual([]);
+    });
+});

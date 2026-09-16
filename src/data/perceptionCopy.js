@@ -68,7 +68,7 @@ export const PERCEPTION_COPY = Object.freeze({
         comfortChips: Object.freeze(['1, not at all comfortable', '2', '3', '4', '5, very comfortable']),
         comfortAck: 'Understood.',
 
-        changePrompt: 'Last one. If you could change one thing about health care in your neighbourhood, what would it be?',
+        changePrompt: 'If you could change one thing about health care in your neighbourhood, what would it be?',
         changeChips: Object.freeze(['Nothing comes to mind']),
     }),
 
@@ -93,7 +93,7 @@ export const PERCEPTION_COPY = Object.freeze({
         comfortChips: Object.freeze(['1, tidak selesa langsung', '2', '3', '4', '5, sangat selesa']),
         comfortAck: 'Difahami. ',
 
-        changePrompt: 'Soalan terakhir. Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',
+        changePrompt: 'Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',
         changeChips: Object.freeze(['Tiada yang terlintas']),
     }),
 
@@ -118,7 +118,7 @@ export const PERCEPTION_COPY = Object.freeze({
         comfortChips: Object.freeze(['1，完全不舒适', '2', '3', '4', '5，非常舒适']),
         comfortAck: '了解。',
 
-        changePrompt: '最后一个问题。如果您能改变社区医疗的一件事，那会是什么？',
+        changePrompt: '如果您能改变社区医疗的一件事，那会是什么？',
         changeChips: Object.freeze(['暂时想不到']),
     }),
 
@@ -143,7 +143,7 @@ export const PERCEPTION_COPY = Object.freeze({
         comfortChips: Object.freeze(['1, இல்லவே இல்லை', '2', '3', '4', '5, மிகவும் வசதியானது']),
         comfortAck: 'புரிந்தது. ',
 
-        changePrompt: 'கடைசி கேள்வி. உங்கள் அக்கம்பக்கத்தில் சுகாதார சேவையில் ஒரு விஷயத்தை மாற்ற முடிந்தால், அது என்னவாக இருக்கும்?',
+        changePrompt: 'உங்கள் அக்கம்பக்கத்தில் சுகாதார சேவையில் ஒரு விஷயத்தை மாற்ற முடிந்தால், அது என்னவாக இருக்கும்?',
         changeChips: Object.freeze(['எதுவும் நினைவுக்கு வரவில்லை']),
     }),
 });

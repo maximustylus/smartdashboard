@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 35 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` |
+| `DONE`, evidenced | 40 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` · `CP40`–`CP44` **on `community`, not yet on `main`** |
 | `OPEN`, mine | 2 | `CP28` (chat step badges are English in all four languages) · `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -71,7 +71,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 > ⚠️ **This table is the authoritative status for this surface.** `COMMUNITY_CHANGELOG.md`
 > carries an older *Known issues* table under its v2.1.2/2.1.3 entry; that one is a frozen
 > record of what that release knew and is labelled `HISTORICAL`. Read this one.
-> Last reconciled against the ledger body and the code: **2026-09-15, at v2.14.1.**
+> Last reconciled against the ledger body and the code: **2026-09-16, on `community` at `e4f663b`+ (main is v2.14.1).**
 
 **`CD13` opened 2026-08-23** — a native-speaker review of the 19 strings already
 shipped in ms/zh/ta. Everything translated so far is machine output (group 1 by
@@ -1602,6 +1602,101 @@ them agree and nothing could see that they did not.
 ⚠️ **The parity test is the only thing holding this contract.** There is no shared
 module and there cannot be one across the two deploys. Appending a step without
 adding its key must fail in CI, and `AuraChat.domainParity.test.jsx` is where.
+
+---
+
+## `P11` — the two front doors asked different questions · `CP40`–`CP44` · **on `community`**
+
+Found 2026-09-16 by the owner reading v2.14.1 on the live site, one screenshot at a
+time, and then by the tests written for what the screenshots showed. None of the
+five was visible to anything the repository had. **Nothing in this section is live:
+`main` is v2.14.1, and this work sits on `community` awaiting a merge.**
+
+### `CP40` — AURA acknowledged twice in one breath · **FIXED**
+
+Every bot turn is `reflections[key](answer) + ' ' + prompts[nextKey]`. Somebody
+who answered "0 days" was told "Starting from zero is completely valid, many people
+are in the same position, and that is exactly why these programmes exist" and then,
+without a pause, "No problem at all, most people start exactly where you are, and
+that is why these programmes exist." Two more prompts did it in a milder form:
+"A solid base to build on. **Great.** And on those active days..." and "...just as
+important as aerobic activity. **Thank you.** Now two quick things about you...".
+
+Neither half was wrong on its own, which is why this passed review in four
+languages: the duplication only exists in the JOIN, which no reader of either file
+ever sees. Prompts now ask and nothing else; `chatTurnShape.test.js` builds the
+join and fails on a repeated six-word run or a prompt that opens with an
+acknowledgement, in all four languages.
+
+### `CP41` — three languages asked a question that contradicted the answer · **FIXED**
+
+English branched `pavs_mins` on a zero answer precisely because "on those active
+days, how many minutes do you usually exercise" is nonsense to somebody who just
+said zero. Malay, Chinese and Tamil had no branch and asked it anyway. The server
+persona had forbidden the model from doing this since it was written; the static
+copy, which is what a resident sees when the model is slow, was doing it regardless.
+
+⚠️ The three new question strings are machine translated. See `CD13` and the
+   review pack at `docs/TRANSLATION-REVIEW-2026-09-16.md`.
+
+### `CP42` — the form could not record a 4-room flat · **FIXED**
+
+The chat offered six housing options and the form three, collapsing 3-Room, 4-Room
+and 5-Room/Executive into "HDB 3 to 5 Room" and condo with landed into "Private
+Property". The same resident stored a different `housingType` depending on which
+door they walked through. The form now offers the chat's six, `value` for `value`,
+and `ConventionalForm.housing.test.jsx` fails if the lists drift.
+
+### ⚠️ `CP43` — the housing risk flag only ever fired in English · **FIXED, and worth an audit**
+
+Found by the parity test on its first run, and the most serious thing in this
+section. `sdohHousing` tested `/1-2 room|1–2 room/i` against the chip the resident
+tapped, and the chips are translated:
+
+    en   HDB 1-2 Room     matched
+    ms   HDB 1-2 Bilik    NEVER MATCHED
+    zh   HDB 1-2 房式      NEVER MATCHED
+    ta   HDB 1-2 அறை      NEVER MATCHED
+
+So for every Malay, Chinese and Tamil resident in a one or two room rental flat,
+the social-risk proxy the evidence page describes was false, and
+`communityServices.js` routes on it. Same shape as `CP26`: a matcher written
+against the English chip in a portal that ships four. It now matches the room
+COUNT, which is the one part nobody translates, plus HDB anywhere in the string.
+
+**Owner's question, not mine:** how many stored records this touched. The flag is
+derived at submission and the chip text is not retained, so it cannot be
+recomputed from what was kept.
+
+### `CP44` — "Last one" was said three times, and "one more" with a dozen to go · **FIXED**
+
+`healthier_sg` opened "Last one." in four languages and stopped being last in
+v2.13.0 when the measurements were appended after it. `food_insecurity` opened
+"One more quick question" as the ninth of up to twenty-four. Adding the perception
+block put a second "Last one." on the free-text question, five after the first,
+with record linkage still to come. `previous_id` is unconditional and genuinely
+last, so it alone may say so, and the test pins that.
+
+### The six questions the form asked alone · **SHIPPED to `community`**
+
+The conventional form had asked six questions since it shipped that AURA never
+did. The owner chose to add all six to the chat rather than remove them from the
+form or document the difference.
+
+| Key | Where | What it does |
+|---|---|---|
+| `income_adequacy` | after food security | **feeds `sdohFinancial`** — the one that changed a result |
+| `services_aware` `ever_referred` `service_rating` `care_comfort` `one_change` | last, before record linkage | stored as `perception`, scored by nothing |
+
+Built from one table in `perceptionCopy.js` and appended, the way the measurement
+questions are, so a language cannot be short by construction. `service_rating` is
+not asked of somebody who has just said they have not heard of the services and was
+never referred, in any of the four languages. The chat is now **up to 24 steps** for
+a 60+ resident who is measured, from 15; the five perception questions sit last so
+that abandoning there costs nothing the assessment needs.
+
+⚠️ 21 new strings × 3 languages, machine translated, none safety-critical, none
+   gating the build. Listed for review in `docs/TRANSLATION-REVIEW-2026-09-16.md`.
 
 ---
 

@@ -31,6 +31,8 @@ import { parseClinicalData } from './clinicalParse';
 import { deriveFormClinicalData } from './formClinicalData';
 import { copyFor } from '../data/communityChatCopy';
 import { PERCEPTION_COPY } from '../data/perceptionCopy';
+import { DOMAIN_CONFIG } from '../data/communityDomains';
+import { isStepAvailable } from './chatSteps';
 
 const LANGS = ['en', 'ms', 'zh', 'ta'];
 
@@ -143,5 +145,43 @@ describe('the perception block is carried by both pathways, and scored by neithe
             pavsScore: r.pavsScore, fallsRisk: r.fallsRisk,
         });
         expect(scored(withIn)).toEqual(scored(withOut));
+    });
+});
+
+describe('service_rating is not asked of somebody with nothing to rate', () => {
+    /*
+      The gate lives in `DOMAIN_CONFIG` and reads two earlier answers. It is
+      exercised here with each language's OWN chips, because a gate written
+      against the English "No" is `CP26` again: it silently stops applying the
+      moment somebody switches language.
+    */
+    const stepIndex = DOMAIN_CONFIG.findIndex((s) => s.key === 'service_rating');
+
+    it.each(LANGS)('%s: skipped when both earlier answers were the negative chip', (lang) => {
+        const { quickReplies, prompts } = copyFor(lang);
+        const data = {
+            services_aware: quickReplies.services_aware[1],
+            ever_referred: quickReplies.ever_referred[1],
+        };
+        expect(isStepAvailable(DOMAIN_CONFIG, stepIndex, prompts, data)).toBe(false);
+    });
+
+    it.each(LANGS)('%s: asked when either earlier answer was the positive chip', (lang) => {
+        const { quickReplies, prompts } = copyFor(lang);
+        expect(isStepAvailable(DOMAIN_CONFIG, stepIndex, prompts, {
+            services_aware: quickReplies.services_aware[0],
+            ever_referred: quickReplies.ever_referred[1],
+        })).toBe(true);
+        expect(isStepAvailable(DOMAIN_CONFIG, stepIndex, prompts, {
+            services_aware: quickReplies.services_aware[1],
+            ever_referred: quickReplies.ever_referred[0],
+        })).toBe(true);
+    });
+
+    it('is asked when the earlier answers are simply absent', () => {
+        // Nothing answered is not "no". A resident who typed something the chips
+        // do not cover must still be asked rather than silently skipped.
+        const { prompts } = copyFor('en');
+        expect(isStepAvailable(DOMAIN_CONFIG, stepIndex, prompts, {})).toBe(true);
     });
 });

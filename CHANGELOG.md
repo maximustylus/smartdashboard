@@ -54,6 +54,24 @@ not changed by this release.
 
 ## [Unreleased]
 
+On `community`, not yet merged. Community portal only; see `COMMUNITY_CHANGELOG.md`
+for the full entry.
+
+### Fixed
+
+- `CP40`–`CP44`: the chat acknowledged twice in one turn; three languages asked a
+  question that contradicted a "0 days" answer; the form could not record a 4-room
+  flat; **the housing social-risk flag only ever fired in English**; "last one" was
+  said three times. Em dashes and "for example 67" removed from everything a
+  resident reads on `/individuals/*`.
+
+### Added
+
+- The chat asks the six questions only the conventional form had been asking, one
+  of which feeds the financial-strain flag. 21 strings × 3 languages, machine
+  translated, listed in `docs/TRANSLATION-REVIEW-2026-09-16.md`.
+
+
 ## [2.14.1] - 2026-09-15
 
 A defect found in a **real production download**, not in a preview: the heart rate
