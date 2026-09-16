@@ -33,7 +33,7 @@
  */
 
 import React from 'react';
-import { MOH_PROFESSION_OPTIONS } from '../data/mockData';
+import { PROFESSION_OPTIONS } from '../data/mockData';
 
 const INPUT = 'w-full bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 '
     + 'shadow-sm rounded-xl py-4 px-4 text-xs font-bold text-slate-900 dark:text-white outline-none '
@@ -80,7 +80,7 @@ const LeadDeclarationFields = ({
 
         <div>
             {/*
-              MOH's own vocabulary, already in the tree for the demo picker. Two of
+              the national list's own vocabulary, already in the tree for the demo picker. Two of
               the 28 professions nest, so this walks groups and options rather than a
               flat list — a browser will not let anyone select a group heading, which
               is the behaviour we want and would otherwise have to enforce ourselves.
@@ -93,7 +93,7 @@ const LeadDeclarationFields = ({
                 className={INPUT}
             >
                 <option value="">Profession…</option>
-                {MOH_PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
+                {PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
                     <optgroup key={entry.groupId} label={entry.label}>
                         {entry.options.map((leaf) => (
                             <option key={leaf.id} value={leaf.id}>{leaf.name}</option>

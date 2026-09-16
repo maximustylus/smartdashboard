@@ -44,6 +44,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     // The path is carried so a write can be identified by the document it targets
     // rather than by a call count — see the two-write assertion below.
     doc: vi.fn((_db, ...segments) => ({ __mock: 'docRef', path: segments.join('/') })),

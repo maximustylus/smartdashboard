@@ -4,7 +4,7 @@ import { auth, db, storage } from '../firebase';
 import { doc, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { userPath, memberPath, gradePath } from '../utils/teamPaths';
 import { useTeam } from '../context/TeamContext';
-import { MOH_PROFESSION_OPTIONS } from '../data/mockData';
+import { PROFESSION_OPTIONS } from '../data/mockData';
 import {
     GRADE_OPTIONS,
     describeGrade,
@@ -347,9 +347,9 @@ const ProfileView = ({ user, onLogout }) => {
                                             >
                                                 <option value="">Not set</option>
                                                 {/* The same grouped list the lead declaration uses, so a
-                                                    profession added to `mohAlliedHealth.js` appears in both
+                                                    profession added to `alliedHealthProfessions.js` appears in both
                                                     without either screen being edited. */}
-                                                {MOH_PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
+                                                {PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
                                                     <optgroup key={entry.groupId} label={entry.label}>
                                                         {entry.options.map((leaf) => (
                                                             <option key={leaf.id} value={leaf.id}>{leaf.name}</option>

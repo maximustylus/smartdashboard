@@ -36,7 +36,8 @@
 // the migration copies rather than moves, so those documents still exist and a
 // stale path left in the app must not keep working.
 //
-// LAST RUN: 2026-08-21 against the Firestore emulator — 95 passed, 0 failed.
+// LAST RUN: 2026-09-17 against the Firestore emulator (firebase-tools 13.35.1) — 163 passed, 0 failed.
+// (Previous recorded run, 2026-08-21: 95 passed, 0 failed; the script has grown since — 15 of the 163 are the roster change-log block.)
 //
 // -----------------------------------------------------------------------------
 // TRAPS PAID FOR ONCE, RECORDED SO THEY ARE NOT PAID FOR TWICE
@@ -376,6 +377,55 @@ await check('a staff member CANNOT add a day that did not exist',
     assertFails(updateDoc(doc(as(BRANDON), `teams/${TEAM_A}/rosters/2026`), { '2026-03-01': [{ task: 'X' }] })));
 await check('nobody can delete the roster',
     assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/rosters/2026`))));
+
+// ═════════════════════════════════════════════════════════════════════════════
+// 3b. THE ROSTER CHANGE LOG — written by a lead, read by the team, never edited
+// ═════════════════════════════════════════════════════════════════════════════
+// ROSTER_TODO.md queue item 3: a lead reassigns one duty on one day (the lead
+// `update` above) and then records it under `rosters/{year}/changes`. The
+// record is pinned to the caller and the server clock, and is immutable.
+console.log('\n══ roster change log: lead-written, member-readable, immutable ══');
+const CHANGES = `teams/${TEAM_A}/rosters/2026/changes`;
+const CHANGE = {
+    kind: 'reassign', dateKey: '2026-02-02', task: 'EFT', role: 'lead',
+    from: 'Brandon', to: 'Ying Xian', before: 'Lead: Brandon', after: 'Lead: Ying Xian',
+    reason: 'sick leave', byUid: ALIF, byName: 'Alif',
+};
+await seed();
+await check('a lead CAN log a reassignment',
+    assertSucceeds(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, at: serverTimestamp() })));
+await check('a NON-ROSTERED lead (the roster master) CAN log one too',
+    assertSucceeds(addDoc(collection(as(NISA), CHANGES), { ...CHANGE, byUid: NISA, byName: 'Nisa', at: serverTimestamp() })));
+await check('a staff member CANNOT log a change',
+    assertFails(addDoc(collection(as(BRANDON), CHANGES), { ...CHANGE, byUid: BRANDON, at: serverTimestamp() })));
+await check('a lead CANNOT log a change as somebody else',
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, byUid: BRANDON, at: serverTimestamp() })));
+await check('a lead CANNOT log a change with a client clock',
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, at: '2026-02-02T09:00:00Z' })));
+await check('a lead CANNOT log a change with an unknown kind',
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, kind: 'regenerate', at: serverTimestamp() })));
+await check('a lead CANNOT log a change with a malformed day',
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, dateKey: '2 Feb 2026', at: serverTimestamp() })));
+await check('a lead CANNOT log a change with a duty that is not lead/coLead',
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, role: 'assignee', at: serverTimestamp() })));
+await check('team B\'s lead CANNOT log into team A\'s change log',
+    assertFails(addDoc(collection(as(SGH_LEAD), CHANGES), { ...CHANGE, byUid: SGH_LEAD, at: serverTimestamp() })));
+await check('a staff member CAN read the change log',
+    assertSucceeds(getDocs(collection(as(BRANDON), CHANGES))));
+await check('team B\'s lead CANNOT read team A\'s change log',
+    assertFails(getDocs(collection(as(SGH_LEAD), CHANGES))));
+await check('a signed-in user with NO team reads no change log',
+    assertFails(getDocs(collection(as(NOMAD), CHANGES))));
+{
+    // An immutable record: seed one with rules off, then try to touch it.
+    await env.withSecurityRulesDisabled(async (c) => {
+        await setDoc(doc(c.firestore(), `${CHANGES}/change-1`), { ...CHANGE, at: new Date() });
+    });
+    await check('nobody — not even the lead who wrote it — can edit a change record',
+        assertFails(updateDoc(doc(as(ALIF), `${CHANGES}/change-1`), { reason: 'edited after the fact' })));
+    await check('nobody can delete a change record',
+        assertFails(deleteDoc(doc(as(ALIF), `${CHANGES}/change-1`))));
+}
 
 /**
  * THE ROSTER MASTER IS A LEAD WHO IS NOT ROSTERED, and she must still be able to

@@ -60,7 +60,7 @@ import {
     parseLocalDateKey,
 } from '../src/utils/rosterEngineV2.js';
 import { DEMO_SHAPES, DEMO_SHAPE_SUGGESTIONS, suggestedShapeFor } from '../src/data/mockData.js';
-import { MOH_PROFESSION_LEAVES } from '../src/data/mohAlliedHealth.js';
+import { PROFESSION_LEAVES } from '../src/data/alliedHealthProfessions.js';
 
 // ── the one source of randomness ─────────────────────────────────────────────
 const arg = (name, fallback) => {
@@ -606,14 +606,14 @@ const runSurface = () => {
     if (unpaired.length !== 1 || unpaired[0].id !== 'shape-graded-floor-rotation') {
         problems.push(`expected exactly respiratory unpaired, got [${unpaired.map((s) => s.id).join(', ')}]`);
     }
-    const covered = MOH_PROFESSION_LEAVES.filter((l) => DEMO_SHAPE_SUGGESTIONS[l.id]).length;
-    if (covered !== 32) problems.push(`profession coverage is ${covered} of ${MOH_PROFESSION_LEAVES.length}, expected 32`);
+    const covered = PROFESSION_LEAVES.filter((l) => DEMO_SHAPE_SUGGESTIONS[l.id]).length;
+    if (covered !== 32) problems.push(`profession coverage is ${covered} of ${PROFESSION_LEAVES.length}, expected 32`);
     if (suggestedShapeFor('respiratory-therapist') !== null) {
         problems.push('respiratory-therapist has a suggestion — it must be attributed but unpaired');
     }
 
     console.log(`  shapes checked       ${DEMO_SHAPES.length} (${interviewed.length} interviewed)`);
-    console.log(`  profession coverage  ${covered} of ${MOH_PROFESSION_LEAVES.length} leaves`);
+    console.log(`  profession coverage  ${covered} of ${PROFESSION_LEAVES.length} leaves`);
     console.log(`  unpaired interviewed ${unpaired.map((s) => s.id).join(', ') || '(none)'}`);
     if (problems.length > 0) {
         console.log(`\n❌ ${problems.length} SURFACE REGRESSION(S)`);

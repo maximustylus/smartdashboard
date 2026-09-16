@@ -14,7 +14,7 @@ import React from 'react';
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, cleanup, waitFor } from '@testing-library/react';
 import AccessGate from './AccessGate';
-import { MOH_PROFESSION_OPTIONS } from '../data/mockData';
+import { PROFESSION_OPTIONS } from '../data/mockData';
 import {
     ACCESS_UNVERIFIED,
     ACCESS_PENDING_LEAD,
@@ -191,7 +191,7 @@ describe('⚠️ declaring as a lead after registering', () => {
 
         fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'KKH' } });
         fireEvent.change(screen.getByLabelText('Department or service'), { target: { value: 'Respiratory Therapy' } });
-        fireEvent.change(screen.getByLabelText('Profession'), { target: { value: MOH_PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
+        fireEvent.change(screen.getByLabelText('Profession'), { target: { value: PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
         fireEvent.click(screen.getByRole('button', { name: /send request/i }));
 
         await waitFor(() => expect(onDeclareLead).toHaveBeenCalledTimes(1));
@@ -212,7 +212,7 @@ describe('⚠️ declaring as a lead after registering', () => {
         fireEvent.click(screen.getByRole('button', { name: /i run a department/i }));
         fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'KKH' } });
         fireEvent.change(screen.getByLabelText('Department or service'), { target: { value: 'Physiotherapy' } });
-        fireEvent.change(screen.getByLabelText('Profession'), { target: { value: MOH_PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
+        fireEvent.change(screen.getByLabelText('Profession'), { target: { value: PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
         fireEvent.click(screen.getByRole('button', { name: /send request/i }));
 
         await waitFor(() => expect(screen.getByText(/insufficient permissions/i)).toBeTruthy());

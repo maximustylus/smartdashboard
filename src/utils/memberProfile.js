@@ -114,9 +114,9 @@ const STORABLE_GRADES = new Set([...GRADE_SCALE, ...NON_NURSING_GRADE_ALIASES]);
 export const isValidGrade = (value) => value === '' || STORABLE_GRADES.has(value);
 
 /**
- * ⚠️ EVERY id THE PICKER CAN EMIT, not only MOH's. Built from
- *    `MOH_PROFESSION_LEAVES` alone, this refused `Administrator` — an option the
- *    picker offers — with "that is not a profession on the MOH allied health list".
+ * ⚠️ EVERY id THE PICKER CAN EMIT, not only the national list's. Built from
+ *    `PROFESSION_LEAVES` alone, this refused `Administrator` — an option the
+ *    picker offers — with "that is not a profession on the national allied health list".
  *    One list now decides what the picker offers AND what the validator accepts.
  */
 const PROFESSION_IDS = new Set(SELECTABLE_PROFESSION_LEAVES.map((leaf) => leaf.id));

@@ -62,6 +62,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(() => ({ __mock: 'docRef' })),
     collection: vi.fn(() => ({ __mock: 'collectionRef' })),
     onSnapshot: vi.fn(() => () => {}),
@@ -476,6 +478,12 @@ describe('the sandbox wizard: the stacked card and the table are the same elemen
 
         const seen = new Map();
         for (const el of Array.from(wizard().querySelectorAll('[aria-label]'))) {
+            // The info buttons (`FieldHint`, v2.15.0) are ONE control repeated beside
+            // twenty settings, each named "More about this setting" and identified
+            // by the label it follows and by its own tooltip. They are not a forked
+            // row, which is what this assertion exists to catch, so they are set
+            // aside here rather than given twenty invented names.
+            if (el.hasAttribute('data-field-hint')) continue;
             const name = el.getAttribute('aria-label');
             seen.set(name, (seen.get(name) || 0) + 1);
         }

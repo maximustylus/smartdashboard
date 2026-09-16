@@ -1110,7 +1110,7 @@ export default function ResultPage() {
                 Your Healthier SG Health Plan
               </div>
               <div style={{ fontSize: 10, color: '#475569', marginBottom: 14, lineHeight: 1.6, maxWidth: '520px', margin: '0 auto 14px' }}>
-                This assessment aligns with the <strong style={{ color: '#0f766e' }}>MOH Healthier SG</strong> framework.
+                This assessment aligns with the <strong style={{ color: '#0f766e' }}>Healthier SG</strong> framework.
                 Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 28px', maxWidth: '540px', margin: '0 auto', textAlign: 'left' }}>
