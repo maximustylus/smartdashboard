@@ -8,6 +8,10 @@
 import { toSector } from './singapore/postalSectors';
 import {
   parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears, isSixtyPlusPerson,
+  // One definition of the one-to-two-room test, shared with the chat pathway. It
+  // lived as a regex in each module, and the chat's copy only ever understood the
+  // English chip. See `matchesOneToTwoRoomRental`.
+  matchesOneToTwoRoomRental,
 } from './clinicalFlags';
 import { sitToStandProtocolForAge } from './functionalMeasures';
 import { measurementResults, toStorableMeasurements } from './measurementAnswers';
@@ -181,7 +185,7 @@ export const deriveFormClinicalData = (answers = {}) => {
       which door somebody walked through is a defect waiting for the next time
       one list is edited.
     */
-    sdohHousing: /1-2 room|1–2 room/i.test(String(f.housing || '')),
+    sdohHousing: matchesOneToTwoRoomRental(f.housing),
     ethnicity: answerText(f.race, 'Unknown') || 'Unknown',
     housingType: answerText(f.housing, 'Unknown') || 'Unknown',
     postalSector: toSector(f.postalCode),

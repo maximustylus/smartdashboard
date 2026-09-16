@@ -22,6 +22,7 @@ import { measurementResults, toStorableMeasurements } from './measurementAnswers
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
   matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
+  matchesIncomeInadequacy, matchesOneToTwoRoomRental,
   parseAgeBand, exactAge, isSixtyPlusPerson,
   matchesFemale, matchesMale,
   isNoPreviousId, parseFallsAnswer, parseHealthierSg,
@@ -73,7 +74,16 @@ export const parseClinicalData = (raw) => {
 
   // SDOH — Financial
   const barrStr      = (raw.barriers || '').toLowerCase();
-  const sdohFinancial = matchesFinancialBarrier(barrStr);
+  /*
+    ⚠️ TWO SOURCES, AS IN THE FORM, AND THE SECOND ONE WAS MISSING HERE. The form
+       has always read `incomeAdequacy === 'Inadequate'` alongside the access
+       barriers; the chat never asked the question, so a resident who said their
+       income did not cover the month was flagged for financial strain through
+       one front door and not the other. Same screening, same person, different
+       result. `income_adequacy` is now asked in both.
+  */
+  const sdohFinancial = matchesFinancialBarrier(barrStr)
+    || matchesIncomeInadequacy((raw.income_adequacy || '').toLowerCase());
 
   // SDOH — Social 
   const socialStr    = (raw.social || '').toLowerCase();
@@ -139,7 +149,7 @@ export const parseClinicalData = (raw) => {
    *    the same shape as the retention notice before `expireCommunityAssessments`.
    *    Now derived in both pathways and routed in `communityServices.js`.
    */
-  const sdohHousing = /1-2 room|1–2 room/i.test(housingType);
+  const sdohHousing = matchesOneToTwoRoomRental(housingType);
 
   // Location
   // ⚠️ A REAL SECTOR OR `null` — NEVER '00'. `toSector` validates against the 81
@@ -193,5 +203,23 @@ export const parseClinicalData = (raw) => {
     healthierSgEnrolled,
     gender, age, ageYears, ethnicity, housingType, postalSector, previousId,
     psychoFlag: sdohPsychological,
+    /*
+      ⚠️ STORED, NOT SCORED. None of these five reaches `calculateRiskScore` or
+         `selectCTA`, exactly as in the form, where they travel as `perception`
+         in the telemetry payload. Kept in the same shape and under the same key
+         so a rollup does not have to know which front door a record came from.
+
+         `barriers` is repeated here because the form's block includes it; it is
+         the same answer already scored above, not a second question.
+    */
+    perception: {
+      aware: raw.services_aware || null,
+      referred: raw.ever_referred || null,
+      rating: raw.service_rating || null,
+      trust: raw.care_comfort || null,
+      barriers: raw.barriers || null,
+      improve: raw.one_change || null,
+      incomeAdequacy: raw.income_adequacy || null,
+    },
   };
 };

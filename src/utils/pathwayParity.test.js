@@ -1,275 +1,147 @@
 /**
  * ==============================================================================
- * PATHWAY PARITY — the two doors must reach the same conclusions
+ * TWO FRONT DOORS, ONE SCREENING — the answers must mean the same thing
  * ==============================================================================
  * Runner: Vitest.  Run: npm test
  *
- * NEXUS offers a chat and a form, and its own comment at
- * `ConventionalForm.jsx:159` once claimed the two were identical while they were
- * not — `CP9`, where a socially isolated senior got the right answer through one
- * door and a silent fallback through the other.
+ * `/individuals/*` can be completed as a chat or as a form. They are separate
+ * components with separate copy, separate answer shapes and separate derivation
+ * modules (`clinicalParse.js` and `formClinicalData.js`). Nothing structural
+ * stops them drifting, and by v2.14.1 they had, in three ways at once:
  *
- * ⚠️ IT HAPPENED AGAIN, AND THIS FILE EXISTS BECAUSE OF IT. The falls and
- *    Healthier SG questions were added to the chat and not to the form, so for two
- *    commits a 60+ respondent who had fallen was routed to falls prevention
- *    through the chat and not through the form. The former CTA parity test did not
- *    catch it: that file compares the TIERS the two can emit, and both could still
- *    emit the same tiers. What diverged was the FLAGS behind them.
+ *   housing type       six options in the chat, three in the form, so the same
+ *                      resident stored a different `housingType` depending on
+ *                      which door they used
+ *   income adequacy    asked by the form ONLY, and it feeds `sdohFinancial`, so
+ *                      a resident whose income did not cover the month was
+ *                      flagged for financial strain through one door and not
+ *                      the other. This one changed the result.
+ *   perception block   five questions asked by the form ONLY, so the rollup
+ *                      silently represented form respondents alone
  *
- * So this checks the flag surface — the object each pathway hands to
- * `calculateRiskScore`, `selectCTA` and `servicesForSector`. Reading it out of the
- * source, as the former CTA parity test did, because the chat derivation still
- * lives behind a large JSX component with Firebase imports.
+ * ⚠️ THE CHAT STORES CHIP TEXT, THE FORM STORES AN ENGLISH `value`. That is the
+ *    root of it: the form can compare against one string whatever language it is
+ *    displaying, and the chat cannot, because what it saves is the words the
+ *    resident actually tapped. Every chat-side flag therefore needs a matcher
+ *    that covers four languages, and `CP26` is what happens when one does not.
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { DICTIONARY } from '../data/communityChatCopy';
-import { DOMAIN_CONFIG } from '../data/communityDomains';
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
+import { parseClinicalData } from './clinicalParse';
 import { deriveFormClinicalData } from './formClinicalData';
+import { copyFor } from '../data/communityChatCopy';
+import { PERCEPTION_COPY } from '../data/perceptionCopy';
 
-const HERE = dirname(fileURLToPath(import.meta.url));
-const src = (name) => readFileSync(resolve(HERE, '..', 'components', name), 'utf8');
-// Anything outside `components/`. The chat's falls gate moved to
-// `data/communityDomains.js` when `DOMAIN_CONFIG` was extracted so it could be
-// imported without `AuraChat`'s firebase graph; the assertion below followed it.
-const mod = (rel) => readFileSync(resolve(HERE, '..', rel), 'utf8');
+const LANGS = ['en', 'ms', 'zh', 'ta'];
 
-/**
- * The keys of the object a pathway returns to the scorer. Brace-matched from the
- * `return {` that closes its derivation, not indentation-matched — the lesson from
- * the former CTA parity test, whose first draft reported `flexDirection` as a tier.
- */
-const returnedKeys = (text, afterMarker) => {
-    const from = text.indexOf(afterMarker);
-    if (from === -1) throw new Error(`Could not find \`${afterMarker}\` — did it get renamed?`);
-    const start = text.indexOf('return {', from);
-    if (start === -1) throw new Error(`No \`return {\` after \`${afterMarker}\`.`);
-    let depth = 0;
-    let end = start;
-    for (let i = text.indexOf('{', start); i < text.length; i += 1) {
-        if (text[i] === '{') depth += 1;
-        else if (text[i] === '}') { depth -= 1; if (depth === 0) { end = i; break; } }
-    }
-    // ⚠️ COMMENTS OUT FIRST. Prose contains commas, and this splits on commas —
-    //    a comment reading "derived here but returned under different names, or
-    //    computed in handleSubmit" split into fragments and swallowed the key on
-    //    the line after it, so the test reported a divergence that did not exist.
-    const body = text.slice(start + 'return {'.length, end)
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/[^\n]*/g, '');
-
-    // Split on TOP-LEVEL commas and take the identifier before any colon. An
-    // earlier draft used a single regex anchored on `^|,` and silently dropped the
-    // first key, because the body opens with a newline rather than a comma — every
-    // "both pathways derive X" case then failed for the wrong reason.
-    const keys = [];
-    let nesting = 0;
-    let current = '';
-    for (const ch of body) {
-        if ('([{'.includes(ch)) nesting += 1;
-        else if (')]}'.includes(ch)) nesting -= 1;
-        if (ch === ',' && nesting === 0) { keys.push(current); current = ''; }
-        else current += ch;
-    }
-    keys.push(current);
-
-    const names = keys
-        .map((entry) => entry.split(':')[0].trim())
-        .filter((name) => /^\w+$/.test(name));
-    if (names.length === 0) throw new Error(`Parsed no keys from the return after \`${afterMarker}\`.`);
-    return [...new Set(names)];
-};
-
-/**
- * `AC5` moved the chat's parser to `src/utils/clinicalParse.js`, exported and
- * unit-tested (`clinicalParse.test.js`) — the extraction this file's own header
- * wished for. `P4.3` did the same for the form. Its side of this comparison now
- * calls the exported function, so comments and JSX formatting cannot satisfy it.
- */
-const chatFlags = () => returnedKeys(
-    readFileSync(resolve(HERE, 'clinicalParse.js'), 'utf8'),
-    'export const parseClinicalData',
-);
-const formFlags = () => Object.keys(deriveFormClinicalData({}));
-
-/**
- * Keys each pathway legitimately has to itself. Anything NOT listed here must
- * appear in both — that is the whole point, and the list is deliberately short so
- * adding to it is a visible decision rather than a quiet one.
- */
-const CHAT_ONLY = [
-    'pavsMinutes',   // the chat parses a midpoint; the form holds the raw answer
-];
-const FORM_ONLY = [
-    'pavsMinutes',
-];
-
-describe('⚠️ both pathways derive the same clinical flags', () => {
-    /**
-     * THE LOAD-BEARING TEST. A flag present in one pathway and not the other means
-     * the same person gets a different assessment depending on which door they
-     * walked through — and neither screen tells them so.
-     */
-    it('the chat derives nothing the form does not', () => {
-        const missing = chatFlags()
-            .filter((k) => !formFlags().includes(k))
-            .filter((k) => !CHAT_ONLY.includes(k));
-        expect(missing, `chat derives these and the form does not: ${missing.join(', ')}`).toEqual([]);
-    });
-
-    it('the form derives nothing the chat does not', () => {
-        const missing = formFlags()
-            .filter((k) => !chatFlags().includes(k))
-            .filter((k) => !FORM_ONLY.includes(k));
-        expect(missing, `form derives these and the chat does not: ${missing.join(', ')}`).toEqual([]);
-    });
-
-    /**
-     * Named explicitly as well as compared, so that deleting BOTH sides of a flag
-     * still fails rather than passing as a matched pair of absences.
-     */
-    it.each([
-        'symptomFlag', 'medFlag',
-        'sdohFinancial', 'sdohSocial', 'sdohPsychological', 'sdohFoodInsecure',
-        'caregiverStrain',
-        'fallsRisk', 'fearOfFalling', 'fallsAsked',
-        'healthierSgEnrolled',
-        'pavsScore', 'strengthDays', 'age', 'gender', 'postalSector', 'previousId',
-    ])('both pathways derive %s', (flag) => {
-        expect(chatFlags(), `chat is missing ${flag}`).toContain(flag);
-        expect(formFlags(), `form is missing ${flag}`).toContain(flag);
-    });
-});
-
-describe('both pathways ask the questions those flags come from', () => {
-    it('both ask about falls', () => {
-        expect(DICTIONARY.en.prompts.join(' ')).toMatch(/have you had a fall/i);
-        expect(src('ConventionalForm.jsx')).toMatch(/have you had a fall/i);
-    });
-
-    it('both ask about Healthier SG enrolment', () => {
-        expect(DICTIONARY.en.prompts.join(' ')).toMatch(/enrolled with a Healthier SG GP/i);
-        expect(src('ConventionalForm.jsx')).toMatch(/enrolled with a Healthier SG GP/i);
-    });
-
-    /**
-     * Both gate falls on 60+. The form knows the age already; the chat has to decide
-     * mid-conversation and goes through `chatSteps.js`. Different plumbing, and now
-     * the same rule underneath it — if one drifts, the cohorts stop matching.
-     *
-     * ⚠️ THE GATE IS `isSixtyPlus`, AND ASSERTING THAT IS THE POINT — this test used
-     *    to require the two ORIGINAL implementations, a `/60\s*\+/` regex in the chat
-     *    and an `f.ageGroup === '60+'` comparison in the form. Both were substring
-     *    tests that only ever recognised the chip text, so the test was pinning the
-     *    `CP26` defect in place: a person who TYPED "72" was not asked about falls in
-     *    either pathway, and a test that says "both do it this way" is satisfied by
-     *    both doing it wrong.
-     */
-    it('both gate the falls question with the shared age parser', () => {
-        // The chat's gate is the `when` predicate on the `falls` step, which lives in
-        // `data/communityDomains.js` since the extraction. The form's is inline.
-        //
-        // ⚠️ `isSixtyPlusPerson`, WHICH TAKES THE WHOLE ANSWER SET. The older
-        //    `isSixtyPlus` took `demographics` alone, which was right while that
-        //    answer carried the age band. `P9` moved the age to its own question, so
-        //    a gate still reading `demographics` would find "Female", resolve to
-        //    `Unknown`, and stop asking every resident aged 60 and over about falls.
-        //    Same cohort as `CP26`, same silence, one question later.
-        expect(mod('data/communityDomains.js'), 'communityDomains.js').toMatch(/isSixtyPlusPerson\(/);
-        expect(src('ConventionalForm.jsx'), 'ConventionalForm.jsx').toMatch(/isSixtyPlusPerson\(/);
-        expect(mod('data/communityDomains.js'), 'the chat must not re-introduce a substring test for the chip text')
-            .not.toMatch(/when:\s*\(data\)\s*=>\s*\/60/);
-        expect(src('ConventionalForm.jsx'), 'the form must not compare against the chip text')
-            .not.toMatch(/ageGroup === '60\+'/);
-        // Neither may go back to reading `demographics` for an age it no longer holds.
-        expect(mod('data/communityDomains.js'), 'the chat must not gate on the demographics answer')
-            .not.toMatch(/isSixtyPlus\(\s*data\??\.?demographics/);
-    });
-
-    /**
-     * ⚠️ `CP32` — THE FORM OFFERED SEVEN ANSWERS IN ENGLISH TO EVERY LANGUAGE.
-     *
-     *    Every other option list on the form was translated. Falls and Healthier SG
-     *    were not, so a Malay, Chinese or Tamil speaker reached the falls question —
-     *    asked only of residents aged 60 and over, the cohort least likely to read
-     *    English — and chose between "No falls / One fall / Two or more falls".
-     *
-     *    Fixed at the cause: the form now BUILDS its options from the chat's chips
-     *    instead of keeping a second hand-maintained copy. This asserts it still
-     *    does, because a private copy is what drifted the first time.
-     */
-    it('offers the same falls and Healthier SG answers in both pathways', () => {
-        const form = src('ConventionalForm.jsx');
-        expect(form, 'the form must build its options from the shared chips')
-            .toMatch(/optionsFromChips\(FALLS_CHIPS\)/);
-        expect(form).toMatch(/optionsFromChips\(HSG_CHIPS\)/);
-        // And must not have grown a private copy again.
-        expect(form, 'the form has re-introduced hand-written falls options')
-            .not.toMatch(/value: 'No falls',\s*en:/);
-    });
-
-    /**
-     * ⚠️ BOTH ASK FOR A YEAR, AND NEITHER OFFERS A BAND. The strength references are
-     *    cut in five-year rows, so an age group cannot be narrowed back down after
-     *    the fact. A pathway that quietly kept its band select would produce records
-     *    that can never be compared, and the person would never be told why.
-     */
-    it('both ask for a precise age rather than an age band', () => {
-        expect(DICTIONARY.en.prompts.join(' '), 'the chat').toMatch(/how old are you/i);
-        expect(src('ConventionalForm.jsx'), 'the form').toMatch(/parseAgeYears\(f\.ageYears\)/);
-        expect(src('ConventionalForm.jsx'), 'the form must not offer age bands again')
-            .not.toMatch(/const AGE_OPTIONS/);
-    });
-
-    /**
-     * Both use the SAME parser. Two pathways deriving one flag two ways is exactly
-     * how CP9 happened, which is why the shared form utility and chat parser both
-     * import `parseFallsAnswer` and `parseHealthierSg` from `clinicalFlags.js`.
-     */
-    it('both use the shared parsers rather than their own', () => {
-        const chatParser = readFileSync(resolve(HERE, 'clinicalParse.js'), 'utf8');
-        const formParser = readFileSync(resolve(HERE, 'formClinicalData.js'), 'utf8');
-        [chatParser, formParser].forEach((parser) => {
-            expect(parser).toMatch(/parseFallsAnswer/);
-            expect(parser).toMatch(/parseHealthierSg/);
+describe('income adequacy flags financial strain in both pathways', () => {
+    it.each(LANGS)('%s: the negative chip sets sdohFinancial in the chat', (lang) => {
+        const chips = PERCEPTION_COPY[lang].incomeChips;
+        const notEnough = chips[chips.length - 1];
+        const parsed = parseClinicalData({
+            barriers: copyFor(lang).quickReplies.barriers.slice(-1)[0], // "no barriers"
+            income_adequacy: notEnough,
         });
-    });
-});
-
-// ── the guard `CP26` needed and nobody had ──────────────────────────────────
-//
-// `prompts`, `reflections` and `quickReplies` are positional arrays index-aligned
-// to `DOMAIN_CONFIG`, in four languages. `isStepAvailable` SKIPS a step with no
-// prompt in the active language, so a short array is not an error, it is a question
-// silently never asked. That is exactly what happened: English shipped 15 prompts
-// and the other three shipped 13, so the least English-dominant older residents,
-// the ones an Active Ageing Centre referral targets, got the shortest assessment.
-// Nothing in CI could see it.
-describe('every language is asked every question', () => {
-    const LANGS = ['en', 'ms', 'zh', 'ta'];
-
-    it.each(LANGS)('%s has a prompt for every step in DOMAIN_CONFIG', (lang) => {
-        expect(DICTIONARY[lang].prompts).toHaveLength(DOMAIN_CONFIG.length);
+        expect(parsed.sdohFinancial, `${lang}: "${notEnough}" did not flag`).toBe(true);
     });
 
-    // A prompt is either a string or a function of the answers so far, because some
-    // questions quote what the person just said back to them. Both are valid; an
-    // empty string is not, and neither is a hole left where a translation should be.
-    it.each(LANGS)('%s has no blank prompt standing in for a missing translation', (lang) => {
-        DICTIONARY[lang].prompts.forEach((prompt, i) => {
-            const where = `${lang} prompt ${i} (${DOMAIN_CONFIG[i].key})`;
-            expect(['string', 'function'], where).toContain(typeof prompt);
-            if (typeof prompt === 'string') expect(prompt.trim().length, where).toBeGreaterThan(0);
+    it.each(LANGS)('%s: neither adequate chip sets it', (lang) => {
+        /*
+          ⚠️ THE ENGLISH PAIR IS THE TRAP AND IT IS WHY THE MATCH IS ON THE
+             NEGATION. "Adequate, just enough" and "Not adequate" share the word
+             "adequate", so any matcher keyed on the noun flags the resident who
+             said they were fine.
+        */
+        PERCEPTION_COPY[lang].incomeChips.slice(0, -1).forEach((chip) => {
+            const parsed = parseClinicalData({
+                barriers: copyFor(lang).quickReplies.barriers.slice(-1)[0],
+                income_adequacy: chip,
+            });
+            expect(parsed.sdohFinancial, `${lang}: "${chip}" must not flag`).toBe(false);
         });
     });
 
-    // Chips and acknowledgements are addressed by the same index as the prompts, so
-    // a short array here misaligns every entry after it rather than simply ending.
-    it.each(LANGS)('%s keeps quickReplies and reflections within the step count', (lang) => {
-        expect(DICTIONARY[lang].quickReplies.length).toBeLessThanOrEqual(DOMAIN_CONFIG.length);
-        expect(DICTIONARY[lang].reflections.length).toBeLessThanOrEqual(DOMAIN_CONFIG.length);
+    it('agrees with the form for the same person', () => {
+        const chat = parseClinicalData({
+            barriers: 'No barriers for me',
+            income_adequacy: 'Not adequate',
+        });
+        const form = deriveFormClinicalData({
+            barriers: ['No barriers for me'],
+            incomeAdequacy: 'Inadequate',
+        });
+        expect(chat.sdohFinancial).toBe(true);
+        expect(form.sdohFinancial).toBe(true);
+    });
+
+    it('still leaves it unset when the question was never reached', () => {
+        // Somebody who abandons before the question must not be flagged BY the
+        // absence of an answer, which is the other way this kind of check fails.
+        expect(parseClinicalData({ barriers: 'No barriers for me' }).sdohFinancial).toBe(false);
+    });
+});
+
+describe('housing type offers the same answers in both pathways', () => {
+    it.each(LANGS)('%s: the 1-2 room option flags in the chat', (lang) => {
+        const chips = copyFor(lang).quickReplies.housing_type;
+        expect(parseClinicalData({ housing_type: chips[0] }).sdohHousing).toBe(true);
+    });
+
+    it('agrees with the form for a 4-room resident, which the form could not express', () => {
+        const chat = parseClinicalData({ housing_type: 'HDB 4 Room' });
+        const form = deriveFormClinicalData({ housing: 'HDB 4 Room' });
+        expect(chat.housingType).toBe('HDB 4 Room');
+        expect(form.housingType).toBe('HDB 4 Room');
+        expect(chat.sdohHousing).toBe(false);
+        expect(form.sdohHousing).toBe(false);
+    });
+});
+
+describe('the perception block is carried by both pathways, and scored by neither', () => {
+    const answered = {
+        services_aware: 'Yes, I have heard of them',
+        ever_referred: 'No, never',
+        service_rating: 'About the same',
+        care_comfort: '4',
+        one_change: 'More evening sessions',
+        income_adequacy: 'Adequate, just enough',
+        barriers: 'No barriers for me',
+    };
+
+    it('reaches the record in the same shape the form uses', () => {
+        const { perception } = parseClinicalData(answered);
+        expect(perception).toMatchObject({
+            aware: 'Yes, I have heard of them',
+            referred: 'No, never',
+            rating: 'About the same',
+            trust: '4',
+            improve: 'More evening sessions',
+        });
+    });
+
+    it('is null per field rather than absent when the questions were not reached', () => {
+        const { perception } = parseClinicalData({});
+        expect(perception).toEqual({
+            aware: null, referred: null, rating: null, trust: null,
+            barriers: null, improve: null, incomeAdequacy: null,
+        });
+    });
+
+    it('changes no score and no flag', () => {
+        /*
+          ⚠️ THE POINT OF THIS ONE. Five questions were added to a live screening
+             flow. If any of them ever starts moving a risk score, it does so
+             here first, loudly, rather than in production.
+        */
+        const withOut = parseClinicalData({ barriers: 'No barriers for me' });
+        const withIn = parseClinicalData(answered);
+        const scored = (r) => ({
+            sdohFinancial: r.sdohFinancial, sdohSocial: r.sdohSocial,
+            sdohPsychological: r.sdohPsychological, sdohFoodInsecure: r.sdohFoodInsecure,
+            sdohHousing: r.sdohHousing, caregiverStrain: r.caregiverStrain,
+            medFlag: r.medFlag, symptomFlag: r.symptomFlag,
+            pavsScore: r.pavsScore, fallsRisk: r.fallsRisk,
+        });
+        expect(scored(withIn)).toEqual(scored(withOut));
     });
 });

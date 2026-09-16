@@ -35,6 +35,13 @@ import { numberIn } from '../utils/measurementAnswers';
 const hasStrengthReference = (data) => sitToStandProtocolForAge(exactAge(data)) !== null;
 
 /** Whether either measurement actually produced a figure worth attributing. */
+/**
+ * A "no" in any of the four languages. The `service_rating` gate depends on it,
+ * and `CP26` is the reason it is not `/no/i`: a gate that only understands the
+ * English chip silently stops applying the moment somebody switches language.
+ */
+const isNegative = (answer) => /\bno\b|\bnope\b|tidak|tiada|没有|不|இல்லை/i.test(String(answer || ''));
+
 const gaveAMeasurement = (data) =>
     numberIn(data?.grip_kg) !== null || numberIn(data?.sit_to_stand) !== null;
 
@@ -104,6 +111,15 @@ export const DOMAIN_CONFIG = [
   { key: 'barriers',     badge: '🔑 Cost & Access',               group: 'sdoh'   },
   { key: 'social',       badge: '🤝 Social Support',              group: 'sdoh'   },
   { key: 'food_insecurity', badge: '🥗 Food Security',            group: 'sdoh'   },
+  /*
+    ⚠️ ASKED BY THE FORM SINCE IT SHIPPED, AND NOT BY THE CHAT UNTIL NOW. This is
+       the one of the six pathway differences that CHANGED A RESULT: the form
+       feeds it into `sdohFinancial`, so a resident who said their income was
+       inadequate was flagged for financial strain through one front door and
+       not through the other. `clinicalParse.js` now reads it the same way
+       `formClinicalData.js` does.
+  */
+  { key: 'income_adequacy', badge: '💰 Making Ends Meet',    group: 'sdoh'   },
   { key: 'wellbeing',    badge: '🧠 Mood & Wellbeing',            group: 'sdoh'   },
 
   {
@@ -174,6 +190,36 @@ export const DOMAIN_CONFIG = [
     */
     when: gaveAMeasurement,
   },
+
+  /*
+    ── How community care is experienced ────────────────────────────────
+
+    ⚠️ LAST ON PURPOSE, AND NOT BECAUSE THEY MATTER LEAST. None of these five
+       feeds `calculateRiskScore` or `selectCTA`; they are stored as a
+       `perception` block for programme planning. Somebody who abandons here has
+       already given every answer the assessment itself needs, which is exactly
+       why five extra questions can sit here and nowhere earlier.
+
+    ⚠️ THE FORM HAS ASKED ALL FIVE SINCE IT SHIPPED. The chat did not, so the
+       two front doors onto one screening collected different data, and the
+       perception rollup silently represented form respondents only.
+  */
+  { key: 'services_aware', badge: '📣 Local Services',        group: 'admin'  },
+  { key: 'ever_referred',  badge: '🔁 Referral History',      group: 'admin'  },
+  {
+    key: 'service_rating', badge: '⭐ Your Experience',       group: 'admin',
+    /*
+      ⚠️ NOT ASKED OF SOMEBODY WITH NOTHING TO RATE. A resident who has just
+         said they have not heard of the services AND was never referred is being
+         asked to compare something they have not used against a hospital. The
+         form carries a "not applicable" chip for exactly that; the chat can
+         simply not ask. Negatives are matched per language, so this gate cannot
+         repeat the `CP26` failure of only recognising the English chip.
+    */
+    when: (data) => !(isNegative(data?.services_aware) && isNegative(data?.ever_referred)),
+  },
+  { key: 'care_comfort',   badge: '🛡️ Comfort With Care',     group: 'admin'  },
+  { key: 'one_change',     badge: '💬 One Thing To Change',  group: 'admin'  },
 
   // ── And last, the record linkage ──────────────────────────────────────────
   // Genuinely last: it is the only question whose answer is an identifier rather

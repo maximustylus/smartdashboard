@@ -33,6 +33,7 @@ import { MEASURES_COPY } from './measuresCopy';
 import { MEASUREMENT_SETTINGS } from './functionalNorms';
 import { exactAge } from '../utils/clinicalFlags';
 import { sitToStandProtocolForAge } from '../utils/functionalMeasures';
+import { PERCEPTION_COPY } from './perceptionCopy';
 
 export const DICTIONARY = {
   en: {
@@ -483,6 +484,10 @@ export const COPY_ORDER = Object.freeze([
     'postal_code', 'previous_id', 'age_years', 'falls', 'healthier_sg',
     // `P9`, appended below rather than written into the four dictionaries by hand.
     'grip_kg', 'sit_to_stand', 'measure_setting',
+    // The six the conventional form had been asking alone. Appended from
+    // `perceptionCopy.js` for the same reason as the three above.
+    'income_adequacy',
+    'services_aware', 'ever_referred', 'service_rating', 'care_comfort', 'one_change',
 ]);
 
 /**
@@ -535,6 +540,61 @@ LANGS.forEach((lang) => {
         /* grip_kg        */ [m.skip],
         /* sit_to_stand   */ [m.skip, m.stsUnsure],
         /* measure_setting */ MEASUREMENT_SETTINGS.map((id) => m.settings[id]),
+    );
+});
+
+/**
+ * ==============================================================================
+ * THE SIX THE CONVENTIONAL FORM HAD BEEN ASKING ALONE
+ * ==============================================================================
+ *
+ * Appended the same way and for the same reason as the three measurement
+ * questions above: four hand-written copies of one structure is four chances to
+ * leave a chip out of Tamil, and a step with no prompt in the active language is
+ * SKIPPED rather than translated on the fly, so the question is simply never
+ * asked to the people who cannot read English.
+ *
+ * ⚠️ THESE HAVE REFLECTIONS, UNLIKE THE MEASUREMENT STEPS. `reflections` used to
+ *    stop short of the appended questions, so the last few answers got no
+ *    acknowledgement at all when the model reply was slow or failed. Five short
+ *    ones are cheaper than that silence. `one_change` deliberately has none: it
+ *    is free text and the next thing the resident sees is the closing line.
+ */
+LANGS.forEach((lang) => {
+    const c = PERCEPTION_COPY[lang];
+
+    DICTIONARY[lang].prompts.push(
+        /* income_adequacy */ c.incomePrompt,
+        /* services_aware  */ c.awarePrompt,
+        /* ever_referred   */ c.referredPrompt,
+        /* service_rating  */ c.ratingPrompt,
+        /* care_comfort    */ c.comfortPrompt,
+        /* one_change      */ c.changePrompt,
+    );
+
+    DICTIONARY[lang].quickReplies.push(
+        /* income_adequacy */ c.incomeChips,
+        /* services_aware  */ c.awareChips,
+        /* ever_referred   */ c.referredChips,
+        /* service_rating  */ c.ratingChips,
+        /* care_comfort    */ c.comfortChips,
+        /* one_change      */ c.changeChips,
+    );
+
+    /*
+      `reflections` is shorter than `prompts` by the three measurement steps, so
+      the six slots have to be lined up against `COPY_ORDER` rather than simply
+      pushed. Padding to the right length first is what keeps `byKey` honest.
+    */
+    const reflections = DICTIONARY[lang].reflections;
+    while (reflections.length < COPY_ORDER.indexOf('income_adequacy')) reflections.push(undefined);
+    reflections.push(
+        /* income_adequacy */ () => c.incomeAck,
+        /* services_aware  */ () => c.awareAck,
+        /* ever_referred   */ () => c.referredAck,
+        /* service_rating  */ () => c.ratingAck,
+        /* care_comfort    */ () => c.comfortAck,
+        /* one_change      */ undefined,
     );
 });
 

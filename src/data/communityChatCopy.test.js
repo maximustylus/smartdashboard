@@ -62,7 +62,13 @@ describe('every language can ask every question', () => {
       an EXACT list rather than a maximum, so a step that loses its acknowledgement
       by accident shows up here instead of quietly joining the exemption.
     */
-    const NO_ACKNOWLEDGEMENT = ['falls', 'healthier_sg', 'grip_kg', 'sit_to_stand', 'measure_setting'];
+    const NO_ACKNOWLEDGEMENT = [
+        'falls', 'healthier_sg', 'grip_kg', 'sit_to_stand', 'measure_setting',
+        // Free text, and the LAST question before the closing line. An
+        // acknowledgement here would be a canned reply to whatever somebody
+        // just took the trouble to type, which reads worse than silence.
+        'one_change',
+    ];
 
     it.each(LANGS)('%s may omit acknowledgements only for the appended steps', (lang) => {
         const { reflections } = copyFor(lang);
