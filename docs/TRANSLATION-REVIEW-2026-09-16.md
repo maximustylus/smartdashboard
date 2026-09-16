@@ -2,16 +2,21 @@
 
 **What this is.** Every non-English string added or changed on the `community` branch on
 2026-09-16, with the English it was translated from and a back-translation to check
-against. It is written for a reviewer who reads Malay, Chinese or Tamil, and it is
-laid out so that it can be pasted into Gemini or ChatGPT as a first pass.
+against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out so that
+it can be pasted into Gemini or ChatGPT as a first pass.
 
-**What it is not.** A model reading a machine translation is evidence, not a review.
-The five safety-critical strings already live under the owner's waivers are in
+**What it is not.** A model reading a machine translation is evidence, not a review. The
+five safety-critical strings already live under the owner's waivers are in
 `TRANSLATION-BRIEF.md` Group 5 and are not repeated here; nothing in this pack is
 safety-critical, so nothing in it gates the build.
 
 **Where it ships.** Nothing here is live yet. `main` is v2.14.1; these strings are on
 `community`.
+
+**Revision 2.** The first revision of this pack showed the wrong English and the wrong
+translations for `chat.wellbeing.chip4` and `chip5` (a generator indexed the first two
+wellbeing chips instead of the last two). ChatGPT caught it. The source was always
+correct; the pack was not. The rows below are regenerated from the live modules.
 
 **Rules the portal holds every string to**, in every language:
 
@@ -27,9 +32,9 @@ safety-critical, so nothing in it gates the build.
 ## ⚠️ Read before changing anything: strings that carry a matcher
 
 The chat stores the **words the resident tapped**, in their language. Some of those
-words are then read by code. If a reviewer improves the wording and loses the
-marked word, the flag stops firing silently, in that language only, and nothing
-reports it. This has already happened twice (`CP26`, `CP43`).
+words are then read by code. If a reviewer improves the wording and loses the marked
+word, the flag stops firing silently, in that language only, and nothing reports it.
+This has already happened twice (`CP26`, `CP43`).
 
 | String | Must keep | Why |
 |---|---|---|
@@ -47,10 +52,10 @@ Everything else is prose and can be reworded freely.
 
 ## Section A · the six new questions · 21 strings × 3 languages
 
-Asked by the conventional form since it shipped, now asked by AURA too. English is
-the form's own wording. Where the form already had a translation it is reused
-verbatim, so most of these have been on the form for months; the acknowledgements
-and the two "yes/no" chip pairs are new.
+Asked by the conventional form since it shipped, now asked by AURA too. English is the
+form's own wording. Where the form already had a translation it is reused, so most of
+these have been on the form for months; the acknowledgements and the two "yes/no"
+chip pairs are new.
 
 ### A1 · Making ends meet · `income_adequacy` · ⚠️ feeds the financial-strain flag
 
@@ -100,9 +105,9 @@ and the two "yes/no" chip pairs are new.
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Pernahkah anda mendengar tentang perkhidmatan kesihatan dan kesejahteraan di kejiranan anda? (cth. Active Health Lab, Start2Move, Pusat Penuaan Aktif) | Have you ever heard about the health and wellness services in your neighbourhood? (e.g. Active Health Lab, Start2Move, Active Ageing Centres) |
-| `zh` | 您听说过您社区里的健康与保健服务吗？（例如 Active Health Lab、Start2Move、活跃乐龄中心） | Have you heard of the health and wellness services in your community? (e.g. Active Health Lab, Start2Move, Active Ageing Centres) |
-| `ta` | உங்கள் அக்கம்பக்கத்தில் உள்ள சுகாதார மற்றும் நல்வாழ்வு சேவைகளைப் பற்றி கேள்விப்பட்டிருக்கிறீர்களா? (எ.கா. Active Health Lab, Start2Move, Active Ageing மையங்கள்) | Have you heard about the health and wellbeing services in your neighbourhood? (e.g. Active Health Lab, Start2Move, Active Ageing centres) |
+| `ms` | Pernahkah anda mendengar tentang perkhidmatan kesihatan dan kesejahteraan di kejiranan anda? (cth. Active Health Lab, Start2Move, Pusat Penuaan Aktif) | Have you ever heard about the health and wellness services in your neighbourhood? (e.g. ...) |
+| `zh` | 您听说过您社区里的健康与保健服务吗？（例如 Active Health Lab、Start2Move、活跃乐龄中心） | Have you heard of the health and wellness services in your community? (e.g. ...) |
+| `ta` | உங்கள் அக்கம்பக்கத்தில் உள்ள சுகாதார மற்றும் நல்வாழ்வு சேவைகளைப் பற்றி கேள்விப்பட்டிருக்கிறீர்களா? (எ.கா. Active Health Lab, Start2Move, Active Ageing மையங்கள்) | Have you heard about the health and wellbeing services in your neighbourhood? (e.g. ...) |
 
 **`aware.chip1`** · EN: *Yes, I have heard of them*
 
@@ -117,16 +122,16 @@ and the two "yes/no" chip pairs are new.
 | | Translation | Back-translation |
 |---|---|---|
 | `ms` | Tidak, ini baharu bagi saya | No, this is new to me |
-| `zh` | 没有，这对我是新的 | No, this is new to me |
+| `zh` | 没有，我没听说过 | No, I have not heard of them |
 | `ta` | இல்லை, இது எனக்குப் புதியது | No, this is new to me |
 
 **`aware.ack`** · EN: *Noted.*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Direkodkan. | Recorded. |
-| `zh` | 已记录。 | Recorded. |
-| `ta` | பதிவு செய்யப்பட்டது. | Recorded. |
+| `ms` | Baik. | Alright. |
+| `zh` | 好的。 | Okay. |
+| `ta` | சரி. | Okay. |
 
 ### A3 · Referral history · `ever_referred`
 
@@ -168,9 +173,9 @@ and the two "yes/no" chip pairs are new.
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Jika anda pernah menggunakan perkhidmatan komuniti, bagaimana pengalaman berbanding hospital? | If you have used community services, how was the experience compared with a hospital? |
-| `zh` | 如果您使用过社区服务，与医院相比体验如何？ | If you have used community services, how was the experience compared to a hospital? |
-| `ta` | சமூக சேவைகளை பயன்படுத்தியிருந்தால், மருத்துவமனையுடன் ஒப்பிடும்போது எவ்வாறு இருந்தது? | If you have used community services, how was it compared with a hospital? |
+| `ms` | Jika anda pernah menggunakan perkhidmatan kesihatan komuniti, bagaimana pengalaman anda berbanding di hospital? | If you have used community health services, how was your experience compared with at a hospital? |
+| `zh` | 如果您使用过社区健康服务，与医院相比，您的体验如何？ | If you have used community health services, compared with a hospital, how was your experience? |
+| `ta` | சமூக சுகாதார சேவைகளைப் பயன்படுத்தியிருந்தால், மருத்துவமனையுடன் ஒப்பிடும்போது உங்கள் அனுபவம் எப்படி இருந்தது? | If you have used community health services, compared with a hospital, how was your experience? |
 
 **`rating.chip1`** · EN: *Better than hospital*
 
@@ -200,7 +205,7 @@ and the two "yes/no" chip pairs are new.
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Tidak berkenaan, belum pernah menggunakan | Not applicable, have never used |
+| `ms` | Tidak berkenaan, belum guna perkhidmatan komuniti | Not applicable, have not used community services |
 | `zh` | 不适用，未使用过社区服务 | Not applicable, have not used community services |
 | `ta` | பொருந்தாது, சமூக சேவைகளை பயன்படுத்தவில்லை | Not applicable, did not use community services |
 
@@ -219,8 +224,8 @@ and the two "yes/no" chip pairs are new.
 | | Translation | Back-translation |
 |---|---|---|
 | `ms` | Sejauh mana anda berasa selesa dan selamat menerima penjagaan kesihatan dalam komuniti? 1 bermaksud tidak selesa langsung dan 5 bermaksud sangat selesa. | How comfortable and safe do you feel receiving health care in the community? 1 means not comfortable at all and 5 means very comfortable. |
-| `zh` | 您在社区接受医疗照护时感到多舒适和安全？1 表示完全不舒适，5 表示非常舒适。 | How comfortable and safe do you feel receiving medical care in the community? 1 means not comfortable at all, 5 means very comfortable. |
-| `ta` | சமூகத்தில் சுகாதார கவனிப்பு பெறுவது எவ்வளவு வசதியாகவும் பாதுகாப்பாகவும் உணர்கிறீர்கள்? 1 என்றால் இல்லவே இல்லை, 5 என்றால் மிகவும் வசதியானது. | How comfortable and safe do you feel receiving health care in the community? 1 means not at all, 5 means very comfortable. |
+| `zh` | 您在社区接受医疗照护时，觉得舒适和安心吗？1 表示完全不舒适，5 表示非常舒适。 | When receiving medical care in the community, do you feel comfortable and at ease? 1 means not comfortable at all, 5 means very comfortable. |
+| `ta` | சமூகத்தில் சுகாதாரப் பராமரிப்பு பெறும்போது நீங்கள் எந்த அளவுக்கு வசதியாகவும் பாதுகாப்பாகவும் உணர்கிறீர்கள்? 1 என்றால் முற்றிலும் வசதியாக இல்லை, 5 என்றால் மிகவும் வசதியாக உள்ளது. | When receiving health care in the community, to what extent do you feel comfortable and safe? 1 means not comfortable at all, 5 means very comfortable. |
 
 **`comfort.chip1`** · EN: *1, not at all comfortable*
 
@@ -228,7 +233,7 @@ and the two "yes/no" chip pairs are new.
 |---|---|---|
 | `ms` | 1, tidak selesa langsung | 1, not comfortable at all |
 | `zh` | 1，完全不舒适 | 1, not comfortable at all |
-| `ta` | 1, இல்லவே இல்லை | 1, not at all |
+| `ta` | 1, முற்றிலும் வசதியாக இல்லை | 1, not comfortable at all |
 
 **`comfort.chip5`** · EN: *5, very comfortable* · chips 2, 3 and 4 are bare digits in every language
 
@@ -270,35 +275,35 @@ and the two "yes/no" chip pairs are new.
 
 ### B1 · New wording, meaning changed · review these
 
-**`chat.pavs_mins_zero`** is the question asked after a resident answers "0 days". It
-did not exist in Malay, Chinese or Tamil: those three asked "on those active days,
-how many minutes do you usually exercise" to somebody who had just said zero.
+**`chat.pavs_mins_zero`** is the question asked after a resident answers "0 days". It did
+not exist in Malay, Chinese or Tamil: those three asked "on those active days, how many
+minutes do you usually exercise" to somebody who had just said zero.
 
 **`chat.pavs_mins_zero`** · EN: *If you were to start being active, roughly how long do you think you could manage each session?*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Jika anda mula bersenam, lebih kurang berapa lama anda rasa anda boleh lakukan setiap sesi? | If you start exercising, roughly how long do you feel you could do each session? |
+| `ms` | Jika anda mula aktif secara fizikal, lebih kurang berapa lama anda rasa anda mampu melakukannya setiap kali? | If you start being physically active, roughly how long do you feel you could manage each time? |
 | `zh` | 如果您开始运动，您觉得每次大概可以坚持多久？ | If you start exercising, how long do you think you could keep going each time? |
-| `ta` | நீங்கள் உடற்பயிற்சி செய்யத் தொடங்கினால், ஒவ்வொரு முறையும் தோராயமாக எவ்வளவு நேரம் செய்ய முடியும் என நினைக்கிறீர்கள்? | If you start doing exercise, roughly how much time do you think you could do each time? |
+| `ta` | நீங்கள் உடல் ரீதியாகச் சுறுசுறுப்பாக இருக்கத் தொடங்கினால், ஒவ்வொரு முறையும் தோராயமாக எவ்வளவு நேரம் சுறுசுறுப்பாக இருக்க முடியும் என நினைக்கிறீர்கள்? | If you start being physically active, roughly how much time do you think you could stay active each time? |
 
-The two wellbeing chips were reworded in every language to lose the dash. The **caregiving** one must keep its marker word.
+The two wellbeing chips were reworded in every language to lose the dash. The **caregiving** one must keep its marker word. These are chips four and five of the wellbeing question.
 
-**`chat.wellbeing.chip4`** · EN: *Feeling good overall* · ⚠️ must keep penjagaan / 照顾 / பராமரிப்பு
-
-| | Translation | Back-translation |
-|---|---|---|
-| `ms` | Perasaan baik secara keseluruhannya | Burdened with caregiving responsibility |
-| `zh` | 整体感觉不错 | Feeling overwhelmed because of caregiving |
-| `ta` | ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன் | Heavy burden because of caregiving |
-
-**`chat.wellbeing.chip5`** · EN: *Some stress but managing*
+**`chat.wellbeing.chip4`** · EN: *Overwhelmed by caregiving* · ⚠️ must keep penjagaan / 照顾 / பராமரிப்பு
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Ada sedikit tekanan tapi boleh kawal | Burdened with financial pressure |
-| `zh` | 有些压力但能应对 | Feeling overwhelmed because of financial pressure |
-| `ta` | சில மன அழுத்தம் ஆனால் சமாளிக்கிறேன் | Heavy burden because of financial pressure |
+| `ms` | Terbeban dengan tanggungjawab penjagaan | Burdened with caregiving responsibility |
+| `zh` | 因照顾而感到不知所措 | Feeling overwhelmed because of caregiving |
+| `ta` | பராமரிப்பால் அதிக சுமை | Heavy burden because of caregiving |
+
+**`chat.wellbeing.chip5`** · EN: *Overwhelmed by financial pressure*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Terbeban dengan tekanan kewangan | Burdened with financial pressure |
+| `zh` | 因经济压力而感到不知所措 | Feeling overwhelmed because of financial pressure |
+| `ta` | நிதி அழுத்தத்தால் அதிக சுமை | Heavy burden because of financial pressure |
 
 The age question and its retry no longer suggest a number. The demographics question and Healthier SG question lost an opening word that duplicated the acknowledgement before them, and Healthier SG lost "last one", which it has not been since v2.13.0. Food security lost "one more question", which it is not.
 
@@ -344,9 +349,8 @@ The age question and its retry no longer suggest a number. The demographics ques
 
 ### B2 · Punctuation only · review optional
 
-These lost an em dash and nothing else: the dash became a comma, a full stop or a
-colon. Meaning is unchanged from the machine translation that was already live, so
-they are listed for completeness and a reviewer short of time can skip them.
+These lost an em dash and nothing else. Meaning is unchanged from the machine
+translation that was already live.
 
 | id | `ms` | `zh` | `ta` |
 |---|---|---|---|
@@ -360,15 +364,15 @@ they are listed for completeness and a reviewer short of time can skip them.
 | `chat.reflection.food_insecurity` (yes) | Terima kasih kerana berkongsi. Ini akan diambil kira dalam pelan anda. | 谢谢您告诉我这些，我们会将这点纳入您的健康计划中。 | பகிர்ந்ததற்கு நன்றி. இதை உங்கள் திட்டத்தில் கருத்தில் கொள்வோம். |
 | `chat.reflection.previous_id` (no) | Baik, rekod baharu akan dimulakan. | 没问题，今天将为您建立新记录。 | பரவாயில்லை, புதிய பதிவை தொடங்குவோம். |
 
-The result page's five summary lines, per language (English reference first):
+The result page's five summary lines (English reference first). The two activity lines were extended on 2026-09-16 to carry what the English says:
 
 | id | `en` | `ms` | `zh` | `ta` |
 |---|---|---|---|---|
 | `result.sdohFinText` | Cost flagged as a barrier, so we have prioritised free and fully subsidised options below. | Kos dikenal pasti sebagai halangan. Pilihan percuma dan bersubsidi diutamakan di bawah. | 费用被标记为障碍，免费和全额补贴选项已优先列出。 | செலவு தடையாக கண்டறியப்பட்டது, இலவச மற்றும் மானிய விருப்பங்கள் முன்னுரிமை அளிக்கப்பட்டுள்ளன. |
 | `result.sdohSocText` | Social connection flagged, so community group and befriending resources have been included. | Hubungan sosial dikenal pasti. Sumber kumpulan komuniti dan rakan disertakan. | 社会联系被标记，已包含社区团体和交友资源。 | சமூக தொடர்பு கண்டறியப்பட்டது, சமூக குழு மற்றும் நட்பு வளங்கள் சேர்க்கப்பட்டுள்ளன. |
 | `result.sdohPsychoText` | Mental wellbeing flagged, so emotional wellness and counselling resources have been added. | Kesejahteraan mental dikenal pasti. Sumber sokongan emosi dan kaunseling ditambah. | 心理健康被标记，已添加情感支持和心理辅导资源。 | மன நலன் கண்டறியப்பட்டது, உணர்ச்சி ஆதரவு வளங்கள் சேர்க்கப்பட்டுள்ளன. |
-| `result.pavsBelowDesc` | Below 150 mins/week. The Singapore Physical Activity Guidelines recommend at least 150 mins of moderate activity per week. | Di bawah 150 minit seminggu. Garis Panduan Aktiviti Fizikal Singapura mengesyorkan sekurang-kurangnya 150 minit seminggu. | 低于 150 分钟/周，新加坡体力活动指南建议每周至少进行 150 分钟的中等强度活动。 | 150 நிமிடங்களுக்கும் குறைவு/வாரம், தேசிய வழிகாட்டுதல் குறைந்தது 150 நிமிடங்கள் பரிந்துரைக்கிறது. |
-| `result.pavsActiveDesc` | Excellent. You exceed the national recommendation of 300 mins/week. Focus on maintaining quality and adding variety. | Cemerlang. Anda melebihi cadangan kebangsaan 300 minit seminggu. | 优秀，您超过了全国建议的 300 分钟/周。 | சிறப்பு, தேசிய பரிந்துரையான 300 நிமிடங்கள்/வாரத்தை தாண்டுகிறீர்கள். |
+| `result.pavsBelowDesc` | Below 150 mins/week. The Singapore Physical Activity Guidelines recommend at least 150 mins of moderate activity per week. | Di bawah 150 minit seminggu. Garis Panduan Aktiviti Fizikal Singapura mengesyorkan sekurang-kurangnya 150 minit aktiviti berintensiti sederhana seminggu. | 低于 150 分钟/周，新加坡体力活动指南建议每周至少进行 150 分钟的中等强度活动。 | வாரத்திற்கு 150 நிமிடங்களுக்கும் குறைவு. சிங்கப்பூர் உடல் செயல்பாட்டு வழிகாட்டுதல்கள் வாரத்திற்கு குறைந்தது 150 நிமிடங்கள் மிதமான தீவிர உடல் செயல்பாட்டைப் பரிந்துரைக்கின்றன. |
+| `result.pavsActiveDesc` | Excellent. You exceed the national recommendation of 300 mins/week. Focus on maintaining quality and adding variety. | Cemerlang. Anda melebihi cadangan kebangsaan sebanyak 300 minit seminggu. Kekalkan aktiviti yang berkualiti dan tambah kepelbagaian. | 很好，您的活动量超过了每周 300 分钟的全国建议。请保持活动质量，并增加活动种类。 | சிறப்பு. வாரத்திற்கு 300 நிமிடங்கள் என்ற தேசியப் பரிந்துரையை நீங்கள் தாண்டியுள்ளீர்கள். செயல்பாடுகளின் தரத்தைப் பேணுவதிலும் பல்வேறு வகைகளைச் சேர்ப்பதிலும் கவனம் செலுத்துங்கள். |
 
 The conventional form: the wellbeing chips (same marker rule as `chat.wellbeing.chip4`), the "not applicable" rating option, and the housing options that now match the chat.
 
@@ -382,15 +386,45 @@ The conventional form: the wellbeing chips (same marker rule as `chat.wellbeing.
 | `form.HDB 5 Room / Exec` | HDB 5 Room / Executive | HDB 5 Bilik / Eksekutif | 组屋 5 房 / 执行组屋 | HDB 5 அறை / எக்ஸிகியூட்டிவ் |
 | `form.Condo / Private` | Condo / Private apartment | Kondo / Pangsapuri | 私人公寓 | காண்டோ / தனியார் அபார்ட்மெண்ட் |
 | `form.Landed` | Landed property | Rumah Landed | 有地住宅 | நிலம் உள்ள வீடு |
-| `form.rating.notApplicable` | Not applicable, have not used community services | Tidak berkenaan, belum pernah menggunakan | 不适用，未使用过社区服务 | பொருந்தாது, சமூக சேவைகளை பயன்படுத்தவில்லை |
+| `form.rating.notApplicable` | Not applicable, have not used community services | Tidak berkenaan, belum guna perkhidmatan komuniti | 不适用，未使用过社区服务 | பொருந்தாது, சமூக சேவைகளை பயன்படுத்தவில்லை |
 
 ---
 
+## Model review round 1 · 2026-09-16 · what was applied and what was not
+
+Two models were run over this material by the owner. Recorded here the way
+`copyReview.js` records its cross-checks: as evidence, not review, and with the
+disagreements kept.
+
+**ChatGPT, over revision 1 of this pack.** Its headline finding was the pack's own
+error (the wellbeing rows, above), not a translation fault. Of its wording
+suggestions, **applied**: `aware.chip2` zh (没有，我没听说过); the three `aware.ack`
+lines, which read as database status rather than speech; `rating.prompt` in all three
+languages, which had narrowed "community health services" to "community services";
+`rating.chip4` ms, which did not say what had not been used; `comfort.prompt` zh and ta
+and `comfort.chip1` ta, where an endpoint said "not at all" of nothing;
+`chat.pavs_mins_zero` ms and ta, which had narrowed "being active" to exercise;
+`result.pavsBelowDesc` ms and ta and `result.pavsActiveDesc` in all three, which had
+dropped "moderate activity" and the whole "maintain quality and add variety" sentence
+that the English carries. Every marker word was confirmed present after the edits by
+the tests that read them.
+
+**Gemini, over `CD13-translation-review.xlsx`.** That workbook is not this pack, and
+its "as shipped" column is the text from before 2026-09-13. Every one of its six
+findings had already been adjudicated on that date and is recorded in
+`copyReview.js` `CROSS_CHECKS`: "Tiada jatuh" was changed to "Tidak pernah jatuh"
+then; "GP" was deliberately replaced with "doktor keluarga" as an unexplained
+abbreviation, so standardising back to "GP" reverses a considered decision; the
+Malay and Chinese avoidance chips and "Beban" were declined as one model's fluency
+preference against another's, with no error identified; and the Tamil slip line was
+reversed to the respectful human form (`விழுந்துள்ளார் … தவிர்க்கிறார்`), which is
+neither the shipped form Gemini quotes nor the verbal noun it proposes. **Nothing
+applied.** The workbook should be retired or regenerated before it is used again.
+
 ## How to return this
 
-Three columns, keep the **id**. Anything readable: a table, a spreadsheet, a message.
-Where a string carries a marker word (the table at the top), say explicitly that the
-marker is still present. Wiring a corrected string in is a one-line change per row.
+Three columns, keep the **id**. Where a string carries a marker word (the table at
+the top), say explicitly that the marker is still present.
 
 ## A paste-ready instruction for Gemini or ChatGPT
 

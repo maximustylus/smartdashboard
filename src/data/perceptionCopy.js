@@ -79,14 +79,14 @@ export const PERCEPTION_COPY = Object.freeze({
 
         awarePrompt: 'Pernahkah anda mendengar tentang perkhidmatan kesihatan dan kesejahteraan di kejiranan anda? (cth. Active Health Lab, Start2Move, Pusat Penuaan Aktif)',
         awareChips: Object.freeze(['Ya, saya pernah dengar', 'Tidak, ini baharu bagi saya']),
-        awareAck: 'Direkodkan. ',
+        awareAck: 'Baik. ',
 
         referredPrompt: 'Pernahkah doktor atau profesional kesihatan lain merujuk anda ke program kesihatan komuniti atau Active Health Lab?',
         referredChips: Object.freeze(['Ya, saya pernah dirujuk', 'Tidak, tidak pernah']),
         referredAck: 'Baik. ',
 
-        ratingPrompt: 'Jika anda pernah menggunakan perkhidmatan komuniti, bagaimana pengalaman berbanding hospital?',
-        ratingChips: Object.freeze(['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan, belum pernah menggunakan']),
+        ratingPrompt: 'Jika anda pernah menggunakan perkhidmatan kesihatan komuniti, bagaimana pengalaman anda berbanding di hospital?',
+        ratingChips: Object.freeze(['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan, belum guna perkhidmatan komuniti']),
         ratingAck: 'Terima kasih, itu berguna untuk kami. ',
 
         comfortPrompt: 'Sejauh mana anda berasa selesa dan selamat menerima penjagaan kesihatan dalam komuniti? 1 bermaksud tidak selesa langsung dan 5 bermaksud sangat selesa.',
@@ -103,18 +103,18 @@ export const PERCEPTION_COPY = Object.freeze({
         incomeAck: '谢谢您告诉我。',
 
         awarePrompt: '您听说过您社区里的健康与保健服务吗？（例如 Active Health Lab、Start2Move、活跃乐龄中心）',
-        awareChips: Object.freeze(['听说过', '没有，这对我是新的']),
-        awareAck: '已记录。',
+        awareChips: Object.freeze(['听说过', '没有，我没听说过']),
+        awareAck: '好的。',
 
         referredPrompt: '医生或其他医疗专业人员曾经转介您到社区健康计划或 Active Health Lab 吗？',
         referredChips: Object.freeze(['有，我被转介过', '没有，从来没有']),
         referredAck: '明白了。',
 
-        ratingPrompt: '如果您使用过社区服务，与医院相比体验如何？',
+        ratingPrompt: '如果您使用过社区健康服务，与医院相比，您的体验如何？',
         ratingChips: Object.freeze(['比医院好', '差不多', '需要改进', '不适用，未使用过社区服务']),
         ratingAck: '谢谢，这对我们很有用。',
 
-        comfortPrompt: '您在社区接受医疗照护时感到多舒适和安全？1 表示完全不舒适，5 表示非常舒适。',
+        comfortPrompt: '您在社区接受医疗照护时，觉得舒适和安心吗？1 表示完全不舒适，5 表示非常舒适。',
         comfortChips: Object.freeze(['1，完全不舒适', '2', '3', '4', '5，非常舒适']),
         comfortAck: '了解。',
 
@@ -129,18 +129,18 @@ export const PERCEPTION_COPY = Object.freeze({
 
         awarePrompt: 'உங்கள் அக்கம்பக்கத்தில் உள்ள சுகாதார மற்றும் நல்வாழ்வு சேவைகளைப் பற்றி கேள்விப்பட்டிருக்கிறீர்களா? (எ.கா. Active Health Lab, Start2Move, Active Ageing மையங்கள்)',
         awareChips: Object.freeze(['ஆம், கேள்விப்பட்டிருக்கிறேன்', 'இல்லை, இது எனக்குப் புதியது']),
-        awareAck: 'பதிவு செய்யப்பட்டது. ',
+        awareAck: 'சரி. ',
 
         referredPrompt: 'மருத்துவர் அல்லது வேறு சுகாதார நிபுணர் உங்களை சமூக சுகாதாரத் திட்டத்திற்கோ Active Health Lab-க்கோ பரிந்துரைத்ததுண்டா?',
         referredChips: Object.freeze(['ஆம், பரிந்துரைக்கப்பட்டேன்', 'இல்லை, ஒருபோதும் இல்லை']),
         referredAck: 'புரிந்தது. ',
 
-        ratingPrompt: 'சமூக சேவைகளை பயன்படுத்தியிருந்தால், மருத்துவமனையுடன் ஒப்பிடும்போது எவ்வாறு இருந்தது?',
+        ratingPrompt: 'சமூக சுகாதார சேவைகளைப் பயன்படுத்தியிருந்தால், மருத்துவமனையுடன் ஒப்பிடும்போது உங்கள் அனுபவம் எப்படி இருந்தது?',
         ratingChips: Object.freeze(['மருத்துவமனையை விட சிறந்தது', 'சுமார் அதே', 'மேம்பாடு தேவை', 'பொருந்தாது, சமூக சேவைகளை பயன்படுத்தவில்லை']),
         ratingAck: 'நன்றி, இது எங்களுக்கு பயனுள்ளது. ',
 
-        comfortPrompt: 'சமூகத்தில் சுகாதார கவனிப்பு பெறுவது எவ்வளவு வசதியாகவும் பாதுகாப்பாகவும் உணர்கிறீர்கள்? 1 என்றால் இல்லவே இல்லை, 5 என்றால் மிகவும் வசதியானது.',
-        comfortChips: Object.freeze(['1, இல்லவே இல்லை', '2', '3', '4', '5, மிகவும் வசதியானது']),
+        comfortPrompt: 'சமூகத்தில் சுகாதாரப் பராமரிப்பு பெறும்போது நீங்கள் எந்த அளவுக்கு வசதியாகவும் பாதுகாப்பாகவும் உணர்கிறீர்கள்? 1 என்றால் முற்றிலும் வசதியாக இல்லை, 5 என்றால் மிகவும் வசதியாக உள்ளது.',
+        comfortChips: Object.freeze(['1, முற்றிலும் வசதியாக இல்லை', '2', '3', '4', '5, மிகவும் வசதியானது']),
         comfortAck: 'புரிந்தது. ',
 
         changePrompt: 'உங்கள் அக்கம்பக்கத்தில் சுகாதார சேவையில் ஒரு விஷயத்தை மாற்ற முடிந்தால், அது என்னவாக இருக்கும்?',

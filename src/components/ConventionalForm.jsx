@@ -350,7 +350,7 @@ const D = {
     referQ: 'Pernahkah doktor atau profesional kesihatan merujuk anda ke program kesihatan komuniti atau Active Health Lab?',
     ratingQ: 'Jika anda pernah menggunakan perkhidmatan komuniti, bagaimana pengalaman berbanding hospital?',
     ratingHint: "Belum pernah menggunakan? Pilih 'Tidak berkenaan'.",
-    ratingOpts: ['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan, belum pernah menggunakan'],
+    ratingOpts: ['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan, belum guna perkhidmatan komuniti'],
     trustQ: 'Sejauh mana anda berasa selesa menerima penjagaan dalam komuniti?',
     trustScale: '1 = Tidak selesa langsung   ·   5 = Sangat selesa',
     improveQ: 'Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',

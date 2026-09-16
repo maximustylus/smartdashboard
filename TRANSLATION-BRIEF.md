@@ -631,6 +631,11 @@ the two "no" chips, and the caregiving chip each carry a word a matcher looks fo
 per language. Reword freely; lose the word and the flag stops firing in that
 language only, silently. `CP43` is what that looks like after a year.
 
+**Model round 1, 2026-09-16.** ChatGPT over the pack, Gemini over the old workbook.
+Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
+six findings were all adjudicated on 2026-09-13 and none applied. Details at the
+foot of the pack. Still nobody who reads the language has read any of it.
+
 ---
 
 ## Totals

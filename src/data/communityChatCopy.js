@@ -188,7 +188,7 @@ export const DICTIONARY = {
     prompts: [
       'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan senaman sederhana atau kuat? (cth. berjalan pantas, berbasikal, berenang)',
       /* 1  pavs_mins */ (data) => data.pavs_days === '0 hari' || data.pavs_days === '0 days'
-        ? 'Jika anda mula bersenam, lebih kurang berapa lama anda rasa anda boleh lakukan setiap sesi?'
+        ? 'Jika anda mula aktif secara fizikal, lebih kurang berapa lama anda rasa anda mampu melakukannya setiap kali?'
         : 'Berapa minit biasanya anda bersenam pada setiap sesi aktif tersebut?',
       'Adakah anda melakukan aktiviti menguatkan otot? (cth. angkat berat, band rintangan, senaman berat badan)',
       'Adakah anda mempunyai sebarang penyakit kronik seperti darah tinggi, pradiabetes, atau penyakit jantung? Adakah anda pernah rasa sakit dada atau pening ketika aktif?',
@@ -378,7 +378,7 @@ export const DICTIONARY = {
     prompts: [
       'வணக்கம், நான் AURA 👋 வழக்கமான வாரத்தில், நீங்கள் எத்தனை நாட்கள் மிதமான அல்லது தீவிரமான உடற்பயிற்சி செய்கிறீர்கள்? (எ.கா. வேகமாக நடைபயிற்சி, சைக்கிள், நீச்சல்)',
       /* 1  pavs_mins */ (data) => data.pavs_days === '0 நாட்கள்' || data.pavs_days === '0 days'
-        ? 'நீங்கள் உடற்பயிற்சி செய்யத் தொடங்கினால், ஒவ்வொரு முறையும் தோராயமாக எவ்வளவு நேரம் செய்ய முடியும் என நினைக்கிறீர்கள்?'
+        ? 'நீங்கள் உடல் ரீதியாகச் சுறுசுறுப்பாக இருக்கத் தொடங்கினால், ஒவ்வொரு முறையும் தோராயமாக எவ்வளவு நேரம் சுறுசுறுப்பாக இருக்க முடியும் என நினைக்கிறீர்கள்?'
         : 'அந்த தீவிர நாட்களில் நீங்கள் வழக்கமாக எவ்வளவு நேரம் உடற்பயிற்சி செய்கிறீர்கள்?',
       'நீங்கள் தசை வலிமைப் பயிற்சிகளை செய்கிறீர்களா? (எ.கா. எடை தூக்குதல், ரெசிஸ்டன்ஸ் பேண்ட், புஷ்-அப்ஸ்)',
       'உங்களுக்கு உயர் இரத்த அழுத்தம், நீரிழிவு முன்நிலை, அல்லது இதய நோய் போன்ற நாட்பட்ட நோய்கள் உள்ளதா? செயலில் இருக்கும்போது நெஞ்சு வலி அல்லது தலைச்சுற்றல் ஏற்படுகிறதா?',
