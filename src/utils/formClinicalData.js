@@ -49,10 +49,10 @@ const SOCIAL_FLAG_VALUES = new Set([
 const PSYCHOLOGICAL_FLAG_VALUES = new Set([
   'Some stress but managing',
   'Feeling quite stressed or low',
-  'Overwhelmed — caregiving',
-  'Overwhelmed — financial pressure',
+  'Overwhelmed by caregiving',
+  'Overwhelmed by financial pressure',
 ]);
-const CAREGIVER_FLAG_VALUES = new Set(['Overwhelmed — caregiving']);
+const CAREGIVER_FLAG_VALUES = new Set(['Overwhelmed by caregiving']);
 
 const answerObject = (value) => (
   value && typeof value === 'object' && !Array.isArray(value) ? value : {}
@@ -174,7 +174,14 @@ export const deriveFormClinicalData = (answers = {}) => {
     healthierSgEnrolled,
     psychoFlag: sdohPsychological,
     sdohFoodInsecure: f.foodInsecure === true,
-    sdohHousing: f.housing === 'HDB 1-2 Room',
+    /*
+      The SAME test the chat pathway applies in `clinicalParse.js`, rather than
+      an equality check against one option string. Both front doors now offer
+      the same six housing options, and a social-risk flag that depends on
+      which door somebody walked through is a defect waiting for the next time
+      one list is edited.
+    */
+    sdohHousing: /1-2 room|1–2 room/i.test(String(f.housing || '')),
     ethnicity: answerText(f.race, 'Unknown') || 'Unknown',
     housingType: answerText(f.housing, 'Unknown') || 'Unknown',
     postalSector: toSector(f.postalCode),

@@ -73,7 +73,7 @@ const CTA = {
   chronic_metabolic: {
     emoji: '🩺',
     primaryStep:
-      'Enrol in the "Manage Metabolic Health" programme at Woodlands Active Health Lab — 7 structured sessions, from SGD 48, with healthcare professional supervision.',
+      'Enrol in the "Manage Metabolic Health" programme at Woodlands Active Health Lab: 7 structured sessions, from SGD 48, with healthcare professional supervision.',
     healthierSG:
       'Book your next Healthier SG annual check-in (FREE) and share your activity result. Your GP can issue a direct referral to the Active Health Lab.',
     resources: [
@@ -85,7 +85,7 @@ const CTA = {
   senior_low_activity: {
     emoji: '🏠',
     primaryStep:
-      'Visit your nearest Active Ageing Centre (AAC) — walk in, no appointment needed. Activities are largely free for residents aged 60 and above.',
+      'Visit your nearest Active Ageing Centre (AAC). You can walk in, with no appointment needed. Activities are largely free for residents aged 60 and above.',
     healthierSG:
       'Your Healthier SG Health Plan includes a formal AAC referral pathway. Ask your GP at your next FREE check-in to document this.',
     resources: [
@@ -97,7 +97,7 @@ const CTA = {
   mental_health_first: {
     emoji: '🌿',
     primaryStep:
-      'Your wellbeing matters most. Connect with your polyclinic\'s counselling or mental health support service — this is your most important first step before any exercise programme.',
+      'Your wellbeing matters most. Connect with your polyclinic\'s counselling or mental health support service. This is your most important first step before any exercise programme.',
     healthierSG:
       'The Healthier SG mental health pathway includes polyclinic counselling and AAC social connector support. Raise this at your next Health Plan check-in.',
     resources: [
@@ -109,9 +109,9 @@ const CTA = {
   financial_low_activity: {
     emoji: '🆓',
     primaryStep:
-      'Register for "Start2Move" — a completely FREE 6-session beginner exercise programme. Download the Healthy 365 app and search "Start2Move" under Explore → Events.',
+      'Register for "Start2Move", a completely FREE 6-session beginner exercise programme. Download the Healthy 365 app and search "Start2Move" under Explore → Events.',
     healthierSG:
-      'Your first Healthier SG Health Plan consultation is FULLY SUBSIDISED. If not yet enrolled, book at any PHPC clinic — free for all Singapore residents.',
+      'Your first Healthier SG Health Plan consultation is FULLY SUBSIDISED. If not yet enrolled, book at any PHPC clinic. It is free for all Singapore residents.',
     resources: [
       '🆓 Start2Move: free via Healthy 365 app (App Store / Google Play)',
       '🧘 Free PA interest groups: onepa.gov.sg → search "healthiersg"',
@@ -121,9 +121,9 @@ const CTA = {
   social_low_activity: {
     emoji: '👥',
     primaryStep:
-      'Join Start2Move in a cohort group format — you will exercise alongside the same group of peers across 6 sessions, building both fitness and new friendships.',
+      'Join Start2Move in a cohort group format. You will exercise alongside the same group of peers across 6 sessions, building both fitness and new friendships.',
     healthierSG:
-      'Enrol in a HealthierSG-tagged People\'s Association interest group (Tai Chi, Brisk Walking, Qigong — many are free) and mention participation to your GP.',
+      'Enrol in a HealthierSG-tagged People\'s Association interest group (Tai Chi, Brisk Walking, Qigong; many are free) and mention participation to your GP.',
     resources: [
       '🤝 PA interest groups: onepa.gov.sg → search "healthiersg" → filter by your area',
       '🏠 If aged 60+: visit nearest AAC for befriending and active ageing programmes',
@@ -133,7 +133,7 @@ const CTA = {
   start2move: {
     emoji: '🚀',
     primaryStep:
-      'Download the Healthy 365 app and search "Start2Move" under Explore → Events. Register for the free 6-session beginner programme — the most appropriate first step for your current activity level.',
+      'Download the Healthy 365 app and search "Start2Move" under Explore → Events. Register for the free 6-session beginner programme, the most appropriate first step for your current activity level.',
     healthierSG:
       'Tell your Healthier SG doctor about your Start2Move enrolment at your next check-in. It counts directly toward your exercise health goals on your Health Plan.',
     resources: [
@@ -145,7 +145,7 @@ const CTA = {
   active_health_lab: {
     emoji: '💪',
     primaryStep:
-      'You meet Singapore\'s minimum activity guidelines — now build on this. Book a "Strength 2.0 Foundation" or "Balance & Muscular Fitness" session at Woodlands Active Health Lab, from SGD 6.',
+      'You meet Singapore\'s minimum activity guidelines. Now build on this. Book a "Strength 2.0 Foundation" or "Balance & Muscular Fitness" session at Woodlands Active Health Lab, from SGD 6.',
     healthierSG:
       'Active Health Lab programmes are formally recognised within the Healthier SG Health Plan community pathway. Mention your programme at your next annual check-in.',
     resources: [
@@ -157,7 +157,7 @@ const CTA = {
   perform: {
     emoji: '⚡',
     primaryStep:
-      'You are well above minimum guidelines — outstanding. Try the "Perform 2.0 AMRAP" or "ENGINE Workout" at Woodlands Active Health Lab, from SGD 6, for structured high-intensity programming.',
+      'You are well above minimum guidelines, which is outstanding. Try the "Perform 2.0 AMRAP" or "ENGINE Workout" at Woodlands Active Health Lab, from SGD 6, for structured high-intensity programming.',
     healthierSG:
       'Share your high activity level with your Healthier SG GP. You may be eligible for performance programme referrals and advanced tracking within your Health Plan.',
     resources: [

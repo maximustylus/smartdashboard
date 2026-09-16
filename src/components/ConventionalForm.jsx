@@ -169,8 +169,8 @@ const WELLBEING_OPTIONS = [
   //    completely different places, and merging them hid the unpaid family carer —
   //    the highest-value entry point in social prescribing. Both halves use each
   //    language's own existing wording; nothing was newly translated.
-  { value: 'Overwhelmed — caregiving',         en: 'Overwhelmed — caregiving',         ms: 'Terbeban — penjagaan',        zh: '不知所措 — 照顾',     ta: 'அதிக சுமை — பராமரிப்பு' },
-  { value: 'Overwhelmed — financial pressure', en: 'Overwhelmed — financial pressure', ms: 'Terbeban — tekanan kewangan', zh: '不知所措 — 经济压力', ta: 'அதிக சுமை — நிதி அழுத்தம்' },
+  { value: 'Overwhelmed by caregiving',         en: 'Overwhelmed by caregiving',         ms: 'Terbeban dengan tanggungjawab penjagaan',        zh: '因照顾而感到不知所措',     ta: 'பராமரிப்பால் அதிக சுமை' },
+  { value: 'Overwhelmed by financial pressure', en: 'Overwhelmed by financial pressure', ms: 'Terbeban dengan tekanan kewangan', zh: '因经济压力而感到不知所措', ta: 'நிதி அழுத்தத்தால் அதிக சுமை' },
 ];
 
 const INCOME_OPTIONS = [
@@ -179,10 +179,31 @@ const INCOME_OPTIONS = [
   { value: 'Inadequate',         en: 'Inadequate (some or much difficulty)',  ms: 'Tidak mencukupi',        zh: '不足（有困难）',  ta: 'போதாது (சிரமம்)'   },
 ];
 
+/*
+  ⚠️ THE SAME SIX OPTIONS AS THE CHAT, AND THEY HAVE TO STAY THE SAME SIX.
+
+     These are the two front doors onto ONE screening. The form used to offer
+     three options where the chat offers six, collapsing 3-Room, 4-Room and
+     5-Room/Executive into a single "HDB 3 to 5 Room" and condo with landed
+     into "Private Property". A resident who lives in a 4-room flat could say
+     so in the chat and could not say so in the form, and the two pathways
+     wrote different values into the same `housingType` field.
+
+     `value` is what is stored, flagged on and sent to telemetry, so these six
+     strings match `DICTIONARY[*].quickReplies.housing_type` in
+     `communityChatCopy.js` exactly. Change one list and you must change the
+     other; `ConventionalForm.housing.test.jsx` fails if they drift.
+
+     The four per-language labels are what the resident READS, and those may
+     differ from `value` — only the stored string has to match.
+*/
 const HOUSING_OPTIONS = [
-  { value: 'HDB 1-2 Room',    en: 'HDB 1 to 2 Room (rental)',         ms: 'HDB 1–2 Bilik (sewa)',   zh: '组屋 1–2 房（租赁）', ta: 'HDB 1–2 அறைகள் (வாடகை)' },
-  { value: 'HDB 3-5 Room',    en: 'HDB 3 to 5 Room',                  ms: 'HDB 3–5 Bilik',          zh: '组屋 3–5 房',         ta: 'HDB 3–5 அறைகள்'          },
-  { value: 'Private Property', en: 'Private Property (condo / landed)', ms: 'Hartanah Persendirian', zh: '私人房产',            ta: 'தனியார் சொத்து'          },
+  { value: 'HDB 1-2 Room',      en: 'HDB 1 to 2 Room (rental)', ms: 'HDB 1–2 Bilik (sewa)',        zh: '组屋 1–2 房（租赁）',   ta: 'HDB 1–2 அறைகள் (வாடகை)' },
+  { value: 'HDB 3 Room',        en: 'HDB 3 Room',               ms: 'HDB 3 Bilik',                 zh: '组屋 3 房',             ta: 'HDB 3 அறை'                },
+  { value: 'HDB 4 Room',        en: 'HDB 4 Room',               ms: 'HDB 4 Bilik',                 zh: '组屋 4 房',             ta: 'HDB 4 அறை'                },
+  { value: 'HDB 5 Room / Exec', en: 'HDB 5 Room / Executive',   ms: 'HDB 5 Bilik / Eksekutif',     zh: '组屋 5 房 / 执行组屋',    ta: 'HDB 5 அறை / எக்ஸிகியூட்டிவ்' },
+  { value: 'Condo / Private',   en: 'Condo / Private apartment', ms: 'Kondo / Pangsapuri',         zh: '私人公寓',            ta: 'காண்டோ / தனியார் அபார்ட்மெண்ட்' },
+  { value: 'Landed',            en: 'Landed property',          ms: 'Rumah Landed',                zh: '有地住宅',            ta: 'நிலம் உள்ள வீடு'     },
 ];
 
 /*
@@ -223,7 +244,7 @@ const D = {
     */
     steps: ['Physical Activity', 'Life & Wellbeing', 'Community Experience', 'About You'],
     subs:  ['Activity · Strength · Health Safety', 'Money · Food · Social Support · Mood', 'Community Perception', 'Demographics · Location · Record Linkage'],
-    back: 'Back', yes: 'Yes', no: 'No', sel: 'Select —',
+    back: 'Back', yes: 'Yes', no: 'No', sel: 'Select',
     btnNext: 'Next', btnPrev: 'Previous', btnSubmit: 'Get My Results',
     pavsQ1: 'On a typical week, how many days do you do moderate or vigorous exercise? (e.g. brisk walking, cycling, swimming, gym)',
     pavsQ2: 'On those active days, roughly how many minutes do you usually exercise each time?',
@@ -235,12 +256,12 @@ const D = {
     clinHead: 'Health & Safety Check',
     medQ: 'Do you have any ongoing health conditions such as high blood pressure, prediabetes, or heart disease? And do you ever feel chest pain or dizziness when physically active? Select all that apply.',
     wellHead: 'How You Have Been Feeling',
-    wellQ: 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed — for example, due to work, caregiving, or financial pressure?',
+    wellQ: 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed, for example due to work, caregiving, or financial pressure?',
     wellNote: 'Based on a standard two-week mood question used in health screening',
     sdohHead: 'Your Life and Wellbeing',
     sdohIntro: "These questions ask about everyday things (money, food, housing and support) that can affect your health. They are based on established questionnaires used across Singapore's health services. Your responses are confidential.",
     barrQ: 'What is the main thing that makes it difficult to access health or fitness services in your community? Select all that apply.',
-    socialQ: 'Roughly how many people — family or friends — could you call on for support if you needed help? And would you say you have people you can talk to openly?',
+    socialQ: 'Roughly how many people, family or friends, could you call on for support if you needed help? And would you say you have people you can talk to openly?',
     socialNote: 'Based on a widely used question about social connection',
     foodQ: "In the past 12 months, were you ever hungry but didn't eat because you could not afford enough food?",
     foodNote: 'Based on a Singapore food security study question',
@@ -254,13 +275,13 @@ const D = {
     referQ: 'Has a doctor or allied health professional ever referred you to a community health programme or Active Health Lab?',
     ratingQ: 'If you have used community health services, how was your experience compared to a hospital?',
     ratingHint: "Haven't used community services? Select 'Not applicable'.",
-    ratingOpts: ['Better than hospital', 'About the same', 'Needs improvement', 'Not applicable — have not used community services'],
+    ratingOpts: ['Better than hospital', 'About the same', 'Needs improvement', 'Not applicable, have not used community services'],
     trustQ: 'How comfortable and safe do you feel receiving health care in the community?',
     trustScale: '1 = Not at all comfortable   ·   5 = Very comfortable',
     improveQ: 'If you could change one thing about healthcare in your neighbourhood, what would it be?',
     demoHead: 'About You',
     demoIntro: 'These details help us ensure resources reach every community equitably. All responses are de-identified.',
-    ageQ: 'Age in years', ageHint: 'Please give your age in whole years, for example 67. The ranges we compare strength against change every five years, so a group is not close enough.',
+    ageQ: 'Age in years', ageHint: 'Please give your age in whole years. The ranges we compare strength against change every five years, so a group is not close enough.',
     genderQ: 'Gender', raceQ: 'Ethnicity',
     postalQ: 'First 2 digits of your Postal Code',
     postalHint: 'e.g. 73 (Woodlands) · 75–76 (Yishun) · 75 (Sembawang) · 68 (Admiralty / Canberra)',
@@ -298,7 +319,7 @@ const D = {
     title: 'Penilaian Kesihatan & Komuniti',
     steps: ['Aktiviti Fizikal', 'Kehidupan & Kesejahteraan', 'Pengalaman Komuniti', 'Mengenai Anda'],
     subs:  ['Aktiviti · Kekuatan · Keselamatan Kesihatan', 'Wang · Makanan · Sokongan Sosial · Perasaan', 'Persepsi Komuniti', 'Demografi · Lokasi · Pautan Rekod'],
-    back: 'Kembali', yes: 'Ya', no: 'Tidak', sel: 'Pilih —',
+    back: 'Kembali', yes: 'Ya', no: 'Tidak', sel: 'Pilih',
     btnNext: 'Seterusnya', btnPrev: 'Sebelumnya', btnSubmit: 'Dapatkan Keputusan',
     pavsQ1: 'Dalam minggu biasa, berapa hari anda melakukan senaman sederhana atau berat? (cth. berjalan pantas, berbasikal, berenang)',
     pavsQ2: 'Pada hari aktif tersebut, kira-kira berapa minit anda bersenam setiap kali?',
@@ -310,12 +331,12 @@ const D = {
     clinHead: 'Semakan Kesihatan & Keselamatan',
     medQ: 'Adakah anda mempunyai sebarang penyakit kronik seperti darah tinggi, pradiabetes, atau penyakit jantung? Dan adakah anda pernah merasa sakit dada atau pening semasa aktif? Pilih semua yang berkenaan.',
     wellHead: 'Perasaan Anda Kebelakangan Ini',
-    wellQ: 'Dalam dua minggu yang lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda rasa tertekan, sedih, atau terbeban — misalnya akibat kerja, penjagaan, atau tekanan kewangan?',
+    wellQ: 'Dalam dua minggu yang lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda rasa tertekan, sedih, atau terbeban, misalnya akibat kerja, penjagaan, atau tekanan kewangan?',
     wellNote: 'Berdasarkan soalan mood dua minggu yang standard dalam saringan kesihatan',
     sdohHead: 'Kehidupan dan Kesejahteraan Anda',
     sdohIntro: 'Soalan-soalan ini bertanya tentang perkara harian (wang, makanan, perumahan dan sokongan) yang boleh mempengaruhi kesihatan anda. Jawapan anda adalah sulit.',
     barrQ: 'Apakah yang paling menyukarkan anda untuk mengakses perkhidmatan kesihatan komuniti? Pilih semua yang berkenaan.',
-    socialQ: 'Kira-kira berapa ramai orang — keluarga atau rakan — yang boleh anda hubungi untuk sokongan jika perlu? Dan adakah anda mempunyai seseorang untuk bercerita?',
+    socialQ: 'Kira-kira berapa ramai orang, keluarga atau rakan, yang boleh anda hubungi untuk sokongan jika perlu? Dan adakah anda mempunyai seseorang untuk bercerita?',
     socialNote: 'Berdasarkan soalan lazim mengenai hubungan sosial',
     foodQ: 'Dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
     foodNote: 'Berdasarkan soalan kajian keselamatan makanan Singapura',
@@ -329,13 +350,13 @@ const D = {
     referQ: 'Pernahkah doktor atau profesional kesihatan merujuk anda ke program kesihatan komuniti atau Active Health Lab?',
     ratingQ: 'Jika anda pernah menggunakan perkhidmatan komuniti, bagaimana pengalaman berbanding hospital?',
     ratingHint: "Belum pernah menggunakan? Pilih 'Tidak berkenaan'.",
-    ratingOpts: ['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan — belum pernah menggunakan'],
+    ratingOpts: ['Lebih baik daripada hospital', 'Lebih kurang sama', 'Perlu diperbaiki', 'Tidak berkenaan, belum pernah menggunakan'],
     trustQ: 'Sejauh mana anda berasa selesa menerima penjagaan dalam komuniti?',
     trustScale: '1 = Tidak selesa langsung   ·   5 = Sangat selesa',
     improveQ: 'Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',
     demoHead: 'Mengenai Anda',
     demoIntro: 'Maklumat ini membantu kami memastikan sumber sampai ke semua komuniti secara saksama. Semua jawapan tidak dapat dikenal pasti.',
-    ageQ: 'Umur dalam tahun', ageHint: 'Sila berikan umur anda dalam tahun penuh, contohnya 67. Julat perbandingan kekuatan berubah setiap lima tahun, jadi kumpulan umur tidak cukup tepat.',
+    ageQ: 'Umur dalam tahun', ageHint: 'Sila berikan umur anda dalam tahun penuh. Julat perbandingan kekuatan berubah setiap lima tahun, jadi kumpulan umur tidak cukup tepat.',
     genderQ: 'Jantina', raceQ: 'Etnik',
     postalQ: '2 digit pertama Poskod anda',
     postalHint: 'cth. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',
@@ -370,7 +391,7 @@ const D = {
     title: '健康与社区评估',
     steps: ['体力活动', '生活与身心健康', '社区体验', '关于您'],
     subs:  ['活动 · 力量 · 健康安全', '经济 · 食物 · 社会支持 · 情绪', '社区认知', '人口统计 · 位置 · 记录关联'],
-    back: '返回', yes: '是', no: '否', sel: '请选择 —',
+    back: '返回', yes: '是', no: '否', sel: '请选择',
     btnNext: '下一步', btnPrev: '上一步', btnSubmit: '获取结果',
     pavsQ1: '在通常的一周内，您有几天进行中度或剧烈运动？（例如快走、骑车、游泳、健身房）',
     pavsQ2: '在这些活动的天里，您每次通常运动多少分钟？',
@@ -382,7 +403,7 @@ const D = {
     clinHead: '健康与安全检查',
     medQ: '您是否患有任何慢性病如高血压、糖尿病前期或心脏病？您在进行体力活动时是否有胸痛或头晕？选择所有适用项。',
     wellHead: '您最近的感受',
-    wellQ: '在过去两周里，您整体感觉如何？您是否感到压力、情绪低落或不知所措 — 例如由于工作、护理或经济压力？',
+    wellQ: '在过去两周里，您整体感觉如何？您是否感到压力、情绪低落或不知所措，例如由于工作、护理或经济压力？',
     wellNote: '基于健康筛查中常用的两周情绪问题',
     sdohHead: '您的生活与身心健康',
     sdohIntro: '这些问题涉及可能影响您健康的日常事项（经济、食物、住房和支持）。您的回答是保密的。',
@@ -401,13 +422,13 @@ const D = {
     referQ: '医生或专职医疗专业人员是否曾转介您参加社区健康计划？',
     ratingQ: '如果您使用过社区服务，与医院相比体验如何？',
     ratingHint: '未曾使用过社区服务？请选择"不适用"。',
-    ratingOpts: ['比医院好', '差不多', '需要改进', '不适用 — 未使用过社区服务'],
+    ratingOpts: ['比医院好', '差不多', '需要改进', '不适用，未使用过社区服务'],
     trustQ: '您在社区接受护理感到多舒适？',
     trustScale: '1 = 完全不舒适   ·   5 = 非常舒适',
     improveQ: '如果您能改变社区医疗的一件事，那会是什么？',
     demoHead: '关于您',
     demoIntro: '这些信息帮助我们确保资源公平地覆盖每个社区。所有信息均已去识别化。',
-    ageQ: '年龄（岁）', ageHint: '请填写您的实际年龄（整岁），例如 67。力量对照的范围每五年就不同，因此年龄组不够精确。',
+    ageQ: '年龄（岁）', ageHint: '请填写您的实际年龄（整岁）。力量对照的范围每五年就不同，因此年龄组不够精确。',
     genderQ: '性别', raceQ: '族裔',
     postalQ: '邮政编码前2位',
     postalHint: '例如 73（兀兰）· 75–76（义顺）· 68（甘巴旺）',
@@ -442,7 +463,7 @@ const D = {
     title: 'உடல்நலம் மற்றும் சமூக மதிப்பீடு',
     steps: ['உடல் செயல்பாடு', 'வாழ்க்கை மற்றும் நலன்', 'சமூக அனுபவம்', 'உங்களை பற்றி'],
     subs:  ['செயல்பாடு · வலிமை · சுகாதார பாதுகாப்பு', 'பணம் · உணவு · சமூக ஆதரவு · மனநிலை', 'சமூக உணர்வு', 'மக்கள் தொகை · இடம் · பதிவு இணைப்பு'],
-    back: 'பின்செல்', yes: 'ஆம்', no: 'இல்லை', sel: 'தேர்ந்தெடுக்கவும் —',
+    back: 'பின்செல்', yes: 'ஆம்', no: 'இல்லை', sel: 'தேர்ந்தெடுக்கவும்',
     btnNext: 'அடுத்தது', btnPrev: 'முந்தையது', btnSubmit: 'முடிவுகளைப் பெறுக',
     pavsQ1: 'வழக்கமான வாரத்தில், மிதமான அல்லது கடுமையான உடல் செயல்பாடுகளை எத்தனை நாட்கள் செய்கிறீர்கள்? (எ.கா. வேகமாக நடைபயிற்சி, சைக்கிள், நீச்சல்)',
     pavsQ2: 'அந்த செயலில் நாட்களில், வழக்கமாக எத்தனை நிமிடங்கள் உடற்பயிற்சி செய்கிறீர்கள்?',
@@ -473,13 +494,13 @@ const D = {
     referQ: 'சமூக சுகாதார திட்டத்திற்கு மருத்துவர் பரிந்துரைத்தாரா?',
     ratingQ: 'சமூக சேவைகளை பயன்படுத்தியிருந்தால், மருத்துவமனையுடன் ஒப்பிடும்போது எவ்வாறு இருந்தது?',
     ratingHint: "பயன்படுத்தவில்லையா? 'பொருந்தாது' என்று தேர்ந்தெடுக்கவும்.",
-    ratingOpts: ['மருத்துவமனையை விட சிறந்தது', 'சுமார் அதே', 'மேம்பாடு தேவை', 'பொருந்தாது — சமூக சேவைகளை பயன்படுத்தவில்லை'],
+    ratingOpts: ['மருத்துவமனையை விட சிறந்தது', 'சுமார் அதே', 'மேம்பாடு தேவை', 'பொருந்தாது, சமூக சேவைகளை பயன்படுத்தவில்லை'],
     trustQ: 'சமூகத்தில் சுகாதார கவனிப்பு பெறுவது எவ்வளவு வசதியாக உணர்கிறீர்கள்?',
     trustScale: '1 = இல்லவே இல்லை   ·   5 = மிகவும் வசதியானது',
     improveQ: 'சுகாதார சேவையில் ஒன்றை மாற்ற முடிந்தால், அது என்னவாக இருக்கும்?',
     demoHead: 'உங்களை பற்றி',
     demoIntro: 'இந்த தகவல் ஒவ்வொரு சமூகத்திற்கும் வளங்கள் நியாயமாக சேர உதவுகிறது.',
-    ageQ: 'வயது (ஆண்டுகளில்)', ageHint: 'உங்கள் வயதை முழு ஆண்டுகளில் தாருங்கள், எடுத்துக்காட்டாக 67. வலிமையை ஒப்பிடும் வரம்புகள் ஐந்து ஆண்டுகளுக்கு ஒருமுறை மாறுகின்றன, எனவே வயதுக் குழு போதுமான துல்லியம் அல்ல.',
+    ageQ: 'வயது (ஆண்டுகளில்)', ageHint: 'உங்கள் வயதை முழு ஆண்டுகளில் தாருங்கள். வலிமையை ஒப்பிடும் வரம்புகள் ஐந்து ஆண்டுகளுக்கு ஒருமுறை மாறுகின்றன, எனவே வயதுக் குழு போதுமான துல்லியம் அல்ல.',
     genderQ: 'பாலினம்', raceQ: 'இனம்',
     postalQ: 'அஞ்சல் குறியீட்டின் முதல் 2 இலக்கங்கள்',
     postalHint: 'எ.கா. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',

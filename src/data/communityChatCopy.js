@@ -49,35 +49,51 @@ export const DICTIONARY = {
     error: 'A connection error occurred while saving your profile. Please try again.',
     // `CP37`: shown when an age cannot be read. It must ASK AGAIN rather than
     // accept nothing, because an age nobody has costs the whole 60+ pathway.
-    ageRetry: 'Sorry, I could not read that as an age. Please type the number of years only, for example 67.',
+    ageRetry: 'Sorry, I could not read that as an age. Please type the number of years only.',
     progressLabel: (step, total) => `Step ${step + 1} of ${total}`,
     // 13 prompts — indices match DOMAIN_CONFIG
     prompts: [
       /* 0  pavs_days       */ 'Hi, I\'m AURA 👋 I\'m here to connect you with the right community health resources. Let\'s start with physical activity. On a typical week, how many days do you do moderate or vigorous exercise? (e.g. brisk walking, cycling, swimming, gym)',
+      /*
+        1  pavs_mins
+
+        ⚠️ THE ZERO BRANCH IS THE QUESTION ONLY. Do not reassure here.
+
+        Every bot turn is `reflections[key](answer) + ' ' + prompts[nextKey]`,
+        so this string is read immediately after `reflections.pavs_days`, which
+        already answers a zero with "starting from zero is completely valid".
+        This prompt used to open "No problem at all — most people start exactly
+        where you are, and that is why these programmes exist", which is the same
+        sentence again in different words. Live in v2.14.1: somebody who answered
+        "0 days" was told twice, back to back, that starting from zero was fine.
+
+        Neither string is wrong on its own, which is why this survived review in
+        both halves — they only meet when the answer is zero.
+      */
       /* 1  pavs_mins       */ (data) => data.pavs_days === '0 days'
-        ? 'No problem at all — most people start exactly where you are, and that is why these programmes exist. If you were to start being active, roughly how long do you think you could manage each session?'
-        : 'Great — and on those active days, roughly how many minutes do you usually exercise each time?',
+        ? 'If you were to start being active, roughly how long do you think you could manage each session?'
+        : 'And on those active days, roughly how many minutes do you usually exercise each time?',
       /* 2  strength        */ 'Do you do any muscle-strengthening activities? (e.g. weights, resistance bands, bodyweight exercises like push-ups or squats)',
-      /* 3  medical         */ 'Do you have any ongoing health conditions — such as high blood pressure, prediabetes, or heart disease? And do you ever feel chest pain or dizziness when you are physically active?',
-      /* 4  barriers        */ 'What is the main thing that makes it difficult to access health or fitness services in your community? Be honest — there are no wrong answers.',
-      /* 5  social          */ 'Roughly how many people — family or friends — could you call on for support if you needed help? And would you say you have people you can talk to openly?',
-      /* 6  food_insecurity */ 'One more quick question — in the past 12 months, were there times when you were hungry but did not eat because you could not afford enough food?',
-      /* 7  wellbeing       */ 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed — for example, due to work, caregiving, or financial pressure?',
-      /* 8  demographics    */ 'Thank you. Now two quick things about you, because the advice changes with both. First, are you male or female?',
+      /* 3  medical         */ 'Do you have any ongoing health conditions, such as high blood pressure, prediabetes, or heart disease? And do you ever feel chest pain or dizziness when you are physically active?',
+      /* 4  barriers        */ 'What is the main thing that makes it difficult to access health or fitness services in your community? Be honest, because there are no wrong answers.',
+      /* 5  social          */ 'Roughly how many people, family or friends, could you call on for support if you needed help? And would you say you have people you can talk to openly?',
+      /* 6  food_insecurity */ 'One more quick question. In the past 12 months, were there times when you were hungry but did not eat because you could not afford enough food?',
+      /* 7  wellbeing       */ 'Over the past two weeks, how have you been feeling overall? Have you felt stressed, low in mood, or overwhelmed, for example due to work, caregiving, or financial pressure?',
+      /* 8  demographics    */ 'Now two quick things about you, because the advice changes with both. First, are you male or female?',
       /* 9  ethnicity       */ 'What is your ethnic group? This helps us understand the diverse communities we serve.',
       /* 10 housing_type    */ 'What type of housing do you live in? (e.g. HDB 3-Room, Condo)',
       /* 11 postal_code     */ 'What are the first two digits of your postal code? This lets me map the nearest resources to you.',
       /* 12 previous_id     */ 'Do you have a previous NEXUS Assessment ID? If yes, paste it below so I can link your records. If not, just select No.',
-      /* 13 age_years      */ 'And how old are you? Please type your age in years, for example 67.',
-      /* 14 falls           */ 'Two quick questions about steadiness. In the past 12 months, have you had a fall — including a slip or trip where you ended up on the ground?',
-      /* 15 healthier_sg    */ 'Last one — are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
+      /* 13 age_years      */ 'And how old are you? Please type your age in years.',
+      /* 14 falls           */ 'Two quick questions about steadiness. In the past 12 months, have you had a fall, including a slip or trip where you ended up on the ground?',
+      /* 15 healthier_sg    */ 'Last one. Are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.',
     ],
 
     reflections: [
       /* 0 */ (input) => {
         const n = parseInt((input.match(/\d+/) || ['0'])[0], 10);
         return n === 0
-          ? 'Starting from zero is completely valid — many people are in the same position, and that is exactly why these programmes exist.'
+          ? 'Starting from zero is completely valid. Many people are in the same position, and that is exactly why these programmes exist.'
           : n <= 2
           ? 'Two days or fewer is a common starting point. Small, consistent steps make a real difference.'
           : 'A solid base to build on. ';
@@ -85,16 +101,16 @@ export const DICTIONARY = {
       /* 1 */ (input) => {
         const n = parseInt((input.match(/\d+/) || ['0'])[0], 10);
         return n < 20
-          ? 'Short sessions still count — and they can grow over time. '
+          ? 'Short sessions still count, and they can grow over time. '
           : n >= 45
           ? 'Strong session duration. '
           : 'A healthy session length. ';
       },
       /* 2 */ () => 'Strength training is just as important as aerobic activity for long-term health. ',
-      /* 3 */ () => 'Thank you for sharing that — I will use this to make sure your recommendations are safe and appropriate. ',
+      /* 3 */ () => 'Thank you for sharing that. I will use this to make sure your recommendations are safe and appropriate. ',
       /* 4 */ () => 'That is a very real barrier. Naming it helps us find the right workaround. ',
       /* 5 */ () => 'Social connection is one of the most powerful protective factors for long-term health. ',
-      /* 6 */ (input) => input.toLowerCase().includes('yes') ? 'Thank you for trusting me with that \u2014 food security is something we will factor directly into your plan. ' : 'Good to know. ',
+      /* 6 */ (input) => input.toLowerCase().includes('yes') ? 'Thank you for trusting me with that. Food security is something we will factor directly into your plan. ' : 'Good to know. ',
       /* 7 */ () => 'Your mental wellbeing matters as much as your physical health. ',
       /* 8 */ () => 'Noted. ',
       /* 9 */ () => 'Thank you for sharing. ',
@@ -102,7 +118,7 @@ export const DICTIONARY = {
       /* 11 */() => 'Mapping your nearest resources now. ',
       /* 12 */(input) =>
         /(no|none|don'?t)/i.test(input)
-          ? 'No problem — I will start a fresh record for you today. '
+          ? 'No problem. I will start a fresh record for you today. '
           // `CP33`: this promised tracking that does not exist. The other three
           // languages already said only "I will link your previous records".
           : 'I will save that with today\u2019s answers so the two can be matched up later. ',
@@ -129,7 +145,7 @@ export const DICTIONARY = {
         connector already in the sentence ("or" / "atau" / "或" / "அல்லது"). No new
         clinical copy was translated — see `CD10`.
       */
-      /* 7 wellbeing       */ ['Feeling good overall', 'Some stress but managing', 'Feeling quite stressed or low', 'Overwhelmed — caregiving', 'Overwhelmed — financial pressure'],
+      /* 7 wellbeing       */ ['Feeling good overall', 'Some stress but managing', 'Feeling quite stressed or low', 'Overwhelmed by caregiving', 'Overwhelmed by financial pressure'],
       /* 8 demographics    */ ['Male', 'Female'],
       /* 9 ethnicity       */ ['Chinese', 'Malay', 'Indian', 'Eurasian', 'Others', 'Prefer not to say'],
       /* 10 housing_type   */ ['HDB 1-2 Room', 'HDB 3 Room', 'HDB 4 Room', 'HDB 5 Room / Exec', 'Condo / Private', 'Landed'],
@@ -166,23 +182,25 @@ export const DICTIONARY = {
     ctaHealthierSG: 'Sambungan Healthier SG Anda',
     ctaResources: 'Sumber Tambahan',
     error: 'Ralat sambungan berlaku. Sila cuba lagi.',
-    ageRetry: 'Maaf, saya tidak dapat membaca itu sebagai umur. Sila taip bilangan tahun sahaja, contohnya 67.',
+    ageRetry: 'Maaf, saya tidak dapat membaca itu sebagai umur. Sila taip bilangan tahun sahaja.',
     progressLabel: (step, total) => `Langkah ${step + 1} daripada ${total}`,
     prompts: [
       'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan senaman sederhana atau kuat? (cth. berjalan pantas, berbasikal, berenang)',
-      'Berapa minit biasanya anda bersenam pada setiap sesi aktif tersebut?',
+      /* 1  pavs_mins */ (data) => data.pavs_days === '0 hari' || data.pavs_days === '0 days'
+        ? 'Jika anda mula bersenam, lebih kurang berapa lama anda rasa anda boleh lakukan setiap sesi?'
+        : 'Berapa minit biasanya anda bersenam pada setiap sesi aktif tersebut?',
       'Adakah anda melakukan aktiviti menguatkan otot? (cth. angkat berat, band rintangan, senaman berat badan)',
       'Adakah anda mempunyai sebarang penyakit kronik seperti darah tinggi, pradiabetes, atau penyakit jantung? Adakah anda pernah rasa sakit dada atau pening ketika aktif?',
       'Apakah cabaran utama anda untuk menggunakan perkhidmatan kesihatan komuniti?',
-      'Lebih kurang berapa ramai orang — keluarga atau rakan — yang boleh anda hubungi jika memerlukan bantuan? Adakah anda mempunyai seseorang untuk bercerita?',
-      'Satu soalan lagi — dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
+      'Lebih kurang berapa ramai orang, keluarga atau rakan, yang boleh anda hubungi jika memerlukan bantuan? Adakah anda mempunyai seseorang untuk bercerita?',
+      'Satu soalan lagi. Dalam 12 bulan yang lalu, pernahkah anda lapar tetapi tidak makan kerana tidak mampu membeli makanan yang cukup?',
       'Dalam dua minggu lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda berasa tertekan, murung, atau terbeban?',
-      'Terima kasih. Sekarang dua perkara ringkas tentang anda, kerana nasihat berubah mengikut kedua-duanya. Pertama, adakah anda lelaki atau perempuan?',
+      'Sekarang dua perkara ringkas tentang anda, kerana nasihat berubah mengikut kedua-duanya. Pertama, adakah anda lelaki atau perempuan?',
       'Apakah kumpulan etnik anda? Ini membantu kami memahami komuniti pelbagai yang kami layani.',
       'Apakah jenis perumahan yang anda diami? (cth. HDB 3-Bilik, Kondo)',
       'Apakah dua digit pertama poskod anda supaya saya boleh mencari sumber berdekatan?',
-      'Soalan terakhir — adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada.',
-      /* 13 age_years      */ 'Dan berapakah umur anda? Sila taip umur anda dalam tahun, contohnya 67.',
+      'Soalan terakhir. Adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada.',
+      /* 13 age_years      */ 'Dan berapakah umur anda? Sila taip umur anda dalam tahun.',
       /* 14 falls          */ 'Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai?',
       /* 15 healthier_sg   */ 'Soalan terakhir: adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai.',
     ],
@@ -193,7 +211,7 @@ export const DICTIONARY = {
       () => 'Terima kasih kerana berkongsi. Saya akan pastikan cadangan anda selamat. ',
       () => 'Itu satu cabaran yang nyata. ',
       () => 'Sokongan sosial adalah faktor perlindungan yang penting. ',
-      (input) => /(ya|yes)/i.test(input) ? 'Terima kasih kerana berkongsi — ini akan diambil kira dalam pelan anda. ' : 'Baik, direkodkan. ',
+      (input) => /(ya|yes)/i.test(input) ? 'Terima kasih kerana berkongsi. Ini akan diambil kira dalam pelan anda. ' : 'Baik, direkodkan. ',
       () => 'Kesejahteraan mental anda sama pentingnya dengan kesihatan fizikal. ',
       () => 'Direkodkan. ',
       () => 'Terima kasih kerana berkongsi. ',
@@ -210,7 +228,7 @@ export const DICTIONARY = {
       ['Kekurangan masa', 'Terlalu mahal', 'Terlalu jauh', 'Lebih suka hospital', 'Tidak pasti apa yang ada', 'Tiada halangan'],
       ['Ada beberapa orang yang boleh saya hubungi', 'Ada satu atau dua orang rapat', 'Saya mostly uruskan sendiri', 'Saya rasa agak keseorangan'],
       ['Ya, ini pernah berlaku', 'Tidak, saya sentiasa ada makanan yang cukup'],
-      ['Perasaan baik secara keseluruhannya', 'Ada sedikit tekanan tapi boleh kawal', 'Rasa sangat tertekan atau sedih', 'Terbeban — tanggungjawab penjagaan', 'Terbeban — tekanan kewangan'],
+      ['Perasaan baik secara keseluruhannya', 'Ada sedikit tekanan tapi boleh kawal', 'Rasa sangat tertekan atau sedih', 'Terbeban dengan tanggungjawab penjagaan', 'Terbeban dengan tekanan kewangan'],
       ['Lelaki', 'Perempuan'],
       ['Cina', 'Melayu', 'India', 'Eurasian', 'Lain-lain', 'Tidak mahu beritahu'],
       ['HDB 1-2 Bilik', 'HDB 3 Bilik', 'HDB 4 Bilik', 'HDB 5 Bilik / Eksekutif', 'Kondo / Pangsapuri', 'Landed'],
@@ -259,25 +277,27 @@ export const DICTIONARY = {
     ctaHealthierSG: '您与 Healthier SG 的联系',
     ctaResources: '其他资源',
     error: '保存时发生连接错误，请重试。',
-    ageRetry: '抱歉，我无法将它识别为年龄。请只输入岁数，例如 67。',
+    ageRetry: '抱歉，我无法将它识别为年龄。请只输入岁数。',
     progressLabel: (step, total) => `第 ${step + 1} 步，共 ${total} 步`,
     prompts: [
       '你好，我是 AURA 👋 在典型的一周里，您通常有几天进行中等或剧烈强度的运动？（例如快走、骑车、游泳）',
-      '在这些运动的日子里，您每次通常运动多少分钟？',
+      /* 1  pavs_mins */ (data) => data.pavs_days === '0 天' || data.pavs_days === '0 days'
+        ? '如果您开始运动，您觉得每次大概可以坚持多久？'
+        : '在这些运动的日子里，您每次通常运动多少分钟？',
       '您有进行任何肌肉力量训练吗？（例如举重、弹力带、俯卧撑或深蹲）',
       '您是否有任何慢性病，例如高血压、糖尿病前期或心脏病？运动时是否曾感到胸痛或头晕？',
       '什么是您使用社区健康服务的主要障碍？',
       '大概有多少家人或朋友可以在您需要时提供帮助？您是否有可以倾心交谈的人？',
-      '还有一个问题——在过去12个月里，您是否因为买不起足够的食物而挨过饿？',
+      '还有一个问题。在过去 12 个月里，您是否因为买不起足够的食物而挨过饿？',
       '在过去两周里，您的整体感觉如何？是否感到压力大、情绪低落或不知所措？',
-      '谢谢。现在问两个关于您的简单问题，因为建议会随这两项而不同。首先，您是男性还是女性？',
+      '现在问两个关于您的简单问题，因为建议会随这两项而不同。首先，您是男性还是女性？',
       '您的种族是什么？这有助于我们更好地了解我们服务的多元社区。',
       '您居住的房屋类型是什么？（例如：HDB 3房式，公寓等）',
       '您的邮政编码前两位数是什么？这样我可以为您找到附近的资源。',
-      '最后一个问题 — 您是否有之前的 NEXUS 评估 ID？如有，请粘贴在下方；如没有，请选择"没有"。',
-      /* 13 age_years      */ '请问您今年多大年纪？请输入您的年龄（岁），例如 67。',
+      '最后一个问题。您是否有之前的 NEXUS 评估 ID？如有，请粘贴在下方；如没有，请选择"没有"。',
+      /* 13 age_years      */ '请问您今年多大年纪？请输入您的年龄（岁）。',
       /* 14 falls          */ '关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。',
-      /* 15 healthier_sg   */ '最后一个问题 — 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
+      /* 15 healthier_sg   */ '最后一个问题。您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。',
     ],
     reflections: [
       (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? '从零开始完全正常。' : '这是一个很好的起点。'; },
@@ -303,7 +323,7 @@ export const DICTIONARY = {
       ['没时间', '太贵了', '太远了', '更喜欢去医院', '不确定有哪些资源', '没有障碍'],
       ['有几个可以依靠的人', '有一两个亲近的人', '大多数情况自己处理', '感到相当孤立'],
       ['是的', '没有，我一直都有足够的食物'],
-      ['整体感觉不错', '有些压力但能应对', '感到很压抑或情绪低落', '感到不知所措 — 照顾', '感到不知所措 — 经济压力'],
+      ['整体感觉不错', '有些压力但能应对', '感到很压抑或情绪低落', '因照顾而感到不知所措', '因经济压力而感到不知所措'],
       ['男', '女'],
       ['华人', '马来人', '印度人', '欧亚裔', '其他', '不愿透露'],
       ['HDB 1-2 房式', 'HDB 3 房式', 'HDB 4 房式', 'HDB 5 房式 / 执行组屋', '私人公寓', '有地住宅'],
@@ -352,24 +372,26 @@ export const DICTIONARY = {
     ctaHealthierSG: 'Healthier SG இணைப்பு',
     ctaResources: 'கூடுதல் வளங்கள்',
     error: 'சேமிக்கும் போது இணைப்பு பிழை ஏற்பட்டது. மீண்டும் முயற்சிக்கவும்.',
-    ageRetry: 'மன்னிக்கவும், அதை வயதாக என்னால் படிக்க முடியவில்லை. ஆண்டுகளின் எண்ணிக்கையை மட்டும் தட்டச்சு செய்யுங்கள், எடுத்துக்காட்டாக 67.',
+    ageRetry: 'மன்னிக்கவும், அதை வயதாக என்னால் படிக்க முடியவில்லை. ஆண்டுகளின் எண்ணிக்கையை மட்டும் தட்டச்சு செய்யுங்கள்.',
     progressLabel: (step, total) => `படி ${step + 1} / ${total}`,
     prompts: [
       'வணக்கம், நான் AURA 👋 வழக்கமான வாரத்தில், நீங்கள் எத்தனை நாட்கள் மிதமான அல்லது தீவிரமான உடற்பயிற்சி செய்கிறீர்கள்? (எ.கா. வேகமாக நடைபயிற்சி, சைக்கிள், நீச்சல்)',
-      'அந்த தீவிர நாட்களில் நீங்கள் வழக்கமாக எவ்வளவு நேரம் உடற்பயிற்சி செய்கிறீர்கள்?',
+      /* 1  pavs_mins */ (data) => data.pavs_days === '0 நாட்கள்' || data.pavs_days === '0 days'
+        ? 'நீங்கள் உடற்பயிற்சி செய்யத் தொடங்கினால், ஒவ்வொரு முறையும் தோராயமாக எவ்வளவு நேரம் செய்ய முடியும் என நினைக்கிறீர்கள்?'
+        : 'அந்த தீவிர நாட்களில் நீங்கள் வழக்கமாக எவ்வளவு நேரம் உடற்பயிற்சி செய்கிறீர்கள்?',
       'நீங்கள் தசை வலிமைப் பயிற்சிகளை செய்கிறீர்களா? (எ.கா. எடை தூக்குதல், ரெசிஸ்டன்ஸ் பேண்ட், புஷ்-அப்ஸ்)',
       'உங்களுக்கு உயர் இரத்த அழுத்தம், நீரிழிவு முன்நிலை, அல்லது இதய நோய் போன்ற நாட்பட்ட நோய்கள் உள்ளதா? செயலில் இருக்கும்போது நெஞ்சு வலி அல்லது தலைச்சுற்றல் ஏற்படுகிறதா?',
       'சமூக சுகாதார சேவைகளை அணுகுவதில் உங்களின் முக்கிய தடை என்ன?',
       'தோராயமாக எத்தனை குடும்பத்தினர் அல்லது நண்பர்கள் உங்களுக்கு உதவ முடியும்? நெருங்கி பேச யாரேனும் இருக்கிறார்களா?',
       'கடந்த 12 மாதங்களில் உணவு வாங்க வசதியில்லாததால் பசியுடன் இருந்தும் சாப்பிடாத நேரங்கள் இருந்தனவா?',
       'கடந்த இரண்டு வாரங்களில் நீங்கள் எப்படி உணர்ந்தீர்கள்? மன அழுத்தம், மனச்சோர்வு, அல்லது அதிக சுமையாக உணர்ந்தீர்களா?',
-      'நன்றி. இப்போது உங்களைப் பற்றி இரண்டு சிறிய கேள்விகள், ஏனெனில் இவ்விரண்டையும் பொறுத்து அறிவுரை மாறும். முதலில், நீங்கள் ஆணா அல்லது பெண்ணா?',
+      'இப்போது உங்களைப் பற்றி இரண்டு சிறிய கேள்விகள், ஏனெனில் இவ்விரண்டையும் பொறுத்து அறிவுரை மாறும். முதலில், நீங்கள் ஆணா அல்லது பெண்ணா?',
       'உங்கள் இனம் என்ன? இது நாங்கள் சேவை செய்யும் பல்வேறு சமூகங்களை புரிந்துகொள்ள உதவுகிறது.',
       'நீங்கள் எந்த வகையான வீட்டில் வசிக்கிறீர்கள்? (எ.கா. HDB 3-அறை, காண்டோ)',
       'உங்கள் தபால் குறியீட்டின் முதல் இரண்டு இலக்கங்கள் என்ன?',
-      'கடைசி கேள்வி — உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும்.',
-      /* 13 age_years      */ 'உங்கள் வயது என்ன? உங்கள் வயதை ஆண்டுகளில் தட்டச்சு செய்யுங்கள், எடுத்துக்காட்டாக 67.',
-      /* 14 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட?',
+      'கடைசி கேள்வி. உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும்.',
+      /* 13 age_years      */ 'உங்கள் வயது என்ன? உங்கள் வயதை ஆண்டுகளில் தட்டச்சு செய்யுங்கள்.',
+      /* 14 falls          */ 'சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா? வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட.',
       /* 15 healthier_sg   */ 'கடைசிக் கேள்வி: நீங்கள் Healthier SG குடும்ப மருத்தவரிடம் பதிவு செய்துள்ளீர்களா? இதைப் பொறுத்து, உங்களை எந்தெந்தத் திட்டங்களுக்குப் பரிந்துரைக்கலாம் என்பது மாறும்.',
     ],
     reflections: [
@@ -379,7 +401,7 @@ export const DICTIONARY = {
       () => 'பகிர்ந்ததற்கு நன்றி. பரிந்துரைகள் உங்களுக்கு பாதுகாப்பானவை என்பதை உறுதிப்படுத்துவேன். ',
       () => 'இது மிகவும் உண்மையான சவால். ',
       () => 'சமூக இணைப்பு ஆரோக்கியத்திற்கான முக்கியமான பாதுகாப்பு காரணி. ',
-      (input) => /(ஆம்|yes)/i.test(input) ? 'பகிர்ந்ததற்கு நன்றி — இதை உங்கள் திட்டத்தில் கருத்தில் கொள்வோம். ' : 'புரிந்தது. ',
+      (input) => /(ஆம்|yes)/i.test(input) ? 'பகிர்ந்ததற்கு நன்றி. இதை உங்கள் திட்டத்தில் கருத்தில் கொள்வோம். ' : 'புரிந்தது. ',
       () => 'உங்கள் மனநல நலன் உடல் ஆரோக்கியம் போலவே முக்கியமானது. ',
       () => 'பதிவு செய்யப்பட்டது. ',
       () => 'பகிர்ந்ததற்கு நன்றி. ',
@@ -396,7 +418,7 @@ export const DICTIONARY = {
       ['நேரமின்மை', 'மிகவும் விலை அதிகம்', 'மிகவும் தூரம்', 'மருத்துவமனைகளை விரும்புகிறேன்', 'என்ன கிடைக்கும் என்று தெரியாது', 'தடைகள் இல்லை'],
       ['பல நம்பகமான நபர்கள் உள்ளனர்', 'ஒன்று அல்லது இரண்டு நெருங்கிய நபர்கள்', 'பெரும்பாலும் சுயமாக சமாளிக்கிறேன்', 'மிகவும் தனிமையாக உணர்கிறேன்'],
       ['ஆம், இது நடந்துள்ளது', 'இல்லை, என்னிடம் எப்போதும் போதுமான உணவு இருந்தது'],
-      ['ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன்', 'சில மன அழுத்தம் ஆனால் சமாளிக்கிறேன்', 'மிகவும் மன அழுத்தம் அல்லது மனச்சோர்வு', 'அதிக சுமை — பராமரிப்பு', 'அதிக சுமை — நிதி அழுத்தம்'],
+      ['ஒட்டுமொத்தமாக நல்லாக உணர்கிறேன்', 'சில மன அழுத்தம் ஆனால் சமாளிக்கிறேன்', 'மிகவும் மன அழுத்தம் அல்லது மனச்சோர்வு', 'பராமரிப்பால் அதிக சுமை', 'நிதி அழுத்தத்தால் அதிக சுமை'],
       ['ஆண்', 'பெண்'],
       ['சீனர்', 'மலாய்', 'இந்தியர்', 'யுரேஷியன்', 'மற்றவை', 'கூற விரும்பவில்லை'],
       ['HDB 1-2 அறை', 'HDB 3 அறை', 'HDB 4 அறை', 'HDB 5 அறை / எக்ஸிகியூட்டிவ்', 'காண்டோ / தனியார் அபார்ட்மெண்ட்', 'நிலம் உள்ள வீடு'],
