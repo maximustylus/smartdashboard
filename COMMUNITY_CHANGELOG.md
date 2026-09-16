@@ -29,10 +29,9 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
-## Unreleased — on `community` · `P11`, the two front doors asked different questions
+## Shipped in [2.15.0] — `P11`, the two front doors asked different questions
 
-Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md). **Nothing in this
-section is live.** `main` is v2.14.1; this is on `community` awaiting a merge.
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md). Shipped 2026-09-16.
 
 ### Fixed
 

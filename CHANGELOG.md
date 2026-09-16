@@ -54,8 +54,9 @@ not changed by this release.
 
 ## [Unreleased]
 
-On `community`, not yet merged. Community portal only; see `COMMUNITY_CHANGELOG.md`
-for the full entry.
+## [2.15.0] - 2026-09-16
+
+Community portal only; see `COMMUNITY_CHANGELOG.md` for the full entry.
 
 ### Fixed
 

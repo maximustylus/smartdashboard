@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 40 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` · `CP40`–`CP44` **on `community`, not yet on `main`** |
+| `DONE`, evidenced | 40 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP27` · `CP29` `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) |
 | `OPEN`, mine | 2 | `CP28` (chat step badges are English in all four languages) · `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -71,7 +71,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 > ⚠️ **This table is the authoritative status for this surface.** `COMMUNITY_CHANGELOG.md`
 > carries an older *Known issues* table under its v2.1.2/2.1.3 entry; that one is a frozen
 > record of what that release knew and is labelled `HISTORICAL`. Read this one.
-> Last reconciled against the ledger body and the code: **2026-09-16, on `community` at `e4f663b`+ (main is v2.14.1).**
+> Last reconciled against the ledger body and the code: **2026-09-16, at v2.15.0.**
 
 **`CD13` opened 2026-08-23** — a native-speaker review of the 19 strings already
 shipped in ms/zh/ta. Everything translated so far is machine output (group 1 by
@@ -1605,12 +1605,11 @@ adding its key must fail in CI, and `AuraChat.domainParity.test.jsx` is where.
 
 ---
 
-## `P11` — the two front doors asked different questions · `CP40`–`CP44` · **on `community`**
+## `P11` — the two front doors asked different questions · `CP40`–`CP44` · **SHIPPED v2.15.0**
 
 Found 2026-09-16 by the owner reading v2.14.1 on the live site, one screenshot at a
 time, and then by the tests written for what the screenshots showed. None of the
-five was visible to anything the repository had. **Nothing in this section is live:
-`main` is v2.14.1, and this work sits on `community` awaiting a merge.**
+five was visible to anything the repository had. Shipped in v2.15.0 on 2026-09-16.
 
 ### `CP40` — AURA acknowledged twice in one breath · **FIXED**
 
@@ -1677,7 +1676,7 @@ block put a second "Last one." on the free-text question, five after the first,
 with record linkage still to come. `previous_id` is unconditional and genuinely
 last, so it alone may say so, and the test pins that.
 
-### The six questions the form asked alone · **SHIPPED to `community`**
+### The six questions the form asked alone · **SHIPPED v2.15.0**
 
 The conventional form had asked six questions since it shipped that AURA never
 did. The owner chose to add all six to the chat rather than remove them from the

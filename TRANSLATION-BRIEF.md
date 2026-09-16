@@ -23,7 +23,7 @@ The portal serves four languages, so each item needs **three** translations:
 | **3** — the notices | 6 blocks | ⬜ English only |
 | **4** — the printed handover slip | 24 strings | 🟡 **the 10 flag lines shipped**, bilingual; the other 14 English only |
 | **5** — functional measures | 49 strings | ✅ **shipped** v2.13.0 / v2.14.0, machine-translated, **unreviewed**. ⚠️ **5 are safety-critical and live under owner waivers** |
-| **6** — the six questions the form asked alone, plus 2026-09-16 rewording | 21 new strings + 12 changed | 🟡 **on `community`**, not yet live, machine-translated, **unreviewed**. None safety-critical. Review pack: [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md) |
+| **6** — the six questions the form asked alone, plus 2026-09-16 rewording | 21 new strings + 12 changed | ✅ **shipped** v2.15.0, machine-translated, **unreviewed**. None safety-critical. Review pack: [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md) |
 
 **Nothing in this brief has been read by a native speaker.** Groups 1 and 5 are live in
 all four languages on that basis.
@@ -613,7 +613,7 @@ there so a reviewer can see what was intended, and the translation is what count
 
 ---
 
-## Group 6 — the six questions the form asked alone · 21 strings · 🟡 **ON `community`, UNREVIEWED**
+## Group 6 — the six questions the form asked alone · 21 strings · ✅ **SHIPPED v2.15.0, UNREVIEWED**
 
 `src/data/perceptionCopy.js`. The conventional form has asked six questions since it
 shipped that AURA never did. On 2026-09-16 the owner chose to add all six to the
@@ -635,6 +635,7 @@ language only, silently. `CP43` is what that looks like after a year.
 Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
 six findings were all adjudicated on 2026-09-13 and none applied. Details at the
 foot of the pack. Still nobody who reads the language has read any of it.
+**Settled 2026-09-16: native review only from here; no further model rounds.**
 
 ---
 

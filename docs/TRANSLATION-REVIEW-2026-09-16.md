@@ -2,16 +2,15 @@
 
 **What this is.** Every non-English string added or changed on the `community` branch on
 2026-09-16, with the English it was translated from and a back-translation to check
-against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out so that
-it can be pasted into Gemini or ChatGPT as a first pass.
+against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out for a person
+who reads the language.
 
 **What it is not.** A model reading a machine translation is evidence, not a review. The
 five safety-critical strings already live under the owner's waivers are in
 `TRANSLATION-BRIEF.md` Group 5 and are not repeated here; nothing in this pack is
 safety-critical, so nothing in it gates the build.
 
-**Where it ships.** Nothing here is live yet. `main` is v2.14.1; these strings are on
-`community`.
+**Where it ships.** Live since v2.15.0, 2026-09-16.
 
 **Revision 2.** The first revision of this pack showed the wrong English and the wrong
 translations for `chat.wellbeing.chip4` and `chip5` (a generator indexed the first two
@@ -426,16 +425,8 @@ applied.** The workbook should be retired or regenerated before it is used again
 Three columns, keep the **id**. Where a string carries a marker word (the table at
 the top), say explicitly that the marker is still present.
 
-## A paste-ready instruction for Gemini or ChatGPT
+## Review policy, settled 2026-09-16
 
-> You are reviewing machine translations for a Singapore community health screening
-> read mostly by people over 60 on a phone. For each row below, compare the Malay,
-> Chinese (Simplified) and Tamil against the English and the back-translation.
-> Report only rows where the translation changes the meaning, uses a register a
-> stranger would not use to an older person, or would be misread. Do not rewrite
-> rows that are merely stylistic. Never use an em dash in a suggestion. Use British
-> spelling. Where a row is marked "must keep", confirm the marked word is present in
-> your suggestion and say so. Return a table with columns: id, language, problem,
-> suggested wording, marker present (yes / no / not applicable).
-
-Then paste Section A, then Section B1.
+The owner has settled on **native review only**. No further model rounds will be run
+over this pack; the two recorded above are the last. What this file waits for is a
+person who reads Malay, Chinese or Tamil.

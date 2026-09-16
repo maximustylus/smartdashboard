@@ -6,7 +6,8 @@ We take the security and data privacy of the NEXUS platform very seriously. Curr
 
 | Version | Support Status |
 | ------- | -------------- |
-| 2.14.x  | Supported (current — in production, multi-team) |
+| 2.15.x  | Supported (current — in production, multi-team) |
+| 2.14.x  | Supported (superseded — upgrade to 2.15.x) |
 | 2.13.x  | Supported (superseded — upgrade to 2.14.x) |
 | 2.11.x  | Supported (superseded — upgrade to 2.12.x) |
 | 2.10.x  | Supported (superseded — upgrade to 2.11.x) |
