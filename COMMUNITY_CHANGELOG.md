@@ -29,6 +29,78 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.15.2] — `CP28`, the step badges
+
+- **CP28** — the small label above each chat question was an English literal in
+  `DOMAIN_CONFIG`, so a Chinese or Tamil speaker saw "Your Age" and "Housing
+  Environment" on every one of up to twenty-four questions. Logged 2026-09-12,
+  visible again in the v2.15.0 screenshots. `badgeCopy.js` now carries the words
+  for every step in four languages, `badgeFor` keeps the emoji and swaps the
+  words, and `badgeCopy.test.js` fails if a step in `DOMAIN_CONFIG` has no row or
+  a row lacks a language. 25 short strings × 3, machine translated, not
+  safety-critical, under `CD13`.
+
+---
+
+## Shipped in [2.15.1] — the governance page contradicted v2.15.0
+
+One row. The report's *Academic and Evidence Grounding* table said, under
+Financial Adequacy, "Chat pathway: NOT asked; inferred from reported access
+barriers." v2.15.0 added the question to the chat and nobody re-read the table
+that describes what is asked. It is the page a research office reads first, and
+for the hours between the two releases it described the previous version. Now
+reads "Both pathways" and dates the change.
+
+---
+
+## Shipped in [2.15.0] — `P11`, the two front doors asked different questions
+
+Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md). Shipped 2026-09-16.
+
+### Fixed
+
+- **CP40** — AURA acknowledged twice in one breath. The zero-days turn said
+  "starting from zero is fine" in two consecutive sentences; two other turns ran
+  "A solid base to build on. Great." and "...aerobic activity. Thank you.". Each
+  half was fine alone; the duplication lived only in the join, which nobody reading
+  either file sees. Prompts now ask and nothing else, and a test builds the join.
+- **CP41** — Malay, Chinese and Tamil asked a resident who had just said "0 days"
+  how many minutes they exercise on those active days. English had a branch for
+  this; the other three did not.
+- **CP42** — the conventional form offered three housing options where the chat
+  offers six, so a 4-room resident could not say so and the two pathways stored
+  different values for the same person. The form now offers the chat's six.
+- **CP43** — **the housing social-risk flag only ever fired in English.** The chip
+  test required the word "room"; the chips are translated. For every Malay, Chinese
+  and Tamil resident in a 1-2 room rental flat the proxy was false, and resources
+  route on it. Now matched on the room count, which is never translated.
+- **CP44** — "Last one" was said by a question that has not been last since
+  v2.13.0, and by a second question after it; "one more question" by the ninth of
+  up to twenty-four. Only the final question may say so now.
+- Em dashes out of the chat, the form, the result page and every call to action,
+  in four languages, and "for example 67" out of both age questions. Both were
+  standing instructions that had reached the report copy and not the rest. The
+  model-written half of each turn is governed by a new persona rule, since it
+  cannot be swept from the repository.
+
+### Added
+
+- **The six questions the form asked alone**, now asked by the chat: income
+  adequacy (feeds the financial-strain flag; the one that changed a result) and
+  five about how community care is experienced (stored, scored by nothing). Built
+  from one table so no language can be short. The chat is now up to 24 steps for
+  a 60+ resident who is measured; the five sit last so abandoning there costs
+  nothing the assessment needs.
+- Four guards: the reflection+prompt join, em dashes in rendered copy, the two
+  housing option lists, and pathway parity for every flag both doors derive.
+
+### Translation
+
+21 new strings and 12 reworded, × 3 languages, machine translated, none
+safety-critical. Review pack: `docs/TRANSLATION-REVIEW-2026-09-16.md`.
+
+---
+
 ## Shipped in [2.14.1] — `CP39`, the chips were drawn through their own heading
 
 Ids in **bold** are from [COMMUNITY_TODO.md](COMMUNITY_TODO.md).

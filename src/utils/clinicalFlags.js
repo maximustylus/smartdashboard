@@ -260,6 +260,58 @@ export const matchesFinancialBarrier = buildMatcher([
     '贵', 'செலவு', '太远',
 ]);
 
+/**
+ * ⚠️ THE NEGATIVE CHIP IS THE ONE THAT FLAGS, so the words matched here are the
+ *    words for NOT ENOUGH, and the two positive chips must not contain any of
+ *    them. English is the trap: "Adequate, just enough" and "Not adequate" share
+ *    the word "adequate", so the match is on the negation, never on the noun.
+ *
+ *    The form derives this by equality against one option string, which it can
+ *    do because its options are English `value`s regardless of display language.
+ *    The chat stores the CHIP TEXT the resident tapped, in their language, which
+ *    is why a matcher is needed at all and why `CP26` is the reason it covers
+ *    four languages rather than one.
+ */
+/**
+ * ⚠️ THE HOUSING FLAG ONLY EVER FIRED IN ENGLISH, AND THIS IS THE FIX.
+ *
+ *    `clinicalParse.js` tested `/1-2 room|1–2 room/i` against the chip the
+ *    resident tapped. The chat's chips are translated:
+ *
+ *        en   HDB 1-2 Room        matched
+ *        ms   HDB 1-2 Bilik       NEVER MATCHED
+ *        zh   HDB 1-2 房式        NEVER MATCHED
+ *        ta   HDB 1-2 அறை         NEVER MATCHED
+ *
+ *    So `sdohHousing` was false for every Malay, Chinese and Tamil resident in
+ *    a one or two room rental flat, and `communityServices.js` routes on it. The
+ *    evidence page tells the public that housing is used as a social risk proxy;
+ *    for three of the four languages offered, it was not. Same shape as `CP26`:
+ *    a matcher written against the English chip in a portal that ships four.
+ *
+ *    The room COUNT is the part that is never translated, so that is what is
+ *    matched, anchored to HDB so a postal code or a year cannot trip it.
+ */
+export const matchesOneToTwoRoomRental = (value) => {
+    /*
+      ⚠️ THE TWO PARTS ARE TESTED SEPARATELY, NOT AS ONE ANCHORED PATTERN.
+         Records exist in both word orders: the chips read "HDB 1-2 Room" and
+         historic answers read "1-2 Room HDB". Requiring HDB immediately before
+         the count passed every chip and silently stopped matching the second
+         shape, which `clinicalParse.test.js` pins precisely because it is a
+         shape that reaches this function.
+    */
+    const text = String(value || '');
+    return /1\s*[-–]\s*2/.test(text) && /hdb/i.test(text);
+};
+
+export const matchesIncomeInadequacy = buildMatcher([
+    'not adequate', 'inadequate', 'not enough',
+    'tidak mencukupi',
+    '\u4e0d\u8db3',
+    '\u0baa\u0bcb\u0ba4\u0bbe\u0ba4\u0bc1',
+]);
+
 export const matchesSocialIsolation = buildMatcher([
     'isolated', 'alone', 'on my own', 'keseorangan', '孤立', 'தனிமை',
 ]);

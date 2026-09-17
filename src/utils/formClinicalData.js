@@ -8,6 +8,10 @@
 import { toSector } from './singapore/postalSectors';
 import {
   parseFallsAnswer, parseHealthierSg, parseAgeBand, parseAgeYears, isSixtyPlusPerson,
+  // One definition of the one-to-two-room test, shared with the chat pathway. It
+  // lived as a regex in each module, and the chat's copy only ever understood the
+  // English chip. See `matchesOneToTwoRoomRental`.
+  matchesOneToTwoRoomRental,
 } from './clinicalFlags';
 import { sitToStandProtocolForAge } from './functionalMeasures';
 import { measurementResults, toStorableMeasurements } from './measurementAnswers';
@@ -49,10 +53,10 @@ const SOCIAL_FLAG_VALUES = new Set([
 const PSYCHOLOGICAL_FLAG_VALUES = new Set([
   'Some stress but managing',
   'Feeling quite stressed or low',
-  'Overwhelmed — caregiving',
-  'Overwhelmed — financial pressure',
+  'Overwhelmed by caregiving',
+  'Overwhelmed by financial pressure',
 ]);
-const CAREGIVER_FLAG_VALUES = new Set(['Overwhelmed — caregiving']);
+const CAREGIVER_FLAG_VALUES = new Set(['Overwhelmed by caregiving']);
 
 const answerObject = (value) => (
   value && typeof value === 'object' && !Array.isArray(value) ? value : {}
@@ -174,7 +178,14 @@ export const deriveFormClinicalData = (answers = {}) => {
     healthierSgEnrolled,
     psychoFlag: sdohPsychological,
     sdohFoodInsecure: f.foodInsecure === true,
-    sdohHousing: f.housing === 'HDB 1-2 Room',
+    /*
+      The SAME test the chat pathway applies in `clinicalParse.js`, rather than
+      an equality check against one option string. Both front doors now offer
+      the same six housing options, and a social-risk flag that depends on
+      which door somebody walked through is a defect waiting for the next time
+      one list is edited.
+    */
+    sdohHousing: matchesOneToTwoRoomRental(f.housing),
     ethnicity: answerText(f.race, 'Unknown') || 'Unknown',
     housingType: answerText(f.housing, 'Unknown') || 'Unknown',
     postalSector: toSector(f.postalCode),

@@ -394,7 +394,7 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
         // instead of being absorbed into whichever count was defined as "the rest".
         expect(rosterListenerCalls(), 'the person view added a read of the roster').toHaveLength(1);
         expect(settingsListenerCalls(), 'the saved configuration is read once').toHaveLength(1);
-        // + the roster CHANGE LOG query (queue item 3, v2.15.0) — a fourth read-only
+        // + the roster CHANGE LOG query (queue item 3, v2.16.0) — a fourth read-only
         // listener; the claim here, that the person view ADDS no read, still holds.
         expect(onSnapshot, 'roster + coverage query + settings + change log query').toHaveBeenCalledTimes(4);
         expect(setDoc).not.toHaveBeenCalled();

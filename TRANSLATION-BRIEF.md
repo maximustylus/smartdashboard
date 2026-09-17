@@ -14,7 +14,7 @@ has its instrument at `docs/CD13-translation-review.xlsx` and **still has not be
 The portal serves four languages, so each item needs **three** translations:
 **Bahasa Melayu (`ms`)**, **中文 (`zh`)**, **தமிழ் (`ta`)**.
 
-## Status (reconciled 2026-09-15, at v2.14.0)
+## Status (reconciled 2026-09-16, on `community`; `main` is v2.14.1)
 
 | Group | What it is | State |
 |---|---|---|
@@ -23,6 +23,7 @@ The portal serves four languages, so each item needs **three** translations:
 | **3** — the notices | 6 blocks | ⬜ English only |
 | **4** — the printed handover slip | 24 strings | 🟡 **the 10 flag lines shipped**, bilingual; the other 14 English only |
 | **5** — functional measures | 49 strings | ✅ **shipped** v2.13.0 / v2.14.0, machine-translated, **unreviewed**. ⚠️ **5 are safety-critical and live under owner waivers** |
+| **6** — the six questions the form asked alone, plus 2026-09-16 rewording | 21 new strings + 12 changed | ✅ **shipped** v2.15.0, machine-translated, **unreviewed**. None safety-critical. Review pack: [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md) |
 
 **Nothing in this brief has been read by a native speaker.** Groups 1 and 5 are live in
 all four languages on that basis.
@@ -139,14 +140,14 @@ fails **12** of those tests, so it is load-bearing rather than decorative.
 ### The strings, with back-translations to check
 
 **`falls.prompt`** — EN: *Two quick questions about steadiness. In the past 12
-months, have you had a fall — including a slip or trip where you ended up on the
-ground?*
+months, have you had a fall, including a slip or trip where you ended up on the
+ground?* · *(2026-09-16: the dash became a comma, in every language)*
 
 | | Translation | Back-translation |
 |---|---|---|
 | `ms` | Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai? | Two brief questions about balance. In the past 12 months, have you fallen, including slipping or tripping so that you fell to the ground or floor? ⚠️ **Corrected 2026-09-13**: was "ke lantai" (a floor), which excluded somebody who fell outdoors. |
 | `zh` | 关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。 | Two brief questions about balance. In the past 12 months, have you fallen? Including cases of slipping or tripping and falling to the ground. |
-| `ta` | சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா — வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட? | Two small questions regarding balance. In the past 12 months have you fallen — including slipping or tripping and falling on the ground? |
+| `ta` | சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா? வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட. | Two small questions regarding balance. In the past 12 months have you fallen? Including slipping or tripping and falling on the ground. *(2026-09-16: dash removed; the clause became its own sentence)* |
 
 **`falls.chip1`** — EN: *No falls* · ⚠️ must parse as zero falls in every language
 
@@ -180,14 +181,13 @@ ground?*
 | `zh` | 曾经跌倒，现在会避免某些活动 | Have fallen before, now avoid certain activities |
 | `ta` | விழுந்தேன், இப்போது சில செயல்களைத் தவிர்க்கிறேன் | I fell, now I avoid some activities |
 
-**`hsg.prompt`** — EN: *Last one — are you enrolled with a Healthier SG GP? It
-changes which programmes you can be referred to.*
+**`hsg.prompt`** — EN: *Are you enrolled with a Healthier SG GP? It changes which programmes you can be referred to.* · ⚠️ *(2026-09-16: "Last one" removed in every language; this question has not been last since v2.13.0)*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Soalan terakhir: adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai. | Last question: are you registered with a Healthier SG family doctor? This affects which programmes you can be referred to join. ⚠️ **Corrected 2026-09-13**: the earlier wording referred programmes TO YOU rather than you to programmes, and omitted "keluarga" (family). |
-| `zh` | 最后一个问题 — 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。 | Last question — have you registered with a Healthier SG family doctor? This affects which programmes you can be referred to. |
-| `ta` | கடைசியாக — நீங்கள் Healthier SG மருத்துவரிடம் பதிவு செய்துள்ளீர்களா? இது உங்களை எந்தத் திட்டங்களுக்குப் பரிந்துரைக்க முடியும் என்பதை மாற்றும். | Lastly — have you registered with a Healthier SG doctor? This will change which programmes you can be referred to. |
+| `ms` | Adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai. | Are you registered with a Healthier SG family doctor? This affects which programmes you can be referred to join. ⚠️ **Corrected 2026-09-13**: the earlier wording referred programmes TO YOU rather than you to programmes, and omitted "keluarga" (family). *2026-09-16: "Soalan terakhir" removed.* |
+| `zh` | 您是否已向 Healthier SG 家庭医生登记？这会影响您可以被转介到哪些计划。 | Have you registered with a Healthier SG family doctor? This affects which programmes you can be referred to. *2026-09-16: "最后一个问题" removed.* |
+| `ta` | நீங்கள் Healthier SG குடும்ப மருத்தவரிடம் பதிவு செய்துள்ளீர்களா? இதைப் பொறுத்து, உங்களை எந்தெந்தத் திட்டங்களுக்குப் பரிந்துரைக்கலாம் என்பது மாறும். | Have you registered with a Healthier SG family doctor? Depending on this, which schemes you can be recommended to will change. ⚠️ *This row did not match the shipped text before 2026-09-16; it does now.* |
 
 **`hsg.chip1`** — EN: *Yes, I am enrolled*
 
@@ -613,6 +613,32 @@ there so a reviewer can see what was intended, and the translation is what count
 
 ---
 
+## Group 6 — the six questions the form asked alone · 21 strings · ✅ **SHIPPED v2.15.0, UNREVIEWED**
+
+`src/data/perceptionCopy.js`. The conventional form has asked six questions since it
+shipped that AURA never did. On 2026-09-16 the owner chose to add all six to the
+chat. One of them, income adequacy, feeds the financial-strain flag; the other five
+are stored for programme planning and scored by nothing.
+
+The full set, with back-translations and the **marker words that must survive any
+rewording**, is in [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md).
+That pack also lists the twelve existing strings reworded the same day: the
+zero-days question that three languages did not have (`CP41`), the two wellbeing
+chips, the age question, and the dashes taken out of everything else.
+
+⚠️ **Three markers in this group are read by code.** The "not enough" income chip,
+the two "no" chips, and the caregiving chip each carry a word a matcher looks for,
+per language. Reword freely; lose the word and the flag stops firing in that
+language only, silently. `CP43` is what that looks like after a year.
+
+**Model round 1, 2026-09-16.** ChatGPT over the pack, Gemini over the old workbook.
+Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
+six findings were all adjudicated on 2026-09-13 and none applied. Details at the
+foot of the pack. Still nobody who reads the language has read any of it.
+**Settled 2026-09-16: native review only from here; no further model rounds.**
+
+---
+
 ## Totals
 
 | Group | Strings | × 3 languages |
@@ -622,7 +648,8 @@ there so a reviewer can see what was intended, and the translation is what count
 | 3 — notices | 6 blocks | 18 |
 | 4 — handover slip | 24 | 72 |
 | 5 — functional measures | 49 | 147 |
-| | **137** | **411** |
+| 6 — form-only questions, plus 2026-09-16 rewording | 21 + 12 changed | 63 + 36 |
+| | **158** (+12 changed) | **474** (+36 changed) |
 
 Group 2 is the bulk and the highest clinical stakes; Group 1 is the one where every
 day it is missing costs data you cannot recover later.

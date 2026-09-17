@@ -3,7 +3,7 @@
  * THE CONFIGURE WIZARD'S HELP COPY — every explanation, in one place
  * ==============================================================================
  *
- * Until v2.15.0 the wizard explained every setting inline, in full, whether or
+ * Until v2.16.0 the wizard explained every setting inline, in full, whether or
  * not anybody was touching it: 42 paragraphs and about 1,800 words on screen by
  * default. The explanations were right; they were just always on. They now live
  * here, and the screen shows them in three layers:

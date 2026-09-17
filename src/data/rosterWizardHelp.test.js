@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * THE WIZARD'S HELP COPY — pinned (v2.15.0)
+ * THE WIZARD'S HELP COPY — pinned (v2.16.0)
  * ==============================================================================
  * Runner: Vitest
  * Run:    npx vitest run src/data/rosterWizardHelp.test.js
@@ -112,7 +112,7 @@ describe('the copy itself', () => {
 
 describe('the word budget the refactor was for', () => {
     it('the wizard tables render far less guidance by default than before', () => {
-        // The tables carried ~1,800 words of always-on guidance before v2.15.0.
+        // The tables carried ~1,800 words of always-on guidance before v2.16.0.
         // What is left inline is state-dependent, and it has to stay small or the
         // refactor has quietly undone itself.
         const source = readFileSync(join(COMPONENTS, 'RosterDemoWizardTables.jsx'), 'utf8');

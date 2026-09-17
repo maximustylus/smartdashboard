@@ -25,7 +25,7 @@ const answers = (overrides = {}) => ({
   falls: 'No falls',
   healthierSg: 'Yes, I am enrolled',
   foodInsecure: false,
-  housing: 'HDB 3-5 Room',
+  housing: 'HDB 4 Room',
   race: 'Chinese',
   postalCode: '560123',
   ageYears: '65',
@@ -108,7 +108,7 @@ describe('deriveFormClinicalData', () => {
       sdohFoodInsecure: false,
       sdohHousing: false,
       ethnicity: 'Chinese',
-      housingType: 'HDB 3-5 Room',
+      housingType: 'HDB 4 Room',
       postalSector: '56',
       age: '60+',
       ageYears: 65,
@@ -187,13 +187,13 @@ describe('deriveFormClinicalData', () => {
     [{ social: 'I feel quite isolated' }, 'sdohSocial'],
     [{ wellbeing: 'Some stress but managing' }, 'sdohPsychological'],
     [{ wellbeing: 'Feeling quite stressed or low' }, 'sdohPsychological'],
-    [{ wellbeing: 'Overwhelmed — financial pressure' }, 'sdohPsychological'],
+    [{ wellbeing: 'Overwhelmed by financial pressure' }, 'sdohPsychological'],
   ])('maps controlled social answer %# to %s', (override, flag) => {
     expect(deriveFormClinicalData(answers(override))[flag]).toBe(true);
   });
 
   it('maps caregiving strain to both psychological and caregiver flags', () => {
-    expect(deriveFormClinicalData(answers({ wellbeing: 'Overwhelmed — caregiving' })))
+    expect(deriveFormClinicalData(answers({ wellbeing: 'Overwhelmed by caregiving' })))
       .toMatchObject({
         sdohPsychological: true,
         psychoFlag: true,

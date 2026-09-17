@@ -54,7 +54,7 @@ not changed by this release.
 
 ## [Unreleased]
 
-## [2.15.0] - 2026-09-17
+## [2.16.0] - 2026-09-17
 
 A team lead can now change one duty on one day **by hand**, and every such change is
 logged. `ROSTER_TODO.md` queue item 3 — the first item on the live queue, and the one
@@ -132,6 +132,23 @@ is gone from the product at the owner's request.
   nesting — is unchanged. The one remaining occurrence is inside the binary
   `docs/NEXUS-roster-walkthrough.pptx`, which this release does not edit.
 
+### Fixed
+
+- **Step 2 of the Configure wizard, live mode, on a phone: the Start Date box was drawn
+  over the Weeks box** (seen at v2.15.2). `grid-cols-2` is a fixed `minmax(0, 1fr)`
+  track and iOS Safari will not shrink a native date input below its intrinsic width,
+  so the input overflowed its column. Live mode now uses the two-thirds/one-third split
+  the sandbox already had, and the date input carries `min-w-0`. A mobile test pins the
+  split.
+
+### Versioning note
+
+- This release was drafted as **v2.15.0** on the `roster` branch on 2026-09-16, before
+  `main` released its own **v2.15.0** (community portal) the same day. The roster work is
+  re-versioned here as **v2.16.0** — a minor bump: new features and a new Firestore
+  collection with rules — on top of `main`'s v2.15.0–v2.15.2. Any reference to a
+  "roster v2.15.0" in earlier conversation or branch history means this entry.
+
 ### Evidence
 
 - `src/utils/auraEngine.reassign.test.js` — 32 tests: parity with the swap planner,
@@ -168,6 +185,43 @@ is gone from the product at the owner's request.
   verified change with no record. It is reported on screen when it happens; there is
   no reconciliation.
 - No year picker: the log, like the roster, is 2026's.
+
+## [2.15.2] - 2026-09-17
+
+### Fixed
+
+- `CP28`: the label above each chat question ("Your Age", "Housing Environment")
+  was English in every language. Now follows the chosen language for all 25
+  steps; the emoji stays. Machine translated, under `CD13`.
+
+## [2.15.1] - 2026-09-16
+
+### Fixed
+
+- The report's governance page said the chat pathway does not ask about income
+  adequacy and infers it from access barriers. That was true until v2.15.0, which
+  added the question to the chat, and was printed on every report downloaded in the
+  hours since. The row now describes both pathways and dates the change. Found by
+  reading a rendered page 3, which is the only place that table exists.
+
+## [2.15.0] - 2026-09-16
+
+Community portal only; see `COMMUNITY_CHANGELOG.md` for the full entry.
+
+### Fixed
+
+- `CP40`–`CP44`: the chat acknowledged twice in one turn; three languages asked a
+  question that contradicted a "0 days" answer; the form could not record a 4-room
+  flat; **the housing social-risk flag only ever fired in English**; "last one" was
+  said three times. Em dashes and "for example 67" removed from everything a
+  resident reads on `/individuals/*`.
+
+### Added
+
+- The chat asks the six questions only the conventional form had been asking, one
+  of which feeds the financial-strain flag. 21 strings × 3 languages, machine
+  translated, listed in `docs/TRANSLATION-REVIEW-2026-09-16.md`.
+
 
 ## [2.14.1] - 2026-09-15
 

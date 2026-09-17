@@ -95,7 +95,7 @@ const VISITOR = { name: 'Visiting Therapist', role: 'staff', email: 'visitor@exa
 
 
 /**
- * v2.15.0: the wizard's explanations moved out of the always-on inline text and
+ * v2.16.0: the wizard's explanations moved out of the always-on inline text and
  * behind an info button per setting (`FieldHint`), so a claim about what the
  * wizard SAYS is now a claim about what the note says once opened. Open by id.
  */

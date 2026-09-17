@@ -50,6 +50,13 @@ const COMMUNITY_DOMAINS = [
     //    rejected with "Unknown assessment domain." and the resident sees no
     //    acknowledgement for the one question the strength comparison depends on.
     'age_years',
+    //    Added when the chat took on the six questions only the conventional form
+    //    had been asking. Same contract, same failure mode if forgotten. Five of
+    //    the six feed nothing and would fail QUIETLY: the resident simply gets no
+    //    acknowledgement, which reads as the assistant ignoring them, and nothing
+    //    in the client logs it as an error.
+    'income_adequacy',
+    'services_aware', 'ever_referred', 'service_rating', 'care_comfort', 'one_change',
     //    And the three `P9` measurement questions. Optional to the resident, but an
     //    answer the endpoint rejects is an answer AURA never acknowledges, which
     //    reads as the portal ignoring the one thing they went to a community event

@@ -478,7 +478,7 @@ describe('the sandbox wizard: the stacked card and the table are the same elemen
 
         const seen = new Map();
         for (const el of Array.from(wizard().querySelectorAll('[aria-label]'))) {
-            // The info buttons (`FieldHint`, v2.15.0) are ONE control repeated beside
+            // The info buttons (`FieldHint`, v2.16.0) are ONE control repeated beside
             // twenty settings, each named "More about this setting" and identified
             // by the label it follows and by its own tooltip. They are not a forked
             // row, which is what this assertion exists to catch, so they are set
