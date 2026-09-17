@@ -314,6 +314,18 @@ export const matchesIncomeInadequacy = buildMatcher([
 
 export const matchesSocialIsolation = buildMatcher([
     'isolated', 'alone', 'on my own', 'keseorangan', '孤立', 'தனிமை',
+    /*
+      ⚠️ THE "MANAGE ON MY OWN" CHIP FLAGGED IN ENGLISH ONLY, until 2026-09-17.
+         "on my own" matched the English chip; the Malay, Chinese and Tamil chips
+         for the same answer contain none of the words above, so a resident who
+         tapped it in those languages was never flagged for social isolation.
+         Same shape as CP43. The three markers below are the words those chips
+         carry, and pathwayParity.test.js now runs every social chip through the
+         matcher in every language.
+    */
+    'uruskan sendiri',          // ms · "Saya kebanyakannya uruskan sendiri"
+    '自己处理',                  // zh · "大多数情况自己处理"
+    'சுயமாக',                    // ta · "பெரும்பாலும் சுயமாக சமாளிக்கிறேன்"
 ]);
 
 export const matchesPsychologicalDistress = buildMatcher([

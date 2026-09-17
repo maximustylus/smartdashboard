@@ -4,7 +4,7 @@ import {
   Download, Share2, ArrowLeft, ExternalLink,
   ShieldAlert, Activity, CheckCircle2, Loader2,
   TrendingUp, Sun, Moon, Zap, Users, Brain,
-  DollarSign, Target, Globe, Printer,
+  DollarSign, Target, Globe,
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -733,20 +733,12 @@ export default function ResultPage() {
 
   // ── PDF GENERATION ─────────────────────────────────────────────────────────
   /**
-   * Prints the one-page slip. Telemetry is recorded the same way the download and
-   * share are, so a printed handover is not invisible in the usage data — it is
-   * the output for the population least likely to be counted otherwise.
+   * Builds the three-page report and returns it, or null when the template is
+   * not mounted. Shared by Download and Share so the file a resident sends is
+   * byte-for-byte the file they can save: one pipeline, one document.
    */
-  const handlePrintSlip = () => {
-    recordTelemetry(postalSector, {
-      event: 'print_handover_slip', sessionId: activeSessionId, ctaTier,
-    });
-    window.print();
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!printRef.current || !printRefGovernance.current) return;
-    recordTelemetry(postalSector, { action: 'download_pdf', score, language: lang, ctaTier });
+  const buildReportPdf = async () => {
+    if (!printRef.current || !printRefGovernance.current) return null;
 
     const captureOpts = {
       scale: 1.5, useCORS: true, logging: false, backgroundColor: '#ffffff',
@@ -817,22 +809,50 @@ export default function ResultPage() {
       pdf.addPage();
       addCanvasPage(canvasGovernance, printRefGovernance.current);
 
-      pdf.save(`NEXUS_AURA_Result_${riskTier}_${activeSessionId}.pdf`);
-    } catch (err) { console.error('[NEXUS] PDF generation error:', err); }
+      return { pdf, filename: `NEXUS_AURA_Result_${riskTier}_${activeSessionId}.pdf` };
+    } catch (err) { console.error('[NEXUS] PDF generation error:', err); return null; }
   };
 
+  const handleDownloadPDF = async () => {
+    recordTelemetry(postalSector, { action: 'download_pdf', score, language: lang, ctaTier });
+    const built = await buildReportPdf();
+    if (built) built.pdf.save(built.filename);
+  };
+
+  /**
+   * ⚠️ SHARE SENDS THE REPORT, NOT A LINK. Until 2026-09-17 this shared a line of
+   *    text and the portal's URL, so a resident who tapped "Share Result" to
+   *    send their result to a family member sent them an invitation to take the
+   *    assessment themselves. The PDF is what they meant to send.
+   *
+   *    The file goes through the OS share sheet where the browser supports
+   *    sharing files (`navigator.canShare({ files })`: Safari on iOS, Chrome on
+   *    Android, and most desktop browsers on a recent OS). Where it does not,
+   *    the report is downloaded instead, which is the nearest thing to "here is
+   *    my result" that browser can do. The old text-and-link share is gone,
+   *    since a link is not a result.
+   */
   const handleShare = async () => {
-    recordTelemetry(postalSector, { action: 'share_result', score, language: lang });
+    recordTelemetry(postalSector, { action: 'share_result', score, language: lang, ctaTier });
+    const built = await buildReportPdf();
+    if (!built) return;
+    const { pdf, filename } = built;
+
+    const file = new File([pdf.output('blob')], filename, { type: 'application/pdf' });
     const actionText = ctaBanner.action[lang] || ctaBanner.action.en;
-    const shareText  = `${t.sharePrefix} ${tierLabel}.\n\n${t.shareTopRec} ${actionText}\n\n${t.sharePathway}`;
-    if (navigator.share) {
+    const shareText  = `${t.sharePrefix} ${tierLabel}.\n\n${t.shareTopRec} ${actionText}`;
+
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ title: 'NEXUS AURA Analysis', text: shareText, url: nexusUrl });
-      } catch {
-        // Ignored on purpose: navigator.share rejects when the user dismisses the
-        // OS share sheet, which is a cancellation, not an error to report.
+        await navigator.share({ files: [file], title: 'NEXUS AURA Result', text: shareText });
+        return;
+      } catch (err) {
+        // A dismissed share sheet rejects with AbortError: a cancellation, not a
+        // failure, and not a reason to then push a download at the person.
+        if (err && err.name === 'AbortError') return;
       }
     }
+    pdf.save(filename);
   };
 
   const handleResourceClick = (id, url) => {
@@ -1178,20 +1198,6 @@ export default function ResultPage() {
             <button onClick={handleDownloadPDF}
               className={`flex items-center gap-2 px-4 py-2.5 bg-teal-600/95 backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest ${R.chip} ${LIFT} hover:bg-teal-700 motion-safe:hover:-translate-y-0.5 ${RISE}`}>
               <Download size={13} /> {t.download}
-            </button>
-            {/*
-              ⚠️ English-only, deliberately, like the disclaimer beside it — the
-              printed slip is English and a translated button leading to an English
-              page would be the worse half-measure. Tracked as `CD10`.
-
-              `window.print()` rather than another jsPDF export: it reaches a real
-              printer, the "Save as PDF" in every browser's print dialogue, and a
-              screen reader, because the slip stays TEXT. The download above
-              rasterises the page through html2canvas.
-            */}
-            <button onClick={handlePrintSlip}
-              className={`flex items-center gap-2 px-4 py-2.5 ${SURFACE} ${R.chip} ${LIFT} text-slate-600 dark:text-slate-300 font-bold text-xs uppercase tracking-widest motion-safe:hover:-translate-y-0.5 ${RISE}`}>
-              <Printer size={13} /> Print summary
             </button>
           </div>
         </div>

@@ -355,10 +355,10 @@ export const MEASURES_COPY = {
         hrEquationNote: 'Dua persamaan terbitan memberi jawapan berbeza bagi umur anda: {tanaka} dan {astrand} denyutan seminit. Julat di atas menggunakan yang pertama.',
         hrAstrandOutside: 'Yang kedua dibina daripada orang berumur 4 hingga 34 tahun, jadi ia ditunjukkan untuk perbandingan sahaja.',
         hrSpreadNote: 'Orang yang sama umur boleh berbeza kira-kira 11 denyutan seminit, jadi anggap setiap angka di sini sebagai anggaran kasar.',
-        hrMedicationNote: 'Sesetengah ubat melambatkan denyutan jantung. Jika anda mengambilnya, nadi anda akan berada di bawah nombor ini. Itu dijangka, jadi jangan bersenam lebih kuat untuk mencapainya.',
+        hrMedicationNote: 'Sesetengah ubat melambatkan denyutan jantung. Jika anda mengambilnya, nadi anda akan berada di bawah nombor ini. Itu dijangka, jadi jangan bersenam pada intensiti lebih tinggi untuk mencapainya.',
 
-        hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri bersenam lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
-        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda.',
+        hrCaution: 'Jangan gunakan nombor ini untuk memaksa diri bersenam pada intensiti lebih tinggi daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan.',
+        hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam pada intensiti tinggi, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda.',
 
         hrColourNote: 'Ini warna zon senaman yang biasa digunakan. Ia tidak bermaksud perkara yang sama seperti warna keputusan penilaian anda.',
         hrColRange: 'Denyutan seminit',
@@ -371,13 +371,13 @@ export const MEASURES_COPY = {
             hard: 'Kuat',
             maximum: 'Maksimum',
         },
-        hrTalkTest: 'Sebagai panduan kasar: anda boleh berbual dalam julat yang lebih ringan, dan hanya mampu berkata beberapa patah perkataan dalam julat yang lebih kuat.',
+        hrTalkTest: 'Sebagai panduan kasar: anda boleh berbual dalam julat yang lebih ringan, dan hanya mampu berkata beberapa patah perkataan dalam julat yang lebih tinggi.',
         hrZoneBenefits: {
             'very-light': 'Memanaskan badan dan pemulihan',
             light: 'Membina daya tahan harian',
             moderate: 'Meningkatkan kecergasan',
             hard: 'Menambah kelajuan dan keupayaan',
-            maximum: 'Sangat kuat, dan sebentar sahaja',
+            maximum: 'Sangat tinggi, dan sebentar sahaja',
         },
 
         settings: {

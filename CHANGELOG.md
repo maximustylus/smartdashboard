@@ -54,6 +54,17 @@ not changed by this release.
 
 ## [Unreleased]
 
+### Fixed
+
+- `CP45`: the Malay "manage on my own" chip carried the English word "mostly", and
+  the social-isolation flag it should set fired in English only. Matcher now
+  covers four languages.
+- `CP46`: "Share Result" shared a link to the portal. It now shares the report PDF
+  itself, and downloads it where the browser cannot share files. "Print summary"
+  removed.
+- Malay terminology per the owner's read-through: `pelan` to `rancangan`, aerobic
+  `kuat` to `tinggi` (MOH: *tahap tinggi*), including in two waived safety strings.
+
 ## [2.15.2] - 2026-09-17
 
 ### Fixed

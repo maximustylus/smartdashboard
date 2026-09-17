@@ -178,7 +178,7 @@ export const DICTIONARY = {
     hintText: 'Pilih pilihan atau taip sendiri:',
     sessionLabel: 'Sesi',
     domainLabel: 'Domain Saringan',
-    ctaTitle: 'Pelan Kesihatan Peribadi Anda',
+    ctaTitle: 'Rancangan Kesihatan Peribadi Anda',
     ctaPrimary: 'Langkah Seterusnya',
     ctaHealthierSG: 'Sambungan Healthier SG Anda',
     ctaResources: 'Sumber Tambahan',
@@ -186,7 +186,7 @@ export const DICTIONARY = {
     ageRetry: 'Maaf, saya tidak dapat membaca itu sebagai umur. Sila taip bilangan tahun sahaja.',
     progressLabel: (step, total) => `Langkah ${step + 1} daripada ${total}`,
     prompts: [
-      'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan senaman sederhana atau kuat? (cth. berjalan pantas, berbasikal, berenang)',
+      'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan aktiviti fizikal tahap sederhana atau tinggi? (cth. berjalan pantas, berbasikal, berenang)',
       /* 1  pavs_mins */ (data) => data.pavs_days === '0 hari' || data.pavs_days === '0 days'
         ? 'Jika anda mula aktif secara fizikal, lebih kurang berapa lama anda rasa anda mampu melakukannya setiap kali?'
         : 'Berapa minit biasanya anda bersenam pada setiap sesi aktif tersebut?',
@@ -212,7 +212,7 @@ export const DICTIONARY = {
       () => 'Terima kasih kerana berkongsi. Saya akan pastikan cadangan anda selamat. ',
       () => 'Itu satu cabaran yang nyata. ',
       () => 'Sokongan sosial adalah faktor perlindungan yang penting. ',
-      (input) => /(ya|yes)/i.test(input) ? 'Terima kasih kerana berkongsi. Ini akan diambil kira dalam pelan anda. ' : 'Baik, direkodkan. ',
+      (input) => /(ya|yes)/i.test(input) ? 'Terima kasih kerana berkongsi. Ini akan diambil kira dalam rancangan anda. ' : 'Baik, direkodkan. ',
       () => 'Kesejahteraan mental anda sama pentingnya dengan kesihatan fizikal. ',
       () => 'Direkodkan. ',
       () => 'Terima kasih kerana berkongsi. ',
@@ -227,7 +227,7 @@ export const DICTIONARY = {
       ['Tiada latihan kekuatan', '1 hari seminggu', '2 hari seminggu', '3+ hari seminggu'],
       ['Tiada penyakit atau simptom', 'Darah tinggi', 'Pradiabetes atau diabetes', 'Penyakit jantung', 'Pening atau sakit dada semasa aktif'],
       ['Kekurangan masa', 'Terlalu mahal', 'Terlalu jauh', 'Lebih suka hospital', 'Tidak pasti apa yang ada', 'Tiada halangan'],
-      ['Ada beberapa orang yang boleh saya hubungi', 'Ada satu atau dua orang rapat', 'Saya mostly uruskan sendiri', 'Saya rasa agak keseorangan'],
+      ['Ada beberapa orang yang boleh saya hubungi', 'Ada satu atau dua orang rapat', 'Saya kebanyakannya uruskan sendiri', 'Saya rasa agak keseorangan'],
       ['Ya, ini pernah berlaku', 'Tidak, saya sentiasa ada makanan yang cukup'],
       ['Perasaan baik secara keseluruhannya', 'Ada sedikit tekanan tapi boleh kawal', 'Rasa sangat tertekan atau sedih', 'Terbeban dengan tanggungjawab penjagaan', 'Terbeban dengan tekanan kewangan'],
       ['Lelaki', 'Perempuan'],

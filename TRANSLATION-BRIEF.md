@@ -543,7 +543,7 @@ left is the portal handing an older resident figures to chase.
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Jangan gunakan nombor ini untuk memaksa diri bersenam lebih kuat daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan. | Do not use these numbers to force yourself to exercise harder than usual. If you experience chest pain, dizziness or unusual shortness of breath, stop and get medical help. |
+| `ms` | Jangan gunakan nombor ini untuk memaksa diri bersenam pada intensiti lebih tinggi daripada biasa. Jika anda mengalami sakit dada, pening atau sesak nafas yang luar biasa, berhenti dan dapatkan bantuan perubatan. | Do not use these numbers to force yourself to exercise harder than usual. If you experience chest pain, dizziness or unusual shortness of breath, stop and get medical help. |
 | `zh` | 不要用这些数字来逼自己比平时更用力。如果出现胸痛、头晕或异常气喘，请停下来并寻求医疗协助。 | Do not use these numbers to force yourself to exert more than usual. If chest pain, dizziness or unusual breathlessness appears, please stop and seek medical assistance. |
 | `ta` | வழக்கத்தை விட அதிகமாக உங்களை வருத்திக்கொள்ள இந்த எண்களைப் பயன்படுத்தக் கூடாது. மார்பு வலி, தலைச்சுற்றல் அல்லது வழக்கமல்லாத மூச்சுத் திணறல் ஏற்பட்டால், நிறுத்திவிட்டு மருத்துவ உதவியை நாடுங்கள். | These numbers must not be used to strain yourself more than usual. If chest pain, dizziness or unusual breathlessness occurs, stop and seek medical help. ⚠️ Uses கூடாது ("must not"), replacing வேண்டாம் on 2026-09-14 — the latter also reads as "there is no need to". |
 
@@ -557,7 +557,7 @@ exertion, so what must survive is that a reader knows to see someone first.
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam kuat, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda. | You told us that you experience symptoms when exercising hard, so we are not showing heart rate ranges. Refer to your health professional before you increase the intensity of your exercise. |
+| `ms` | Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam pada intensiti tinggi, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda. | You told us that you experience symptoms when exercising hard, so we are not showing heart rate ranges. Refer to your health professional before you increase the intensity of your exercise. |
 | `zh` | 您告诉过我们，您用力活动时会出现不适，所以我们不显示心率范围。在加大运动强度之前，请咨询您的医护人员。 | You have told us that you feel unwell when you exert yourself, so we are not showing heart rate ranges. Before increasing exercise intensity, please consult your medical personnel. |
 | `ta` | நீங்கள் உழைக்கும்போது அறிகுறிகள் ஏற்படுவதாக எங்களிடம் கூறியுள்ளீர்கள், எனவே இதயத் துடிப்பு வரம்புகளைக் காட்டவில்லை. உடற்பயிற்சியின் கடினத்தை அதிகரிப்பதற்கு முன் உங்கள் சுகாதார நிபுணரிடம் ஆலோசனை பெறுங்கள். | You have told us that symptoms occur when you exert yourself, so heart rate ranges are not being shown. Before increasing the difficulty of your exercise, seek advice from your health professional. |
 
@@ -636,6 +636,13 @@ Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemin
 six findings were all adjudicated on 2026-09-13 and none applied. Details at the
 foot of the pack. Still nobody who reads the language has read any of it.
 **Settled 2026-09-16: native review only from here; no further model rounds.**
+
+**2026-09-17, the first human read.** The owner's team read the Malay chat and
+corrected four things no model round had raised: an English word left inside a
+chip (`mostly`), `pelan` for `rancangan`, aerobic `kuat` for `tinggi` per MOH
+Malaysia's *tahap tinggi*, and the intensity vocabulary in two waived safety
+strings. The chip finding was also a flag defect (`CP45`). This is what native
+review looks like and why nothing else substitutes for it.
 
 ---
 

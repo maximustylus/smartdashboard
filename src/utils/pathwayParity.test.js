@@ -185,3 +185,28 @@ describe('service_rating is not asked of somebody with nothing to rate', () => {
         expect(isStepAvailable(DOMAIN_CONFIG, stepIndex, prompts, {})).toBe(true);
     });
 });
+
+describe('the social support chips mean the same thing in every language', () => {
+    /*
+      ⚠️ FOUND BY THE OWNER'S MALAY REVIEW, 2026-09-17. The third chip, "I mostly
+         manage on my own", flagged social isolation in English because the
+         matcher knew "on my own". The Malay chip still contained the English word
+         "mostly", untranslated, and none of the Malay, Chinese or Tamil chips
+         contained a word the matcher knew, so in three languages that answer was
+         never flagged. The fourth chip ("quite isolated") did flag everywhere.
+    */
+    it.each(LANGS)('%s: the two lonelier chips flag, the two supported chips do not', (lang) => {
+        const chips = copyFor(lang).quickReplies.social;
+        expect(chips).toHaveLength(4);
+        expect(parseClinicalData({ social: chips[0] }).sdohSocial, `${lang} chip 1 "${chips[0]}"`).toBe(false);
+        expect(parseClinicalData({ social: chips[1] }).sdohSocial, `${lang} chip 2 "${chips[1]}"`).toBe(false);
+        expect(parseClinicalData({ social: chips[2] }).sdohSocial, `${lang} chip 3 "${chips[2]}"`).toBe(true);
+        expect(parseClinicalData({ social: chips[3] }).sdohSocial, `${lang} chip 4 "${chips[3]}"`).toBe(true);
+    });
+
+    it('carries no untranslated English word in the Malay chips', () => {
+        copyFor('ms').quickReplies.social.forEach((chip) => {
+            expect(chip, chip).not.toMatch(/\b(mostly|manage|own|people|feel)\b/i);
+        });
+    });
+});

@@ -115,7 +115,7 @@ const BARRIERS = [
 const SOCIAL_OPTIONS = [
   { value: 'I have several people I can rely on', en: 'I have several people I can rely on', ms: 'Ada beberapa orang yang boleh saya hubungi', zh: '有几个可以依靠的人', ta: 'நம்பகமான பல நபர்கள் உள்ளனர்'         },
   { value: 'I have one or two close people',      en: 'I have one or two close people',      ms: 'Ada satu atau dua orang rapat',             zh: '有一两个亲近的人',  ta: 'ஒன்று அல்லது இரண்டு நெருங்கிய நபர்கள்' },
-  { value: 'I mostly manage on my own',           en: 'I mostly manage on my own',           ms: 'Saya mostly uruskan sendiri',               zh: '大多数情况自己处理', ta: 'பெரும்பாலும் சுயமாக சமாளிக்கிறேன்'      },
+  { value: 'I mostly manage on my own',           en: 'I mostly manage on my own',           ms: 'Saya kebanyakannya uruskan sendiri',               zh: '大多数情况自己处理', ta: 'பெரும்பாலும் சுயமாக சமாளிக்கிறேன்'      },
   { value: 'I feel quite isolated',               en: 'I feel quite isolated',               ms: 'Saya rasa agak keseorangan',               zh: '感到相当孤立',      ta: 'மிகவும் தனிமையாக உணர்கிறேன்'           },
 ];
 
@@ -344,7 +344,7 @@ const D = {
     incomeNote: 'Berdasarkan soalan kajian mengenai kecukupan pendapatan',
     housingQ: 'Apakah jenis perumahan yang anda diami sekarang?',
     housingNote: 'Jenis perumahan membantu kami memahami tekanan harian yang mungkin dihadapi',
-    housingAlert: 'Penghuni flat sewa HDB 1–2 bilik menghadapi tekanan sosial pelbagai domain yang tinggi. Pelan anda akan mengutamakan sumber percuma dan berasaskan komuniti.',
+    housingAlert: 'Penghuni flat sewa HDB 1–2 bilik menghadapi tekanan sosial pelbagai domain yang tinggi. Rancangan anda akan mengutamakan sumber percuma dan berasaskan komuniti.',
     perHead: 'Pengalaman Kesihatan Komuniti',
     awareQ: 'Pernahkah anda mendengar tentang perkhidmatan kesihatan di kawasan kejiranan anda? (cth. Active Health Labs, Start2Move, AAC)',
     referQ: 'Pernahkah doktor atau profesional kesihatan merujuk anda ke program kesihatan komuniti atau Active Health Lab?',

@@ -29,6 +29,23 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Unreleased — on `community` · `P12`, the owner's Malay read-through
+
+- **CP45** — `Saya mostly uruskan sendiri`: the English word was left in the
+  Malay chip, and the matcher behind it knew no Malay, Chinese or Tamil word for
+  that answer, so "I mostly manage on my own" flagged social isolation in English
+  only. Fixed in the chip and the matcher; every social chip is now tested in
+  every language.
+- **CP46** — Share sent the portal's URL. It now sends the report PDF through the
+  OS share sheet, or downloads it where files cannot be shared. Print summary
+  removed as redundant.
+- Malay: `pelan` to `rancangan`; aerobic `kuat` to `tinggi` in the first question
+  and the heart-rate block, including `hrCaution` and `hrSuppressedSymptoms`,
+  one word each, prohibition untouched. First human correction to any of this
+  portal's Malay.
+
+---
+
 ## Shipped in [2.15.2] — `CP28`, the step badges
 
 - **CP28** — the small label above each chat question was an English literal in
