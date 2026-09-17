@@ -28,6 +28,16 @@
   @apply bg-[#334155] border-slate-600 text-white placeholder-slate-400 focus:ring-blue-400;
 }
 
+/* A native date input on iOS Safari sizes itself: it ignores `width` and
+   `font-size` and overflows a grid track it does not fit (the Configure
+   wizard's Start Date was drawn over Weeks, v2.15.2 and v2.16.0). The input
+   carries `appearance-none`, which makes iOS honour both — and then needs
+   these two: the value is centred and, when empty, zero-height in that mode. */
+input[type="date"].appearance-none::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.5em;
+}
+
 /* Professional Table Styles */
 .admin-table-header {
   @apply px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider bg-slate-50 border-b border-slate-200;

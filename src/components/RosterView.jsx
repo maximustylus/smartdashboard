@@ -4179,8 +4179,8 @@ const RosterView = ({ user }) => {
                                 from a `pb-4` inside `RosterDemoWizardTables`; this is the
                                 same rhythm, applied to the step that sits outside it. */}
                             <div className={isDemo
-                                ? 'mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid grid-cols-3 gap-3'
-                                : 'mb-4 grid grid-cols-3 gap-4'}
+                                ? 'mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-3'
+                                : 'mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4'}
                             >
                                 {/* TWO THIRDS TO THE DATE, one to Weeks — in BOTH modes.
                                     Equal halves left the date field 151px, and the native
@@ -4193,15 +4193,23 @@ const RosterView = ({ user }) => {
                                     `minmax(0, 1fr)`, a track that will not grow, and iOS
                                     Safari will not shrink a date input below its intrinsic
                                     width, so the date box was DRAWN OVER the Weeks box.
-                                    `min-w-0` on the input is the second half of the fix —
-                                    it lets WebKit honour `w-full` instead of the intrinsic
-                                    width when the track is narrower still. */}
-                                <div className="col-span-2">
+                                    That split alone was NOT enough (v2.16.0 shipped it and a
+                                    phone screenshot showed the same overlap): iOS renders a
+                                    native date control at its own size and width whatever
+                                    `text-sm` and `w-full` say. So, two more things. On a
+                                    phone the row is ONE column — the two fields stack, and
+                                    nothing can be drawn over anything; the thirds return from
+                                    `sm:` up. And the date input is `appearance-none`, which
+                                    is what makes iOS Safari honour width and font size on a
+                                    date input at all (`src/style.css` keeps its inner value
+                                    left-aligned and from collapsing when empty). `min-w-0`
+                                    stays so the grid track, not the control, sets the width. */}
+                                <div className="sm:col-span-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase" htmlFor="roster-start-date">Start Date</label>
                                     <input
                                         id="roster-start-date"
                                         type="date"
-                                        className={`input-field w-full min-w-0 mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
+                                        className={`input-field w-full min-w-0 appearance-none mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
                                         value={config.startDate}
                                         onChange={(e) => setConfig({...config, startDate: e.target.value})}
                                     />
