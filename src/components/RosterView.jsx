@@ -4180,20 +4180,28 @@ const RosterView = ({ user }) => {
                                 same rhythm, applied to the step that sits outside it. */}
                             <div className={isDemo
                                 ? 'mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid grid-cols-3 gap-3'
-                                : 'mb-4 grid grid-cols-2 gap-4'}
+                                : 'mb-4 grid grid-cols-3 gap-4'}
                             >
-                                {/* TWO THIRDS TO THE DATE, one to Weeks — in Sandbox only.
+                                {/* TWO THIRDS TO THE DATE, one to Weeks — in BOTH modes.
                                     Equal halves left the date field 151px, and the native
                                     `<input type="date">` at the 16px Sandbox uses to stop iOS
                                     zooming needs about 150px for `01/02/2026` PLUS its picker
                                     icon, so the year rendered as `202`. Weeks holds a
-                                    one- or two-digit number and never needed half the row. */}
-                                <div className={isDemo ? 'col-span-2' : undefined}>
+                                    one- or two-digit number and never needed half the row.
+                                    Live mode kept equal halves until v2.16.0, and on a phone
+                                    it was worse than a clipped year: `grid-cols-2` is
+                                    `minmax(0, 1fr)`, a track that will not grow, and iOS
+                                    Safari will not shrink a date input below its intrinsic
+                                    width, so the date box was DRAWN OVER the Weeks box.
+                                    `min-w-0` on the input is the second half of the fix —
+                                    it lets WebKit honour `w-full` instead of the intrinsic
+                                    width when the track is narrower still. */}
+                                <div className="col-span-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase" htmlFor="roster-start-date">Start Date</label>
                                     <input
                                         id="roster-start-date"
                                         type="date"
-                                        className={`input-field w-full mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
+                                        className={`input-field w-full min-w-0 mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
                                         value={config.startDate}
                                         onChange={(e) => setConfig({...config, startDate: e.target.value})}
                                     />
