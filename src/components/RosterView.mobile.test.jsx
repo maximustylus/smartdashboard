@@ -792,7 +792,7 @@ describe('live mode: the responsive work stopped at the branch', () => {
         // live-mode addition is `min-w-0` on the DATE input (v2.16.0) — see the
         // layout test below for why.
         expect(document.getElementById('roster-start-date').className).toBe(
-            'input-field w-full min-w-0 mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
+            'input-field w-full min-w-0 appearance-none mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
         );
         expect(document.getElementById('roster-weeks').className).toBe(
             'input-field w-full mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
@@ -800,20 +800,25 @@ describe('live mode: the responsive work stopped at the branch', () => {
         expect(setDoc).not.toHaveBeenCalled();
     });
 
-    it('gives the date two thirds of the row in live mode too, so it cannot be drawn over Weeks', () => {
+    it('stacks Start Date over Weeks on a phone, so the date cannot be drawn over Weeks', () => {
         render(<RosterView user={VISITOR} />);
         openConfigure();
 
-        // Seen on a phone at v2.15.2: `grid-cols-2` is `minmax(0, 1fr)`, a track that
-        // does not grow, and iOS Safari does not shrink a native date input below its
-        // intrinsic width, so the date box overlapped the Weeks box. The Sandbox had
-        // already moved to thirds for the clipped-year variant of the same problem;
-        // live mode now shares that split, and the date input carries `min-w-0`.
+        // Seen on a phone at v2.15.2 and AGAIN at v2.16.0, which had moved the row to
+        // thirds: iOS Safari renders a native date input at its own width whatever
+        // `w-full` says, and it overflowed its grid track onto the Weeks box. On a
+        // phone the row is now ONE column — nothing can overlap — and the thirds
+        // split (date two, Weeks one) returns from `sm:` up. The date input is also
+        // `appearance-none`, which is what makes iOS honour width and font size on
+        // it at all, and `min-w-0`, so the track sets the width, not the control.
         const date = document.getElementById('roster-start-date');
         const row = date.parentElement.parentElement;
-        expect(row.className).toContain('grid-cols-3');
-        expect(row.className).not.toContain('grid-cols-2');
-        expect(date.parentElement.className).toContain('col-span-2');
+        expect(row.className).toContain('grid-cols-1');
+        expect(row.className).toContain('sm:grid-cols-3');
+        expect(row.className).not.toMatch(/(^|\s)grid-cols-[23](\s|$)/);
+        expect(date.parentElement.className).toContain('sm:col-span-2');
+        expect(date.parentElement.className).not.toMatch(/(^|\s)col-span-2(\s|$)/);
+        expect(date.className).toContain('appearance-none');
         expect(date.className).toContain('min-w-0');
     });
 

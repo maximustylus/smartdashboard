@@ -54,6 +54,23 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.16.1] - 2026-09-17
+
+### Fixed
+
+- **The Start Date box was still drawn over the Weeks box on a phone in v2.16.0.** The
+  thirds split shipped there was not enough: iOS Safari renders a native date input at
+  its own width and font size, whatever `w-full` and `text-sm` say, so the control
+  overflowed its grid track exactly as before. Two changes, both modes. On a phone the
+  row is one column — Start Date above Weeks — and the thirds return from the `sm:`
+  breakpoint up; nothing can overlap when there is nothing beside it. And the date
+  input is `appearance-none`, which is what makes iOS honour width and font size on a
+  date input, with a rule in `src/style.css` that keeps its inner value left-aligned
+  and from collapsing to zero height when empty. Evidence: the mobile test now pins
+  the one-column phone layout and the `sm:` split; 148 wizard tests across three
+  files pass. Not verified on a device from the sandbox — the second screenshot is
+  the only device evidence, and it is of the version before this one.
+
 ## [2.16.0] - 2026-09-17
 
 A team lead can now change one duty on one day **by hand**, and every such change is
