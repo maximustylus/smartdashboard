@@ -345,6 +345,33 @@ service cloud.firestore {
                       && addsNoNewKeys();
 
         allow delete: if false;
+
+        // ── The change log: one document per hand edit ────────────────────
+        //
+        //     ROSTER_TODO.md queue item 3. A lead reassigns one duty on one day
+        //     without regenerating (that write is (a) above — a lead may update the
+        //     roster freely) and then records it here, so a hand edit is never
+        //     indistinguishable from a regenerate. The shape is pinned: the record
+        //     names the actor as the caller (nobody logs a change as somebody
+        //     else), the clock is the server's (a client clock on an audit record
+        //     is evidence nobody can rely on), and once written it is never edited
+        //     or deleted by anyone — an audit trail that can be tidied is not one.
+        match /changes/{changeId} {
+          allow read: if isMember(teamId);
+
+          allow create: if isLead(teamId)
+                        && request.resource.data.kind == 'reassign'
+                        && request.resource.data.byUid == uid()
+                        && request.resource.data.dateKey is string
+                        && isDateKey(request.resource.data.dateKey)
+                        && request.resource.data.task is string
+                        && request.resource.data.role in ['lead', 'coLead']
+                        && request.resource.data.from is string
+                        && request.resource.data.to is string
+                        && request.resource.data.at == request.time;
+
+          allow update, delete: if false;
+        }
       }
 
       // ── Coverage / shift swaps ─────────────────────────────────────────────

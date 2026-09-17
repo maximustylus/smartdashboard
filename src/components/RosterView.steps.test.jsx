@@ -41,6 +41,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(() => ({ __mock: 'docRef' })),
     collection: vi.fn(() => ({ __mock: 'collectionRef' })),
     onSnapshot: vi.fn(() => () => {}),

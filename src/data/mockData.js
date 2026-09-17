@@ -5,14 +5,14 @@
 // retyped so the two cannot drift apart. READ-ONLY: nothing in this file edits
 // the engine.
 import { DEFAULT_GRADE_BANDS } from '../utils/rosterEngineV2.js';
-// The MOH NAHS taxonomy — 28 professions, 37 selectable leaves, two of them nesting.
+// The national allied health taxonomy — 28 professions, 37 selectable leaves, two of them nesting.
 // READ-ONLY and never edited from here: it is the published list, and the picker's
 // first control is a view of it (see section 12). Imported rather than re-typed so a
 // profession cannot exist in the dropdown without existing in the taxonomy.
 import {
-  MOH_ALLIED_HEALTH_PROFESSIONS,
-  MOH_PROFESSION_LEAVES,
-} from './mohAlliedHealth.js';
+  ALLIED_HEALTH_PROFESSIONS,
+  PROFESSION_LEAVES,
+} from './alliedHealthProfessions.js';
 
 // 1. The Names List (CRITICAL for Universe Switching)
 export const MOCK_STAFF_NAMES = ['Steve', 'Peter', 'Charles', 'Jean', 'Tony'];
@@ -255,7 +255,7 @@ export const DEMO_EXAMPLE_DEPARTMENT = Object.freeze({
 // ── THE DESIGN ERROR THIS SECTION EXISTS TO CORRECT ──────────────────────────
 //
 // This was TWELVE ARRANGEMENTS, one per department, and 23 more were about to be
-// written so that every MOH allied health profession had one. Five of the twelve came
+// written so that every allied health profession on the national list had one. Five of the twelve came
 // from teams who had described their week; the other seven were pattern-matched
 // guesses offered under a real profession's name with a `correction` checklist
 // attached. The checklist was the tell: a fixture that has to apologise for itself is
@@ -279,7 +279,7 @@ export const DEMO_EXAMPLE_DEPARTMENT = Object.freeze({
 // between those two sentences is the entire content of this change, and the copy in
 // `RosterView.jsx` must never blur it.
 //
-// The PROFESSION list (`MOH_PROFESSION_OPTIONS`, derived from `mohAlliedHealth.js`) is
+// The PROFESSION list (`PROFESSION_OPTIONS`, derived from `alliedHealthProfessions.js`) is
 // vocabulary and nothing more. Choosing "Art Therapist" does not select a roster: it
 // LABELS the configuration the visitor is about to build, so an art therapist sees
 // their own designation on their own roster instead of somebody else's profession.
@@ -1008,7 +1008,7 @@ const DEMO_ARRANGEMENT_MARVEL = Object.freeze({
  * arrangements this replaced. The owner's "make the dropdown read alphabetically"
  * applied to a list of PROFESSIONS, where alphabetical is the only findable order and a
  * reader arrives knowing the word they are looking for. That list still exists and is
- * still sorted in code — it is `MOH_PROFESSION_OPTIONS` below, and the sort is there
+ * still sorted in code — it is `PROFESSION_OPTIONS` below, and the sort is there
  * rather than here. Nobody arrives looking for the letter G in a list of six
  * structures, so these are ordered by what they are: the six shapes with an interview
  * behind them first, the two openly fictional demos after, each group labelled on
@@ -1029,7 +1029,7 @@ const DEMO_ARRANGEMENT_MARVEL = Object.freeze({
  *                       reader sees it, or `null` for the fictional demos. A FIELD
  *                       rather than a sentence in the copy, so the UI cannot render a
  *                       shape without attributing it.
- *   sourceProfessionId  THE AUTO-SUGGESTION KEY, AND NOTHING ELSE. A `mohAlliedHealth.js`
+ *   sourceProfessionId  THE AUTO-SUGGESTION KEY, AND NOTHING ELSE. A `alliedHealthProfessions.js`
  *                       id, so a pairing is computable rather than hand-listed. Usually a
  *                       LEAF id; for the periodic clinic it is a GROUP id, because the
  *                       interview named the profession and not one of its six
@@ -1091,7 +1091,7 @@ export const DEMO_SHAPES = Object.freeze([
     demonstrates: 'A clinic on the third Wednesday of every month, principals only, held by the same principal every time — inside a stated 42-hour week.',
     group: 'shape',
     provenance: DEMO_PROVENANCE_INTERVIEWED,
-    // MOH's own name for profession 24, verbatim. The interview did not distinguish a
+    // the national list's own name for profession 24, verbatim. The interview did not distinguish a
     // sub-discipline, so this names the PROFESSION (a group label in the taxonomy) and
     // not one of its six leaves — inventing "clinical" here would be inventing the one
     // fact the interview did not supply. `DEMO_SHAPE_SUGGESTIONS` expands a group id to
@@ -1186,10 +1186,10 @@ export const DEMO_SHAPES = Object.freeze([
 export const demoShapeById = (id) => DEMO_SHAPES.find((shape) => shape.id === id) || null;
 
 // ==============================================================================
-// 12. THE PROFESSION LIST — MOH'S OWN VOCABULARY, AS THE PICKER'S FIRST CONTROL
+// 12. THE PROFESSION LIST — THE NATIONAL LIST'S OWN VOCABULARY, AS THE PICKER'S FIRST CONTROL
 // ==============================================================================
 //
-// All 28 professions, nested exactly as MOH nests them, and NOTHING IS SAID ABOUT ANY
+// All 28 professions, nested exactly as the list nests them, and NOTHING IS SAID ABOUT ANY
 // OF THEM. That is the whole design: choosing a profession picks a LABEL for the
 // configuration the visitor is about to build, so an art therapist's roster is headed
 // "Art Therapist" instead of "Physiotherapy". It selects no duties, no grades and no
@@ -1205,20 +1205,20 @@ export const demoShapeById = (id) => DEMO_SHAPES.find((shape) => shape.id === id
 // SORTED IN CODE, alphabetically by the name a visitor READS, with an explicit 'en'
 // locale — a list whose order depends on the reader's machine is not an order. A
 // nesting profession sorts by its GROUP name and its children sort within it, so the
-// walk down the list is the walk down MOH's list. Hand-ordering is what this avoids:
+// walk down the list is the walk down the national list. Hand-ordering is what this avoids:
 // the 29th profession will be added by somebody who has not read this file.
 const byReaderVisibleName = (a, b) => a.sortName.localeCompare(b.sortName, 'en');
 
 /**
- * THE PEOPLE MOH'S LIST DOES NOT NAME, AND WHO ARE OFTEN THE ROSTER MASTER.
+ * THE PEOPLE THE NATIONAL LIST'S LIST DOES NOT NAME, AND WHO ARE OFTEN THE ROSTER MASTER.
  *
  * The roster owner, 2026-08-31: *"there are no Administrators, Assistants and
  * Associate Roles which AHP departments and services may have and they are the ones
  * who are the roster masters."*
  *
- * ⚠️ KEPT IN THEIR OWN GROUP, NOT MERGED INTO THE 28. MOH's list is a register of
+ * ⚠️ KEPT IN THEIR OWN GROUP, NOT MERGED INTO THE 28. The national list is a register of
  *    allied health PROFESSIONS, and an administrator is not one of them — dropping
- *    them in among the physiotherapists would make the claim "MOH's own 28" false,
+ *    them in among the physiotherapists would make the claim "the national list's 28" false,
  *    and that claim is load-bearing everywhere else in this file. They are a second,
  *    clearly labelled group instead: the list stays honest AND the person filling in
  *    the form finds themselves in it.
@@ -1238,13 +1238,13 @@ export const SUPPORT_AND_ADMIN_ROLES = Object.freeze([
 ]);
 
 /**
- * EVERY id the profession picker can produce — MOH's 37 leaves plus the support and
+ * EVERY id the profession picker can produce — the list's 37 leaves plus the support and
  * administrative roles.
  *
  * ⚠️ THIS EXISTS BECAUSE ADDING THE ROLES TO THE PICKER WAS NOT ENOUGH. The
- *    validator in `memberProfile.js` built its set from `MOH_PROFESSION_LEAVES`
+ *    validator in `memberProfile.js` built its set from `PROFESSION_LEAVES`
  *    alone, so `Administrator` appeared in the dropdown, was chosen, and was then
- *    refused on save with "that is not a profession on the MOH allied health list".
+ *    refused on save with "that is not a profession on the national allied health list".
  *    The owner hit it on the first member they tried to edit.
  *
  *    So there is now ONE list of what the picker can emit, and the validator reads
@@ -1253,12 +1253,12 @@ export const SUPPORT_AND_ADMIN_ROLES = Object.freeze([
  *    and the two grade parsers this repository has already been caught by.
  */
 export const SELECTABLE_PROFESSION_LEAVES = Object.freeze([
-  ...MOH_PROFESSION_LEAVES,
+  ...PROFESSION_LEAVES,
   ...SUPPORT_AND_ADMIN_ROLES,
 ]);
 
-export const MOH_PROFESSION_OPTIONS = Object.freeze(
-  MOH_ALLIED_HEALTH_PROFESSIONS
+export const PROFESSION_OPTIONS = Object.freeze(
+  ALLIED_HEALTH_PROFESSIONS
     .map((profession) => (profession.children
       ? Object.freeze({
         kind: 'group',
@@ -1266,7 +1266,7 @@ export const MOH_PROFESSION_OPTIONS = Object.freeze(
         groupId: profession.id,
         sortName: profession.name,
         options: Object.freeze(
-          MOH_PROFESSION_LEAVES
+          PROFESSION_LEAVES
             .filter((leaf) => leaf.groupId === profession.id)
             .map((leaf) => Object.freeze({ ...leaf, sortName: leaf.name }))
             .sort(byReaderVisibleName),
@@ -1274,7 +1274,7 @@ export const MOH_PROFESSION_OPTIONS = Object.freeze(
       })
       : Object.freeze({
         kind: 'option',
-        ...MOH_PROFESSION_LEAVES.find((leaf) => leaf.id === profession.id),
+        ...PROFESSION_LEAVES.find((leaf) => leaf.id === profession.id),
         sortName: profession.name,
       })))
     .sort(byReaderVisibleName)
@@ -1282,12 +1282,12 @@ export const MOH_PROFESSION_OPTIONS = Object.freeze(
      * APPENDED AFTER THE SORT, ON PURPOSE. Everything above is alphabetical because
      * a reader arrives knowing the word they are looking for. This group is not part
      * of that list and must not be interleaved into it — an `Administrator` sitting
-     * between `Art Therapist` and `Audiologist` reads as MOH having registered it.
+     * between `Art Therapist` and `Audiologist` reads as the national list having registered it.
      * It goes last, under its own heading, where it is findable and unambiguous.
      */
     .concat([Object.freeze({
       kind: 'group',
-      label: 'Support and administrative roles (not an MOH profession)',
+      label: 'Support and administrative roles (not on the national allied health list)',
       groupId: 'support-admin',
       // NO `sortName`, deliberately. Every other entry carries one because it is
       // sorted; this group is `.concat`ed AFTER the sort and its position comes from
@@ -1332,7 +1332,7 @@ const OWNER_SUGGESTED_SHAPES = Object.freeze({
     'nuclear-medicine-technologist',
     'radiation-therapist',
   ]),
-  // All five sub-disciplines of MOH profession 12, named individually: the parent is a
+  // All five sub-disciplines of profession 12 on the national list, named individually: the parent is a
   // group label, so "Medical Technologist / Physiologist" is not a selectable answer.
   'shape-weekend-quota': Object.freeze([
     'medtech-cardiac',
@@ -1398,7 +1398,7 @@ export const DEMO_SHAPE_SUGGESTIONS = Object.freeze(
     // remaining four expand to themselves.
     ...DEMO_SHAPES
       .filter((shape) => shape.sourceProfessionId)
-      .flatMap((shape) => MOH_PROFESSION_LEAVES
+      .flatMap((shape) => PROFESSION_LEAVES
         .filter((leaf) => leaf.id === shape.sourceProfessionId
           || leaf.groupId === shape.sourceProfessionId)
         .map((leaf) => [leaf.id, shape.id])),

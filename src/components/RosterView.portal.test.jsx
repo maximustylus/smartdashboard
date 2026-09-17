@@ -22,6 +22,8 @@ import { render, cleanup, fireEvent, screen } from '@testing-library/react';
 
 vi.mock('../firebase', () => ({ db: {} }));
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(),
     onSnapshot: vi.fn(() => () => {}),
     setDoc: vi.fn(),

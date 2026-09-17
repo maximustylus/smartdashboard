@@ -31,7 +31,7 @@ import {
     ROLE_LEAD,
 } from '../utils/accessPolicy';
 import { leadRequestPath } from '../utils/teamPaths';
-import { MOH_PROFESSION_OPTIONS } from '../data/mockData';
+import { PROFESSION_OPTIONS } from '../data/mockData';
 import { APP_VERSION_LABEL } from '../version';
 
 // Hoisted out of the component: a fixed, render-independent list. Inside the
@@ -513,7 +513,7 @@ const WelcomeScreen = (props) => {
 
                                                             <div>
                                                                 {/*
-                                                                  MOH's own vocabulary, already in the tree for the demo
+                                                                  the national list's own vocabulary, already in the tree for the demo
                                                                   picker. Two of the 28 professions nest, so this walks
                                                                   groups and options rather than a flat list — a browser
                                                                   will not let anyone select a group heading, which is
@@ -527,7 +527,7 @@ const WelcomeScreen = (props) => {
                                                                     className="w-full bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl py-4 px-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                                                                 >
                                                                     <option value="">Profession…</option>
-                                                                    {MOH_PROFESSION_OPTIONS.map(entry => (entry.kind === 'group' ? (
+                                                                    {PROFESSION_OPTIONS.map(entry => (entry.kind === 'group' ? (
                                                                         <optgroup key={entry.groupId} label={entry.label}>
                                                                             {entry.options.map(leaf => (
                                                                                 <option key={leaf.id} value={leaf.id}>{leaf.name}</option>

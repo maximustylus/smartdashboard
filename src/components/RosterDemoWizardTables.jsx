@@ -97,6 +97,7 @@ import {
     WIZARD_STEP_COUNT,
 } from '../utils/rosterWizard';
 import WizardStep from './WizardStep';
+import FieldHint from './FieldHint';
 import { STANDARD_CATEGORIES, categoryChipClass, suggestCategoryFor } from '../utils/rosterCategories';
 // One definition of the cap, shared with the member editor that also writes it.
 import { SHORT_NAME_MAX } from '../utils/memberProfile';
@@ -334,9 +335,12 @@ const DisclosureButton = ({ open, forcedOpen, onToggle, ariaLabel, title, forced
 };
 
 /** A labelled group inside a drawer. The whole reason a drawer with six controls reads. */
-const DrawerGroup = ({ label, children }) => (
+const DrawerGroup = ({ label, hint = null, children }) => (
     <div className="space-y-1.5">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+            {label}
+            {hint && <FieldHint id={hint} />}
+        </p>
         {children}
     </div>
 );
@@ -524,12 +528,11 @@ export const BandBoundaryEditor = ({ inputs, onChange, reason }) => {
         <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                 <Layers size={13} /> Grade bands
+                <FieldHint id="bands" />
             </p>
+            {/* ONE line inline; the rest is behind the info button (`WIZARD_HELP.bands`). */}
             <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
-                Where this department cuts the allied-health scale. Drag a divider, or focus one and use
-                the arrow keys — Home and End jump to how far it can go. Every task&apos;s
-                {' '}<span className="font-bold">who may lead</span> below is resolved against these
-                boundaries, so a change here changes the grade ranges shown there immediately.
+                Drag a divider, or focus one and use the arrow keys.
             </p>
 
             {/* THE RULER. `trackRef` is this outer box, and the regions inside it fill
@@ -716,16 +719,9 @@ export const DepartmentHoursEditor = ({ inputs, onChange, errors }) => {
 
     return (
         <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                 <Clock size={13} /> Working hours
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
-                Leave both boxes empty and AURA counts <span className="font-bold">duties</span> only —
-                the way it always has. Fill either one in (or give any task its own length under
-                {' '}<span className="font-bold">More…</span>) and it starts counting{' '}
-                <span className="font-bold">hours</span> as well: same-day durations add up against the
-                daily limit, one week&apos;s against the weekly one, and a duty that would breach either
-                is reported as not staffed, with the hours named, rather than quietly assigned.
+                <FieldHint id="hours" />
             </p>
 
             <div className="flex flex-wrap gap-x-4 gap-y-3">
@@ -883,14 +879,9 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
 
     return (
         <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                 <SlidersHorizontal size={13} /> Department limits
-            </p>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3">
-                How much any one person may be asked to do, and who must not be put together. All three
-                are <span className="font-bold">hard</span>: a duty that would break one is reported as
-                not staffed, with the limit named, rather than quietly assigned. Leave a box empty and
-                AURA uses the figure shown in it.
+                <FieldHint id="limits" />
             </p>
 
             {/* THE SECOND PERSON. Beside the rotation switch and above the limits for
@@ -906,25 +897,16 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
                         title="The second person is named to step in if the lead cannot, and is not present"
                     />
                     <div className="min-w-0">
-                        <p className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                        <p className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
                             The second person is a standby
+                            <FieldHint id="standbySecond" />
                         </p>
+                        {/* The STATE, one line: what the tick currently means. The why, and
+                            the caution about clock-time clashes, are behind the info button. */}
                         <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Tick this if your second person is <span className="font-bold">named to step in</span> when
-                            the lead cannot make it — they know the clinic, but they are not in the room. AURA then
-                            stops charging them the session&apos;s hours and stops counting it against their
-                            duties-per-day, because they are not working it.
-                        </p>
-                        <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Leave it <span className="font-bold">off</span> if the second person genuinely works the
-                            session alongside the lead. That is how AURA has always counted them, and every roster
-                            already generated assumed it.
-                        </p>
-                        <p className="mt-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
-                            ⚠ A standby still has to be somebody who could run the clinic — the same grade and skill
-                            rules apply. What AURA cannot yet check is whether they are free at that hour: it knows how
-                            long a duty takes but not when it starts, so it will not stop somebody being standby for a
-                            clinic that clashes with one they are leading.
+                            {inputs?.standbySecond === true
+                                ? 'The second person is named to step in and is not charged the session.'
+                                : 'The second person works the session alongside the lead.'}
                         </p>
                     </div>
                 </div>
@@ -944,23 +926,14 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
                         title="One person leads a duty for the whole week, then it passes to somebody else"
                     />
                     <div className="min-w-0">
-                        <p className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+                        <p className="text-[11px] font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
                             Rotate duties weekly
+                            <FieldHint id="rotateWeekly" />
                         </p>
                         <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            One person leads a duty for the <span className="font-bold">whole week</span>, then it
-                            passes to whoever has been away from it longest — so in a team of five, a duty comes
-                            back to the same person every fifth week. It applies to every duty, including one that
-                            only runs a day or two.
-                        </p>
-                        <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Leave it <span className="font-bold">off</span> and AURA decides each day on its own.
-                            That shares the work evenly, but it moves people between duties most mornings.
-                        </p>
-                        <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            Leave still applies. If the week&apos;s lead is away on the Wednesday, somebody stands
-                            in for that day and they take the duty back on the Thursday — the week does not change
-                            hands over one absence.
+                            {inputs?.rotateWeekly === true
+                                ? 'One person leads each duty for the whole week, then it passes on.'
+                                : 'AURA decides each day on its own.'}
                         </p>
                     </div>
                 </div>
@@ -968,9 +941,12 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
 
             <div className="flex flex-wrap gap-x-4 gap-y-3">
                 <div>
-                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1" htmlFor="demo-max-concurrent">
-                        Most duties in one day
-                    </label>
+                    <div className="mb-1 flex items-center gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase" htmlFor="demo-max-concurrent">
+                            Most duties in one day
+                        </label>
+                        <FieldHint id="maxConcurrentPerDay" />
+                    </div>
                     <input
                         id="demo-max-concurrent"
                         type="text"
@@ -982,16 +958,15 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
                         onChange={(e) => onChange('maxConcurrentPerDay', e.target.value)}
                         className={NUMBER_FIELD}
                     />
-                    <p className="mt-0.5 text-[9px] text-slate-400 leading-relaxed max-w-[10rem]">
-                        Anyone may be given their own figure under <span className="font-bold">More…</span>
-                        {' '}in the staff table.
-                    </p>
                 </div>
 
                 <div>
-                    <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1" htmlFor="demo-max-consecutive">
-                        Most days in a row
-                    </label>
+                    <div className="mb-1 flex items-center gap-1">
+                        <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase" htmlFor="demo-max-consecutive">
+                            Most days in a row
+                        </label>
+                        <FieldHint id="maxConsecutiveDays" />
+                    </div>
                     <input
                         id="demo-max-consecutive"
                         type="text"
@@ -1001,21 +976,14 @@ export const DepartmentLimitsEditor = ({ inputs, onChange, errors, staffNames = 
                         onChange={(e) => onChange('maxConsecutiveDays', e.target.value)}
                         className={NUMBER_FIELD}
                     />
-                    <p className="mt-0.5 text-[9px] text-slate-400 leading-relaxed max-w-[10rem]">
-                        Counted inside this run only — the day before it starts is not known.
-                    </p>
                 </div>
             </div>
 
             {/* --- never on the same shift --- */}
             <div className={`mt-3 ${DRAWER_DIVIDER}`}>
-                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 flex items-center gap-1">
                     Never on the same shift
-                </p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-2">
-                    Two people who must not be rostered onto one duty together — a supervision conflict,
-                    a household, a grievance. AURA will leave the second half of a shift{' '}
-                    <span className="font-bold">unstaffed and say so</span> rather than pair them.
+                    <FieldHint id="forbidPairs" />
                 </p>
 
                 {staffNames.length < 2 ? (
@@ -1163,7 +1131,7 @@ const StaffRowDetail = ({ row, index, departmentMaxPerDay, onChange, readOnly = 
                 <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 p-3 space-y-3">
 
                     {/* --- this person's own daily cap --- */}
-                    <DrawerGroup label="Most duties in one day">
+                    <DrawerGroup label="Most duties in one day" hint="staffMaxPerDay">
                         <div className="flex flex-wrap items-start gap-3">
                             <input
                                 type="text"
@@ -1178,19 +1146,18 @@ const StaffRowDetail = ({ row, index, departmentMaxPerDay, onChange, readOnly = 
                                 onChange={(e) => patchRow(row.id, { maxPerDay: e.target.value })}
                                 className={NUMBER_FIELD}
                             />
+                            {/* The state, one line; the rule is behind the info button. */}
                             <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                                Blank means this person follows the department&apos;s figure of{' '}
-                                <span className="font-bold">{departmentMaxPerDay}</span>, set under{' '}
-                                <span className="font-bold">Department limits</span> above. A number here
-                                REPLACES it for them — higher or lower — and it is hard: a third duty on a
-                                day they are capped at two is reported as not staffed, not assigned.
+                                {typeof row.maxPerDay === 'string' && row.maxPerDay.trim() !== ''
+                                    ? `Replaces the department's ${departmentMaxPerDay} for this person.`
+                                    : `Blank: follows the department's ${departmentMaxPerDay}.`}
                             </p>
                         </div>
                     </DrawerGroup>
 
                     {/* --- the acronym the calendar and the exports use --- */}
                     <div className={DRAWER_DIVIDER}>
-                        <DrawerGroup label="Short name for calendars">
+                        <DrawerGroup label="Short name for calendars" hint="shortName">
                             <div className="flex flex-wrap items-start gap-3">
                                 <input
                                     type="text"
@@ -1203,22 +1170,9 @@ const StaffRowDetail = ({ row, index, departmentMaxPerDay, onChange, readOnly = 
                                     className={`${CELL_INPUT} sm:w-28`}
                                 />
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                                    {readOnly ? (
-                                        <>
-                                            Set on their row in <span className="font-bold">Admin &rarr; Team</span>.
-                                            Blank means the calendar and the exports use their full name.
-                                        </>
-                                    ) : (
-                                        <>
-                                            Up to <span className="font-bold">{SHORT_NAME_MAX}</span> characters, used
-                                            in the calendar and in the exported{' '}
-                                            <span className="font-bold">.ics</span> in place of this person&apos;s
-                                            full name &mdash; an event title on a phone shows about thirty
-                                            characters. The <span className="font-bold">.csv</span> keeps full names.
-                                            Blank keeps the full name here too. No commas or semicolons: a calendar
-                                            reads those as separators.
-                                        </>
-                                    )}
+                                    {readOnly
+                                        ? <>Set on their row in <span className="font-bold">Admin &rarr; Team</span>.</>
+                                        : `Up to ${SHORT_NAME_MAX} characters. Blank keeps the full name.`}
                                 </p>
                             </div>
                         </DrawerGroup>
@@ -1226,22 +1180,17 @@ const StaffRowDetail = ({ row, index, departmentMaxPerDay, onChange, readOnly = 
 
                     {/* --- availability windows --- */}
                     <div className={DRAWER_DIVIDER}>
-                        <DrawerGroup label="Available only between these dates">
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                For a rotation, a placement, a secondment or a locum — a block of months
-                                that is theirs, rather than the {' '}
-                                <span className="font-bold">Away</span> column&apos;s list of single days
-                                off. Add nothing and they are available on every date, which is what
-                                everybody in a department without rotations is.
-                            </p>
-                            <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
-                                ⚠ Adding even one window makes this person available{' '}
-                                <span className="font-bold">only</span> inside their windows — not
-                                &ldquo;available as usual, plus these&rdquo;. Two windows are read as
-                                either one; a window that names tasks admits{' '}
-                                <span className="font-bold">only those tasks</span>, so somebody whose one
-                                window names a single clinic is on that clinic or on nothing.
-                            </p>
+                        <DrawerGroup label="Available only between these dates" hint="windows">
+                            {/* THE ONE CAUTION THAT STAYS INLINE, and only once it applies: a
+                                window changes the meaning of "available", and the person who
+                                just added one is the person who needs to hear it. With no
+                                windows there is nothing to warn about, and the info button
+                                carries the full explanation either way. */}
+                            {windows.length > 0 && (
+                                <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
+                                    ⚠ With a window, this person is available only inside their windows.
+                                </p>
+                            )}
 
                             {windows.length === 0 ? (
                                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -1334,20 +1283,11 @@ const StaffRowDetail = ({ row, index, departmentMaxPerDay, onChange, readOnly = 
                                 </button>
                             )}
 
-                            {readOnly ? (
+                            {readOnly && windows.length > 0 && (
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    These come from the person&apos;s membership, not from this table &mdash; set{' '}
+                                    These come from the person&apos;s membership &mdash; set{' '}
                                     <span className="font-bold">Only these duties</span> on their row in{' '}
-                                    <span className="font-bold">Admin &rarr; Team</span>. Blank dates mean the
-                                    limit is on WHICH duties they take, not on when.
-                                </p>
-                            ) : (
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Dates are <span className="font-bold">YYYY-MM-DD</span>. Leave{' '}
-                                    <span className="font-bold">from</span> blank for &ldquo;from the start of
-                                    the run&rdquo; and <span className="font-bold">to</span> blank for
-                                    &ldquo;until the end of it&rdquo;. Task names must match the task table
-                                    below exactly; separate several with commas.
+                                    <span className="font-bold">Admin &rarr; Team</span>.
                                 </p>
                             )}
                         </DrawerGroup>
@@ -1418,6 +1358,7 @@ export const StaffTable = ({ rows, errors, onChange, onAdd, onRemove, readOnly =
         <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                 <Users size={13} /> Staff
+                <FieldHint id="staffTable" />
             </p>
 
             {/* `sm:overflow-x-auto` rather than `overflow-x-auto`: below `sm:` the rows
@@ -1620,18 +1561,8 @@ export const StaffTable = ({ rows, errors, onChange, onAdd, onRemove, readOnly =
                 </button>
             )}
 
-            <p className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                Leave a grade as <span className="font-bold">Not recorded</span> and AURA will keep that
-                person out of every band-restricted lead slot and say so by name in the warnings — it will
-                not guess a grade for them. FTE defaults to 1.0; a blank FTE is full time. Away is a
-                comma-separated list of dates.
-            </p>
-            <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                <span className="font-bold">Limits &amp; dates</span> opens the rest of a person: how many
-                duties they may hold in one day, and — for a rotation, a placement or a locum — the block
-                of dates they are available at all. <span className="font-bold">Away</span> is for single
-                days off; a window is for months at a time.
-            </p>
+            {/* Grade, FTE, Away and the drawer are explained behind the Staff heading's
+                info button (`WIZARD_HELP.staffTable`). Only the state-dependent line stays. */}
             {workingDays > 0 && (
                 <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
                     The days-a-week line under each FTE is that figure spread over the{' '}
@@ -1708,7 +1639,7 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                         in the engine — validated, resolved, exported as
                         `recurrenceDatesBetween` — since v1.8.0 with no way to set it;
                         `061ae93`'s own subject line says "monthly clinics". */}
-                    <DrawerGroup label="How often it repeats">
+                    <DrawerGroup label="How often it repeats" hint="taskRepeat">
                         <div className="flex flex-wrap items-center gap-2">
                             <Toggle
                                 pressed={!monthly}
@@ -1786,37 +1717,28 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                                         {`Runs on ${pattern}.`}
                                     </p>
                                 )}
+                                {/* State-dependent, so it stays: while monthly, the Days chips
+                                    are not sent. The rest is behind the info button. */}
                                 <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
                                     While this task is monthly its <span className="font-bold">Days</span>{' '}
-                                    chips do not apply — a task repeats weekly or monthly, never both, and
-                                    AURA will not send the ticked weekdays to the engine for it. They are
-                                    kept, so switching back restores them.
-                                </p>
-                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    <span className="font-bold">Last</span> is not the same as{' '}
-                                    <span className="font-bold">4th</span>: most months hold four of a
-                                    weekday and some hold five. There is no &ldquo;5th&rdquo; option
-                                    because a 5th-Wednesday clinic would silently vanish in most months.
+                                    chips do not apply; they are kept for switching back.
                                 </p>
                             </>
-                        ) : (
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                Every week, on the weekdays ticked in the <span className="font-bold">Days</span>{' '}
-                                column. Switch to <span className="font-bold">once a month</span> for a
-                                clinic that runs on the 3rd Wednesday, or the last Friday, of each month.
-                            </p>
-                        )}
+                        ) : null}
                     </DrawerGroup>
 
                     {/* --- 2. how long one occurrence takes --- */}
                     <div className={`${DRAWER_DIVIDER} flex flex-wrap items-end gap-3`}>
                         <div>
-                            <label
-                                className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase block mb-1"
-                                htmlFor={`task-hours-${row.id}`}
-                            >
-                                Hours per session
-                            </label>
+                            <div className="mb-1 flex items-center gap-1">
+                                <label
+                                    className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase"
+                                    htmlFor={`task-hours-${row.id}`}
+                                >
+                                    Hours per session
+                                </label>
+                                <FieldHint id="taskHours" />
+                            </div>
                             <input
                                 id={`task-hours-${row.id}`}
                                 type="text"
@@ -1831,17 +1753,15 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                             />
                         </div>
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                            Blank means <span className="font-bold">{DEFAULT_TASK_HOURS}h</span> — a
-                            session, which is what these teams roster in. Typing any length here starts
-                            AURA counting hours for the whole run, even if the department boxes above
-                            are empty.
+                            {`Blank means ${DEFAULT_TASK_HOURS}h, one session.`}
                         </p>
                     </div>
 
                     {/* --- 3. lead + co-lead, or a team of slots --- */}
                     <div className={`${DRAWER_DIVIDER} flex flex-wrap items-center gap-2`}>
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1">
                             Staffed as
+                            <FieldHint id="taskStaffing" />
                         </span>
                         <Toggle
                             pressed={!row.slotMode}
@@ -1864,26 +1784,8 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
 
                     {row.slotMode ? (
                         <div className="space-y-2">
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                One line per person this shift needs, filled independently. The{' '}
-                                <span className="font-bold">lead</span> is whoever ends up on it holding
-                                the highest grade — there is no lead slot to pick — and if one line
-                                cannot be filled the others still are, with the empty one reported by
-                                name. Listing a band first does not make it more likely to be staffed.
-                            </p>
-                            {/* The one trap in this editor, said where it is sprung:
-                                a skill is only satisfiable by somebody who already
-                                holds it, and the staff table has no skills column, so
-                                for a typed-in team any skill here refuses the whole
-                                run. Better said out loud than discovered by a
-                                disabled Generate button. */}
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                A skill only narrows a slot — somebody in the staff pool has to hold it
-                                already, or AURA refuses the whole run and says so. The example
-                                department&apos;s people come with skills; a team typed in by hand has
-                                none, so leave the skill blank for them.
-                            </p>
-
+                            {/* How a team is filled, and the skill trap, are behind the
+                                "Staffed as" info button (`WIZARD_HELP.taskStaffing`). */}
                             {row.slots.map((slot, slotIndex) => (
                                 <div key={slot.id} className="flex flex-col items-stretch sm:flex-row sm:flex-wrap sm:items-end gap-2">
                                     <div>
@@ -1958,20 +1860,15 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                                 <Plus size={12} /> {`Add slot to task ${index + 1}`}
                             </button>
 
+                            {/* State-dependent: while a team, the chips and the co-lead box are not sent. */}
                             <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
                                 While this task is a team, its <span className="font-bold">who may lead</span>{' '}
-                                chips and its <span className="font-bold">co-lead</span> toggle do not
-                                apply — a band goes on the slot that must hold it, and the co-lead is
-                                simply the second person on the shift. AURA will not send either of
-                                them to the engine for this task.
+                                chips and its <span className="font-bold">co-lead</span> box do not apply.
                             </p>
                         </div>
                     ) : (
                         <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                            One lead, plus a co-lead if the toggle above says so. Switch to{' '}
-                            <span className="font-bold">a team of slots</span> for a shift that needs
-                            three or four named people together — a principal, a senior and a junior on
-                            the same session.
+                            {`One lead${row.coLead ? ', plus a co-lead' : ''}. A room that needs three or four people at once is a team of slots.`}
                         </p>
                     )}
 
@@ -1986,14 +1883,10 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                         `continuity: true`: with a team the lead is derived from the
                         grades present, so there is no lead slot to keep. */}
                     <div className={DRAWER_DIVIDER}>
-                        <DrawerGroup label="Continuity of care">
+                        <DrawerGroup label="Continuity of care" hint="taskContinuity">
                             {row.slotMode ? (
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    Not available while this task is a{' '}
-                                    <span className="font-bold">team of slots</span>: the lead of a team
-                                    shift is whichever assignee holds the highest grade, so there is no
-                                    lead slot to keep with one person. Switch back to{' '}
-                                    <span className="font-bold">lead + co-lead</span> to ask for it.
+                                    Not available while this task is a <span className="font-bold">team of slots</span>.
                                 </p>
                             ) : (
                                 <>
@@ -2011,18 +1904,13 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                                                 : 'the lead rotates with everybody else'}
                                         </span>
                                     </div>
-                                    {/* THE TRADE, IN ONE LINE, AS THE BRIEF REQUIRES. */}
-                                    <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
-                                        What it costs: this task&apos;s lead stops being shared out fairly.
-                                        Continuity beats FTE-weighted fairness for this one slot, so one
-                                        colleague carries every occurrence and the others carry none.
-                                    </p>
-                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                        It never beats a hard limit: an incumbent who is on leave, at their
-                                        daily limit or out of band loses the slot to the next person, and
-                                        AURA counts every change of lead and names it in the warnings — so
-                                        you find out when continuity broke, and why.
-                                    </p>
+                                    {/* THE TRADE, IN ONE LINE, AS THE BRIEF REQUIRES, and only
+                                        once it is being made. The full cost is in the hint. */}
+                                    {row.continuity === true && (
+                                        <p className="text-[10px] font-bold text-amber-700 dark:text-amber-300 leading-relaxed">
+                                            What it costs: this task&apos;s lead stops being shared out fairly.
+                                        </p>
+                                    )}
                                 </>
                             )}
                         </DrawerGroup>
@@ -2033,7 +1921,7 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                         floor/ceiling asymmetry is the engine's and it is stated here
                         rather than discovered from a warning. */}
                     <div className={DRAWER_DIVIDER}>
-                        <DrawerGroup label="How many of these one person takes">
+                        <DrawerGroup label="How many of these one person takes" hint="taskQuota">
                             <div className="flex flex-col items-stretch sm:flex-row sm:flex-wrap sm:items-end gap-2">
                                 <div>
                                     <label
@@ -2095,31 +1983,20 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                                     />
                                 </div>
                             </div>
-                            {/* THE ASYMMETRY. Both halves are true and they are not the
-                                same promise, which is the whole reason this paragraph
-                                exists on the configure screen instead of only in a
-                                warning after the fact. */}
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                <span className="font-bold">At most</span> is hard: a duty that would take
-                                somebody past it is reported as not staffed, with the count named.{' '}
-                                <span className="font-bold">At least</span> is a{' '}
-                                <span className="font-bold">preference, not a guarantee</span> — a floor
-                                cannot be met by inventing capacity, so AURA prefers whoever is behind for
-                                every occurrence it can and then names anybody still short in the
-                                warnings. Leave both blank for no limit at all.
-                            </p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                                Counted in <span className="font-bold">duties</span>, not hours, and only
-                                over WHOLE periods inside the run — a month the run only half covers is
-                                reported as a partial period rather than judged. A floor nobody could
-                                possibly meet is refused before generating, with the arithmetic shown.
-                            </p>
+                            {/* THE ASYMMETRY stays on screen, in one line, once a floor is
+                                typed: it is the promise most likely to be misread. */}
+                            {typeof row.quotaMin === 'string' && row.quotaMin.trim() !== '' && (
+                                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                    <span className="font-bold">At least</span> is a preference, not a guarantee;{' '}
+                                    <span className="font-bold">at most</span> is hard.
+                                </p>
+                            )}
                         </DrawerGroup>
                     </div>
 
                     {/* --- 6. category --------------------------------------------- */}
                     <div className={DRAWER_DIVIDER}>
-                        <DrawerGroup label="Category">
+                        <DrawerGroup label="Category" hint="taskCategory">
                             <div className="flex flex-wrap items-start gap-3">
                                 {/* Free text WITH the four standard categories offered — a
                                     datalist, not a <select>, because restricting this box
@@ -2142,15 +2019,7 @@ const TaskRowDetail = ({ row, index, bands, onChange }) => {
                                     className={`${CELL_INPUT} sm:w-40`}
                                 />
                                 <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                                    What kind of work this is. Four standard categories are
-                                    colour-coded in the calendar and travel into the
-                                    downloaded .ics — <span className="font-bold">Clinical</span>,{' '}
-                                    <span className="font-bold">Education</span>,{' '}
-                                    <span className="font-bold">Research</span>,{' '}
-                                    <span className="font-bold">Management</span> — and any other
-                                    word still works (a weekend floor pools over whatever
-                                    category its tasks carry). Blank means{' '}
-                                    <span className="font-bold">{ROSTER_V2_DEFAULTS.category}</span>.
+                                    {`Blank means ${ROSTER_V2_DEFAULTS.category}.`}
                                 </p>
                             </div>
                             {/* THE SUGGESTION — deterministic, explainable, and TAPPED, never
@@ -2243,6 +2112,7 @@ export const TaskTable = ({ rows, errors, bands, onChange, onAdd, onRemove }) =>
         <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
                 <ClipboardList size={13} /> Tasks
+                <FieldHint id="taskTable" />
             </p>
             {/* One datalist for every row's category box. The four standard names,
                 derived from the same map that colours the calendar and the .ics. */}
@@ -2530,22 +2400,8 @@ export const TaskTable = ({ rows, errors, bands, onChange, onAdd, onRemove }) =>
                 <Plus size={12} /> Add row
             </button>
 
-            {/* The top surprise in the engine's limits ledger, said out loud where
-                the surprise would happen. */}
-            <p className="mt-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed">
-                Ticking two bands makes both equally eligible — it is not a preference order.
-            </p>
-            <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                Bands gate the <span className="font-bold">lead</span> only: anyone may co-lead, which
-                is what makes a band-gated task a supervision pairing rather than a closed shop.
-            </p>
-            <p className="mt-1 text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                <span className="font-bold">More…</span> opens the rest of a task: whether it repeats
-                weekly or on the 3rd Wednesday of the month, how long one session takes, whether it needs
-                a whole team on the shift at once ({SLOTS_MIN}–{SLOTS_MAX} people, each with their own
-                band and skill) instead of a lead and a co-lead, whether the same person should keep it,
-                how many of it any one person may take, and what to call it.
-            </p>
+            {/* The band rules and what the drawer holds are behind the Tasks heading's
+                info button (`WIZARD_HELP.taskTable`). */}
         </div>
     );
 };
@@ -2600,17 +2456,17 @@ const RosterDemoWizardTables = ({
     // would break the line into dashes. Each panel keeps its own breathing room via
     // the wrapper's padding instead.
     <div className="space-y-0">
-        <WizardStep number={wizardStepNumber('bands')} label={wizardStepLabel('bands')}>
+        <WizardStep number={wizardStepNumber('bands')} label={wizardStepLabel('bands')} guide="bands">
             <div className="pb-4">
                 <BandBoundaryEditor inputs={bandInputs} onChange={onBandChange} reason={bandsReason} />
             </div>
         </WizardStep>
-        <WizardStep number={wizardStepNumber('hours')} label={wizardStepLabel('hours')}>
+        <WizardStep number={wizardStepNumber('hours')} label={wizardStepLabel('hours')} guide="hours">
             <div className="pb-4">
                 <DepartmentHoursEditor inputs={hoursInputs} onChange={onHoursChange} errors={hoursErrors} />
             </div>
         </WizardStep>
-        <WizardStep number={wizardStepNumber('limits')} label={wizardStepLabel('limits')}>
+        <WizardStep number={wizardStepNumber('limits')} label={wizardStepLabel('limits')} guide="limits">
         <div className="pb-4">
         <DepartmentLimitsEditor
             inputs={rulesInputs}
@@ -2627,7 +2483,7 @@ const RosterDemoWizardTables = ({
         />
         </div>
         </WizardStep>
-        <WizardStep number={wizardStepNumber('staff')} label={wizardStepLabel('staff')}>
+        <WizardStep number={wizardStepNumber('staff')} label={wizardStepLabel('staff')} guide="staff">
         <div className="pb-4">
         <StaffTable
             rows={staffRows}
@@ -2668,6 +2524,7 @@ const RosterDemoWizardTables = ({
             number={wizardStepNumber('tasks')}
             label={wizardStepLabel('tasks')}
             isLast={wizardStepNumber('tasks') === WIZARD_STEP_COUNT}
+            guide="tasks"
         >
             <TaskTable
                 rows={taskRows}

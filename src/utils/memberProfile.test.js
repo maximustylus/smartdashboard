@@ -26,7 +26,7 @@ import {
     validateMemberProfile,
 } from './memberProfile';
 import { GRADE_SCALE, DEFAULT_GRADE_BANDS, bandOfGrade, NON_NURSING_GRADE_ALIASES } from './rosterEngineV2';
-import { MOH_PROFESSION_LEAVES } from '../data/mohAlliedHealth';
+import { PROFESSION_LEAVES } from '../data/alliedHealthProfessions';
 import { SUPPORT_AND_ADMIN_ROLES } from '../data/mockData';
 
 describe('the grade vocabulary is the engine\'s, not a second copy', () => {
@@ -124,20 +124,20 @@ describe('validation', () => {
     );
 
     /**
-     * ⚠️ "AND NOTHING ELSE" NOW MEANS THE PICKER'S WHOLE LIST, not MOH's alone.
+     * ⚠️ "AND NOTHING ELSE" NOW MEANS THE PICKER'S WHOLE LIST, not the national list's alone.
      *    Administrators, assistants and associates were added to the picker on
      *    2026-08-31 — "they are the ones who are the roster masters" — and this
-     *    validator still built its set from `MOH_PROFESSION_LEAVES`, so the option
+     *    validator still built its set from `PROFESSION_LEAVES`, so the option
      *    appeared, was chosen, and was refused on save. The owner hit it on the first
      *    member they edited. What the assertion pins is unchanged in spirit: exactly
      *    what the picker can emit is accepted, and nothing beyond it.
      */
     it('accepts every profession the picker can emit, and nothing else', () => {
-        MOH_PROFESSION_LEAVES.forEach((leaf) => expect(isValidProfession(leaf.id)).toBe(true));
+        PROFESSION_LEAVES.forEach((leaf) => expect(isValidProfession(leaf.id)).toBe(true));
         SUPPORT_AND_ADMIN_ROLES.forEach((role) => expect(isValidProfession(role.id)).toBe(true));
-        // The support roles are IN the selectable list and NOT in MOH's — the split
-        // that keeps "MOH's own 28" true everywhere else in the app.
-        const mohIds = new Set(MOH_PROFESSION_LEAVES.map((leaf) => leaf.id));
+        // The support roles are IN the selectable list and NOT in the national list's — the split
+        // that keeps "the national list's 28" true everywhere else in the app.
+        const mohIds = new Set(PROFESSION_LEAVES.map((leaf) => leaf.id));
         SUPPORT_AND_ADMIN_ROLES.forEach((role) => expect(mohIds.has(role.id)).toBe(false));
 
         expect(isValidProfession('wizard')).toBe(false);
@@ -152,10 +152,10 @@ describe('validation', () => {
     });
 
     it('renders a stored id as the name a person recognises', () => {
-        const leaf = MOH_PROFESSION_LEAVES[0];
+        const leaf = PROFESSION_LEAVES[0];
         expect(professionLabel(leaf.id)).toBe(leaf.name);
         expect(professionLabel('wizard')).toBe('');
-        // …including the roles MOH does not list, which would otherwise render as a
+        // …including the roles the national list does not name, which would otherwise render as a
         // raw id like `administrator` on the member row.
         expect(professionLabel('administrator')).toBe('Administrator');
     });
@@ -204,7 +204,7 @@ describe('buildMemberProfileUpdate — the MEMBERSHIP half', () => {
             .toEqual({ profession: 'physiotherapist' });
     });
 
-    it('drops a value the MOH list does not have rather than sending it', () => {
+    it('drops a value the national list does not have rather than sending it', () => {
         expect(buildMemberProfileUpdate({ profession: 'wizard' }, { profession: '' })).toBeNull();
     });
 });

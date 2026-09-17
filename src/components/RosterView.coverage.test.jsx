@@ -62,6 +62,8 @@ vi.mock('../firebase', () => ({
 // one leg of it (a write that does not land, a listener that fails) without a
 // second mock factory.
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(),
     collection: vi.fn(),
     query: vi.fn(),
@@ -294,9 +296,18 @@ beforeEach(() => {
      */
     onSnapshot.mockImplementation((target, onNext, onError) => {
         const path = target && typeof target.path === 'string' ? target.path : '';
-        if (target && target.__mock === 'query') {
+        // Two QUERY listeners now — the coverage requests and the roster change
+        // log (queue item 3) — so a query is routed on its collection path, not
+        // on its shape, exactly as the warning above asks. The change log gets an
+        // empty snapshot: this file is about coverage.
+        const queryPath = target && target.__mock === 'query' && target.ref && typeof target.ref.path === 'string'
+            ? target.ref.path
+            : '';
+        if (queryPath.endsWith('/swaps')) {
             coverageListener = { onNext, onError };
             onNext(querySnapshot());
+        } else if (queryPath.endsWith('/changes')) {
+            onNext({ docs: [] });
         } else if (path === ROSTER_PATH) {
             rosterListener = { onNext, onError };
             if (rosterExists) onNext({ exists: () => true, data: () => clone(rosterDoc) });

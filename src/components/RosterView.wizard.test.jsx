@@ -48,6 +48,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     // ⚠️ THE PATH IS CARRIED, and it was not. These returned a bare `{ __mock }`,
     //    so a listener could only be identified by what it was NOT — which is how
     //    `rosterListenerCalls` came to mean "every subscription except the coverage
@@ -392,7 +394,9 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
         // instead of being absorbed into whichever count was defined as "the rest".
         expect(rosterListenerCalls(), 'the person view added a read of the roster').toHaveLength(1);
         expect(settingsListenerCalls(), 'the saved configuration is read once').toHaveLength(1);
-        expect(onSnapshot, 'roster + coverage query + settings').toHaveBeenCalledTimes(3);
+        // + the roster CHANGE LOG query (queue item 3, v2.16.0) — a fourth read-only
+        // listener; the claim here, that the person view ADDS no read, still holds.
+        expect(onSnapshot, 'roster + coverage query + settings + change log query').toHaveBeenCalledTimes(4);
         expect(setDoc).not.toHaveBeenCalled();
         expect(addDoc).not.toHaveBeenCalled();
     });
@@ -469,7 +473,7 @@ describe('demo mode: the wizard is the tables, and only the tables', () => {
             within(screen.getByLabelText(/shape to start from/i))
                 .getByRole('option', { name: 'Weekend quota inside an hours ceiling' }),
         ).toBeTruthy();
-        // …and the professions are options in the other one, by MOH's own names.
+        // …and the professions are options in the other one, by the national list's own names.
         expect(
             within(screen.getByLabelText(/your profession/i))
                 .getByRole('option', { name: 'Art Therapist' }),

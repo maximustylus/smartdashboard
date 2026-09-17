@@ -51,7 +51,7 @@ import {
     normalizeOnlyTasks,
     SHORT_NAME_MAX,
 } from '../utils/memberProfile';
-import { MOH_PROFESSION_OPTIONS } from '../data/mockData';
+import { PROFESSION_OPTIONS } from '../data/mockData';
 import { useMemberGrade } from '../hooks/useMemberGrade';
 import { memberPath, gradePath } from '../utils/teamPaths';
 import { db } from '../firebase';
@@ -664,7 +664,7 @@ const TeamMembersPanel = () => {
                                                 className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none text-slate-800 dark:text-slate-200"
                                             >
                                                 <option value="">Not set</option>
-                                                {MOH_PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
+                                                {PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
                                                     <optgroup key={entry.groupId} label={entry.label}>
                                                         {entry.options.map((leaf) => (
                                                             <option key={leaf.id} value={leaf.id}>{leaf.name}</option>

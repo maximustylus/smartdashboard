@@ -58,6 +58,8 @@ vi.mock('../firebase', () => ({
 // Every Firestore entry point RosterView (and NexusContext) imports. Each is a
 // spy, so "was anything called?" is answerable rather than assumed.
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(() => ({ __mock: 'docRef' })),
     collection: vi.fn(() => ({ __mock: 'collectionRef' })),
     onSnapshot: vi.fn(() => () => {}),
@@ -93,17 +95,17 @@ import {
     DEMO_SHAPES,
     DEMO_PROVENANCE_FICTIONAL,
     DEMO_PROVENANCE_INTERVIEWED,
-    MOH_PROFESSION_OPTIONS,
+    PROFESSION_OPTIONS,
     DEMO_SHAPE_SUGGESTIONS,
     suggestedShapeFor,
 } from '../data/mockData';
 // The published taxonomy the profession dropdown is a view of. Imported so the test
-// checks the dropdown against MOH's own list rather than against a list this file keeps.
+// checks the dropdown against the national list's own list rather than against a list this file keeps.
 import {
-    MOH_ALLIED_HEALTH_PROFESSIONS,
-    MOH_PROFESSION_LEAVES,
-    MOH_PROFESSION_LEAF_COUNT,
-} from '../data/mohAlliedHealth';
+    ALLIED_HEALTH_PROFESSIONS,
+    PROFESSION_LEAVES,
+    PROFESSION_LEAF_COUNT,
+} from '../data/alliedHealthProfessions';
 // `auditHardConstraints` is a SECOND, independent read-back of a finished roster. The
 // shapes are checked with it as well as with `score.hardViolations`, because the
 // latter is the engine measuring its own output and this repo's rule is that a
@@ -117,6 +119,18 @@ import { LIVE_ROSTER_DEFAULTS } from '../utils/auraEngine';
 // --- HELPERS -----------------------------------------------------------------
 
 const VISITOR = { name: 'Visiting Therapist', role: 'staff', email: 'visitor@example.org' };
+
+
+/**
+ * v2.16.0: the wizard's explanations moved out of the always-on inline text and
+ * behind an info button per setting (`FieldHint`), so a claim about what the
+ * wizard SAYS is now a claim about what the note says once opened. Open by id.
+ */
+const openHint = (id) => {
+    const button = document.querySelector(`[data-field-hint="${id}"]`);
+    if (!button) throw new Error(`No info button for "${id}" is on screen`);
+    fireEvent.click(button);
+};
 
 const openConfigure = () => {
     fireEvent.click(screen.getByRole('button', { name: /configure/i }));
@@ -152,7 +166,7 @@ const loadExample = () => {
  *
  * It was five cards with Load buttons, then one dropdown of twelve professions, and it
  * is now one dropdown of five STRUCTURES plus two fictional demos, beside a separate
- * dropdown of MOH's 28 professions. Two labels, two queries: this helper must never
+ * dropdown of the national list's 28 professions. Two labels, two queries: this helper must never
  * match the profession control, which is why both labels are asserted distinct in
  * section 12. A shape is chosen by its option value (the stable `id`, not the display
  * name, so renaming a shape does not break 60 tests).
@@ -1064,10 +1078,11 @@ describe('demo mode: the tables refuse bad cells rather than dropping them', () 
     it('says out loud that two ticked bands are not a preference order', () => {
         render(<RosterView user={VISITOR} />);
         openConfigure();
-        // The top surprise in the engine's limits ledger, on screen where the
-        // surprise would happen.
+        // The top surprise in the engine's limits ledger, behind the Tasks
+        // heading's info button since v2.16.0.
+        openHint('taskTable');
         expect(
-            screen.getByText(/Ticking two bands makes both equally eligible — it is not a preference order/i),
+            screen.getByText(/Ticking two bands makes both equally eligible to lead; it is not a preference order/i),
         ).toBeTruthy();
     });
 
@@ -1477,7 +1492,8 @@ describe('demo mode: a shift that needs a whole team', () => {
         expectOnScreen(/slot 2 requires skill Witnessing, which nobody in the staff pool holds/i);
         expect(generateIsDisabled()).toBe(true);
 
-        // Clearing the skill is the way out, and the field says so on screen.
+        // Clearing the skill is the way out, and the staffing hint says so.
+        openHint('taskStaffing');
         expectOnScreen(/somebody in the staff pool has to hold it/i);
         setSlot(1, 2, { skill: '' });
         expect(generateIsDisabled()).toBe(false);
@@ -2095,7 +2111,7 @@ describe('demo mode: the picker is a profession and a shape', () => {
         expectNoFirestoreTraffic();
     });
 
-    it('offers all 28 MOH professions, 37 leaves, nesting where MOH nests', () => {
+    it('offers all 28 professions on the national list, 37 leaves, nesting where the list nests', () => {
         render(<RosterView user={VISITOR} />);
         openConfigure();
 
@@ -2103,53 +2119,53 @@ describe('demo mode: the picker is a profession and a shape', () => {
 
         // 28 TOP-LEVEL ENTRIES and 37 SELECTABLE LEAVES, checked against the published
         // taxonomy rather than against a count typed into this file.
-        expect(MOH_ALLIED_HEALTH_PROFESSIONS).toHaveLength(28);
-        expect(MOH_PROFESSION_LEAF_COUNT).toBe(37);
+        expect(ALLIED_HEALTH_PROFESSIONS).toHaveLength(28);
+        expect(PROFESSION_LEAF_COUNT).toBe(37);
 
         /**
-         * ⚠️ 28 MOH ENTRIES **PLUS ONE NON-MOH GROUP**, and the split is the point.
+         * ⚠️ 28 NATIONAL-LIST ENTRIES **PLUS ONE OFF-LIST GROUP**, and the split is the point.
          *
          * Administrators, allied health assistants and associates were added on
          * 2026-08-31 — the roster owner: *"they are the ones who are the roster
-         * masters"* — and they are NOT MOH professions. Merging them into the 28
-         * would make the claim "MOH's own 28", which this repository repeats in the
+         * masters"* — and they are not on the national list. Merging them into the 28
+         * would make the claim "the national list's 28", which this repository repeats in the
          * picker's own copy, false. So they sit in their own labelled group and every
-         * assertion about MOH's list below EXCLUDES it by groupId, which is why this
+         * assertion about the national list below EXCLUDES it by groupId, which is why this
          * test still fails if somebody quietly slips a 29th profession in.
          */
-        const mohEntries = MOH_PROFESSION_OPTIONS.filter((entry) => entry.groupId !== 'support-admin');
-        const supportGroup = MOH_PROFESSION_OPTIONS.find((entry) => entry.groupId === 'support-admin');
+        const mohEntries = PROFESSION_OPTIONS.filter((entry) => entry.groupId !== 'support-admin');
+        const supportGroup = PROFESSION_OPTIONS.find((entry) => entry.groupId === 'support-admin');
         expect(mohEntries).toHaveLength(28);
         expect(supportGroup, 'the support/admin group is missing').toBeTruthy();
-        expect(supportGroup.label).toMatch(/not an MOH profession/i);
+        expect(supportGroup.label).toMatch(/not on the national allied health list/i);
         // …and it is LAST, so it can never be mistaken for part of the register.
-        expect(MOH_PROFESSION_OPTIONS[MOH_PROFESSION_OPTIONS.length - 1]).toBe(supportGroup);
+        expect(PROFESSION_OPTIONS[PROFESSION_OPTIONS.length - 1]).toBe(supportGroup);
 
-        // The two professions MOH nests — 12 (Medical Technologist / Physiologist, five
+        // The two professions the list nests — 12 (Medical Technologist / Physiologist, five
         // sub-disciplines) and 24 (Psychologist, six) — render as <optgroup>s, because
         // their parents are GROUP LABELS and not choices: a roster belongs to a cardiac
         // lab or a sleep lab, never to "medical technology" in general. A browser refuses
         // to select a group heading, which is the behaviour we want rather than one this
         // component would have to police.
         const groups = Array.from(picker.querySelectorAll('optgroup'));
-        const mohGroups = groups.filter((group) => !/not an MOH profession/i.test(group.label));
-        expect(mohGroups.map((group) => group.label).sort()).toEqual([
+        const listGroups = groups.filter((group) => !/not on the national allied health list/i.test(group.label));
+        expect(listGroups.map((group) => group.label).sort()).toEqual([
             'Medical Technologist / Physiologist',
             'Psychologist (excluding associate psychologist)',
         ]);
-        expect(mohGroups.map((group) => group.querySelectorAll('option').length).sort())
+        expect(listGroups.map((group) => group.querySelectorAll('option').length).sort())
             .toEqual([5, 6]);
 
         // Every leaf in the taxonomy is reachable as an option, and no group label is.
         const values = Array.from(picker.querySelectorAll('option')).map((option) => option.value);
-        for (const leaf of MOH_PROFESSION_LEAVES) {
+        for (const leaf of PROFESSION_LEAVES) {
             expect(values).toContain(leaf.id);
         }
-        // 37 MOH leaves + the "prefer not to say" empty option + the support roles.
+        // 37 list leaves + the "prefer not to say" empty option + the support roles.
         const supportIds = supportGroup.options.map((role) => role.id);
         expect(supportIds).toContain('administrator');
-        expect(values).toHaveLength(MOH_PROFESSION_LEAF_COUNT + 1 + supportIds.length);
-        // Every MOH leaf is still reachable and no MOH group label is — unchanged.
+        expect(values).toHaveLength(PROFESSION_LEAF_COUNT + 1 + supportIds.length);
+        // Every list leaf is still reachable and no list group label is — unchanged.
         for (const id of supportIds) expect(values).toContain(id);
         expect(values.filter((value) => value === '')).toHaveLength(1);
         expect(values).not.toContain('medical-technologist-physiologist');
@@ -2170,11 +2186,11 @@ describe('demo mode: the picker is a profession and a shape', () => {
         // own sort, so it cannot be satisfied by hand-ordering the array. That is exactly
         // the failure mode the comparator exists to prevent, and the 29th profession will
         // be added by somebody who has not read `mockData.js`.
-        // Over MOH's OWN list. The support/admin group is appended after the sort on
+        // Over the national list's OWN list. The support/admin group is appended after the sort on
         // purpose — an `Administrator` between `Art Therapist` and `Audiologist` would
-        // read as MOH having registered it — so it is excluded here and pinned as last
+        // read as the national list having registered it — so it is excluded here and pinned as last
         // in the test above.
-        const names = MOH_PROFESSION_OPTIONS
+        const names = PROFESSION_OPTIONS
             .filter((entry) => entry.groupId !== 'support-admin')
             .map((entry) => entry.sortName);
         expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b, 'en')));
@@ -2182,12 +2198,12 @@ describe('demo mode: the picker is a profession and a shape', () => {
         expect(names[names.length - 1]).toBe('Speech Therapist');
 
         // …and within each group, including the appended one, the same discipline.
-        for (const group of MOH_PROFESSION_OPTIONS.filter((entry) => entry.kind === 'group')) {
+        for (const group of PROFESSION_OPTIONS.filter((entry) => entry.kind === 'group')) {
             const children = group.options.map((leaf) => leaf.name);
             expect(children).toEqual([...children].sort((a, b) => a.localeCompare(b, 'en')));
         }
 
-        // MOH's own names, verbatim, including the qualifier on profession 24. Dropping
+        // the national list's own names, verbatim, including the qualifier on profession 24. Dropping
         // "excluding associate psychologist" would widen a professional boundary this
         // repository has no standing to widen.
         expect(names).toContain('Psychologist (excluding associate psychologist)');
@@ -2274,10 +2290,10 @@ describe('demo mode: the picker is a profession and a shape', () => {
             .map((entry) => entry.id)).toEqual(['marvel', 'marvel-worked-example']);
 
         // EVERY ATTRIBUTED PROFESSION EXISTS IN THE PUBLISHED TAXONOMY, by id and by the
-        // name MOH gives it. A shape attributed to a profession this repository invented
+        // name the national list gives it. A shape attributed to a profession this repository invented
         // would be the same error in a new place.
-        const taxonomyName = (id) => MOH_ALLIED_HEALTH_PROFESSIONS.find((p) => p.id === id)?.name
-            || MOH_PROFESSION_LEAVES.find((leaf) => leaf.id === id)?.name;
+        const taxonomyName = (id) => ALLIED_HEALTH_PROFESSIONS.find((p) => p.id === id)?.name
+            || PROFESSION_LEAVES.find((leaf) => leaf.id === id)?.name;
         for (const entry of DEMO_SHAPES.filter((shapeEntry) => shapeEntry.sourceProfessionId)) {
             expect(taxonomyName(entry.sourceProfessionId)).toBe(entry.sourceProfession);
         }

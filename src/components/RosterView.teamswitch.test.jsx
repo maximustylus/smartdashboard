@@ -43,6 +43,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     // The doc ref carries the path so `onSnapshot` can answer for the right team.
     doc: vi.fn((_db, ...segments) => ({ __path: segments.join('/') })),
     collection: vi.fn((_db, ...segments) => ({ __path: segments.join('/') })),
