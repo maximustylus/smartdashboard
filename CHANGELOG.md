@@ -54,6 +54,8 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.15.2] - 2026-09-17
+
 ### Fixed
 
 - `CP28`: the label above each chat question ("Your Age", "Housing Environment")

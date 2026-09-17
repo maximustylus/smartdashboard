@@ -29,7 +29,7 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
-## Unreleased — on `community` · `CP28`, the step badges
+## Shipped in [2.15.2] — `CP28`, the step badges
 
 - **CP28** — the small label above each chat question was an English literal in
   `DOMAIN_CONFIG`, so a Chinese or Tamil speaker saw "Your Age" and "Housing
