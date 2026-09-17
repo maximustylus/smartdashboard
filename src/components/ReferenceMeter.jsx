@@ -145,7 +145,7 @@ export default function ReferenceMeter({ result, unit, m }) {
                         style={{
                             position: 'absolute', top: 0, left: `${tick.pct}%`,
                             transform: 'translateX(-50%)', whiteSpace: 'nowrap',
-                            fontSize: 8, fontWeight: 700, color: '#64748b',
+                            fontSize: 9.5, fontWeight: 700, color: '#64748b',
                         }}
                     >
                         {fmt(tick.value)}
@@ -159,7 +159,7 @@ export default function ReferenceMeter({ result, unit, m }) {
               cannot separate the teal from the grey still gets the whole message.
             */}
             {caption && (
-                <div style={{ fontSize: 8, color: '#64748b', lineHeight: 1.5, marginTop: 2 }}>
+                <div style={{ fontSize: 9.5, color: '#64748b', lineHeight: 1.5, marginTop: 2 }}>
                     {caption}
                 </div>
             )}

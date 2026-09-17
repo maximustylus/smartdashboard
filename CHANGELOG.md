@@ -62,6 +62,11 @@ not changed by this release.
 - `CP46`: "Share Result" shared a link to the portal. It now shares the report PDF
   itself, and downloads it where the browser cannot share files. "Print summary"
   removed.
+- `CP47`: page 3 of the report (disclaimer, evidence table, privacy, Healthier SG)
+  was English in every language. Now in the resident's language; the disclaimer
+  is registered as safety-critical and awaits review or a waiver.
+- Every font in the printed report one step larger; Healthier SG logos enlarged
+  and the printed URLs removed, rows still link. Nothing clips.
 - Malay terminology per the owner's read-through: `pelan` to `rancangan`, aerobic
   `kuat` to `tinggi` (MOH: *tahap tinggi*), including in two waived safety strings.
 

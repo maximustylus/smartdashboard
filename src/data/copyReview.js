@@ -164,6 +164,21 @@ export const COPY_REVIEW = Object.freeze({
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
         english: 'Do not use these numbers to push yourself harder than usual. If you get chest pain, dizziness or unusual breathlessness, stop and get medical help.',
     }),
+    /*
+      The report's medical disclaimer, page 3 of the PDF and the result screen.
+      English-only by decision (`CD10`) until 2026-09-17, when the owner asked for
+      page 3 in the resident's language. It tells somebody with chest pain to seek
+      immediate medical attention, which is exactly the kind of sentence this
+      registry exists for, so it is registered rather than slipped in under
+      `CD13` with the descriptive copy around it.
+    */
+    'governance.disclaimer': Object.freeze({
+        where: 'src/data/governanceCopy.js',
+        reachableWhen: 'src/data/governanceCopy.js',
+        safetyCritical: true,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+        english: 'This NEXUS AURA report is an initial community health navigation tool and does not constitute medical advice, diagnosis, or a treatment plan. The physical activity recommendations are generated for educational and community navigation purposes only. Always consult a qualified healthcare professional or your Healthier SG GP before making significant changes to your lifestyle, diet, or exercise routine. If you are experiencing chest pain, dizziness, or any acute symptoms, please seek immediate medical attention.',
+    }),
     'measures.hrSuppressedSymptoms': Object.freeze({
         where: 'src/data/measuresCopy.js',
         reachableWhen: 'src/data/measuresCopy.js',

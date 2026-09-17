@@ -73,7 +73,7 @@ import { measuresCopyFor } from '../data/measuresCopy';
 import { zonesFor } from '../utils/heartRateZones';
 import { HR_ZONE_RAMP } from '../data/zonePalette';
 
-const NOTE = { fontSize: 8, color: '#64748b', lineHeight: 1.45 };
+const NOTE = { fontSize: 9.5, color: '#64748b', lineHeight: 1.45 };
 
 /**
  * `result` is computed ONCE by `MeasurementsPanel` and passed in, because that
@@ -89,8 +89,8 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
     if (result.suppressed === 'symptoms') {
         return (
             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '12px 18px' }}>
-                <div style={{ fontWeight: 900, fontSize: 11, color: '#0f172a', marginBottom: 4 }}>{m.hrHeading}</div>
-                <div style={{ fontSize: 10, color: '#4c0519', lineHeight: 1.7 }}>{m.hrSuppressedSymptoms}</div>
+                <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', marginBottom: 4 }}>{m.hrHeading}</div>
+                <div style={{ fontSize: 11.5, color: '#4c0519', lineHeight: 1.7 }}>{m.hrSuppressedSymptoms}</div>
             </div>
         );
     }
@@ -118,13 +118,13 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                  than the citation list beneath it.
             */}
             <div>
-                <div style={{ fontWeight: 900, fontSize: 9, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2 }}>
+                <div style={{ fontWeight: 900, fontSize: 10.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2 }}>
                     {m.hrHeading}
                 </div>
-                <div style={{ fontSize: 8.5, color: '#475569', lineHeight: 1.45, marginTop: 4 }}>{m.hrIntro}</div>
+                <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.45, marginTop: 4 }}>{m.hrIntro}</div>
             </div>
 
-            <div style={{ fontSize: 10, color: '#475569' }}>
+            <div style={{ fontSize: 11.5, color: '#475569' }}>
                 <strong style={{ color: '#0f172a' }}>{m.hrMaxLabel}:</strong>{' '}
                 <span style={{ fontWeight: 900, color: '#0f766e' }}>{hrMax} {m.hrBpm}</span>
             </div>
@@ -136,13 +136,13 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                   until a heading says the word names an intensity.
                 */}
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 3 }}>
-                    <div style={{ width: 86, flexShrink: 0, fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>
+                    <div style={{ width: 86, flexShrink: 0, fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>
                         {m.hrColRange}
                     </div>
-                    <div style={{ fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
                         {m.hrColZone}
                     </div>
-                    <div style={{ fontSize: 7, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    <div style={{ fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
                         {m.hrColPurpose}
                     </div>
                 </div>
@@ -199,7 +199,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                                 style={{
                                     background: skin.bg, border: `1px solid ${skin.bg}`,
                                     color: skin.fg, borderRadius: 6, padding: '0 8px 8px',
-                                    fontSize: 9, fontWeight: 900, whiteSpace: 'nowrap',
+                                    fontSize: 10.5, fontWeight: 900, whiteSpace: 'nowrap',
                                     lineHeight: 1,
                                     width: 86, flexShrink: 0, textAlign: 'center',
                                 }}
@@ -222,10 +222,10 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                                  for and stop.
                             */}
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-                                <div style={{ fontSize: 8.5, fontWeight: 800, color: '#0f172a', width: 62, flexShrink: 0 }}>
+                                <div style={{ fontSize: 10, fontWeight: 800, color: '#0f172a', width: 78, flexShrink: 0 }}>
                                     {m.hrZoneNames[zone.id]}
                                 </div>
-                                <div style={{ fontSize: 8, color: '#475569', lineHeight: 1.35 }}>
+                                <div style={{ fontSize: 9.5, color: '#475569', lineHeight: 1.35 }}>
                                     {m.hrZoneBenefits[zone.id]}
                                 </div>
                             </div>
@@ -270,7 +270,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
 
             {/* ⚠️ SAFETY-CRITICAL. A prohibition, gated by `copyReview.js`. */}
             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '7px 10px' }}>
-                <div style={{ fontSize: 8.5, color: '#4c0519', lineHeight: 1.5 }}>{m.hrCaution}</div>
+                <div style={{ fontSize: 10, color: '#4c0519', lineHeight: 1.5 }}>{m.hrCaution}</div>
             </div>
         </div>
     );

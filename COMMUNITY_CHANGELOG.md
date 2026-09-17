@@ -39,6 +39,12 @@ pathways, and the Cloud Function behind the chat.
 - **CP46** — Share sent the portal's URL. It now sends the report PDF through the
   OS share sheet, or downloads it where files cannot be shared. Print summary
   removed as redundant.
+- **CP47** — page 3 was English in every language. Now `governanceCopy.js` in
+  four languages, on the PDF and on screen. The disclaimer is registered as
+  safety-critical; the build is red until it is reviewed or waived.
+- Every font in the printed report is one step larger, paid for from padding and
+  gaps and one changelog sentence in the evidence table. Healthier SG logos 40 to
+  44px, printed URLs gone, rows still link. Headroom re-swept: nothing clips.
 - Malay: `pelan` to `rancangan`; aerobic `kuat` to `tinggi` in the first question
   and the heart-rate block, including `hrCaution` and `hrSuppressedSymptoms`,
   one word each, prohibition untouched. First human correction to any of this

@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 41 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45` `CP46` (on `community`) |
+| `DONE`, evidenced | 41 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45` `CP46` `CP47` (on `community`) |
 | `OPEN`, mine | 1 | `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -1724,6 +1724,28 @@ shares the file where the browser can share files (`navigator.canShare`), and
 downloads it where it cannot. The "Print summary" button is gone at the owner's
 direction: the PDF covers it.
 
+### `CP47` — page 3 of the report was English in every language · **FIXED**
+
+The governance page (the medical disclaimer, the evidence table, the privacy
+notice, the Healthier SG block) was a set of English literals. A Malay resident's
+report was two pages of Malay and one of English, and the English page was the one
+that says what the document is not. Now `governanceCopy.js`, four languages, and
+the on-screen disclaimer and privacy blocks read from the same table.
+
+⚠️ `governance.disclaimer` is registered as safety-critical. It tells somebody
+with chest pain to seek immediate medical attention; its ms/zh/ta is machine
+translated and unread, so the build is red until a person reviews it or the owner
+signs a waiver, as with `hrCaution`. **Owner's call.**
+
+Also on the owner's direction the same day: every font in the printed report is
+one step larger (7 to 8.5, 9 to 10.5, 10 to 11.5, 11 to 12.5, 14 to 16, 24 to 27),
+with the room taken back from padding and gaps and one changelog sentence in the
+evidence table, never from type. The Healthier SG logos are 40 to 44px and the
+printed URLs are gone; each row stays a live link in the PDF. Headroom after:
+page 1 worst case 24px, Tamil page 3 37px, nothing clipping in sixteen scenarios.
+The heart-rate chips were re-measured at the new size and sit 1.6px below centre,
+as before.
+
 ### Malay terminology, per the owner and Malaysia's MOH physical activity guidance
 
 | Was | Now | Where |
@@ -1731,7 +1753,7 @@ direction: the PDF covers it.
 | `pelan` | `rancangan` | chat CTA title, one reflection, the form's housing note |
 | `senaman sederhana atau kuat` | `aktiviti fizikal tahap sederhana atau tinggi` | the first chat question |
 | `bersenam lebih kuat` | `bersenam pada intensiti lebih tinggi` | `hrCaution`, the medication note, the symptoms note |
-| `julat yang lebih kuat` / `Sangat kuat` | `... lebih tinggi` / `Sangat tinggi` | the heart-rate table |
+| `julat yang lebih kuat` / `Sangat kuat` / zone `Kuat` | `... lebih tinggi` / `Sangat tinggi` / `Tinggi` | the heart-rate table |
 
 ⚠️ Two of those are the waived safety strings (`measures.hrCaution`,
 `hrSuppressedSymptoms`). The change is one word of intensity vocabulary each,

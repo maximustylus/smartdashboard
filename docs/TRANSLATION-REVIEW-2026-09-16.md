@@ -2,15 +2,16 @@
 
 **What this is.** Every non-English string added or changed on the `community` branch on
 2026-09-16, with the English it was translated from and a back-translation to check
-against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out for a person
-who reads the language.
+against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out so that
+it can be pasted into Gemini or ChatGPT as a first pass.
 
 **What it is not.** A model reading a machine translation is evidence, not a review. The
 five safety-critical strings already live under the owner's waivers are in
 `TRANSLATION-BRIEF.md` Group 5 and are not repeated here; nothing in this pack is
 safety-critical, so nothing in it gates the build.
 
-**Where it ships.** Live since v2.15.0, 2026-09-16.
+**Where it ships.** Nothing here is live yet. `main` is v2.14.1; these strings are on
+`community`.
 
 **Revision 2.** The first revision of this pack showed the wrong English and the wrong
 translations for `chat.wellbeing.chip4` and `chip5` (a generator indexed the first two
@@ -268,6 +269,242 @@ chip pairs are new.
 | `zh` | 暂时想不到 | Cannot think of anything for now |
 | `ta` | எதுவும் நினைவுக்கு வரவில்லை | Nothing comes to memory |
 
+### A7 · Page 3 of the report, and the on-screen disclaimer · 2026-09-17
+
+The governance page was English in every language. ⚠️ **`governance.disclaimer` is safety-critical and registered**: the build is red until a person reviews it or the owner waives it. Instrument names and acronyms stay in English on purpose.
+
+**`governance.disclaimerHeading`** · EN: *Important medical disclaimer*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Penafian perubatan penting |  |
+| `zh` | 重要医疗免责声明 |  |
+| `ta` | முக்கிய மருத்துவப் பொறுப்புத் துறப்பு |  |
+
+**`governance.disclaimer`** · EN: *This NEXUS AURA report is an initial community health navigation tool and does not constitute medical advice, diagnosis, or a treatment plan. The physical activity recommendations are generated for educational and community navigation purposes only. Always consult a qualified healthcare professional or your Healthier SG GP before making significant changes to your lifestyle, diet, or exercise routine. If you are experiencing chest pain, dizziness, or any acute symptoms, please seek immediate medical attention.* · ⚠️ SAFETY-CRITICAL. The instruction to seek immediate medical attention must survive, as an instruction
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Laporan NEXUS AURA ini ialah alat navigasi kesihatan komuniti peringkat awal dan bukan nasihat perubatan, diagnosis, atau rancangan rawatan. Cadangan aktiviti fizikal dihasilkan untuk tujuan pendidikan dan navigasi komuniti sahaja. Sentiasa rujuk profesional kesihatan yang bertauliah atau doktor keluarga Healthier SG anda sebelum membuat perubahan besar kepada gaya hidup, pemakanan, atau rutin senaman anda. Jika anda mengalami sakit dada, pening, atau sebarang gejala mendadak, sila dapatkan rawatan perubatan segera. |  |
+| `zh` | 本 NEXUS AURA 报告是一份初步的社区健康导航工具， 不构成医疗建议、诊断或治疗方案。其中的体力活动建议仅用于教育和社区导航目的。在对生活方式、饮食或运动习惯做出重大改变前，请务必咨询合格的医疗专业人员或您的 Healthier SG 家庭医生。如果您出现胸痛、头晕或任何急性症状，请立即就医。 |  |
+| `ta` | இந்த NEXUS AURA அறிக்கை ஒரு தொடக்கநிலைச் சமூக சுகாதார வழிகாட்டிக் கருவி ஆகும்; இது மருத்துவ ஆலோசனை, நோயறிதல் அல்லது சிகிச்சைத் திட்டம் அல்ல. உடல் செயல்பாட்டுப் பரிந்துரைகள் கல்வி மற்றும் சமூக வழிகாட்டல் நோக்கங்களுக்காக மட்டுமே உருவாக்கப்படுகின்றன. உங்கள் வாழ்க்கை முறை, உணவு அல்லது உடற்பயிற்சி வழக்கத்தில் பெரிய மாற்றங்களைச் செய்யும் முன், தகுதியான சுகாதார நிபுணரை அல்லது உங்கள் Healthier SG குடும்ப மருத்துவரை எப்போதும் அணுகுங்கள். நெஞ்சு வலி, தலைச்சுற்றல் அல்லது திடீர் அறிகுறிகள் ஏதேனும் இருந்தால், உடனடியாக மருத்துவ உதவி பெறுங்கள். |  |
+
+**`governance.evidenceHeading`** · EN: *Academic and evidence grounding*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Asas akademik dan bukti |  |
+| `zh` | 学术与证据依据 |  |
+| `ta` | கல்வி மற்றும் சான்று அடிப்படை |  |
+
+**`governance.evidence.1.label`** · EN: *Physical activity*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Aktiviti fizikal |  |
+| `zh` | 体力活动 |  |
+| `ta` | உடல் செயல்பாடு |  |
+
+**`governance.evidence.1.text`** · EN: *ACSM Physical Activity Vital Sign (PAVS), administered as published: 2 questions (days per week, minutes per session).*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | ACSM Physical Activity Vital Sign (PAVS), ditadbir seperti yang diterbitkan: 2 soalan (hari seminggu, minit setiap sesi). |  |
+| `zh` | ACSM Physical Activity Vital Sign (PAVS)，按已发表的方式施测：2 个问题（每周天数、每次分钟数）。 |  |
+| `ta` | ACSM Physical Activity Vital Sign (PAVS), வெளியிடப்பட்டபடி நிர்வகிக்கப்படுகிறது: 2 கேள்விகள் (வாரத்திற்கு நாட்கள், ஒரு அமர்வுக்கு நிமிடங்கள்). |  |
+
+**`governance.evidence.2.label`** · EN: *National targets*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Sasaran kebangsaan |  |
+| `zh` | 全国目标 |  |
+| `ta` | தேசிய இலக்குகள் |  |
+
+**`governance.evidence.2.text`** · EN: *Sport Singapore Physical Activity Guidelines (SPAG): 150 to 300 mins/week moderate-intensity aerobic activity. A reference target, not an instrument.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Garis Panduan Aktiviti Fizikal Sport Singapore (SPAG): 150 hingga 300 minit seminggu aktiviti aerobik tahap sederhana. Sasaran rujukan, bukan instrumen. |  |
+| `zh` | 新加坡体育理事会体力活动指南 (SPAG)：每周 150 至 300 分钟中等强度有氧活动。这是参考目标，不是测评工具。 |  |
+| `ta` | Sport Singapore உடல் செயல்பாட்டு வழிகாட்டுதல்கள் (SPAG): வாரத்திற்கு 150 முதல் 300 நிமிடங்கள் மிதமான தீவிர ஏரோபிக் செயல்பாடு. ஒரு குறிப்பு இலக்கு, அளவீட்டுக் கருவி அல்ல. |  |
+
+**`governance.evidence.3.label`** · EN: *Psychological wellbeing*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Kesejahteraan psikologi |  |
+| `zh` | 心理健康 |  |
+| `ta` | உளவியல் நல்வாழ்வு |  |
+
+**`governance.evidence.3.text`** · EN: *Single-item screen adapted from BPS-RS II Domain P22 (PHQ-2 aligned, 2-week timeframe). One item, not the two-item PHQ-2, and not separately validated in this form.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Saringan satu item diadaptasi daripada BPS-RS II Domain P22 (selari dengan PHQ-2, tempoh 2 minggu). Satu item, bukan PHQ-2 dua item, dan tidak disahkan secara berasingan dalam bentuk ini. |  |
+| `zh` | 改编自 BPS-RS II 领域 P22 的单项筛查（与 PHQ-2 对应，时间范围 2 周）。仅一项，并非两项的 PHQ-2，且未以此形式单独验证。 |  |
+| `ta` | BPS-RS II Domain P22 இலிருந்து தழுவிய ஒற்றை உருப்படித் திரையிடல் (PHQ-2 உடன் இணைந்தது, 2 வார காலம்). ஒரு உருப்படி மட்டுமே, இரண்டு உருப்படி PHQ-2 அல்ல, மேலும் இந்த வடிவத்தில் தனியாகச் சரிபார்க்கப்படவில்லை. |  |
+
+**`governance.evidence.4.label`** · EN: *Social isolation*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Pengasingan sosial |  |
+| `zh` | 社会孤立 |  |
+| `ta` | சமூகத் தனிமை |  |
+
+**`governance.evidence.4.text`** · EN: *Single-item screen adapted from the Lubben Social Network Scale (LSNS-6). One item, not the six-item scale; LSNS-6’s published reliability does not transfer to it.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Saringan satu item diadaptasi daripada Lubben Social Network Scale (LSNS-6). Satu item, bukan skala enam item; kebolehpercayaan LSNS-6 yang diterbitkan tidak terpakai kepadanya. |  |
+| `zh` | 改编自 Lubben Social Network Scale (LSNS-6) 的单项筛查。仅一项，并非六项量表；LSNS-6 已发表的信度不适用于此。 |  |
+| `ta` | Lubben Social Network Scale (LSNS-6) இலிருந்து தழுவிய ஒற்றை உருப்படித் திரையிடல். ஒரு உருப்படி மட்டுமே, ஆறு உருப்படி அளவுகோல் அல்ல; LSNS-6 இன் வெளியிடப்பட்ட நம்பகத்தன்மை இதற்குப் பொருந்தாது. |  |
+
+**`governance.evidence.5.label`** · EN: *Food insecurity*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Ketidakcukupan makanan |  |
+| `zh` | 食物保障 |  |
+| `ta` | உணவுப் பற்றாக்குறை |  |
+
+**`governance.evidence.5.text`** · EN: *Single-item screen adapted from the Lien Centre for Social Innovation Food Insufficiency Screen (2 items).*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Saringan satu item diadaptasi daripada Lien Centre for Social Innovation Food Insufficiency Screen (2 item). |  |
+| `zh` | 改编自 Lien Centre for Social Innovation 食物不足筛查（2 项）的单项筛查。 |  |
+| `ta` | Lien Centre for Social Innovation உணவுப் பற்றாக்குறைத் திரையிடலிலிருந்து (2 உருப்படிகள்) தழுவிய ஒற்றை உருப்படித் திரையிடல். |  |
+
+**`governance.evidence.6.label`** · EN: *Financial adequacy*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Kecukupan kewangan |  |
+| `zh` | 收入充足 |  |
+| `ta` | வருமானப் போதுமை |  |
+
+**`governance.evidence.6.text`** · EN: *Both pathways: 3-level screen adapted from the Duke-NUS Perceived Income Adequacy Scale, read alongside reported access barriers. Asked in the chat since 16 September 2026; before that the chat inferred it from barriers alone.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Kedua-dua laluan: saringan 3 tahap diadaptasi daripada Duke-NUS Perceived Income Adequacy Scale, dibaca bersama halangan akses yang dilaporkan. Ditanya dalam sembang sejak 16 September 2026; sebelum itu sembang menganggarkannya daripada halangan sahaja. |  |
+| `zh` | 两种途径均采用：改编自 Duke-NUS Perceived Income Adequacy Scale 的三级筛查，并结合所报告的使用障碍。自 2026 年 9 月 16 日起在聊天中询问；此前聊天仅根据障碍推断。 |  |
+| `ta` | இரு வழிகளிலும்: Duke-NUS Perceived Income Adequacy Scale இலிருந்து தழுவிய 3-நிலைத் திரையிடல், தெரிவிக்கப்பட்ட அணுகல் தடைகளுடன் சேர்த்து வாசிக்கப்படுகிறது. 2026 செப்டம்பர் 16 முதல் அரட்டையில் கேட்கப்படுகிறது; அதற்கு முன் அரட்டை தடைகளிலிருந்து மட்டுமே ஊகித்தது. |  |
+
+**`governance.evidence.7.label`** · EN: *Housing risk*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Risiko perumahan |  |
+| `zh` | 住房风险 |  |
+| `ta` | வீட்டு ஆபத்து |  |
+
+**`governance.evidence.7.text`** · EN: *Self-reported HDB flat type, used as a social-risk proxy. Flat type is asked; tenure (rented or owned) is not.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Jenis flat HDB yang dilaporkan sendiri, digunakan sebagai proksi risiko sosial. Jenis flat ditanya; status milikan (sewa atau milik) tidak. |  |
+| `zh` | 自报的组屋类型，用作社会风险的代理指标。询问的是房型，不询问租住或自有。 |  |
+| `ta` | சுயமாகத் தெரிவிக்கப்பட்ட HDB வீட்டு வகை, சமூக ஆபத்துக்கான மாற்றுக் குறியீடாகப் பயன்படுத்தப்படுகிறது. வீட்டு வகை கேட்கப்படுகிறது; வாடகை அல்லது சொந்தம் என்பது கேட்கப்படுவதில்லை. |  |
+
+**`governance.privacyHeading`** · EN: *Data governance and privacy*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Tadbir urus data dan privasi |  |
+| `zh` | 数据治理与隐私 |  |
+| `ta` | தரவு ஆளுமை மற்றும் தனியுரிமை |  |
+
+**`governance.privacyBody`** · EN: *All data collected through the NEXUS AURA system is de-identified at the point of capture. Postal sector data is used solely for geographic resource mapping and is not linked to any identifiable personal information. This assessment does not collect, store, or transmit NRIC, name, contact, or financial account information. Aggregated, anonymised data may be used to improve community health programming across Singapore.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Semua data yang dikumpul melalui sistem NEXUS AURA dinyahkenal pasti pada titik pengumpulan. Data sektor pos digunakan semata-mata untuk pemetaan sumber geografi dan tidak dikaitkan dengan sebarang maklumat peribadi yang boleh dikenal pasti. Penilaian ini tidak mengumpul, menyimpan, atau menghantar NRIC, nama, maklumat hubungan, atau maklumat akaun kewangan. Data agregat tanpa nama boleh digunakan untuk menambah baik program kesihatan komuniti di seluruh Singapura. |  |
+| `zh` | 通过 NEXUS AURA 系统收集的所有数据在采集时即已去识别化。邮区数据仅用于地理资源定位，不与任何可识别的个人信息关联。本评估不收集、存储或传输身份证号码、姓名、联系方式或金融账户信息。汇总后的匿名数据可能用于改善新加坡各地的社区健康项目。 |  |
+| `ta` | NEXUS AURA அமைப்பின் மூலம் சேகரிக்கப்படும் அனைத்துத் தரவும் சேகரிக்கும் இடத்திலேயே அடையாளம் நீக்கப்படுகிறது. அஞ்சல் துறைத் தரவு புவியியல் வளங்களை வரைபடமாக்க மட்டுமே பயன்படுத்தப்படுகிறது, எந்த அடையாளம் காணக்கூடிய தனிப்பட்ட தகவலுடனும் இணைக்கப்படுவதில்லை. இந்த மதிப்பீடு NRIC, பெயர், தொடர்பு அல்லது நிதிக் கணக்குத் தகவல்களைச் சேகரிக்கவோ, சேமிக்கவோ, அனுப்பவோ இல்லை. தொகுக்கப்பட்ட, பெயரற்ற தரவு சிங்கப்பூர் முழுவதும் சமூக சுகாதாரத் திட்டங்களை மேம்படுத்தப் பயன்படுத்தப்படலாம். |  |
+
+**`governance.hsgTitle`** · EN: *Your Healthier SG Health Plan*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Rancangan Kesihatan Healthier SG Anda |  |
+| `zh` | 您的 Healthier SG 健康计划 |  |
+| `ta` | உங்கள் Healthier SG சுகாதாரத் திட்டம் |  |
+
+**`governance.hsgIntro`** · EN: *This assessment aligns with the MOH Healthier SG framework. Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Penilaian ini selaras dengan rangka kerja MOH Healthier SG . Daftar dengan doktor keluarga Healthier SG untuk mendapat konsultasi Rancangan Kesihatan tahunan yang disubsidi sepenuhnya, jadual saringan peribadi, dan rujukan ke program komuniti. |  |
+| `zh` | 本评估与 卫生部 Healthier SG 框架一致。向 Healthier SG 家庭医生登记，即可获得全额补贴的年度健康计划咨询、个人化的筛查安排以及社区项目转介。 |  |
+| `ta` | இந்த மதிப்பீடு MOH Healthier SG கட்டமைப்புடன் ஒத்துப்போகிறது. முழுமையாக மானியம் பெற்ற ஆண்டுச் சுகாதாரத் திட்ட ஆலோசனை, தனிப்பயன் திரையிடல் அட்டவணை மற்றும் சமூகத் திட்டப் பரிந்துரைகளைப் பெற Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்யுங்கள். |  |
+
+**`governance.hsgLinks.healthhub`** · EN: *Access your Health Plan and book screenings*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Akses Rancangan Kesihatan anda dan tempah saringan |  |
+| `zh` | 查看您的健康计划并预约筛查 |  |
+| `ta` | உங்கள் சுகாதாரத் திட்டத்தை அணுகி, திரையிடல்களை முன்பதிவு செய்யுங்கள் |  |
+
+**`governance.hsgLinks.activehealth`** · EN: *Find your nearest Active Health Lab*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Cari Active Health Lab terdekat |  |
+| `zh` | 查找最近的 Active Health Lab |  |
+| `ta` | அருகிலுள்ள Active Health Lab ஐக் கண்டறியுங்கள் |  |
+
+**`governance.hsgLinks.aic`** · EN: *Locate Active Ageing Centres for residents 60+*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Cari Pusat Penuaan Aktif untuk warga 60+ |  |
+| `zh` | 查找 60 岁以上居民的活跃乐龄中心 |  |
+| `ta` | 60+ வயதினருக்கான Active Ageing மையங்களைக் கண்டறியுங்கள் |  |
+
+**`governance.hsgLinks.pa`** · EN: *Search Healthier SG interest groups near you*
+
+| | Translation | Back-translation |
+|---|---|---|
+| `ms` | Cari kumpulan minat Healthier SG berdekatan |  |
+| `zh` | 查找附近的 Healthier SG 兴趣小组 |  |
+| `ta` | அருகிலுள்ள Healthier SG ஆர்வக் குழுக்களைத் தேடுங்கள் |  |
+
+### A8 · The 25 step labels above each chat question (`CP28`)
+
+Topic names, not instructions. Emoji is added by the code.
+
+| id | `en` | `ms` | `zh` | `ta` |
+|---|---|---|---|---|
+| `badge.pavs_days` | Physical Activity · Q1 of 2 | Aktiviti Fizikal · 1 dari 2 | 体力活动 · 第 1 题，共 2 题 | உடல் செயல்பாடு · 1 / 2 |
+| `badge.pavs_mins` | Physical Activity · Q2 of 2 | Aktiviti Fizikal · 2 dari 2 | 体力活动 · 第 2 题，共 2 题 | உடல் செயல்பாடு · 2 / 2 |
+| `badge.strength` | Strength Training | Latihan Kekuatan | 力量训练 | வலிமைப் பயிற்சி |
+| `badge.demographics` | About You | Tentang Anda | 关于您 | உங்களைப் பற்றி |
+| `badge.age_years` | Your Age | Umur Anda | 您的年龄 | உங்கள் வயது |
+| `badge.medical` | Health & Safety Check | Semakan Kesihatan & Keselamatan | 健康与安全检查 | உடல்நலம் & பாதுகாப்பு |
+| `badge.barriers` | Cost & Access | Kos & Akses | 费用与途径 | செலவு & அணுகல் |
+| `badge.social` | Social Support | Sokongan Sosial | 社会支持 | சமூக ஆதரவு |
+| `badge.food_insecurity` | Food Security | Keselamatan Makanan | 食物保障 | உணவுப் பாதுகாப்பு |
+| `badge.income_adequacy` | Making Ends Meet | Mencukupi Perbelanjaan | 收支情况 | செலவுகளைச் சமாளித்தல் |
+| `badge.wellbeing` | Mood & Wellbeing | Mood & Kesejahteraan | 情绪与身心健康 | மனநிலை & நல்வாழ்வு |
+| `badge.falls` | Falls & Function (60+) | Jatuh & Keupayaan (60+) | 跌倒与活动能力 (60+) | விழுதல் & செயல்பாடு (60+) |
+| `badge.ethnicity` | Cultural Background | Latar Belakang Budaya | 文化背景 | கலாச்சாரப் பின்னணி |
+| `badge.housing_type` | Housing Environment | Persekitaran Perumahan | 居住环境 | வீட்டுச் சூழல் |
+| `badge.postal_code` | Resource Mapping | Pemetaan Sumber | 资源定位 | வள வரைபடம் |
+| `badge.healthier_sg` | Healthier SG | Healthier SG | Healthier SG | Healthier SG |
+| `badge.grip_kg` | Grip Strength | Kekuatan Genggaman | 握力 | பிடி வலிமை |
+| `badge.sit_to_stand` | Standing Up From a Chair | Bangun Dari Kerusi | 从椅子上站起 | நாற்காலியிலிருந்து எழுதல் |
+| `badge.measure_setting` | Where It Was Measured | Di Mana Ia Diukur | 测量地点 | எங்கு அளக்கப்பட்டது |
+| `badge.services_aware` | Local Services | Perkhidmatan Tempatan | 本地服务 | உள்ளூர் சேவைகள் |
+| `badge.ever_referred` | Referral History | Sejarah Rujukan | 转介记录 | பரிந்துரை வரலாறு |
+| `badge.service_rating` | Your Experience | Pengalaman Anda | 您的体验 | உங்கள் அனுபவம் |
+| `badge.care_comfort` | Comfort With Care | Keselesaan Dengan Penjagaan | 照护舒适度 | பராமரிப்பில் வசதி |
+| `badge.one_change` | One Thing To Change | Satu Perkara Untuk Diubah | 想改变的一件事 | மாற்ற வேண்டிய ஒன்று |
+| `badge.previous_id` | NEXUS Record Linkage | Pautan Rekod NEXUS | NEXUS 记录关联 | NEXUS பதிவு இணைப்பு |
+
 ---
 
 ## Section B · existing strings that changed today
@@ -360,7 +597,7 @@ translation that was already live.
 | `chat.wellbeing` | Dalam dua minggu lalu, bagaimana perasaan anda secara keseluruhan? Adakah anda berasa tertekan, murung, atau terbeban? | 在过去两周里，您的整体感觉如何？是否感到压力大、情绪低落或不知所措？ | கடந்த இரண்டு வாரங்களில் நீங்கள் எப்படி உணர்ந்தீர்கள்? மன அழுத்தம், மனச்சோர்வு, அல்லது அதிக சுமையாக உணர்ந்தீர்களா? |
 | `chat.falls` | Dua soalan ringkas tentang keseimbangan. Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai? | 关于平衡的两个简短问题。在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。 | சமநிலை குறித்த இரண்டு சிறிய கேள்விகள். கடந்த 12 மாதங்களில் நீங்கள் விழுந்ததுண்டா? வழுக்கியோ இடறியோ தரையில் விழுந்தது உட்பட. |
 | `chat.previous_id` | Soalan terakhir. Adakah anda mempunyai ID Penilaian NEXUS yang sebelumnya? Jika ya, tampal di bawah. Jika tidak, pilih Tiada. | 最后一个问题。您是否有之前的 NEXUS 评估 ID？如有，请粘贴在下方；如没有，请选择"没有"。 | கடைசி கேள்வி. உங்களிடம் ஏற்கனவே NEXUS மதிப்பீட்டு ID உள்ளதா? இருந்தால் கீழே ஒட்டவும்; இல்லையெனில் "இல்லை" என்பதைத் தேர்ந்தெடுக்கவும். |
-| `chat.reflection.food_insecurity` (yes) | Terima kasih kerana berkongsi. Ini akan diambil kira dalam pelan anda. | 谢谢您告诉我这些，我们会将这点纳入您的健康计划中。 | பகிர்ந்ததற்கு நன்றி. இதை உங்கள் திட்டத்தில் கருத்தில் கொள்வோம். |
+| `chat.reflection.food_insecurity` (yes) | Terima kasih kerana berkongsi. Ini akan diambil kira dalam rancangan anda. | 谢谢您告诉我这些，我们会将这点纳入您的健康计划中。 | பகிர்ந்ததற்கு நன்றி. இதை உங்கள் திட்டத்தில் கருத்தில் கொள்வோம். |
 | `chat.reflection.previous_id` (no) | Baik, rekod baharu akan dimulakan. | 没问题，今天将为您建立新记录。 | பரவாயில்லை, புதிய பதிவை தொடங்குவோம். |
 
 The result page's five summary lines (English reference first). The two activity lines were extended on 2026-09-16 to carry what the English says:
@@ -425,8 +662,16 @@ applied.** The workbook should be retired or regenerated before it is used again
 Three columns, keep the **id**. Where a string carries a marker word (the table at
 the top), say explicitly that the marker is still present.
 
-## Review policy, settled 2026-09-16
+## A paste-ready instruction for Gemini or ChatGPT
 
-The owner has settled on **native review only**. No further model rounds will be run
-over this pack; the two recorded above are the last. What this file waits for is a
-person who reads Malay, Chinese or Tamil.
+> You are reviewing machine translations for a Singapore community health screening
+> read mostly by people over 60 on a phone. For each row below, compare the Malay,
+> Chinese (Simplified) and Tamil against the English and the back-translation.
+> Report only rows where the translation changes the meaning, uses a register a
+> stranger would not use to an older person, or would be misread. Do not rewrite
+> rows that are merely stylistic. Never use an em dash in a suggestion. Use British
+> spelling. Where a row is marked "must keep", confirm the marked word is present in
+> your suggestion and say so. Return a table with columns: id, language, problem,
+> suggested wording, marker present (yes / no / not applicable).
+
+Then paste Section A, then Section B1.

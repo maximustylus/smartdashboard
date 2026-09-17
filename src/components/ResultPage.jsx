@@ -24,6 +24,7 @@ import { getSessionId, saveResult, loadResult } from '../utils/assessmentSession
      answer for it.
 */
 import nexusLogo from '../assets/nexus-logo.png';
+import { GOVERNANCE_COPY } from '../data/governanceCopy';
 import { generateCommunityResourcePlan } from '../utils/communityResourcePlan';
 import { sectorInfo } from '../utils/singapore/postalSectors';
 import HandoverSlip from './HandoverSlip';
@@ -297,10 +298,10 @@ const PdfHeader = ({ subtitle, t, formattedDate, activeSessionId, previousSessio
       <img src={nexusLogo} alt="NEXUS" crossOrigin="anonymous" style={{ width: 36, height: 36, objectFit: 'contain' }} />
       <div>
         <div style={{ color: 'white', fontWeight: 900, fontSize: 20, letterSpacing: 6 }}>NEXUS</div>
-        <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: 9, letterSpacing: 4, marginTop: 2 }}>{subtitle}</div>
+        <div style={{ color: '#94a3b8', fontWeight: 700, fontSize: 10.5, letterSpacing: 4, marginTop: 2 }}>{subtitle}</div>
       </div>
     </div>
-    <div style={{ textAlign: 'right', fontSize: 11, color: '#94a3b8', lineHeight: 1.8 }}>
+    <div style={{ textAlign: 'right', fontSize: 12.5, color: '#94a3b8', lineHeight: 1.8 }}>
       <div><strong style={{ color: 'white' }}>{t.date}:</strong> {formattedDate}</div>
       <div><strong style={{ color: 'white' }}>{t.assessmentId}:</strong> {activeSessionId}</div>
       {previousSessionId && <div><strong style={{ color: 'white' }}>{t.prevId}:</strong> {previousSessionId}</div>}
@@ -337,8 +338,8 @@ const PDF_FOOTER_STYLE = {
 */
 const PdfFooter = ({ pageNum, totalPages = 2 }) => (
   <div style={PDF_FOOTER_STYLE}>
-    <div style={{ color: '#64748b', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>NEXUS AURA · SMART DASHBOARD</div>
-    <div style={{ color: '#94a3b8', fontSize: 9, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF {totalPages}</div>
+    <div style={{ color: '#64748b', fontSize: 10.5, fontWeight: 700, letterSpacing: 2 }}>NEXUS AURA · SMART DASHBOARD</div>
+    <div style={{ color: '#94a3b8', fontSize: 10.5, fontWeight: 700, letterSpacing: 2 }}>PAGE {pageNum} OF {totalPages}</div>
   </div>
 );
 
@@ -421,22 +422,19 @@ const PavsPanel = ({ data, t }) => {
  *    problem. Showing it in English is strictly better than not showing it — the
  *    alternative on the table was continuing to show nothing.
  */
-const MedicalDisclaimer = () => (
-  <div className={`${R.panel} ${LIFT} border border-rose-200/80 dark:border-rose-900/70 bg-rose-50/80 dark:bg-rose-950/40 backdrop-blur-md p-5`}>
-    <p className="text-[10px] font-black text-rose-700 dark:text-rose-300 uppercase tracking-widest mb-2">
-      Important Medical Disclaimer
-    </p>
-    <p className="text-xs text-rose-900 dark:text-rose-100 leading-relaxed">
-      This NEXUS AURA report is an initial community health navigation tool and{' '}
-      <strong>does not constitute medical advice, diagnosis, or a treatment plan</strong>. The
-      physical activity recommendations are generated for educational and community navigation
-      purposes only. Always consult a qualified healthcare professional or your Healthier SG GP
-      before making significant changes to your lifestyle, diet, or exercise routine. If you are
-      experiencing chest pain, dizziness, or any acute symptoms, please seek immediate medical
-      attention.
-    </p>
-  </div>
-);
+const MedicalDisclaimer = ({ lang }) => {
+  const g = GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en;
+  return (
+    <div className={`${R.panel} ${LIFT} border border-rose-200/80 dark:border-rose-900/70 bg-rose-50/80 dark:bg-rose-950/40 backdrop-blur-md p-5`}>
+      <p className="text-[10px] font-black text-rose-700 dark:text-rose-300 uppercase tracking-widest mb-2">
+        {g.disclaimerHeading}
+      </p>
+      <p className="text-xs text-rose-900 dark:text-rose-100 leading-relaxed">
+        {g.disclaimerLead} <strong>{g.disclaimerBold}</strong>{g.disclaimerRest}
+      </p>
+    </div>
+  );
+};
 
 /**
  * The data-governance text, likewise lifted verbatim from the PDF template and
@@ -448,17 +446,13 @@ const MedicalDisclaimer = () => (
  * the flow for a collection notice. `PathwaySelection` now carries a short notice
  * before either pathway starts; this remains as the full statement.
  */
-const DataGovernance = () => (
+const DataGovernance = ({ lang }) => (
   <div className={`${PANEL} p-5`}>
     <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-      Data Governance and Privacy
+      {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).privacyHeading}
     </p>
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-      All data collected through the NEXUS AURA system is de-identified at the point of capture.
-      Postal sector data is used solely for geographic resource mapping and is not linked to any
-      identifiable personal information. This assessment does not collect, store, or transmit
-      NRIC, name, contact, or financial account information. Aggregated, anonymised data may be
-      used to improve community health programming across Singapore.
+      {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).privacyBody}
     </p>
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-3">
       <strong>How long it is kept:</strong> assessment records are deleted automatically{' '}
@@ -665,6 +659,7 @@ export default function ResultPage() {
   const activeSessionId = sessionId || getSessionId();
   const formattedDate   = new Date().toLocaleDateString('en-GB');
   const nexusUrl        = NEXUS_URL;
+  const gov             = GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en;
   const qrCodeUrl       = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(nexusUrl)}`;
   const baseUrl         = window.location.origin;
 
@@ -915,17 +910,17 @@ export default function ResultPage() {
             fixed header/footer strips, and the tightened padding/gap keep the
             fullest page (Red tier, three SDOH bullets, six resources) inside it.
           */}
-          <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 36px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
             {/* Risk Tier */}
-            <div style={{ background: th.printBg, borderRadius: 12, padding: '16px 24px' }}>
-              <div style={{ color: 'white', fontWeight: 900, fontSize: 24, marginBottom: 6 }}>{tierLabel}</div>
-              <div style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: 12, lineHeight: 1.6, marginBottom: 8 }}>{tierDesc}</div>
+            <div style={{ background: th.printBg, borderRadius: 12, padding: '12px 22px' }}>
+              <div style={{ color: 'white', fontWeight: 900, fontSize: 27, marginBottom: 4 }}>{tierLabel}</div>
+              <div style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: 13.5, lineHeight: 1.5, marginBottom: 6 }}>{tierDesc}</div>
               {(data.sdohFinancial || data.sdohSocial || hasPsycho) && (
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  {data.sdohFinancial && <div style={{ color: 'white', fontSize: 11, fontWeight: 700 }}>• {t.sdohFinText}</div>}
-                  {data.sdohSocial    && <div style={{ color: 'white', fontSize: 11, fontWeight: 700 }}>• {t.sdohSocText}</div>}
-                  {hasPsycho          && <div style={{ color: 'white', fontSize: 11, fontWeight: 700 }}>• {t.sdohPsychoText}</div>}
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  {data.sdohFinancial && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohFinText}</div>}
+                  {data.sdohSocial    && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohSocText}</div>}
+                  {hasPsycho          && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohPsychoText}</div>}
                 </div>
               )}
             </div>
@@ -933,23 +928,23 @@ export default function ResultPage() {
             {/* PAVS Metrics */}
             {data?.pavsScore != null && (
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 20px' }}>
-                <div style={{ fontWeight: 900, fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 10 }}>{t.pavsTitle}</div>
+                <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 6 }}>{t.pavsTitle}</div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {[
                     { value: data.pavsScore,           label: t.pavsWeekly },
                     { value: data.pavsDays    ?? '–',  label: t.pavsDays },
                     { value: data.pavsDays === 0 ? 0 : (data.pavsMinutes ?? '–'), label: t.pavsMins },
                   ].map(({ value, label }, i) => (
-                    <div key={i} style={{ flex: 1, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 8px', textAlign: 'center' }}>
-                      <div style={{ fontWeight: 900, fontSize: 22, color: '#0f172a' }}>{value}</div>
-                      <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 3, fontWeight: 600 }}>{label}</div>
+                    <div key={i} style={{ flex: 1, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 8px', textAlign: 'center' }}>
+                      <div style={{ fontWeight: 900, fontSize: 25, color: '#0f172a' }}>{value}</div>
+                      <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 3, fontWeight: 600 }}>{label}</div>
                     </div>
                   ))}
-                  <div style={{ flex: 2, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '10px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <div style={{ fontWeight: 700, fontSize: 11, color: getPavsTier(data.pavsScore) === 'active' ? '#059669' : getPavsTier(data.pavsScore) === 'meets' ? '#0d9488' : '#d97706', marginBottom: 3 }}>
+                  <div style={{ flex: 2, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 14px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ fontWeight: 700, fontSize: 12.5, color: getPavsTier(data.pavsScore) === 'active' ? '#059669' : getPavsTier(data.pavsScore) === 'meets' ? '#0d9488' : '#d97706', marginBottom: 3 }}>
                       {getPavsTier(data.pavsScore) === 'active' ? t.pavsActive : getPavsTier(data.pavsScore) === 'meets' ? t.pavsMeets : t.pavsBelow}
                     </div>
-                    <div style={{ fontSize: 9, color: '#64748b', lineHeight: 1.5 }}>{t.pavsThreshold}</div>
+                    <div style={{ fontSize: 10.5, color: '#64748b', lineHeight: 1.5 }}>{t.pavsThreshold}</div>
                   </div>
                 </div>
               </div>
@@ -957,29 +952,29 @@ export default function ResultPage() {
 
             {/* Primary Action Banner */}
             <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 12, padding: '12px 20px' }}>
-              <div style={{ fontWeight: 900, fontSize: 10, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 6 }}>{t.primaryAction}</div>
-              <div style={{ fontWeight: 700, fontSize: 12, color: '#134e4a', lineHeight: 1.6 }}>
+              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 4 }}>{t.primaryAction}</div>
+              <div style={{ fontWeight: 700, fontSize: 13.5, color: '#134e4a', lineHeight: 1.6 }}>
                 {ctaBanner.emoji} {ctaBanner.action[lang] || ctaBanner.action.en}
               </div>
-              <div data-pdf-link={ctaBanner.url} style={{ marginTop: 6, fontSize: 10, color: '#0d9488', fontWeight: 600 }}>{ctaBanner.url}</div>
+              <div data-pdf-link={ctaBanner.url} style={{ marginTop: 6, fontSize: 11.5, color: '#0d9488', fontWeight: 600 }}>{ctaBanner.url}</div>
             </div>
 
             {/* Resources Grid */}
             <div>
-              <div style={{ fontWeight: 900, fontSize: 11, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 3, borderBottom: '2px solid #e2e8f0', paddingBottom: 6, marginBottom: 10 }}>{t.resources}</div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 3, borderBottom: '2px solid #e2e8f0', paddingBottom: 5, marginBottom: 6 }}>{t.resources}</div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {suggestedResources.map((resource) => {
                   const c = resource[lang] || resource.en;
                   return (
-                    <div key={resource.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 12px', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    <div key={resource.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 12px', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 4 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div data-pdf-link={resource.url} style={{ width: 32, height: 32, flexShrink: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <img src={`${baseUrl}${resource.logo}`} alt="" crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         </div>
-                        <div style={{ fontWeight: 900, fontSize: 11, color: '#0f172a', lineHeight: 1.3 }}>{c.title}</div>
+                        <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', lineHeight: 1.3 }}>{c.title}</div>
                       </div>
-                      <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.5 }}>{c.desc}</div>
-                      <div data-pdf-link={resource.url} style={{ fontSize: 9, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '4px 8px', borderRadius: 4, border: '1px solid #99f6e4', wordBreak: 'break-all' }}>
+                      <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.5 }}>{c.desc}</div>
+                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '4px 8px', borderRadius: 4, border: '1px solid #99f6e4', wordBreak: 'break-all' }}>
                         <span style={{ color: '#64748b', fontWeight: 600, marginRight: 4 }}>{t.webLink}</span>{resource.url}
                       </div>
                     </div>
@@ -989,17 +984,17 @@ export default function ResultPage() {
             </div>
 
             {/* QR + Assessment ID footer area */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
               <div data-pdf-link={nexusUrl} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <img src={qrCodeUrl} alt="QR" crossOrigin="anonymous" style={{ width: 60, height: 60, border: '1px solid #e2e8f0', borderRadius: 6, padding: 3 }} />
                 <div>
-                  <div style={{ fontWeight: 900, fontSize: 9, textTransform: 'uppercase', letterSpacing: 3, color: '#0f172a' }}>{t.scanQR}</div>
-                  <div style={{ color: '#0d9488', fontSize: 10, fontWeight: 700, marginTop: 2 }}>{nexusUrl}</div>
+                  <div style={{ fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 3, color: '#0f172a' }}>{t.scanQR}</div>
+                  <div style={{ color: '#0d9488', fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>{nexusUrl}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 900, fontSize: 9, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 2 }}>{t.assessmentId}</div>
-                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 11, color: '#0f172a', marginTop: 2 }}>{activeSessionId}</div>
+                <div style={{ fontWeight: 900, fontSize: 10.5, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 2 }}>{t.assessmentId}</div>
+                <div style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: 12.5, color: '#0f172a', marginTop: 2 }}>{activeSessionId}</div>
               </div>
             </div>
           </div>
@@ -1047,22 +1042,28 @@ export default function ResultPage() {
           {/* Same subtitle source as page 1, so the two headers are identical. */}
           <PdfHeader subtitle={t.reportTitle} {...headerProps} />
 
-          <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '12px 36px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
-            {/* Medical Disclaimer */}
-            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '18px 24px' }}>
-              <div style={{ fontWeight: 900, fontSize: 10, color: '#be123c', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 3 }}>
-                Important Medical Disclaimer
+            {/*
+              Medical Disclaimer. In the resident's language since 2026-09-17: a
+              Malay report was two pages of Malay and one of English, and the
+              English page was the one that says what the document is not.
+              `governance.disclaimer` is registered as safety-critical in
+              `copyReview.js`; the ms/zh/ta text is machine translated.
+            */}
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '12px 20px' }}>
+              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#be123c', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 3 }}>
+                {gov.disclaimerHeading}
               </div>
-              <div style={{ fontSize: 11, color: '#4c0519', lineHeight: 1.75 }}>
-                This NEXUS AURA report is an initial community health navigation tool and <strong>does not constitute medical advice, diagnosis, or a treatment plan</strong>. The physical activity recommendations are generated for educational and community navigation purposes only. Always consult a qualified healthcare professional or your Healthier SG GP before making significant changes to your lifestyle, diet, or exercise routine. If you are experiencing chest pain, dizziness, or any acute symptoms, please seek immediate medical attention.
+              <div style={{ fontSize: 11.5, color: '#4c0519', lineHeight: 1.55 }}>
+                {gov.disclaimerLead} <strong>{gov.disclaimerBold}</strong>{gov.disclaimerRest}
               </div>
             </div>
 
             {/* Academic & Evidence Grounding */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '18px 24px' }}>
-              <div style={{ fontWeight: 900, fontSize: 10, color: '#64748b', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 3 }}>
-                Academic and Evidence Grounding
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 20px' }}>
+              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 3 }}>
+                {gov.evidenceHeading}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {/*
@@ -1091,63 +1092,59 @@ export default function ResultPage() {
                      research office. Every row below now says what is actually
                      asked, and names the source as what it was adapted FROM.
                 */}
-                {[
-                  ['Physical Activity', 'ACSM Physical Activity Vital Sign (PAVS), administered as published: 2 questions (days per week, minutes per session).'],
-                  ['National Targets', 'Sport Singapore Physical Activity Guidelines (SPAG): 150–300 mins/week moderate-intensity aerobic activity. A reference target, not an instrument.'],
-                  ['Psychological Wellbeing', 'SINGLE-ITEM screen adapted from BPS-RS II Domain P22 (PHQ-2 aligned, 2-week timeframe). One item, not the two-item PHQ-2, and not separately validated in this form.'],
-                  ['Social Isolation', 'SINGLE-ITEM screen adapted from the Lubben Social Network Scale (LSNS-6). One item, not the six-item scale; LSNS-6\u2019s published reliability does not transfer to it.'],
-                  ['Food Insecurity', 'SINGLE-ITEM screen adapted from the Lien Centre for Social Innovation Food Insufficiency Screen (2 items).'],
-                  ['Financial Adequacy', 'Both pathways: 3-level screen adapted from the Duke-NUS Perceived Income Adequacy Scale, read alongside reported access barriers. Asked in the chat since 16 September 2026; before that the chat inferred it from barriers alone.'],
-                  ['Housing Risk', 'Self-reported HDB flat type, used as a social-risk proxy. Flat type is asked; tenure (rented or owned) is not.'],
-                ].map(([label, text], i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, paddingBottom: 5, borderBottom: i < 6 ? '1px solid #f1f5f9' : 'none' }}>
+                {gov.evidence.map(([label, text], i) => (
+                  <div key={i} style={{ display: 'flex', gap: 10, paddingBottom: 3, borderBottom: i < 6 ? '1px solid #f1f5f9' : 'none' }}>
                     {/*
                       EXACT width, not minWidth: "Psychological Wellbeing" grew
                       past 110px and pushed its description out of the column
                       every other row aligned to. A long label now wraps to a
                       second line instead of widening its row.
                     */}
-                    <div style={{ fontWeight: 800, fontSize: 9, color: '#0d9488', width: 110, paddingTop: 1, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>{label}</div>
-                    <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.6 }}>{text}</div>
+                    <div style={{ fontWeight: 800, fontSize: 10, color: '#0d9488', width: 118, paddingTop: 1, textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>{label}</div>
+                    <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45 }}>{text}</div>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Data Governance */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '18px 24px' }}>
-              <div style={{ fontWeight: 900, fontSize: 10, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 3 }}>
-                Data Governance and Privacy
+            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 20px' }}>
+              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 3 }}>
+                {gov.privacyHeading}
               </div>
-              <div style={{ fontSize: 11, color: '#475569', lineHeight: 1.75 }}>
-                All data collected through the NEXUS AURA system is de-identified at the point of capture. Postal sector data is used solely for geographic resource mapping and is not linked to any identifiable personal information. This assessment does not collect, store, or transmit NRIC, name, contact, or financial account information. Aggregated, anonymised data may be used to improve community health programming across Singapore.
+              <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.55 }}>
+                {gov.privacyBody}
               </div>
             </div>
 
-            {/* Healthier SG Card */}
-            <div style={{ marginTop: 'auto', background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)', borderRadius: 12, padding: '22px 28px', textAlign: 'center', border: '1px solid #99f6e4' }}>
-              <div style={{ fontWeight: 900, fontSize: 14, color: '#0f766e', marginBottom: 6, letterSpacing: 1 }}>
-                Your Healthier SG Health Plan
+            {/*
+              Healthier SG card. The logos carry the message and the URLs are no
+              longer printed: each row is still a live link in the PDF through
+              `data-pdf-link`, and a printed "aic.sg/care-services/active-ageing-
+              centres" told an older reader nothing a 44px logo and one line of
+              their own language does not.
+            */}
+            <div style={{ marginTop: 'auto', background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)', borderRadius: 12, padding: '14px 24px', textAlign: 'center', border: '1px solid #99f6e4' }}>
+              <div style={{ fontWeight: 900, fontSize: 16, color: '#0f766e', marginBottom: 6, letterSpacing: 1 }}>
+                {gov.hsgTitle}
               </div>
-              <div style={{ fontSize: 10, color: '#475569', marginBottom: 14, lineHeight: 1.6, maxWidth: '520px', margin: '0 auto 14px' }}>
-                This assessment aligns with the <strong style={{ color: '#0f766e' }}>MOH Healthier SG</strong> framework.
-                Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.
+              <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.6, maxWidth: '560px', margin: '0 auto 10px' }}>
+                {gov.hsgLead} <strong style={{ color: '#0f766e' }}>{gov.hsgBrand}</strong>{gov.hsgRest}
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 28px', maxWidth: '540px', margin: '0 auto', textAlign: 'left' }}>
-                <div data-pdf-link="https://www.healthiersg.gov.sg/" style={{ display: 'flex', alignItems: 'center', gap: 8, gridColumn: '1 / -1', paddingBottom: 6, borderBottom: '1px solid #99f6e4' }}>
-                  <img src={baseUrl + '/logos/healthiersg.png'} alt="Healthier SG" crossOrigin="anonymous" style={{ width: 20, height: 20, objectFit: 'contain', flexShrink: 0 }} />
-                  <span style={{ fontWeight: 700, fontSize: 10, color: '#0f766e' }}>healthiersg.gov.sg</span>
-                </div>
+              <div data-pdf-link="https://www.healthiersg.gov.sg/" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, paddingBottom: 8, marginBottom: 8, borderBottom: '1px solid #99f6e4' }}>
+                <img src={baseUrl + '/logos/healthiersg.png'} alt="Healthier SG" crossOrigin="anonymous" style={{ width: 44, height: 44, objectFit: 'contain', flexShrink: 0 }} />
+                <span style={{ fontWeight: 800, fontSize: 13.5, color: '#0f766e' }}>{gov.hsgLinks.healthiersg}</span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 24px', maxWidth: '600px', margin: '0 auto', textAlign: 'left' }}>
                 {[
-                  { logo: '/logos/hpb.png', url: 'https://www.healthhub.sg/', text: 'healthhub.sg: Access your Health Plan and book screenings' },
-                  { logo: '/logos/activehealth.png', url: 'https://www.activesgcircle.gov.sg/activehealth', text: 'activesgcircle.gov.sg/activehealth: Find your nearest Active Health Lab' },
-                  { logo: '/logos/aic.png', url: 'https://www.aic.sg/care-services/active-ageing-centres', text: 'aic.sg/care-services/active-ageing-centres: Locate AACs for residents 60+' },
-                  { logo: '/logos/pa.png', url: 'https://www.onepa.gov.sg/', text: 'onepa.gov.sg: Search HealthierSG interest groups near you' },
-                ].map((item, i) => (
-                  <div key={i} data-pdf-link={item.url} style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-                    <img src={baseUrl + item.logo} alt="" crossOrigin="anonymous" style={{ width: 14, height: 14, objectFit: 'contain', flexShrink: 0, marginTop: 1 }} />
-                    {/* break-word, not break-all: URLs may split when they must, prose words never split mid-word */}
-                    <span style={{ fontWeight: 600, fontSize: 9, color: '#0f766e', overflowWrap: 'break-word', lineHeight: 1.5 }}>{item.text}</span>
+                  { key: 'healthhub',    logo: '/logos/hpb.png',          url: 'https://www.healthhub.sg/' },
+                  { key: 'activehealth', logo: '/logos/activehealth.png', url: 'https://www.activesgcircle.gov.sg/activehealth' },
+                  { key: 'aic',          logo: '/logos/aic.png',          url: 'https://www.aic.sg/care-services/active-ageing-centres' },
+                  { key: 'pa',           logo: '/logos/pa.png',           url: 'https://www.onepa.gov.sg/' },
+                ].map((item) => (
+                  <div key={item.key} data-pdf-link={item.url} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <img src={baseUrl + item.logo} alt="" crossOrigin="anonymous" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0, background: '#ffffff', borderRadius: 8, padding: 3, border: '1px solid #ccfbf1' }} />
+                    <span style={{ fontWeight: 600, fontSize: 11.5, color: '#0f766e', lineHeight: 1.45 }}>{gov.hsgLinks[item.key]}</span>
                   </div>
                 ))}
               </div>
@@ -1247,7 +1244,7 @@ export default function ResultPage() {
             {/* Directly beneath the instruction it qualifies. The URGENT tier tells
                 somebody with exertional chest pain to seek clearance; the caveat
                 belongs next to that, not at the bottom of a scroll. */}
-            <MedicalDisclaimer />
+            <MedicalDisclaimer lang={lang} />
             <SdohFlags data={data} t={t} previousSessionId={previousSessionId} />
 
             <div className="pt-2">
@@ -1283,7 +1280,7 @@ export default function ResultPage() {
               medFlag={data.medFlag}
             />
 
-            <DataGovernance />
+            <DataGovernance lang={lang} />
 
             {/*
               Invisible on screen; the only thing on paper. See the print rules in

@@ -635,6 +635,11 @@ language only, silently. `CP43` is what that looks like after a year.
 Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
 six findings were all adjudicated on 2026-09-13 and none applied. Details at the
 foot of the pack. Still nobody who reads the language has read any of it.
+
+**Model round 1, 2026-09-16.** ChatGPT over the pack, Gemini over the old workbook.
+Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
+six findings were all adjudicated on 2026-09-13 and none applied. Details at the
+foot of the pack. Still nobody who reads the language has read any of it.
 **Settled 2026-09-16: native review only from here; no further model rounds.**
 
 **2026-09-17, the first human read.** The owner's team read the Malay chat and

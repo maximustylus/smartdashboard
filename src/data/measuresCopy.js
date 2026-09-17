@@ -368,7 +368,7 @@ export const MEASURES_COPY = {
             'very-light': 'Sangat ringan',
             light: 'Ringan',
             moderate: 'Sederhana',
-            hard: 'Kuat',
+            hard: 'Tinggi',
             maximum: 'Maksimum',
         },
         hrTalkTest: 'Sebagai panduan kasar: anda boleh berbual dalam julat yang lebih ringan, dan hanya mampu berkata beberapa patah perkataan dalam julat yang lebih tinggi.',
