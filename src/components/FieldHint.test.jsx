@@ -110,29 +110,46 @@ describe('StepGuide', () => {
         });
     });
 
-    it('is open by default and shows the three answers for its step', () => {
+    it('is closed by default, and opens to the three answers for its step', () => {
         render(<StepGuide stepId="tasks" />);
         const toggle = screen.getByRole('button', { name: /how this step works/i });
+        // The owner's decision (2026-09-17): a decluttered wizard does not put a
+        // paragraph back under every heading. Closed on load, in both universes.
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(screen.queryByText(WIZARD_STEP_GUIDES.tasks.decide)).toBeNull();
+        fireEvent.click(toggle);
         expect(toggle.getAttribute('aria-expanded')).toBe('true');
         expect(screen.getByText(WIZARD_STEP_GUIDES.tasks.decide)).toBeTruthy();
         expect(screen.getByText(WIZARD_STEP_GUIDES.tasks.example)).toBeTruthy();
         expect(screen.getByText(WIZARD_STEP_GUIDES.tasks.next)).toBeTruthy();
     });
 
-    it('collapses, and stays collapsed for that step on the next render', () => {
+    it('opens, and stays open for that step on the next render', () => {
         const first = render(<StepGuide stepId="hours" />);
         fireEvent.click(screen.getByRole('button', { name: /how this step works/i }));
-        expect(screen.queryByText(WIZARD_STEP_GUIDES.hours.decide)).toBeNull();
+        expect(screen.getByText(WIZARD_STEP_GUIDES.hours.decide)).toBeTruthy();
         first.unmount();
 
         render(<StepGuide stepId="hours" />);
-        expect(screen.getByRole('button', { name: /how this step works/i }).getAttribute('aria-expanded')).toBe('false');
-        expect(screen.queryByText(WIZARD_STEP_GUIDES.hours.decide)).toBeNull();
+        expect(screen.getByRole('button', { name: /how this step works/i }).getAttribute('aria-expanded')).toBe('true');
+        expect(screen.getByText(WIZARD_STEP_GUIDES.hours.decide)).toBeTruthy();
         cleanup();
 
         // Another step is unaffected.
         render(<StepGuide stepId="staff" />);
-        expect(screen.getByText(WIZARD_STEP_GUIDES.staff.decide)).toBeTruthy();
+        expect(screen.queryByText(WIZARD_STEP_GUIDES.staff.decide)).toBeNull();
+    });
+
+    it('treats a `collapsed` value left over from before v2.16.1 as the default', () => {
+        store.set('nexus.roster.wizardGuide.period', 'collapsed');
+        render(<StepGuide stepId="period" />);
+        expect(screen.getByRole('button', { name: /how this step works/i }).getAttribute('aria-expanded')).toBe('false');
+        // Closing an open guide removes the key rather than writing anything.
+        cleanup();
+        store.set('nexus.roster.wizardGuide.period', 'open');
+        render(<StepGuide stepId="period" />);
+        fireEvent.click(screen.getByRole('button', { name: /how this step works/i }));
+        expect(store.has('nexus.roster.wizardGuide.period')).toBe(false);
     });
 
     it('survives storage being unavailable', () => {
@@ -142,9 +159,9 @@ describe('StepGuide', () => {
             removeItem: () => { throw new Error('blocked'); },
         });
         render(<StepGuide stepId="bands" />);
-        expect(screen.getByText(WIZARD_STEP_GUIDES.bands.decide)).toBeTruthy();
-        fireEvent.click(screen.getByRole('button', { name: /how this step works/i }));
         expect(screen.queryByText(WIZARD_STEP_GUIDES.bands.decide)).toBeNull();
+        fireEvent.click(screen.getByRole('button', { name: /how this step works/i }));
+        expect(screen.getByText(WIZARD_STEP_GUIDES.bands.decide)).toBeTruthy();
     });
 
     it('renders nothing for a step with no guide', () => {
@@ -155,7 +172,7 @@ describe('StepGuide', () => {
     it('is mounted by WizardStep inside the step, numbered or not', () => {
         render(<WizardStep number={2} label="Dates and length" guide="period"><div>panel</div></WizardStep>);
         expect(document.querySelector('[data-step-guide="period"]')).not.toBeNull();
-        expect(screen.getByText(WIZARD_STEP_GUIDES.period.decide)).toBeTruthy();
+        expect(screen.getByRole('button', { name: /how this step works/i })).toBeTruthy();
         cleanup();
         render(<WizardStep number={null} guide="period"><div>panel</div></WizardStep>);
         expect(document.querySelector('[data-step-guide="period"]')).not.toBeNull();

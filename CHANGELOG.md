@@ -54,6 +54,21 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.16.2] - 2026-09-17
+
+### Changed
+
+- **"How this step works" starts closed on every wizard step, in both the sandbox and
+  live mode.** The owner's decision: the wizard had been decluttered into layers in
+  v2.16.0, and a guide open under every heading put a paragraph back on each step.
+  What is remembered per step, per browser, is now the *opened* state rather than the
+  collapsed one, so a first-time roster master who opens a guide finds it open next
+  time; a `collapsed` value stored by v2.16.0–v2.16.1 is read as the default and does
+  nothing. Classified as a patch: no new capability, one default corrected to match the
+  intent of the feature it belongs to. Evidence: `src/components/FieldHint.test.jsx`
+  (closed on load, opens, stays open, the leftover value, storage unavailable); 204
+  tests across the five wizard test files pass.
+
 ## [2.16.1] - 2026-09-17
 
 ### Fixed

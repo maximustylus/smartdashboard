@@ -34,28 +34,32 @@ import { stepGuideFor } from '../data/rosterWizardHelp';
  * THE STEP GUIDE — the third of the wizard's three help layers (see
  * `rosterWizardHelp.js`). One collapsible line under the step's heading:
  * "How this step works", opening to what to decide, an example, and what
- * happens next. It is the walk-through a first-time roster master can leave
- * open on every step, and the thing a tenth-time one collapses once.
+ * happens next. It is the walk-through a first-time roster master opens on
+ * the steps they are unsure of, and the thing a tenth-time one never sees.
  *
- * COLLAPSED STATE IS REMEMBERED PER STEP, PER BROWSER, in `localStorage`, and
- * it is the only thing remembered: a preference about reading, not a fact
- * about the roster. Every read and write is wrapped, because storage can be
- * absent (a private window, a cleared profile) and the guide must render the
- * same either way — open, which is the right default for somebody new.
+ * CLOSED BY DEFAULT, on every step, in both universes — the owner's decision
+ * (2026-09-17): the wizard had been decluttered into layers, and a guide open
+ * on every step put a paragraph back under every heading. OPEN STATE IS
+ * REMEMBERED PER STEP, PER BROWSER, in `localStorage`, and it is the only
+ * thing remembered: a preference about reading, not a fact about the roster.
+ * Every read and write is wrapped, because storage can be absent (a private
+ * window, a cleared profile) and the guide must render the same either way —
+ * closed, the default. (Until v2.16.1 the default was open and the stored
+ * value was `collapsed`; a leftover `collapsed` now means the same as nothing.)
  */
 const GUIDE_STORAGE_PREFIX = 'nexus.roster.wizardGuide.';
 
-const readCollapsed = (stepId) => {
+const readOpen = (stepId) => {
     try {
-        return window.localStorage.getItem(GUIDE_STORAGE_PREFIX + stepId) === 'collapsed';
+        return window.localStorage.getItem(GUIDE_STORAGE_PREFIX + stepId) === 'open';
     } catch (unavailable) {
         return false;
     }
 };
 
-const writeCollapsed = (stepId, collapsed) => {
+const writeOpen = (stepId, open) => {
     try {
-        if (collapsed) window.localStorage.setItem(GUIDE_STORAGE_PREFIX + stepId, 'collapsed');
+        if (open) window.localStorage.setItem(GUIDE_STORAGE_PREFIX + stepId, 'open');
         else window.localStorage.removeItem(GUIDE_STORAGE_PREFIX + stepId);
     } catch (unavailable) {
         // Nothing to do: the preference simply does not survive the page.
@@ -64,13 +68,14 @@ const writeCollapsed = (stepId, collapsed) => {
 
 export const StepGuide = ({ stepId }) => {
     const guide = stepGuideFor(stepId);
-    const [collapsed, setCollapsed] = useState(() => readCollapsed(stepId));
+    const [open, setOpen] = useState(() => readOpen(stepId));
     if (!guide) return null;
+    const collapsed = !open;
 
     const toggle = () => {
-        const next = !collapsed;
-        setCollapsed(next);
-        writeCollapsed(stepId, next);
+        const next = !open;
+        setOpen(next);
+        writeOpen(stepId, next);
     };
     const Chevron = collapsed ? ChevronRight : ChevronDown;
 
