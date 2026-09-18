@@ -1,6 +1,6 @@
 /**
  * ==============================================================================
- * THE MOH NAHS LIST — 28 ALLIED HEALTH PROFESSIONS
+ * THE NATIONAL ALLIED HEALTH LIST — 28 PROFESSIONS
  * ==============================================================================
  *
  * The authoritative Singapore Ministry of Health / National Allied Health
@@ -10,7 +10,7 @@
  *
  * WHY THIS REPLACED AN INVENTED LIST. The picker previously offered names I had
  * chosen — "Medical Laboratory", "Cardiology", "Physiotherapy". Those are
- * paraphrases of departments. MOH names PRACTITIONERS ("Medical Laboratory
+ * paraphrases of departments. The list names PRACTITIONERS ("Medical Laboratory
  * Technologist / Scientist", "Physiotherapist"), which is what a colleague
  * opening this app will recognise as their own designation. Using the official
  * list also settled a question I had flagged as a guess: **Pulmonary and
@@ -48,13 +48,13 @@ export const AHP_INTERVIEWED = 'interviewed';
 export const AHP_INFERRED = 'inferred';
 
 /**
- * The 28, in MOH's own order and with MOH's own names.
+ * The 28, in the national list's own order and with its own names.
  *
  * `children` present = the parent is a group label, and its children are the
  * selectable leaves. `mohNumber` is kept so an entry can be checked against the
  * published list without re-reading this file's history.
  */
-export const MOH_ALLIED_HEALTH_PROFESSIONS = Object.freeze([
+export const ALLIED_HEALTH_PROFESSIONS = Object.freeze([
     Object.freeze({ mohNumber: 1, id: 'art-therapist', name: 'Art Therapist' }),
     Object.freeze({ mohNumber: 2, id: 'auditory-verbal-therapist', name: 'Auditory-Verbal Therapist' }),
     Object.freeze({ mohNumber: 3, id: 'audiologist', name: 'Audiologist' }),
@@ -98,7 +98,7 @@ export const MOH_ALLIED_HEALTH_PROFESSIONS = Object.freeze([
     Object.freeze({
         mohNumber: 24,
         id: 'psychologist',
-        // MOH's own qualifier, kept verbatim: the list reads "Psychologist,
+        // the list's own qualifier, kept verbatim: the list reads "Psychologist,
         // excluding associate psychologist". Dropping it would widen a
         // professional boundary this file has no standing to widen.
         name: 'Psychologist (excluding associate psychologist)',
@@ -124,8 +124,8 @@ export const MOH_ALLIED_HEALTH_PROFESSIONS = Object.freeze([
  * contributes itself with `group: null`. This is what the picker iterates, and
  * what makes "how many arrangements are there?" a question with one answer.
  */
-export const MOH_PROFESSION_LEAVES = Object.freeze(
-    MOH_ALLIED_HEALTH_PROFESSIONS.flatMap((profession) =>
+export const PROFESSION_LEAVES = Object.freeze(
+    ALLIED_HEALTH_PROFESSIONS.flatMap((profession) =>
         profession.children
             ? profession.children.map((child) => Object.freeze({
                 id: child.id,
@@ -148,8 +148,8 @@ export const MOH_PROFESSION_LEAVES = Object.freeze(
 );
 
 /** 37 at the time of writing: 26 plain professions + 5 sub-disciplines + 6. */
-export const MOH_PROFESSION_LEAF_COUNT = MOH_PROFESSION_LEAVES.length;
+export const PROFESSION_LEAF_COUNT = PROFESSION_LEAVES.length;
 
 /** One leaf by id, or `null`. Never throws — a stale id in a URL is not a crash. */
 export const professionById = (id) =>
-    MOH_PROFESSION_LEAVES.find((leaf) => leaf.id === id) || null;
+    PROFESSION_LEAVES.find((leaf) => leaf.id === id) || null;

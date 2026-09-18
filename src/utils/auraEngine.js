@@ -924,6 +924,230 @@ export const findAppliedSwapShift = ({ roster, swap, coveringStaff, role } = {})
 export const verifySwapApplied = (args) => findAppliedSwapShift(args) !== null;
 
 
+// --- 1c′. DIRECT REASSIGNMENT BY A LEAD (ROSTER_TODO.md queue item 3) ---------
+//
+// A coverage swap is a two-party act: the holder asks, the colleague accepts,
+// and only then does the roster move. Cardiology's roster master corrects the
+// week INSIDE the week — somebody rings in sick at 07:40 and the 09:00 clinic
+// needs a name on it now. That is a one-party act: the lead decides, and the
+// roster moves. Until this section existed the only tool for it was a full
+// regenerate, which rewrites every day of the run to change one.
+//
+// IT IS THE SAME MUTATION. `applyShiftSubstitution` is the only place the
+// substitution rule lives and it is reused here unchanged: the incoming person
+// takes exactly the duty the outgoing person held, nobody is promoted, and no
+// third person's duty moves. What differs is WHO may do it (a lead — enforced
+// by `firestore.rules`, not by this file), that no request document exists,
+// and that the change is written to a CHANGE LOG afterwards — the audit trail
+// the ledger asks for, because a hand edit with no record is indistinguishable
+// from a regenerate a week later.
+//
+// The pair below mirrors the swap pair, on purpose: `planShiftReassignment`
+// decides without writing anything, and `findReassignedShift` is the evidence
+// a success message may be built from after the document is read back
+// (A-RC4). The refusal set is the swap planner's, reworded for a lead who is
+// looking at the calendar rather than at a request card; the parity test in
+// `auraEngine.reassign.test.js` holds the two planners to the same answer on
+// the same roster.
+
+/** The one kind of change the log records today. A later edit kind adds a value here. */
+export const ROSTER_CHANGE_KIND_REASSIGN = 'reassign';
+
+/**
+ * Decide — without writing anything — how a lead's reassignment changes ONE day.
+ *
+ * `{ roster, dateKey, task, role, from, to }`: the roster document as read, the
+ * day, the duty's task name, which position (`'lead'` | `'coLead'`), who holds
+ * it now and who takes it over.
+ *
+ * Returns `{ ok: true, dateKey, role, index, shifts, before, after }` — `shifts`
+ * being the new array for that one day and `before`/`after` the shift's display
+ * label either side of the change, for the log — or `{ ok: false, reason }`
+ * with a sentence a lead can read verbatim. A no-match is a refusal, never a
+ * silent pass-through.
+ */
+export const planShiftReassignment = ({ roster, dateKey, task, role, from, to } = {}) => {
+    const fail = (reason) => ({
+        ok: false, reason, dateKey: null, role: null, index: -1, shifts: null, before: null, after: null,
+    });
+
+    const key = asName(dateKey);
+    const taskName = asName(task);
+    const outgoing = asName(from);
+    const incoming = asName(to);
+
+    if (!key || !taskName) {
+        return fail('AURA could not tell which shift to change (missing date or duty), so the roster is untouched.');
+    }
+    if (role !== SHIFT_ROLE_LEAD && role !== SHIFT_ROLE_CO_LEAD) {
+        return fail('AURA could not tell which duty on the shift to change, so the roster is untouched.');
+    }
+    if (!outgoing) {
+        return fail('AURA could not tell who is being taken off the shift, so the roster is untouched.');
+    }
+    if (!incoming) {
+        return fail('Choose who takes over before reassigning. The roster is untouched.');
+    }
+    if (incoming === outgoing) {
+        return fail(`${outgoing} already holds that duty — reassigning it to them would change nothing.`);
+    }
+    if (!roster || typeof roster !== 'object') {
+        return fail('The master roster document could not be read, so there was nothing to change.');
+    }
+
+    const day = roster[key];
+    if (!Array.isArray(day) || day.length === 0) {
+        return fail(`The master roster has no shifts stored on ${key}. It may have been regenerated since this calendar was drawn.`);
+    }
+
+    let index = -1;
+    let taskSeen = false;
+    let heldElsewhere = null;
+
+    for (let i = 0; i < day.length; i += 1) {
+        const shift = day[i];
+        if (!shift || typeof shift !== 'object' || shift.task !== taskName) continue;
+        taskSeen = true;
+
+        const held = shiftRoleOf(shift, outgoing);
+        if (!held) continue;
+
+        // A legacy shift has exactly one person, so lead is the only duty it can
+        // hold — the same tolerance `planSwapApplication` extends.
+        const effective = readShiftIdentities(shift).legacy ? SHIFT_ROLE_LEAD : held;
+        if (effective !== role) {
+            heldElsewhere = effective;
+            continue;
+        }
+
+        index = i;
+        break;
+    }
+
+    if (index === -1) {
+        if (heldElsewhere) {
+            return fail(
+                `The roster has changed since this calendar was drawn: ${outgoing} is now the ${describeShiftRole(heldElsewhere)} of the ${taskName} shift on ${key}, not the ${describeShiftRole(role)}. Close this and open the shift again.`,
+            );
+        }
+        if (taskSeen) {
+            return fail(`${outgoing} is no longer on the ${taskName} shift on ${key}, so there is no duty to reassign.`);
+        }
+        return fail(`The master roster has no ${taskName} shift on ${key}.`);
+    }
+
+    const current = day[index];
+    const ids = readShiftIdentities(current);
+    const otherRole = role === SHIFT_ROLE_LEAD ? SHIFT_ROLE_CO_LEAD : SHIFT_ROLE_LEAD;
+    const partner = role === SHIFT_ROLE_LEAD ? ids.coLead : ids.lead;
+    if (partner === incoming) {
+        return fail(
+            `${incoming} is already the ${describeShiftRole(otherRole)} of the ${taskName} shift on ${key}. One person cannot hold both duties.`,
+        );
+    }
+
+    const shifts = day.map((shift, i) => (i === index ? applyShiftSubstitution(shift, role, incoming) : shift));
+
+    return {
+        ok: true,
+        reason: null,
+        dateKey: key,
+        role,
+        index,
+        shifts,
+        before: typeof current.staff === 'string' && current.staff !== ''
+            ? current.staff
+            : buildShiftStaffLabel(ids.lead, ids.coLead),
+        after: shifts[index].staff,
+    };
+};
+
+/**
+ * Find the shift that proves a reassignment landed, in a roster READ BACK FROM
+ * THE DATABASE after the write. `null` must never be reported as success.
+ *
+ * Deliberately the swap finder with a synthetic request: the evidence a hand
+ * edit leaves in the document is byte-for-byte the evidence an accepted swap
+ * leaves, so there is one definition of "it landed".
+ */
+export const findReassignedShift = ({ roster, dateKey, task, role, from, to } = {}) =>
+    findAppliedSwapShift({
+        roster,
+        swap: { originalShiftDate: dateKey, originalTask: task, requestedBy: from },
+        coveringStaff: to,
+        role,
+    });
+
+/**
+ * The change-log document for a reassignment, minus its clock.
+ *
+ * `at` is NOT set here: it must be `serverTimestamp()` at the call site, and
+ * `firestore.rules` refuses a record whose `at` is not `request.time` — a
+ * client clock on an audit record is the kind of evidence nobody can rely on.
+ * Pure, so the shape can be pinned in a unit test without Firestore.
+ */
+export const buildRosterChangeRecord = ({ plan, task, from, to, reason, actor } = {}) => {
+    if (!plan || !plan.ok) return null;
+    return {
+        kind: ROSTER_CHANGE_KIND_REASSIGN,
+        dateKey: plan.dateKey,
+        task: asName(task),
+        role: plan.role,
+        from: asName(from),
+        to: asName(to),
+        before: plan.before,
+        after: plan.after,
+        reason: asName(reason) ?? '',
+        byUid: asName(actor?.uid),
+        byName: asName(actor?.name) ?? asName(actor?.email) ?? 'Unknown User',
+    };
+};
+
+/**
+ * One sentence for the change log panel, built from the record alone so the
+ * panel needs nothing else in scope. A record it cannot read yields `null`
+ * rather than a sentence with "undefined" in it (audit M7's lesson).
+ */
+export const describeRosterChange = (change) => {
+    if (!change || typeof change !== 'object') return null;
+    const task = asName(change.task);
+    const to = asName(change.to);
+    const from = asName(change.from);
+    const dateKey = asName(change.dateKey);
+    if (!task || !to || !from || !dateKey) return null;
+
+    const role = describeShiftRole(change.role);
+    const who = asName(change.byName);
+    const reason = asName(change.reason);
+
+    return `${task} on ${formatRosterDateKey(dateKey)}: ${to} took over as ${role} from ${from}`
+        + (reason ? ` — ${reason}` : '')
+        + (who ? ` (changed by ${who})` : '')
+        + '.';
+};
+
+
+/**
+ * The change log snapshot as plain objects, newest first as the query orders
+ * them. Duck-typed on `docs[].id` / `.data()` so it needs no Firestore import,
+ * and `at` — a Firestore `Timestamp` on the wire — becomes a `Date`, or `null`
+ * while the server has not yet stamped it (a write from this client reports
+ * once with a pending timestamp before the server's value arrives).
+ */
+export const readRosterChanges = (snapshot) => {
+    const docs = Array.isArray(snapshot?.docs) ? snapshot.docs : [];
+    return docs.flatMap((entry) => {
+        if (!entry || typeof entry.data !== 'function') return [];
+        const data = entry.data();
+        if (!data || typeof data !== 'object') return [];
+        const at = data.at && typeof data.at.toDate === 'function'
+            ? data.at.toDate()
+            : (data.at instanceof Date ? data.at : null);
+        return [{ ...data, docId: typeof entry.id === 'string' ? entry.id : null, at }];
+    });
+};
+
+
 // --- 1d. COVERAGE-ALERT SURVIVAL (ROSTER_TODO.md P3 / M5) ---------------------
 //
 // The swap listener delivers each PENDING request once, as a `docChanges()`

@@ -1334,6 +1334,12 @@ and fails the build if it drifts, so a silent reword cannot ride the old signatu
 reviewed the workbook as it stood before Group 5 was added to it. Nothing has
 checked these three, in any language, by any means.
 
+**2026-09-17 — a fourth string is registered, and this time the build is red.**
+`governance.disclaimer` (page 3 of the report, `CP47`) went into the registry as
+safety-critical with nobody's name against it and no waiver. Unlike the three above
+it is not shipped and cannot be: the gate holds until `CD29` is settled. That is
+the gate working as designed, not a broken build.
+
 ---
 
 ## `P9` — the measurement questions landed 2026-09-12
@@ -1507,6 +1513,7 @@ larger than one respondent.
 
 ```
 P0.3  App Check + rate limit                 ─ needs the Firebase console
+CD29  page 3 disclaimer: review or waive     ─ OWNER'S CALL; the build is RED until then
 CD13  native-speaker review of 19 strings    ─ owner's; the only thing left on group 1 + 4
 CD10  groups 2, 3, rest of 4                 ─ owner's call; group 2 is the URGENT tier
 CD4 / CD11                                   ─ owner's, in parallel, not blocked on me
@@ -1699,7 +1706,7 @@ that abandoning there costs nothing the assessment needs.
 
 ---
 
-## `P12` — the owner's Malay read-through · `CP45` `CP46` · **on `community`**
+## `P12` — the owner's Malay read-through · `CP45` `CP46` `CP47` · `CD29` · **on `community`**
 
 The first native read of any of this portal's Malay, by the owner's team on
 2026-09-17. It found what two model rounds did not.
@@ -1735,7 +1742,21 @@ the on-screen disclaimer and privacy blocks read from the same table.
 ⚠️ `governance.disclaimer` is registered as safety-critical. It tells somebody
 with chest pain to seek immediate medical attention; its ms/zh/ta is machine
 translated and unread, so the build is red until a person reviews it or the owner
-signs a waiver, as with `hrCaution`. **Owner's call.**
+signs a waiver, as with `hrCaution`. That decision is `CD29`, below.
+
+### `CD29` — the page 3 disclaimer in Malay, Chinese and Tamil: review or waive · **OWNER'S CALL**
+
+`governance.disclaimer` is the sentence that tells a resident with chest pain or
+dizziness to seek immediate medical attention, now printed in the resident's
+language on every report. It is registered in `copyReview.js` as safety-critical
+with `reviewedBy` empty in all three languages and no waiver, so
+`copyReview.test.js` fails two tests and the branch cannot be released. Two ways
+out, and only the owner can take either: name who read each language and record
+them in `reviewedBy`, or sign a waiver under `REVIEW_WAIVERS` as was done for the
+three `measures.*` strings on 2026-09-13 and `hrCaution` after it. The Malay was
+rendered and looked at on 2026-09-17 (`scratchpad/ms14-3.png`); it has not been
+read by a Malay reader, and Chinese and Tamil have not been rendered for anyone.
+The text is in the review pack at §A7.
 
 Also on the owner's direction the same day: every font in the printed report is
 one step larger (7 to 8.5, 9 to 10.5, 10 to 11.5, 11 to 12.5, 14 to 16, 24 to 27),
@@ -1746,7 +1767,7 @@ page 1 worst case 24px, Tamil page 3 37px, nothing clipping in sixteen scenarios
 The heart-rate chips were re-measured at the new size and sit 1.6px below centre,
 as before.
 
-### Malay terminology, per the owner and Malaysia's MOH physical activity guidance
+### Malay terminology, per the owner and Malaysia's health ministry physical activity guidance
 
 | Was | Now | Where |
 |---|---|---|
@@ -1760,7 +1781,7 @@ as before.
 directed by the owner; the prohibition is untouched. Recorded in
 `TRANSLATION-BRIEF.md` as the first human correction to Group 5.
 
-The sit-to-stand wording was checked against the MOH text supplied; that text
+The sit-to-stand wording was checked against the ministry text supplied; that text
 describes the physical activity guidelines and does not name the chair-stand
 test, so the Malay for it (`bangun dari kerusi`) is unchanged pending a term.
 

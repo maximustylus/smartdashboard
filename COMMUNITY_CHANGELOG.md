@@ -49,6 +49,10 @@ pathways, and the Cloud Function behind the chat.
   and the heart-rate block, including `hrCaution` and `hrSuppressedSymptoms`,
   one word each, prohibition untouched. First human correction to any of this
   portal's Malay.
+- 2026-09-18: `main`'s v2.16.0 to v2.16.2 (the roster releases) merged into
+  `community`. v2.16.0 removed the national ministry's acronym from the product, so
+  the Healthier SG line on page 3 now reads "the Healthier SG framework" in all
+  four languages; the review pack's §A7 rows were corrected to match.
 
 ---
 

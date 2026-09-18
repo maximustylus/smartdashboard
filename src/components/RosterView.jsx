@@ -12,8 +12,8 @@ import { db } from '../firebase';
 // sequence the chat panel used to perform (read → plan → write → READ BACK →
 // approve). Nothing about that sequence is reimplemented here; see
 // `respondToCoverageRequest`.
-import { doc, onSnapshot, setDoc, collection, addDoc, serverTimestamp, query, where, getDoc, updateDoc } from 'firebase/firestore';
-import { Calendar, Download, Settings, ChevronLeft, ChevronRight, Play, FileSpreadsheet, ShieldAlert, ArrowRightLeft, X, Users, FlaskConical, CheckCircle2, Info, LayoutGrid, User, CalendarCheck, UserCheck, FileText, Table2, CalendarPlus } from 'lucide-react';
+import { doc, onSnapshot, setDoc, collection, addDoc, serverTimestamp, query, where, getDoc, updateDoc, orderBy, limit } from 'firebase/firestore';
+import { Calendar, Download, Settings, ChevronLeft, ChevronRight, Play, FileSpreadsheet, ShieldAlert, ArrowRightLeft, X, Users, FlaskConical, CheckCircle2, Info, LayoutGrid, User, CalendarCheck, UserCheck, FileText, Table2, CalendarPlus, Pencil, History } from 'lucide-react';
 import {
     downloadICS,
     downloadCSV,
@@ -37,6 +37,15 @@ import {
     // success message is built from, read back out of the database.
     planSwapApplication,
     findAppliedSwapShift,
+    // ✏️ DIRECT REASSIGNMENT (ROSTER_TODO.md queue item 3) — the one-party form of
+    // the same mutation, for a lead correcting the week inside the week. Pure,
+    // unit-tested in auraEngine.reassign.test.js, and held to parity with the
+    // swap planner there. `readRosterChanges` reads the change log snapshot.
+    planShiftReassignment,
+    findReassignedShift,
+    buildRosterChangeRecord,
+    describeRosterChange,
+    readRosterChanges,
 } from '../utils/auraEngine';
 // 🤝 COVERAGE REQUESTS — pure, unit-tested in rosterCoverage.test.js. Reads the
 // `shift_swaps` snapshot into plain objects and writes the wording; it holds no
@@ -55,7 +64,7 @@ import {
 // by hand. `system_data/roster_2026` — a single document shared by the whole
 // installation — is what these replace.
 import { useTeam } from '../context/TeamContext';
-import { rosterPath, swapsPath, swapPath, rosterSettingsPath } from '../utils/teamPaths';
+import { rosterPath, swapsPath, swapPath, rosterSettingsPath, rosterChangesPath } from '../utils/teamPaths';
 import { toStoredSettings, fromStoredSettings, settingsChanged } from '../utils/rosterSettings';
 import { useTeamGrades } from '../hooks/useTeamGrades';
 
@@ -83,9 +92,9 @@ import { useNexus } from '../context/NexusContext';
 // therapists do it", which was not. `mockData.js` owns the list and its order; this file
 // does not sort, filter or re-order it, and nothing here may assume a position in it.
 //
-// `MOH_PROFESSION_OPTIONS` is MOH's own list of 28 professions (37 selectable leaves,
+// `PROFESSION_OPTIONS` is the national list's 28 professions (37 selectable leaves,
 // two of them nesting), sorted in `mockData.js` and rendered here with `<optgroup>`
-// wherever MOH nests. It is VOCABULARY: choosing a profession picks the LABEL on the
+// wherever the list nests. It is VOCABULARY: choosing a profession picks the LABEL on the
 // configuration and nothing else — no duties, no grades, no rules. That is what lets an
 // art therapist ride the physiotherapy shape and see their own designation on the
 // result.
@@ -101,11 +110,11 @@ import { useNexus } from '../context/NexusContext';
 // and the two would eventually disagree in front of a roster master. That they agree is
 // pinned in `RosterView.demo.test.jsx` instead, where a mismatch is a failing test
 // rather than a wrong caption.
-import { DEMO_SHAPES, MOH_PROFESSION_OPTIONS, suggestedShapeFor } from '../data/mockData';
+import { DEMO_SHAPES, PROFESSION_OPTIONS, suggestedShapeFor } from '../data/mockData';
 // The taxonomy itself, for ONE read: turning the chosen profession's id back into the
 // leaf whose `name`/`qualifiedName` labels the configuration. Read-only; this file never
 // edits the published list.
-import { professionById } from '../data/mohAlliedHealth';
+import { professionById } from '../data/alliedHealthProfessions';
 // 🧪 SANDBOX ENGINE — the constraint-aware engine, used ONLY on the demo path.
 // Live generation still goes through prepareRosterWrite → generateRoster, which
 // has characterization tests pinning its byte-exact output and a live document
@@ -125,6 +134,7 @@ import { downloadRosterXlsx } from '../utils/rosterXlsx.js';
 import RosterExportMenu from './RosterExportMenu';
 import RosterDemoWizardTables from './RosterDemoWizardTables';
 import WizardStep from './WizardStep';
+import FieldHint from './FieldHint';
 import {
     buildDemoRosterV2ConfigFromTables,
     createEmptyStaffRows,
@@ -161,6 +171,13 @@ import ConfirmationModal from './ConfirmationModal';
 
 /** How many unfilled slots the sandbox panel lists before it summarises. */
 const DEMO_UNFILLED_PREVIEW = 20;
+
+/**
+ * How many hand edits the change log panel shows. The listener is `limit`ed to
+ * this too, so a department that edits daily for a year does not stream a
+ * year of records into the calendar page; the full log stays in Firestore.
+ */
+const ROSTER_CHANGES_SHOWN = 20;
 
 /**
  * 📱 THE TWO PICKER DROPDOWNS' CLASSES, in ONE place because there are now two of them.
@@ -569,6 +586,72 @@ const PersonRosterPanel = ({
  * message comes from the observed read-back or from the engine's refusal reason.
  * This component decides nothing and asserts nothing.
  */
+/**
+ * ✏️ THE CHANGE LOG — every hand edit a lead has made to this year's roster,
+ * newest first. ROSTER_TODO.md queue item 3 asked for the edit AND for it to be
+ * logged, "so it doubles as the audit trail": a reassignment nobody can see a
+ * week later is indistinguishable from a regenerate, and a regenerate is what
+ * this feature exists to avoid.
+ *
+ * Renders nothing when there is nothing to show and no listener error. Live
+ * mode's entries come from Firestore (`rosters/{year}/changes`, lead-written,
+ * immutable); the sandbox's come from memory and say so.
+ */
+const RosterChangesPanel = ({ changes, listenerError, isDemo }) => {
+    if (changes.length === 0 && !listenerError) return null;
+
+    return (
+        <div
+            data-roster-view="change-log"
+            role="region"
+            aria-label="Changes made by hand"
+            className="mb-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4"
+        >
+            <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <History size={13} />
+                {isDemo ? `Changed by hand this session (${changes.length})` : `Changed by hand (${changes.length})`}
+            </p>
+
+            {/* 🛡️ M8, again: a rules denial on the change log must not look like
+                "nobody has changed anything". */}
+            {listenerError && (
+                <p className="mt-2 flex items-start gap-2 text-xs font-bold text-red-700 dark:text-red-300 leading-relaxed">
+                    <ShieldAlert size={14} className="shrink-0 mt-0.5" />
+                    <span>{listenerError}</span>
+                </p>
+            )}
+
+            {changes.length > 0 && (
+                <ul className="mt-2 space-y-1.5">
+                    {changes.map((change) => {
+                        const sentence = describeRosterChange(change);
+                        if (!sentence) return null;
+                        const when = change.at instanceof Date && !Number.isNaN(change.at.getTime())
+                            ? change.at.toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' })
+                            : null;
+                        return (
+                            <li
+                                key={change.docId}
+                                data-roster-change={change.docId}
+                                className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed"
+                            >
+                                <span className="font-bold">{sentence}</span>
+                                {when && <span className="ml-1.5 text-[10px] text-slate-400 dark:text-slate-500">{when}</span>}
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+
+            {isDemo && changes.length > 0 && (
+                <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500">
+                    Sandbox: these changes live on this screen only and were not saved anywhere.
+                </p>
+            )}
+        </div>
+    );
+};
+
 const CoverageRequestsPanel = ({
     requests,
     onRespond,
@@ -722,7 +805,7 @@ const RosterView = ({ user }) => {
     // every live effect below is gated on it — a path composed from a null teamId
     // throws by design (`assertTeamId`), so the gate is what keeps that design from
     // becoming a crash on a legitimate screen.
-    const { teamId, team, rosteredMembers, memberUidByName } = useTeam();
+    const { teamId, team, rosteredMembers, memberUidByName, isLead } = useTeam();
 
     // --- STATE ---
     // 🗓️ P4.3 / post-mortem B3: the calendar used to open on a hardcoded
@@ -793,7 +876,7 @@ const RosterView = ({ user }) => {
     // sees where the structure came from, which is the safe direction to be wrong in.
     const [demoShape, setDemoShape] = useState(null);
 
-    // 🧪 WHOSE ROSTER THIS IS, as one of MOH's 37 profession leaves, or `null`.
+    // 🧪 WHOSE ROSTER THIS IS, as one of the list's 37 profession leaves, or `null`.
     //
     // A LABEL AND NOTHING MORE, and that is the entire point of the two-control picker.
     // It reaches no engine field, no row and no rule: an art therapist who loads the
@@ -1058,6 +1141,13 @@ const RosterView = ({ user }) => {
     //    exactly the boundary they are checking, which is how a rules change gets
     //    waved through.  
     const [sentSwapSignatures, setSentSwapSignatures] = useState(() => new Set());
+
+    // ✏️ DIRECT REASSIGNMENT — the change log as read (live) or as made (sandbox),
+    // newest first, and the in-flight latch for the one write that runs at a time.
+    const [rosterChanges, setRosterChanges] = useState([]);
+    const [changesError, setChangesError] = useState(null);
+    const [isReassigning, setIsReassigning] = useState(false);
+    const reassigningRef = useRef(false);
 
     // Default Config — the live staff pool and task list now live in
     // LIVE_ROSTER_DEFAULTS (auraEngine.js) so that leaving demo mode can restore
@@ -1495,6 +1585,43 @@ const RosterView = ({ user }) => {
         return () => unsub();
     }, [isDemo, teamId, coverageTargetUid]);
 
+    // ✏️ THE CHANGE LOG LISTENER. Newest first, capped, and — like every other
+    // listener here — with an error callback (M8), because "no hand edits" and
+    // "not allowed to see the hand edits" must not look the same. The sandbox
+    // opens no channel: its log is whatever this session did, kept in state.
+    useEffect(() => {
+        setRosterChanges([]);
+        setChangesError(null);
+
+        // Gated on a signed-in uid exactly as the coverage listener is: the log is
+        // member-readable, and a render with no signed-in user opens no query.
+        if (isDemo || !teamId || !coverageTargetUid) return undefined;
+
+        const recent = query(
+            collection(db, ...rosterChangesPath(teamId, ROSTER_YEAR)),
+            orderBy('at', 'desc'),
+            limit(ROSTER_CHANGES_SHOWN),
+        );
+
+        const unsub = onSnapshot(
+            recent,
+            (snapshot) => {
+                setChangesError(null);
+                setRosterChanges(readRosterChanges(snapshot));
+            },
+            (error) => {
+                console.error('🔥 Roster change log listener failed:', error?.code, error?.message);
+                setChangesError(
+                    error?.code === 'permission-denied'
+                        ? 'You do not have permission to read the roster change log. This panel is empty because it could not be loaded — not because nothing has been changed by hand.'
+                        : `The roster change log could not be loaded (${error?.code || 'unknown error'}). Hand edits may be missing from this panel until you reload.`,
+                );
+            },
+        );
+
+        return () => unsub();
+    }, [isDemo, teamId, coverageTargetUid]);
+
     // --- ACTIONS ---
     
     /**
@@ -1531,12 +1658,20 @@ const RosterView = ({ user }) => {
      * Fresh copies throughout, so a later edit cannot mutate the frozen export
      * through a shared array reference.
      */
-    const loadShape = (shape) => {
+    /**
+     * `scope: 'live'` (owner's decision, 2026-09-17: a department starts from a shape
+     * too) loads the shape's STRUCTURE — tasks, bands, hours, limits, extra rules —
+     * and nothing else. The staff are the team, never a fixture's cast, and the
+     * start date and run length are the department's own. Nothing is saved by
+     * loading: the settings document is written on Generate, as always.
+     */
+    const loadShape = (shape, { scope = 'sandbox' } = {}) => {
         const fixture = shape.config;
+        const live = scope === 'live';
         // The shape, and specifically its `attribution`, travels with the rows. See the
         // note on `demoShape`: the picker closes, the attribution must not.
         setDemoShape(shape);
-        setDemoStaffRows(fixture.staff.map(person => createStaffRow(person)));
+        if (!live) setDemoStaffRows(fixture.staff.map(person => createStaffRow(person)));
         setDemoTaskRows(fixture.tasks.map(task => createTaskRow(task)));
         setDemoBandInputs(bandsToInputs(fixture.rules?.bands || DEFAULT_GRADE_BANDS));
         // The fixture's hours policy goes into the two boxes — not into `extraRules` —
@@ -1596,11 +1731,13 @@ const RosterView = ({ user }) => {
         // rota instead of a handover; and the weekend-quota run starts on the 1st of a
         // month so its first quota period is a WHOLE month the engine will judge. Each
         // fixture's own comment states why its two numbers are what they are.
-        setConfig(prev => ({
-            ...prev,
-            startDate: fixture.startDate,
-            weeks: fixture.weeks,
-        }));
+        if (!live) {
+            setConfig(prev => ({
+                ...prev,
+                startDate: fixture.startDate,
+                weeks: fixture.weeks,
+            }));
+        }
     };
 
     /**
@@ -1952,11 +2089,20 @@ const RosterView = ({ user }) => {
     };
 
     // --- SWAP LOGIC ---
+
+    // WHO MAY OPEN A SHIFT THEY ARE NOT ON. The app-level admin always could; a
+    // MEMBERSHIP lead now can too, because the roster master is a lead (often not
+    // in the pool at all — `NISA` in the rules fixture) and the two things this
+    // modal does on somebody else's shift, arranging cover and reassigning, are
+    // both hers to do. `user.role` and `membership.role` are different documents
+    // (see `TeamContext`); either grants it.
+    const canActOnAnyShift = user?.role === 'admin' || isLead === true;
+
     const handleShiftClick = (shift, dateKey) => {
         // 🌟 UPDATED: Checks if user is Lead OR Co-Lead. Also maintains backwards compatibility.
         const isMyShift = isDemo ? true : (shift.lead === user?.name || shift.coLead === user?.name || shift.staff === user?.name);
         
-        if (isMyShift || user?.role === 'admin') {
+        if (isMyShift || canActOnAnyShift) {
             setSelectedShift({ ...shift, date: dateKey });
             // A fresh shift means a fresh duty choice — never carry the previous
             // shift's selection into this one.
@@ -1987,7 +2133,14 @@ const RosterView = ({ user }) => {
     // Demo mode's standing fiction is that every shift is actionable
     // (`isMyShift` is forced true above). Granting it the admin path keeps the
     // sandbox behaving exactly as it did, without a live-mode special case.
-    const canArrangeForOthers = user?.role === 'admin' || isDemo;
+    const canArrangeForOthers = canActOnAnyShift || isDemo;
+
+    // ✏️ WHO MAY CHANGE THE ROSTER DIRECTLY. `firestore.rules` lets a MEMBERSHIP
+    // lead update the roster document freely and write the change log; that is
+    // the gate that matters, and this is its mirror on the client. The sandbox
+    // keeps its standing fiction that every shift is actionable — nothing there
+    // is written anywhere.
+    const canReassign = isDemo || isLead === true;
 
     const swapSubject = useMemo(
         () => (selectedShift
@@ -2107,6 +2260,143 @@ const RosterView = ({ user }) => {
             );
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    // ✏️ REASSIGN NOW — a lead changes one duty on one day, without asking and
+    // without regenerating (ROSTER_TODO.md queue item 3).
+    //
+    // The sequence is the coverage acceptance's, with the request document
+    // replaced by a CHANGE RECORD written afterwards:
+    //
+    //   read the roster → planShiftReassignment → write ONE day → READ BACK →
+    //   findReassignedShift → only then addDoc(rosters/{year}/changes)
+    //
+    //   • The substitution is `applyShiftSubstitution`'s, through a planner held
+    //     to parity with the swap planner: the incoming person takes exactly the
+    //     duty the outgoing person held, nobody is promoted, nothing else moves.
+    //   • A-RC4 — the write is not evidence. The document is read back and the
+    //     change FOUND in it before anything is called done or logged.
+    //   • The log entry is written LAST, so a logged change is always a verified
+    //     one. The reverse failure — verified change, failed log — is reported as
+    //     exactly that, never as "nothing happened".
+    //   • Q3 — nobody is notified; the copy says to tell both people.
+    //
+    // Sandbox: the same planner against the on-screen roster, applied to state,
+    // logged in state, written nowhere.
+    const reassignShift = async () => {
+        if (!selectedShift || !swapSubject?.ok || !swapTargetStaff) return;
+        if (!canReassign) {
+            showStatus('error', 'Only a team lead can reassign a duty directly. Ask the colleague to cover instead.');
+            return;
+        }
+        if (reassigningRef.current) return;
+        reassigningRef.current = true;
+        setIsReassigning(true);
+
+        const dateKey = selectedShift.date;
+        const task = selectedShift.task;
+        const role = swapSubject.swapRole;
+        const from = swapSubject.requestedBy;
+        const to = swapTargetStaff;
+        const when = formatRosterDateKey(dateKey);
+
+        const closeModal = () => {
+            setIsSwapModalOpen(false);
+            setSwapTargetStaff('');
+            setSwapReason('');
+            setSwapRoleChoice('');
+        };
+
+        let rosterChangeVerified = false;
+
+        try {
+            if (isDemo) {
+                const plan = planShiftReassignment({ roster: rosterData, dateKey, task, role, from, to });
+                if (!plan.ok) {
+                    showStatus('error', `Not reassigned — the sandbox roster is unchanged. ${plan.reason}`);
+                    return;
+                }
+                const nextRoster = { ...rosterData, [dateKey]: plan.shifts };
+                setRosterData(nextRoster);
+                setDemoResult((prev) => (prev ? { ...prev, roster: nextRoster } : prev));
+                const record = buildRosterChangeRecord({
+                    plan, task, from, to, reason: swapReason, actor: { uid: 'sandbox', name: actingUserName },
+                });
+                setRosterChanges((prev) => [
+                    { ...record, docId: `sandbox-${Date.now()}-${prev.length}`, at: new Date() },
+                    ...prev,
+                ].slice(0, ROSTER_CHANGES_SHOWN));
+                showStatus(
+                    'info',
+                    `Sandbox: the ${task} shift on ${when} now reads “${plan.after}” on this screen. Nothing was saved — in live mode this would have been written to the master roster and logged under your name.`,
+                );
+                closeModal();
+                return;
+            }
+
+            const rosterRef = doc(db, ...rosterPath(teamId, ROSTER_YEAR));
+            const rosterSnap = await getDoc(rosterRef);
+            const plan = planShiftReassignment({
+                roster: rosterSnap.exists() ? rosterSnap.data() : null,
+                dateKey, task, role, from, to,
+            });
+
+            if (!plan.ok) {
+                console.warn('Reassignment refused:', plan.reason, { dateKey, task, role, from, to });
+                showStatus('error', `Not reassigned — the roster is unchanged. ${plan.reason}`);
+                return;
+            }
+
+            await updateDoc(rosterRef, { [dateKey]: plan.shifts });
+
+            // 🛡️ A-RC4: read it back and find the change before claiming or logging it.
+            const verifySnap = await getDoc(rosterRef);
+            const observed = verifySnap.exists()
+                ? findReassignedShift({ roster: verifySnap.data(), dateKey, task, role, from, to })
+                : null;
+
+            if (!observed) {
+                console.error('Reassignment could not be verified on read-back:', { dateKey, task, role, from, to, plan });
+                showStatus(
+                    'error',
+                    `Not confirmed — AURA sent the change but could not find it when it read the roster back, so it has NOT logged it. Check the roster for ${when} yourself before relying on it.`,
+                );
+                return;
+            }
+
+            rosterChangeVerified = true;
+
+            const record = buildRosterChangeRecord({ plan, task, from, to, reason: swapReason, actor: user });
+            await addDoc(collection(db, ...rosterChangesPath(teamId, ROSTER_YEAR)), {
+                ...record,
+                // Server clock, and `firestore.rules` refuses anything else.
+                at: serverTimestamp(),
+            });
+
+            showStatus(
+                'success',
+                `Reassigned, and verified against the master roster: the ${task} shift on ${when} now reads “${observed.staff}”. ${to} takes over as ${describeShiftRole(role)} from ${from}, and the change is logged under your name. AURA cannot notify either of them yet, so please tell them both.`,
+            );
+            closeModal();
+        } catch (error) {
+            console.error('🔥 Reassignment failed:', error);
+            const code = error?.code || error?.message || 'unknown error';
+            if (rosterChangeVerified) {
+                // The roster IS changed. What failed is the record of it.
+                showStatus(
+                    'error',
+                    `The roster DID change — ${to} is now on the ${task} shift on ${when}, written and read back. What failed (database error ${code}) is logging that change, so the change log will not show it. Tell ${to} and ${from}, and note the reason somewhere else.`,
+                );
+            } else {
+                showStatus(
+                    'error',
+                    `Not reassigned — AURA hit a database error (${code}) before it could confirm anything, so it does not know whether the roster changed and has logged nothing. Check the roster for ${when} before relying on it.`,
+                );
+            }
+        } finally {
+            reassigningRef.current = false;
+            setIsReassigning(false);
         }
     };
 
@@ -2630,6 +2920,10 @@ const RosterView = ({ user }) => {
                 />
             )}
 
+            {/* ✏️ HAND EDITS, newest first — the audit trail queue item 3 asked
+                for. In both modes: the sandbox shows what this session changed. */}
+            <RosterChangesPanel changes={rosterChanges} listenerError={changesError} isDemo={isDemo} />
+
             {/* 👤 ONE PERSON'S DUTIES, instead of the grid. Same data, same month,
                 same object in memory — see `PersonRosterPanel`. The pool is passed
                 only in the sandbox: live mode's person is the signed-in user, so
@@ -2755,9 +3049,9 @@ const RosterView = ({ user }) => {
                                         <button 
                                             key={idx} 
                                             onClick={() => handleShiftClick(s, dateKey)}
-                                            disabled={!isMyShift && user?.role !== 'admin'}
+                                            disabled={!isMyShift && !canActOnAnyShift}
                                             className={`text-left text-xs sm:text-[9px] font-bold px-2 py-2 sm:px-1.5 sm:py-1 ${TOUCH} rounded flex flex-col leading-tight shadow-sm transition-transform ${
-                                                isMyShift || user?.role === 'admin' ? 'cursor-pointer hover:scale-[1.02] ring-1 ring-inset ring-transparent hover:ring-indigo-400' : 'cursor-default opacity-80'
+                                                isMyShift || canActOnAnyShift ? 'cursor-pointer hover:scale-[1.02] ring-1 ring-inset ring-transparent hover:ring-indigo-400' : 'cursor-default opacity-80'
                                             } ${
                                                 // The owner's palette first — Management yellow, Clinical
                                                 // brown, Research limegreen, Education orange — from the ONE
@@ -3479,6 +3773,40 @@ const RosterView = ({ user }) => {
                                         ? (swapTargetStaff ? `Arrange cover with ${swapTargetStaff}` : 'Arrange cover')
                                         : (swapTargetStaff ? `Ask ${swapTargetStaff} to cover` : 'Ask someone to cover'))}
                             </button>
+
+                            {/* ✏️ OR CHANGE IT NOW. A lead's second door out of this
+                                modal: no request, no consent, takes effect at once and
+                                is logged under the lead's name. Same target picker,
+                                same duty picker, same reason field — one form, two
+                                verbs. Rendered only for a membership lead (and the
+                                sandbox); a staff member never sees it, and
+                                `firestore.rules` would refuse them anyway. */}
+                            {canReassign && (
+                                <div className="mt-4 pt-4 border-t border-dashed border-slate-200 dark:border-slate-700">
+                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-2">
+                                        <span className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-widest text-[10px]">Or change it now.</span>{' '}
+                                        {isDemo
+                                            ? 'Sandbox: changes the roster on this screen only, and nothing is saved.'
+                                            : `Takes effect immediately, without asking ${swapTargetStaff || 'the colleague'}: ${swapSubject?.requestedBy || 'the current holder'} comes off the ${describeShiftRole(swapSubject?.swapRole)} duty and the change is logged under your name.`}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={reassignShift}
+                                        disabled={isReassigning || isSubmitting || !swapSubject?.ok || !swapTargetStaff}
+                                        title={
+                                            !swapSubject?.ok ? swapSubject?.reason
+                                                : !swapTargetStaff ? 'Choose who takes over first'
+                                                    : undefined
+                                        }
+                                        className="w-full py-3 bg-white dark:bg-slate-950 border-2 border-indigo-600 dark:border-indigo-400 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 disabled:opacity-50 disabled:cursor-not-allowed font-black text-xs uppercase tracking-widest rounded-xl transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Pencil size={15} />
+                                        {isReassigning
+                                            ? 'Reassigning…'
+                                            : (swapTargetStaff ? `Reassign now to ${swapTargetStaff}` : 'Reassign now')}
+                                    </button>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>,
@@ -3530,7 +3858,7 @@ const RosterView = ({ user }) => {
                             IMPROVEMENT. It was one button ("Load example department"), then
                             five cards, then one dropdown of TWELVE ARRANGEMENTS — one per
                             department — and 23 more were about to be written so that every
-                            MOH profession had one. Seven of the twelve were invented
+                            profession on the national list had one. Seven of the twelve were invented
                             services offered under a real profession's name with an amber
                             "please correct this" panel attached. The panel was the tell.
                             The roster owner stopped it: "other professions can also ride on
@@ -3539,7 +3867,7 @@ const RosterView = ({ user }) => {
                             regardless of their profession."
                             SO THE TWO CONTROLS ARE A PROFESSION AND A SHAPE, and they are
                             different kinds of thing. The profession is the visitor's own
-                            designation, from MOH's published list, and it LABELS the result
+                            designation, from the national published list, and it LABELS the result
                             — it selects no duty, grade or rule, which is what lets an art
                             therapist ride the physiotherapists' structure and still see
                             "Art Therapist" on their roster. The shape is a STRUCTURE, and
@@ -3589,7 +3917,7 @@ const RosterView = ({ user }) => {
                              *    direction: this is the department you are configuring, and
                              *    here is where its facts are edited.
                              */
-                            <WizardStep number={wizardStepNumber('team')} label={wizardStepLabel('team')}>
+                            <WizardStep number={wizardStepNumber('team')} label={wizardStepLabel('team')} guide="team">
                                 <div className="pb-4">
                                     <div className="p-4 rounded-xl bg-indigo-50/60 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800/50">
                                         <p className="text-sm font-black text-slate-800 dark:text-white">
@@ -3607,15 +3935,62 @@ const RosterView = ({ user }) => {
                                             rostered</span> there and does not appear below.
                                         </p>
                                     </div>
+
+                                    {/* START FROM A SHAPE — IN A REAL DEPARTMENT TOO (owner, 2026-09-17).
+                                        The sandbox always had this; live mode started every roster master
+                                        at an empty task table and a page of instructions on how to fill
+                                        it. A shape fills the steps below with a structure another team
+                                        described, so the lead edits a filled form. Only the STRUCTURE
+                                        loads (`loadShape` with `scope: 'live'`): the staff stay the team,
+                                        the dates stay the department's, and nothing is saved until
+                                        Generate. The first option is the honest no-op. */}
+                                    <div className="mt-3 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                                        <div className="flex items-center gap-1">
+                                            <label htmlFor="roster-shape-live" className={DEMO_PICKER_LABEL_CLASS}>
+                                                Shape to start from
+                                            </label>
+                                            <FieldHint id="liveShapePicker" />
+                                        </div>
+                                        <select
+                                            id="roster-shape-live"
+                                            value={demoShape?.id || ''}
+                                            onChange={(event) => {
+                                                const chosen = DEMO_SHAPES.find((entry) => entry.id === event.target.value);
+                                                if (chosen) loadShape(chosen, { scope: 'live' });
+                                                else setDemoShape(null);
+                                            }}
+                                            className={DEMO_PICKER_SELECT_CLASS}
+                                        >
+                                            <option value="">Keep what is configured</option>
+                                            <optgroup label="Shapes — from teams who described their week">
+                                                {DEMO_SHAPES.filter((entry) => entry.group === 'shape').map((entry) => (
+                                                    <option key={entry.id} value={entry.id}>{entry.name}</option>
+                                                ))}
+                                            </optgroup>
+                                            <optgroup label="Demonstrations — nobody's service">
+                                                {DEMO_SHAPES.filter((entry) => entry.group === 'demo').map((entry) => (
+                                                    <option key={entry.id} value={entry.id}>{entry.name}</option>
+                                                ))}
+                                            </optgroup>
+                                        </select>
+                                        {demoShape && (
+                                            <p
+                                                data-shape-attribution={demoShape.id}
+                                                className="text-[10px] text-slate-600 dark:text-slate-300 mt-2 leading-relaxed"
+                                            >
+                                                {`Loaded: ${demoShape.demonstrates} ${demoShape.attribution} Your staff are still your team, and the dates are still yours.`}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             </WizardStep>
                         )}
 
                         {isDemo && (
-                            <WizardStep number={wizardStepNumber('team')} label={wizardStepLabel('team')}>
+                            <WizardStep number={wizardStepNumber('team')} label={wizardStepLabel('team')} guide="team">
                             <div className="mb-4 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
                                 {/* ── CONTROL 1: WHO YOU ARE ─────────────────────────────
-                                    MOH's own 28, with `<optgroup>` for the two that nest
+                                    the national list's 28, with `<optgroup>` for the two that nest
                                     (12, Medical Technologist / Physiologist, and 24,
                                     Psychologist). The parent of a nesting profession is a
                                     GROUP HEADING and not a choice — a roster belongs to a
@@ -3638,7 +4013,7 @@ const RosterView = ({ user }) => {
                                         a designation before it will help is a tool that has
                                         to be argued with first. */}
                                     <option value="">Prefer not to say</option>
-                                    {MOH_PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
+                                    {PROFESSION_OPTIONS.map((entry) => (entry.kind === 'group' ? (
                                         <optgroup key={entry.groupId} label={entry.label}>
                                             {entry.options.map((leaf) => (
                                                 <option key={leaf.id} value={leaf.id}>{leaf.name}</option>
@@ -3698,9 +4073,12 @@ const RosterView = ({ user }) => {
                                     caption. Order comes from `DEMO_SHAPES` and this file
                                     does not re-order it; the grouping is a filter over that
                                     order, not a re-sort of it. */}
-                                <label htmlFor="roster-shape" className={`${DEMO_PICKER_LABEL_CLASS} block mt-3`}>
-                                    Shape to start from
-                                </label>
+                                <div className="flex items-center gap-1 mt-3">
+                                    <label htmlFor="roster-shape" className={DEMO_PICKER_LABEL_CLASS}>
+                                        Shape to start from
+                                    </label>
+                                    <FieldHint id="shapePicker" />
+                                </div>
                                 <select
                                     id="roster-shape"
                                     value={demoShape?.id || ''}
@@ -3770,11 +4148,7 @@ const RosterView = ({ user }) => {
                                     </>
                                 ) : (
                                     <p className="text-[10px] text-emerald-700 dark:text-emerald-300 mt-2 leading-relaxed">
-                                        Every shape here is a STRUCTURE a team described — how their duties, grades
-                                        and weekends fit together — not a description of anybody else&apos;s service.
-                                        Pick the one closest to how your team works and it fills the tables below;
-                                        everything it loads stays editable, including the parts that make it
-                                        interesting. Or start blank and type your own team: a name alone is enough.
+                                        Pick a shape and it fills the steps below. Or start blank and type your own team.
                                     </p>
                                 )}
                             </div>
@@ -3791,7 +4165,7 @@ const RosterView = ({ user }) => {
                             Caught by `RosterView.steps.test.jsx` asserting the sequence rather
                             than just its first entry, which is why it asserts the whole list. */}
                         <div className="mb-6">
-                            <WizardStep number={wizardStepNumber('period')} label={wizardStepLabel('period')}>
+                            <WizardStep number={wizardStepNumber('period')} label={wizardStepLabel('period')} guide="period">
                             {/* In Sandbox this gets the same card as every other numbered step.
                                 Left bare it was the one step on the spine with no panel around
                                 it, which read as a gap in the sequence rather than as a step.
@@ -3805,21 +4179,37 @@ const RosterView = ({ user }) => {
                                 from a `pb-4` inside `RosterDemoWizardTables`; this is the
                                 same rhythm, applied to the step that sits outside it. */}
                             <div className={isDemo
-                                ? 'mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid grid-cols-3 gap-3'
-                                : 'mb-4 grid grid-cols-2 gap-4'}
+                                ? 'mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-3'
+                                : 'mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4'}
                             >
-                                {/* TWO THIRDS TO THE DATE, one to Weeks — in Sandbox only.
+                                {/* TWO THIRDS TO THE DATE, one to Weeks — in BOTH modes.
                                     Equal halves left the date field 151px, and the native
                                     `<input type="date">` at the 16px Sandbox uses to stop iOS
                                     zooming needs about 150px for `01/02/2026` PLUS its picker
                                     icon, so the year rendered as `202`. Weeks holds a
-                                    one- or two-digit number and never needed half the row. */}
-                                <div className={isDemo ? 'col-span-2' : undefined}>
+                                    one- or two-digit number and never needed half the row.
+                                    Live mode kept equal halves until v2.16.0, and on a phone
+                                    it was worse than a clipped year: `grid-cols-2` is
+                                    `minmax(0, 1fr)`, a track that will not grow, and iOS
+                                    Safari will not shrink a date input below its intrinsic
+                                    width, so the date box was DRAWN OVER the Weeks box.
+                                    That split alone was NOT enough (v2.16.0 shipped it and a
+                                    phone screenshot showed the same overlap): iOS renders a
+                                    native date control at its own size and width whatever
+                                    `text-sm` and `w-full` say. So, two more things. On a
+                                    phone the row is ONE column — the two fields stack, and
+                                    nothing can be drawn over anything; the thirds return from
+                                    `sm:` up. And the date input is `appearance-none`, which
+                                    is what makes iOS Safari honour width and font size on a
+                                    date input at all (`src/style.css` keeps its inner value
+                                    left-aligned and from collapsing when empty). `min-w-0`
+                                    stays so the grid track, not the control, sets the width. */}
+                                <div className="sm:col-span-2">
                                     <label className="text-xs font-bold text-slate-400 uppercase" htmlFor="roster-start-date">Start Date</label>
                                     <input
                                         id="roster-start-date"
                                         type="date"
-                                        className={`input-field w-full mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
+                                        className={`input-field w-full min-w-0 appearance-none mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white${isDemo ? ' min-h-11 !text-base sm:min-h-0 sm:!text-sm' : ''}`}
                                         value={config.startDate}
                                         onChange={(e) => setConfig({...config, startDate: e.target.value})}
                                     />

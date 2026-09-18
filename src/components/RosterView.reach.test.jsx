@@ -58,6 +58,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(() => ({ __mock: 'docRef' })),
     collection: vi.fn(() => ({ __mock: 'collectionRef' })),
     onSnapshot: vi.fn(() => () => {}),
@@ -90,6 +92,18 @@ import { generateRosterV2 } from '../utils/rosterEngineV2';
 // --- HELPERS -----------------------------------------------------------------
 
 const VISITOR = { name: 'Visiting Therapist', role: 'staff', email: 'visitor@example.org' };
+
+
+/**
+ * v2.16.0: the wizard's explanations moved out of the always-on inline text and
+ * behind an info button per setting (`FieldHint`), so a claim about what the
+ * wizard SAYS is now a claim about what the note says once opened. Open by id.
+ */
+const openHint = (id) => {
+    const button = document.querySelector(`[data-field-hint="${id}"]`);
+    if (!button) throw new Error(`No info button for "${id}" is on screen`);
+    fireEvent.click(button);
+};
 
 const openConfigure = () => fireEvent.click(screen.getByRole('button', { name: /configure/i }));
 const generateButton = () => screen.getByRole('button', { name: /^draft roster$/i });
@@ -403,14 +417,19 @@ describe('the nine controls are on screen in the sandbox wizard', () => {
         expectNoFirestoreTraffic();
     });
 
-    it('states the continuity trade-off on screen, where the surprise would happen', () => {
+    it('states the continuity trade-off, where the surprise would happen', () => {
         render(<RosterView user={VISITOR} />);
         openConfigure();
         toggleTaskMore(1);
 
         // The one line the brief requires: what it TRADES AWAY, not what it does.
+        // Inline the moment continuity is switched ON; the full cost behind the
+        // info button either way.
+        openHint('taskContinuity');
         expect(screen.getByText(/stops being shared out fairly/i)).toBeTruthy();
         expect(screen.getByText(/beats FTE-weighted fairness/i)).toBeTruthy();
+        fireEvent.click(screen.getByLabelText('Task row 1: same lead every time'));
+        expect(screen.getAllByText(/stops being shared out fairly/i).length).toBeGreaterThanOrEqual(1);
         expectNoFirestoreTraffic();
     });
 
@@ -421,6 +440,7 @@ describe('the nine controls are on screen in the sandbox wizard', () => {
 
         // "Available as usual, plus these" is what the words suggest and is NOT what
         // the engine does. Section 0e(ii) calls this the load-bearing sentence.
+        openHint('windows');
         expect(screen.getByText(/not .available as usual, plus these/i)).toBeTruthy();
         expect(screen.getByText(/only those tasks/i)).toBeTruthy();
         expectNoFirestoreTraffic();
@@ -431,6 +451,7 @@ describe('the nine controls are on screen in the sandbox wizard', () => {
         openConfigure();
         toggleTaskMore(1);
 
+        openHint('taskQuota');
         expect(screen.getByText(/preference, not a guarantee/i)).toBeTruthy();
         expect(screen.getByText(/is hard: a duty that would take/i)).toBeTruthy();
         expectNoFirestoreTraffic();
@@ -596,6 +617,8 @@ describe('continuity of care, configured from the wizard', () => {
         // The control is GONE rather than greyed: its value would be dropped by the
         // mapper, and the cell says where the decision went instead.
         expect(screen.queryByLabelText('Task row 1: same lead every time')).toBeNull();
+        expect(screen.getByText(/not available while this task is a/i)).toBeTruthy();
+        openHint('taskContinuity');
         expect(screen.getByText(/no lead slot to keep with one person/i)).toBeTruthy();
         expectNoFirestoreTraffic();
     });

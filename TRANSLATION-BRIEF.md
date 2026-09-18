@@ -14,7 +14,7 @@ has its instrument at `docs/CD13-translation-review.xlsx` and **still has not be
 The portal serves four languages, so each item needs **three** translations:
 **Bahasa Melayu (`ms`)**, **中文 (`zh`)**, **தமிழ் (`ta`)**.
 
-## Status (reconciled 2026-09-16, on `community`; `main` is v2.14.1)
+## Status (reconciled 2026-09-18, on `community`; `main` is v2.16.2)
 
 | Group | What it is | State |
 |---|---|---|
@@ -24,9 +24,12 @@ The portal serves four languages, so each item needs **three** translations:
 | **4** — the printed handover slip | 24 strings | 🟡 **the 10 flag lines shipped**, bilingual; the other 14 English only |
 | **5** — functional measures | 49 strings | ✅ **shipped** v2.13.0 / v2.14.0, machine-translated, **unreviewed**. ⚠️ **5 are safety-critical and live under owner waivers** |
 | **6** — the six questions the form asked alone, plus 2026-09-16 rewording | 21 new strings + 12 changed | ✅ **shipped** v2.15.0, machine-translated, **unreviewed**. None safety-critical. Review pack: [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md) |
+| **7** — page 3 of the report and the on-screen disclaimer | 30 strings | 🟡 on `community`, machine-translated, **unreviewed**. ⚠️ **the disclaimer is safety-critical and unwaived: the build is red** (`CD29`). Pack §A7 |
+| **8** — the 25 step labels above each chat question | 25 strings | ✅ **shipped** v2.15.2, machine-translated, **unreviewed**. Not safety-critical. Pack §A8 |
 
-**Nothing in this brief has been read by a native speaker.** Groups 1 and 5 are live in
-all four languages on that basis.
+**The first native read happened on 2026-09-17**: the owner's team read the Malay chat
+and report, and corrected four things (see the foot of this file). Chinese and Tamil
+remain unread in every group. Groups 1 and 5 are live in all four languages on that basis.
 
 ## What changed about the position, and why
 
@@ -374,7 +377,7 @@ shortened.
 | `slip.servicesHeading` | Services this points to |
 | `slip.footDisclaimer` | **Not medical advice.** This summary does not constitute a diagnosis or a treatment plan. Anyone reporting chest pain, dizziness or any acute symptom should be directed to a GP or polyclinic, and to emergency care if symptoms are severe or sudden. |
 | `slip.footRetention` | Not a referral · no record is held that can be retrieved · the anonymous assessment behind this page is deleted after 24 months. |
-| `ui.printButton` | Print summary |
+| `ui.printButton` | ~~Print summary~~ · **removed 2026-09-17** (`CP46`). The slip is now what the browser's own print command produces from the result page; there is no button for it. |
 
 ### ✅ The ten reported-flag lines — SHIPPED, bilingual
 
@@ -636,16 +639,12 @@ Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemin
 six findings were all adjudicated on 2026-09-13 and none applied. Details at the
 foot of the pack. Still nobody who reads the language has read any of it.
 
-**Model round 1, 2026-09-16.** ChatGPT over the pack, Gemini over the old workbook.
-Fourteen ChatGPT wording suggestions applied, markers re-verified by test; Gemini's
-six findings were all adjudicated on 2026-09-13 and none applied. Details at the
-foot of the pack. Still nobody who reads the language has read any of it.
 **Settled 2026-09-16: native review only from here; no further model rounds.**
 
 **2026-09-17, the first human read.** The owner's team read the Malay chat and
 corrected four things no model round had raised: an English word left inside a
-chip (`mostly`), `pelan` for `rancangan`, aerobic `kuat` for `tinggi` per MOH
-Malaysia's *tahap tinggi*, and the intensity vocabulary in two waived safety
+chip (`mostly`), `pelan` for `rancangan`, aerobic `kuat` for `tinggi` per Malaysia's
+health ministry's *tahap tinggi*, and the intensity vocabulary in two waived safety
 strings. The chip finding was also a flag defect (`CP45`). This is what native
 review looks like and why nothing else substitutes for it.
 
@@ -661,7 +660,9 @@ review looks like and why nothing else substitutes for it.
 | 4 — handover slip | 24 | 72 |
 | 5 — functional measures | 49 | 147 |
 | 6 — form-only questions, plus 2026-09-16 rewording | 21 + 12 changed | 63 + 36 |
-| | **158** (+12 changed) | **474** (+36 changed) |
+| 7 — page 3 of the report | 30 | 90 |
+| 8 — step labels | 25 | 75 |
+| | **213** (+12 changed) | **639** (+36 changed) |
 
 Group 2 is the bulk and the highest clinical stakes; Group 1 is the one where every
 day it is missing costs data you cannot recover later.

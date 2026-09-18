@@ -282,6 +282,14 @@ export const memberPath = (teamId, uid) => under(teamId, TEAM_COLLECTIONS.member
 /** The duty roster for one year — was the single global `system_data/roster_2026`. */
 export const rostersPath = (teamId) => under(teamId, TEAM_COLLECTIONS.rosters);
 export const rosterPath = (teamId, year) => under(teamId, TEAM_COLLECTIONS.rosters, assertYear(year));
+/**
+ * The roster's CHANGE LOG — one document per hand edit, a subcollection of the
+ * year's roster document so it is partitioned exactly as the roster is and
+ * cannot outlive it. Lead-written, member-readable, never edited
+ * (`firestore.rules`). ROSTER_TODO.md queue item 3.
+ */
+export const ROSTER_CHANGES = 'changes';
+export const rosterChangesPath = (teamId, year) => [...rosterPath(teamId, year), ROSTER_CHANGES];
 
 /** Shift swaps — was the global `shift_swaps`, where `targetStaff` was a NAME. */
 export const swapsPath = (teamId) => under(teamId, TEAM_COLLECTIONS.swaps);

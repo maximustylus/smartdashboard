@@ -3,15 +3,17 @@
 **What this is.** Every non-English string added or changed on the `community` branch on
 2026-09-16, with the English it was translated from and a back-translation to check
 against. Written for a reviewer who reads Malay, Chinese or Tamil, and laid out so that
-it can be pasted into Gemini or ChatGPT as a first pass.
+they can work row by row. Model rounds closed on 2026-09-16 at the owner's decision:
+this pack is for a person.
 
 **What it is not.** A model reading a machine translation is evidence, not a review. The
 five safety-critical strings already live under the owner's waivers are in
-`TRANSLATION-BRIEF.md` Group 5 and are not repeated here; nothing in this pack is
-safety-critical, so nothing in it gates the build.
+`TRANSLATION-BRIEF.md` Group 5 and are not repeated here. One string in this pack IS
+safety-critical: `governance.disclaimer` in §A7, registered and unwaived, so the build
+is red until it is reviewed or waived (`CD29`). Nothing else here gates the build.
 
-**Where it ships.** Nothing here is live yet. `main` is v2.14.1; these strings are on
-`community`.
+**Where it ships.** Sections A1 to A6 and B shipped in v2.15.0 and §A8 in v2.15.2;
+`main` is v2.16.2 as of 2026-09-18. §A7 is on `community` and not yet released.
 
 **Revision 2.** The first revision of this pack showed the wrong English and the wrong
 translations for `chat.wellbeing.chip4` and `chip5` (a generator indexed the first two
@@ -433,13 +435,13 @@ The governance page was English in every language. ⚠️ **`governance.disclaim
 | `zh` | 您的 Healthier SG 健康计划 |  |
 | `ta` | உங்கள் Healthier SG சுகாதாரத் திட்டம் |  |
 
-**`governance.hsgIntro`** · EN: *This assessment aligns with the MOH Healthier SG framework. Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.*
+**`governance.hsgIntro`** · EN: *This assessment aligns with the Healthier SG framework. Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.*
 
 | | Translation | Back-translation |
 |---|---|---|
-| `ms` | Penilaian ini selaras dengan rangka kerja MOH Healthier SG . Daftar dengan doktor keluarga Healthier SG untuk mendapat konsultasi Rancangan Kesihatan tahunan yang disubsidi sepenuhnya, jadual saringan peribadi, dan rujukan ke program komuniti. |  |
-| `zh` | 本评估与 卫生部 Healthier SG 框架一致。向 Healthier SG 家庭医生登记，即可获得全额补贴的年度健康计划咨询、个人化的筛查安排以及社区项目转介。 |  |
-| `ta` | இந்த மதிப்பீடு MOH Healthier SG கட்டமைப்புடன் ஒத்துப்போகிறது. முழுமையாக மானியம் பெற்ற ஆண்டுச் சுகாதாரத் திட்ட ஆலோசனை, தனிப்பயன் திரையிடல் அட்டவணை மற்றும் சமூகத் திட்டப் பரிந்துரைகளைப் பெற Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்யுங்கள். |  |
+| `ms` | Penilaian ini selaras dengan rangka kerja Healthier SG. Daftar dengan doktor keluarga Healthier SG untuk mendapat konsultasi Rancangan Kesihatan tahunan yang disubsidi sepenuhnya, jadual saringan peribadi, dan rujukan ke program komuniti. |  |
+| `zh` | 本评估与 Healthier SG 框架一致。向 Healthier SG 家庭医生登记，即可获得全额补贴的年度健康计划咨询、个人化的筛查安排以及社区项目转介。 |  |
+| `ta` | இந்த மதிப்பீடு Healthier SG கட்டமைப்புடன் ஒத்துப்போகிறது. முழுமையாக மானியம் பெற்ற ஆண்டுச் சுகாதாரத் திட்ட ஆலோசனை, தனிப்பயன் திரையிடல் அட்டவணை மற்றும் சமூகத் திட்டப் பரிந்துரைகளைப் பெற Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்யுங்கள். |  |
 
 **`governance.hsgLinks.healthhub`** · EN: *Access your Health Plan and book screenings*
 
@@ -662,7 +664,10 @@ applied.** The workbook should be retired or regenerated before it is used again
 Three columns, keep the **id**. Where a string carries a marker word (the table at
 the top), say explicitly that the marker is still present.
 
-## A paste-ready instruction for Gemini or ChatGPT
+## What the reviewer is checking for
+
+The instruction below was written for a model round. The rounds are closed; the
+criteria are unchanged and are what a native reader is asked to apply.
 
 > You are reviewing machine translations for a Singapore community health screening
 > read mostly by people over 60 on a phone. For each row below, compare the Malay,
@@ -674,4 +679,4 @@ the top), say explicitly that the marker is still present.
 > your suggestion and say so. Return a table with columns: id, language, problem,
 > suggested wording, marker present (yes / no / not applicable).
 
-Then paste Section A, then Section B1.
+Sections A and B1 are the ones to read; B2 is punctuation only.

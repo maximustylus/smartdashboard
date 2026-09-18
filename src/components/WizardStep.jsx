@@ -25,8 +25,85 @@
  * are hidden, which is what a screen-reader user actually needs to hear.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
+import { BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { WIZARD_STEP_COUNT } from '../utils/rosterWizard';
+import { stepGuideFor } from '../data/rosterWizardHelp';
+
+/**
+ * THE STEP GUIDE — the third of the wizard's three help layers (see
+ * `rosterWizardHelp.js`). One collapsible line under the step's heading:
+ * "How this step works", opening to what to decide, an example, and what
+ * happens next. It is the walk-through a first-time roster master opens on
+ * the steps they are unsure of, and the thing a tenth-time one never sees.
+ *
+ * CLOSED BY DEFAULT, on every step, in both universes — the owner's decision
+ * (2026-09-17): the wizard had been decluttered into layers, and a guide open
+ * on every step put a paragraph back under every heading. OPEN STATE IS
+ * REMEMBERED PER STEP, PER BROWSER, in `localStorage`, and it is the only
+ * thing remembered: a preference about reading, not a fact about the roster.
+ * Every read and write is wrapped, because storage can be absent (a private
+ * window, a cleared profile) and the guide must render the same either way —
+ * closed, the default. (Until v2.16.1 the default was open and the stored
+ * value was `collapsed`; a leftover `collapsed` now means the same as nothing.)
+ */
+const GUIDE_STORAGE_PREFIX = 'nexus.roster.wizardGuide.';
+
+const readOpen = (stepId) => {
+    try {
+        return window.localStorage.getItem(GUIDE_STORAGE_PREFIX + stepId) === 'open';
+    } catch (unavailable) {
+        return false;
+    }
+};
+
+const writeOpen = (stepId, open) => {
+    try {
+        if (open) window.localStorage.setItem(GUIDE_STORAGE_PREFIX + stepId, 'open');
+        else window.localStorage.removeItem(GUIDE_STORAGE_PREFIX + stepId);
+    } catch (unavailable) {
+        // Nothing to do: the preference simply does not survive the page.
+    }
+};
+
+export const StepGuide = ({ stepId }) => {
+    const guide = stepGuideFor(stepId);
+    const [open, setOpen] = useState(() => readOpen(stepId));
+    if (!guide) return null;
+    const collapsed = !open;
+
+    const toggle = () => {
+        const next = !open;
+        setOpen(next);
+        writeOpen(stepId, next);
+    };
+    const Chevron = collapsed ? ChevronRight : ChevronDown;
+
+    return (
+        <div data-step-guide={stepId} className="mb-3">
+            <button
+                type="button"
+                onClick={toggle}
+                aria-expanded={!collapsed}
+                className="inline-flex items-center gap-1.5 min-h-11 sm:min-h-0 py-1 rounded text-[10px] font-black uppercase tracking-widest text-indigo-700 dark:text-indigo-300 hover:text-indigo-900 dark:hover:text-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+                <BookOpen size={12} aria-hidden="true" />
+                How this step works
+                <Chevron size={12} aria-hidden="true" />
+            </button>
+            {!collapsed && (
+                <dl className="mt-1.5 grid gap-x-3 gap-y-1 sm:grid-cols-[auto_1fr] rounded-lg border border-indigo-200 dark:border-indigo-800/60 bg-indigo-50/60 dark:bg-indigo-900/20 p-3 text-[11px] leading-relaxed">
+                    <dt className="font-black uppercase tracking-wider text-[10px] text-indigo-700 dark:text-indigo-300">Decide</dt>
+                    <dd className="text-slate-700 dark:text-slate-200">{guide.decide}</dd>
+                    <dt className="font-black uppercase tracking-wider text-[10px] text-indigo-700 dark:text-indigo-300">Example</dt>
+                    <dd className="text-slate-700 dark:text-slate-200">{guide.example}</dd>
+                    <dt className="font-black uppercase tracking-wider text-[10px] text-indigo-700 dark:text-indigo-300">Then</dt>
+                    <dd className="text-slate-700 dark:text-slate-200">{guide.next}</dd>
+                </dl>
+            )}
+        </div>
+    );
+};
 
 /**
  * THE BADGE IS DELIBERATELY SMALL ON A PHONE.
@@ -40,12 +117,12 @@ import { WIZARD_STEP_COUNT } from '../utils/rosterWizard';
  */
 const BADGE = 'w-6 h-6 sm:w-7 sm:h-7 text-[11px] sm:text-xs';
 
-const WizardStep = ({ number, label, isLast = false, children }) => {
+const WizardStep = ({ number, label, isLast = false, guide = null, children }) => {
     // An unknown step id arrives as `null` from `wizardStepNumber`. Render the
     // panel unbadged rather than printing "step 0 of 7" or throwing: the wizard
     // stays usable and the omission is obvious in review.
     if (!Number.isInteger(number) || number < 1) {
-        return <div>{children}</div>;
+        return <div>{guide && <StepGuide stepId={guide} />}{children}</div>;
     }
 
     return (
@@ -76,6 +153,9 @@ const WizardStep = ({ number, label, isLast = false, children }) => {
                 below its content's intrinsic width, and one wide table row would push
                 the whole wizard into a horizontal scroll on a phone. */}
             <div className="flex-1 min-w-0" aria-label={label ? `Step ${number} of ${WIZARD_STEP_COUNT}: ${label}` : undefined}>
+                {/* The guide sits INSIDE the step's column, above its panel, so it is
+                    read as part of "Step 4 of 7: Working hours" and folds with it. */}
+                {guide && <StepGuide stepId={guide} />}
                 {children}
             </div>
         </div>

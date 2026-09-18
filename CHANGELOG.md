@@ -68,7 +68,174 @@ not changed by this release.
 - Every font in the printed report one step larger; Healthier SG logos enlarged
   and the printed URLs removed, rows still link. Nothing clips.
 - Malay terminology per the owner's read-through: `pelan` to `rancangan`, aerobic
-  `kuat` to `tinggi` (MOH: *tahap tinggi*), including in two waived safety strings.
+  `kuat` to `tinggi` (Malaysia's health ministry: *tahap tinggi*), including in two waived safety strings.
+- The Healthier SG line on page 3 of the report no longer carries the national
+  ministry's acronym, in any language, following v2.16.0's removal of it from the
+  product. `community` carries v2.16.0 to v2.16.2 as of 2026-09-18.
+
+## [2.16.2] - 2026-09-17
+
+### Changed
+
+- **"How this step works" starts closed on every wizard step, in both the sandbox and
+  live mode.** The owner's decision: the wizard had been decluttered into layers in
+  v2.16.0, and a guide open under every heading put a paragraph back on each step.
+  What is remembered per step, per browser, is now the *opened* state rather than the
+  collapsed one, so a first-time roster master who opens a guide finds it open next
+  time; a `collapsed` value stored by v2.16.0–v2.16.1 is read as the default and does
+  nothing. Classified as a patch: no new capability, one default corrected to match the
+  intent of the feature it belongs to. Evidence: `src/components/FieldHint.test.jsx`
+  (closed on load, opens, stays open, the leftover value, storage unavailable); 204
+  tests across the five wizard test files pass.
+
+## [2.16.1] - 2026-09-17
+
+### Fixed
+
+- **The Start Date box was still drawn over the Weeks box on a phone in v2.16.0.** The
+  thirds split shipped there was not enough: iOS Safari renders a native date input at
+  its own width and font size, whatever `w-full` and `text-sm` say, so the control
+  overflowed its grid track exactly as before. Two changes, both modes. On a phone the
+  row is one column — Start Date above Weeks — and the thirds return from the `sm:`
+  breakpoint up; nothing can overlap when there is nothing beside it. And the date
+  input is `appearance-none`, which is what makes iOS honour width and font size on a
+  date input, with a rule in `src/style.css` that keeps its inner value left-aligned
+  and from collapsing to zero height when empty. Evidence: the mobile test now pins
+  the one-column phone layout and the `sm:` split; 148 wizard tests across three
+  files pass. Not verified on a device from the sandbox — the second screenshot is
+  the only device evidence, and it is of the version before this one.
+
+## [2.16.0] - 2026-09-17
+
+A team lead can now change one duty on one day **by hand**, and every such change is
+logged. `ROSTER_TODO.md` queue item 3 — the first item on the live queue, and the one
+cardiology's roster master asked for: she corrects the week *inside* the week, and until
+now her only tool for a sick call was to regenerate the whole run.
+
+The Configure wizard also stops explaining every setting at once. An administrator who
+tested the roster called it cluttered, and she was right: 42 paragraphs and about 1,800
+words were on screen by default. The explanations now sit in three layers, a real
+department can start from a described shape, and the acronym of the national ministry
+is gone from the product at the owner's request.
+
+### Added
+
+- **Reassign now.** Opening a shift already offered *Ask someone to cover*, a two-party
+  act: the holder asks, the colleague accepts, and only then does the roster move. The
+  same modal now has a second door for a lead: pick the duty, pick the colleague, and
+  **Reassign now** — no request, no consent, takes effect immediately. It is the SAME
+  mutation: `applyShiftSubstitution` is still the only place the substitution rule
+  lives, so the incoming person takes exactly the duty the outgoing person held, nobody
+  is promoted and nothing else on the day moves. `planShiftReassignment` is held to
+  byte-parity with `planSwapApplication` by test, on the same rosters, including the
+  pre-6-May legacy shape.
+
+  The write follows the discipline the coverage flow paid for in v1.6.1: read the
+  roster → plan → write ONE day → **read the document back** → find the change in it →
+  and only then log it. A write that does not land is reported as not confirmed and is
+  not logged; a log that fails after a verified write is reported as exactly that —
+  *the roster DID change* — never as "nothing happened" (A-RC4, three truths kept
+  apart). Nobody is notified (`Q3`); the copy says to tell both people.
+
+- **A change log.** `teams/{teamId}/rosters/{year}/changes` — one immutable document per
+  hand edit: day, duty, who came off, who went on, the shift's label before and after,
+  the reason typed, who made it, and a **server** clock. `firestore.rules` pins all of
+  that: created only by a membership lead, only as themselves, only with
+  `request.time`, and never updated or deleted by anyone. The roster page shows the
+  newest 20 under the coverage cards; a rules denial on that listener is visible rather
+  than an empty panel (M8). The sandbox reassigns on screen, logs in memory, writes
+  nothing, and says so.
+
+- **The Configure wizard explains itself in three layers instead of one.** Inline text
+  now stays only for what depends on the current state: a validation error, "the ruler
+  cannot show the boundaries in force", a one-line reading of what a tick currently
+  means. Every setting has an **info button** (tap, not hover, because most people open
+  this on a phone) that opens the paragraph that used to be inline, floating on a
+  desktop and as a sheet along the bottom edge on a phone, one at a time. Every wizard
+  step has a collapsible **"How this step works"** guide — what to decide, an example,
+  what happens next — open by default and remembered per step once collapsed. All of
+  the copy lives in `src/data/rosterWizardHelp.js` with ids; a test checks that every
+  id a component asks for has copy, that no copy is orphaned, that every step has a
+  guide, and that the inline text in the tables stays under a word budget. **Nothing
+  is marked recommended** — the owner's decision (2026-09-17): a hint says what a
+  setting does and costs, and the choice stays the department's.
+- **A real department can start from a shape.** The sandbox always could; live mode
+  started every roster master at an empty task table. Step 1 now offers the same
+  shapes, and loading one fills tasks, bands, hours and limits with the structure another
+  team described — the staff stay the team, the dates stay the department's, and nothing
+  is saved until Generate. The first option, "Keep what is configured", is the honest
+  no-op.
+
+### Changed
+
+- **A membership lead can open any shift.** The calendar chips, and the modal behind
+  them, were gated on the app-level `user.role === 'admin'`; a *membership* lead
+  (`members/{uid}.role === 'lead'` — the roster master, often not in the pool at all)
+  could not open a colleague's shift, and so could not arrange cover on their behalf
+  either. Either role now opens it; the rules were already the real gate.
+- The *Known limitations* note on coverage now covers hand reassignment too: neither
+  re-runs the engine's constraints for the incoming colleague. The lead is trusted to
+  know; the log records that they decided.
+- **"MOH" is gone from the product.** Every mention in the app, the data, the scripts,
+  the tests and the README now says "the national allied health list" (or simply "the
+  list"); `src/data/mohAlliedHealth.js` is `src/data/alliedHealthProfessions.js` and its
+  exports lose the prefix. The list itself — 28 professions, 37 selectable leaves, two
+  nesting — is unchanged. The one remaining occurrence is inside the binary
+  `docs/NEXUS-roster-walkthrough.pptx`, which this release does not edit.
+
+### Fixed
+
+- **Step 2 of the Configure wizard, live mode, on a phone: the Start Date box was drawn
+  over the Weeks box** (seen at v2.15.2). `grid-cols-2` is a fixed `minmax(0, 1fr)`
+  track and iOS Safari will not shrink a native date input below its intrinsic width,
+  so the input overflowed its column. Live mode now uses the two-thirds/one-third split
+  the sandbox already had, and the date input carries `min-w-0`. A mobile test pins the
+  split.
+
+### Versioning note
+
+- This release was drafted as **v2.15.0** on the `roster` branch on 2026-09-16, before
+  `main` released its own **v2.15.0** (community portal) the same day. The roster work is
+  re-versioned here as **v2.16.0** — a minor bump: new features and a new Firestore
+  collection with rules — on top of `main`'s v2.15.0–v2.15.2. Any reference to a
+  "roster v2.15.0" in earlier conversation or branch history means this entry.
+
+### Evidence
+
+- `src/utils/auraEngine.reassign.test.js` — 32 tests: parity with the swap planner,
+  the plan, every refusal, the read-back finder, the record shape (no clock), the
+  snapshot reader.
+- `src/components/RosterView.reassign.test.jsx` — 14 tests: who is offered it, the
+  sequence asserted off a call log, the record written with `serverTimestamp()`, the
+  three failure truths, the panel, the sandbox.
+- `scripts/firestore-rules-verify.mjs` — 15 new checks, run 2026-09-17 under the
+  Firestore emulator: **163 passed, 0 failed**.
+- `src/data/rosterWizardHelp.test.js` (11 tests: every hint id has copy and none is
+  orphaned, every step has a guide, nothing "recommended", no leaked markup, the inline
+  word budget) and `src/components/FieldHint.test.jsx` (12 tests: the info button and
+  its note, one at a time, Escape and tap-outside, the step guide's remembered
+  collapse, storage unavailable). Nine existing wizard tests that asserted a sentence
+  now open its info button first; none was weakened.
+- Ten existing roster test files gained `orderBy`/`limit` in their Firestore mock;
+  `RosterView.wizard.test.jsx` counts one more read-only listener; and
+  `RosterView.coverage.test.jsx` now routes query listeners by collection path, as its
+  own comment asked. No existing assertion was weakened.
+- Full gate on this tree, 2026-09-17, in a copy outside iCloud: lint 0 · **4311 tests across
+  128 files, all passing** · `vite build` exit 0.
+
+### Known at release
+
+- The engine's hard constraints are **not** re-checked on a reassignment. A lead can put
+  somebody on a seventh consecutive day, over their weekly hours, or against a
+  forbidden pair, and the roster will say so nowhere. Deliberate for this release —
+  the sick-call case needs a name on the clinic now — and a candidate for a warning
+  (not a refusal) once `auditHardConstraints` is wired to one day.
+- Only the **lead and co-lead** duties can be reassigned; a third assignee on a
+  multi-slot shift cannot be, because the swap machinery it reuses never could.
+- The change log is written **after** the roster, so a crash between the two leaves a
+  verified change with no record. It is reported on screen when it happens; there is
+  no reconciliation.
+- No year picker: the log, like the roster, is 2026's.
 
 ## [2.15.2] - 2026-09-17
 

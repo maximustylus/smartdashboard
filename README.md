@@ -1,6 +1,6 @@
-# NEXUS: Smart Operations Dashboard v2.15.2
+# NEXUS: Smart Operations Dashboard v2.16.2
 
-![Version](https://img.shields.io/badge/Version-v2.15.2-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
+![Version](https://img.shields.io/badge/Version-v2.16.2-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
 
 **NEXUS** (formerly IDC App) is a clinician-led progressive web application for team operations, workload tracking, staff wellbeing, rostering and community health screening. It uses a multi-team Firebase data model so each department and institution has its own membership, settings and operational records.
 
@@ -14,7 +14,7 @@ NEXUS brings the daily work of a department into connected views: understand wor
 |---|---|
 | **Team members** | View assignments, request cover, record workload, complete wellbeing check-ins and participate in team discussions. |
 | **Department leads** | Configure duties and staffing rules, review assignment gaps and workload, manage team membership and generate operational analysis. |
-| **Community visitors** | Complete a structured health-screening conversation or form and receive a navigation result and printable handover slip. |
+| **Community visitors** | Complete a structured health-screening conversation or form and receive a navigation result and a three-page PDF report they can download or share. |
 | **Evaluators and collaborators** | Explore sample workflows in Demo Mode and inspect the implementation, verification evidence and governance ledgers. |
 
 ## Implemented capabilities
@@ -25,10 +25,11 @@ The capabilities below are `IMPLEMENTED` in current code. Each surface has a dis
 
 Turn a department's staffing requirements into a repeatable roster. Leads configure the staff pool, duties and constraints, then review the generated assignments, unfilled slots and warnings.
 
-- **Describe the service:** set duty days, grade bands and minimum grades, required skills, working hours, availability and FTE.
+- **Describe the service:** start from a shape another team described, then set duty days, grade bands and minimum grades, required skills, working hours, availability and FTE. Each setting has an info button, and each step a short guide, so the form explains itself without reading like a manual.
 - **Control assignment patterns:** configure weekly rotation, quotas, consecutive-day limits, forbidden pairs and named standby assignments.
 - **Review the result:** use department and personal-week views, inspect workload distribution and identify assignments the configuration cannot fill.
 - **Coordinate cover:** request a colleague's help from the relevant shift and respond through the roster's coverage cards.
+- **Change one duty by hand:** a team lead can reassign a single shift's lead or co-lead to another colleague immediately, without regenerating; every such change is logged with who made it, when, and why, and the log is shown in the roster.
 - **Take the roster with you:** export a PDF calendar, Excel workbook, CSV or ICS file for use outside the dashboard.
 
 The engine is a deterministic constraint solver: the same inputs produce the same result. AURA does not generate or alter rosters. Leads should review the result and the [known limitations](#known-limitations) before operational use.
@@ -73,7 +74,7 @@ The separate `/individuals` pathway lets community visitors answer structured qu
 - **Choose a format:** use the conversational pathway or work through the form.
 - **Choose a language:** access English, Malay, Chinese or Tamil interface text; outstanding translation reviews are tracked in the Community ledger.
 - **Receive a navigation result:** application code parses answers, calculates the screening score and selects the next-step routing.
-- **Carry the result forward:** generate a printable handover slip to support a follow-up conversation.
+- **Carry the result forward:** download or share the three-page PDF report. The browser's own print command produces a one-page handover slip for a follow-up conversation.
 
 Gemini supplies optional acknowledgement wording in the conversational pathway. It does not determine the screening score or routing. The result is a health-navigation aid, not a diagnosis or treatment recommendation.
 
@@ -103,17 +104,19 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 
 | Item | Status | Evidence and meaning |
 |---|---|---|
-| Application version | `IMPLEMENTED` — **v2.15.2** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
+| Application version | `IMPLEMENTED` — **v2.16.2** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
 | AU18 response parser | `IMPLEMENTED` and `VERIFIED`, released in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. It was deployed after v2.12.3 without changing the displayed version; v2.12.4 closes that gap. |
 | Community functional measures | `IMPLEMENTED` — **v2.14.0** | Grip strength and sit-to-stand are asked in both pathways, banded against published references, and reported on **page 2** of the printed report and on the result screen. Each carries a reference meter drawing only published points; heart rate ranges are worked out from the resident's age. Optional throughout: neither figure feeds the risk score (`CD20`). `CD21` and `CD23` remain with the owner. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
-The deployed application reports **v2.15.2**, which gives the community portal’s two strength
-measurements a reference meter apiece, adds heart rate ranges derived from the resident’s age,
-and puts the whole block **on the result screen** — it had previously existed only inside the
-downloaded PDF (`CP38`). The measurements themselves, the precise-age pathway split and the
-report page carrying them shipped in **v2.13.0**. See [`CHANGELOG.md`](CHANGELOG.md) for the
+The deployed application reports **v2.16.2**, which lets a team lead change one duty on one
+day by hand — without regenerating the roster — and records every such change in a log the
+team can read (`ROSTER_TODO.md` queue item 3), and declutters the Configure wizard into three
+layers of explanation. It carries the **v2.15.0**–**v2.15.2** community-portal fixes made on
+`main` in the meantime. The community portal’s reference meters, heart rate ranges and
+on-screen measurements block shipped in **v2.14.0**/**v2.14.1**; the measurements themselves
+in **v2.13.0**. See [`CHANGELOG.md`](CHANGELOG.md) for the
 authoritative release record.
 
 ## Quick start
@@ -253,7 +256,7 @@ nexus/
 |   |   |-- TeamGate.jsx           # Nothing team-scoped renders without a team
 |   |-- data/
 |   |   |-- mockData.js            # Marvel superhero simulation dataset and the demo shapes
-|   |   |-- mohAlliedHealth.js     # MOH's 28 professions, plus the roles MOH does not name
+|   |   |-- alliedHealthProfessions.js     # the national list's 28 professions, plus the roles it does not name
 |   |   |-- screeningChips.js      # PUBLIC screening answer chips
 |   |   |-- slipFlagLines.js       # PUBLIC slip flag copy
 |   |-- hooks/
@@ -345,7 +348,7 @@ NEXUS is an operational and workload management tool. It is not a clinical syste
 
 ### Supported versions
 
-The current application version is **2.15.2**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
+The current application version is **2.16.2**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
 
 ### Access and data controls
 
@@ -371,7 +374,7 @@ The roster engine is outside the card because it contains no model. NEXUS Feeds 
 - **Public scoring validation:** the current scoring model has not been clinically validated against outcomes. Its results support navigation rather than clinical decisions.
 
 - **AURA writes require confirmation.** Staff AURA can propose a workload entry; application code validates the proposal and a person must confirm it before the client writes. Model wording alone does not execute a write.
-- **Coverage acceptance does not re-run every roster constraint.** Replacing the requester can create a consecutive-working-day issue for the accepting colleague. The requester is also not notified of the result (`Q3`).
+- **Coverage acceptance and hand reassignment do not re-run every roster constraint.** Replacing one person can create a consecutive-working-day or hours issue for the incoming colleague; the lead is trusted to know. Nobody is notified of either (`Q3`).
 - **Eligibility has one skill slot.** A task cannot currently require both registration status and a separate competency (`Q12`).
 - **On-call is not modelled.** A named standby exists, but call-in and post-call-rest semantics do not.
 - **Public App Check is not yet enforced.** Rate limits are active; the remaining console rollout is recorded under `CP7`.
@@ -431,7 +434,7 @@ Use these focused checks after a deployment:
 
 ## Releases and current work
 
-[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.15.2**.
+[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.16.2**.
 
 The next work is governed by the live ledgers:
 

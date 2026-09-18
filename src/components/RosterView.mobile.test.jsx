@@ -62,6 +62,8 @@ vi.mock('../firebase', () => ({
 }));
 
 vi.mock('firebase/firestore', () => ({
+    orderBy: vi.fn(() => ({ __mock: 'orderBy' })),
+    limit: vi.fn(() => ({ __mock: 'limit' })),
     doc: vi.fn(() => ({ __mock: 'docRef' })),
     collection: vi.fn(() => ({ __mock: 'collectionRef' })),
     onSnapshot: vi.fn(() => () => {}),
@@ -476,6 +478,12 @@ describe('the sandbox wizard: the stacked card and the table are the same elemen
 
         const seen = new Map();
         for (const el of Array.from(wizard().querySelectorAll('[aria-label]'))) {
+            // The info buttons (`FieldHint`, v2.16.0) are ONE control repeated beside
+            // twenty settings, each named "More about this setting" and identified
+            // by the label it follows and by its own tooltip. They are not a forked
+            // row, which is what this assertion exists to catch, so they are set
+            // aside here rather than given twenty invented names.
+            if (el.hasAttribute('data-field-hint')) continue;
             const name = el.getAttribute('aria-label');
             seen.set(name, (seen.get(name) || 0) + 1);
         }
@@ -780,12 +788,38 @@ describe('live mode: the responsive work stopped at the branch', () => {
         render(<RosterView user={VISITOR} />);
         openConfigure();
 
-        for (const id of ['roster-start-date', 'roster-weeks']) {
-            expect(document.getElementById(id).className).toBe(
-                'input-field w-full mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
-            );
-        }
+        // No touch-height or `!text-base` here: those are the Sandbox's. The one
+        // live-mode addition is `min-w-0` on the DATE input (v2.16.0) — see the
+        // layout test below for why.
+        expect(document.getElementById('roster-start-date').className).toBe(
+            'input-field w-full min-w-0 appearance-none mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
+        );
+        expect(document.getElementById('roster-weeks').className).toBe(
+            'input-field w-full mt-1 font-bold bg-white dark:bg-slate-900 border dark:border-slate-700 rounded p-2 text-slate-800 dark:text-white',
+        );
         expect(setDoc).not.toHaveBeenCalled();
+    });
+
+    it('stacks Start Date over Weeks on a phone, so the date cannot be drawn over Weeks', () => {
+        render(<RosterView user={VISITOR} />);
+        openConfigure();
+
+        // Seen on a phone at v2.15.2 and AGAIN at v2.16.0, which had moved the row to
+        // thirds: iOS Safari renders a native date input at its own width whatever
+        // `w-full` says, and it overflowed its grid track onto the Weeks box. On a
+        // phone the row is now ONE column — nothing can overlap — and the thirds
+        // split (date two, Weeks one) returns from `sm:` up. The date input is also
+        // `appearance-none`, which is what makes iOS honour width and font size on
+        // it at all, and `min-w-0`, so the track sets the width, not the control.
+        const date = document.getElementById('roster-start-date');
+        const row = date.parentElement.parentElement;
+        expect(row.className).toContain('grid-cols-1');
+        expect(row.className).toContain('sm:grid-cols-3');
+        expect(row.className).not.toMatch(/(^|\s)grid-cols-[23](\s|$)/);
+        expect(date.parentElement.className).toContain('sm:col-span-2');
+        expect(date.parentElement.className).not.toMatch(/(^|\s)col-span-2(\s|$)/);
+        expect(date.className).toContain('appearance-none');
+        expect(date.className).toContain('min-w-0');
     });
 
     it('still shares the calendar improvements, which are not wizard changes', () => {

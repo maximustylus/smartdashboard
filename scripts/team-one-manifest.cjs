@@ -81,7 +81,7 @@ const TEAM_ONE = Object.freeze({
     name: 'Sport & Exercise Medicine',
     institution: 'KKH',
     department: 'Sport & Exercise Medicine',
-    // MOH's own vocabulary — the leaf id from `src/data/mohAlliedHealth.js`, so the
+    // the national list's own vocabulary — the leaf id from `src/data/alliedHealthProfessions.js`, so the
     // team's profession tag matches the list the demo picker offers every other team.
     profession: 'clinical-exercise-physiologist',
     leadEmail: 'muhammad.alif@kkh.com.sg',

@@ -41,7 +41,7 @@ export const GOVERNANCE_COPY = Object.freeze({
         privacyBody: 'All data collected through the NEXUS AURA system is de-identified at the point of capture. Postal sector data is used solely for geographic resource mapping and is not linked to any identifiable personal information. This assessment does not collect, store, or transmit NRIC, name, contact, or financial account information. Aggregated, anonymised data may be used to improve community health programming across Singapore.',
         hsgTitle: 'Your Healthier SG Health Plan',
         hsgLead: 'This assessment aligns with the',
-        hsgBrand: 'MOH Healthier SG',
+        hsgBrand: 'Healthier SG',
         hsgRest: ' framework. Enrol with a Healthier SG GP to receive a fully subsidised annual Health Plan consultation, personalised screening schedule, and community programme referrals.',
         hsgLinks: Object.freeze({
             healthiersg: 'Healthier SG',
@@ -71,7 +71,7 @@ export const GOVERNANCE_COPY = Object.freeze({
         privacyBody: 'Semua data yang dikumpul melalui sistem NEXUS AURA dinyahkenal pasti pada titik pengumpulan. Data sektor pos digunakan semata-mata untuk pemetaan sumber geografi dan tidak dikaitkan dengan sebarang maklumat peribadi yang boleh dikenal pasti. Penilaian ini tidak mengumpul, menyimpan, atau menghantar NRIC, nama, maklumat hubungan, atau maklumat akaun kewangan. Data agregat tanpa nama boleh digunakan untuk menambah baik program kesihatan komuniti di seluruh Singapura.',
         hsgTitle: 'Rancangan Kesihatan Healthier SG Anda',
         hsgLead: 'Penilaian ini selaras dengan rangka kerja',
-        hsgBrand: 'MOH Healthier SG',
+        hsgBrand: 'Healthier SG',
         hsgRest: '. Daftar dengan doktor keluarga Healthier SG untuk mendapat konsultasi Rancangan Kesihatan tahunan yang disubsidi sepenuhnya, jadual saringan peribadi, dan rujukan ke program komuniti.',
         hsgLinks: Object.freeze({
             healthiersg: 'Healthier SG',
@@ -101,7 +101,7 @@ export const GOVERNANCE_COPY = Object.freeze({
         privacyBody: '通过 NEXUS AURA 系统收集的所有数据在采集时即已去识别化。邮区数据仅用于地理资源定位，不与任何可识别的个人信息关联。本评估不收集、存储或传输身份证号码、姓名、联系方式或金融账户信息。汇总后的匿名数据可能用于改善新加坡各地的社区健康项目。',
         hsgTitle: '您的 Healthier SG 健康计划',
         hsgLead: '本评估与',
-        hsgBrand: '卫生部 Healthier SG',
+        hsgBrand: 'Healthier SG',
         hsgRest: '框架一致。向 Healthier SG 家庭医生登记，即可获得全额补贴的年度健康计划咨询、个人化的筛查安排以及社区项目转介。',
         hsgLinks: Object.freeze({
             healthiersg: 'Healthier SG',
@@ -131,7 +131,7 @@ export const GOVERNANCE_COPY = Object.freeze({
         privacyBody: 'NEXUS AURA அமைப்பின் மூலம் சேகரிக்கப்படும் அனைத்துத் தரவும் சேகரிக்கும் இடத்திலேயே அடையாளம் நீக்கப்படுகிறது. அஞ்சல் துறைத் தரவு புவியியல் வளங்களை வரைபடமாக்க மட்டுமே பயன்படுத்தப்படுகிறது, எந்த அடையாளம் காணக்கூடிய தனிப்பட்ட தகவலுடனும் இணைக்கப்படுவதில்லை. இந்த மதிப்பீடு NRIC, பெயர், தொடர்பு அல்லது நிதிக் கணக்குத் தகவல்களைச் சேகரிக்கவோ, சேமிக்கவோ, அனுப்பவோ இல்லை. தொகுக்கப்பட்ட, பெயரற்ற தரவு சிங்கப்பூர் முழுவதும் சமூக சுகாதாரத் திட்டங்களை மேம்படுத்தப் பயன்படுத்தப்படலாம்.',
         hsgTitle: 'உங்கள் Healthier SG சுகாதாரத் திட்டம்',
         hsgLead: 'இந்த மதிப்பீடு',
-        hsgBrand: 'MOH Healthier SG',
+        hsgBrand: 'Healthier SG',
         hsgRest: ' கட்டமைப்புடன் ஒத்துப்போகிறது. முழுமையாக மானியம் பெற்ற ஆண்டுச் சுகாதாரத் திட்ட ஆலோசனை, தனிப்பயன் திரையிடல் அட்டவணை மற்றும் சமூகத் திட்டப் பரிந்துரைகளைப் பெற Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்யுங்கள்.',
         hsgLinks: Object.freeze({
             healthiersg: 'Healthier SG',
