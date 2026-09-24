@@ -1895,11 +1895,35 @@ before release; everything else is listed as open, with the owner's calls marked
 | `CP53` | **English page 1 of the PDF cut off the QR code and the Assessment ID** for east-side residents (up to 47px), since the font increase. Resource cards print a long address as its site name (`aic.sg`) and a short one in full (`for.sg/exercise`); the link still opens the exact page. The page QR is 44px; spacing trimmed. All 425 distinct page-1 layouts now fit in all four languages, 24px spare at worst (English), checked in the real PDF. | `pdf-headroom.mjs` scenario `east-social-care` |
 | `CP54` | **Tamil page 2 lost its last lines in the "wrong stopwatch" case** (18px). The second measurement no longer repeats an identical advice sentence, and the references are one paragraph. All 36 variants fit; Tamil has 7px spare in the tightest, and the real downloaded PDF was checked. | `pdf-headroom.mjs` scenario `wrong-stopwatch` |
 
+### The printed report, made to look like the app · 2026-09-24
+
+At the owner's request, page 1's result card is laid out like the app's: centred,
+the tier's icon above "Your assessment result", and each flag line led by the
+app's icon for it (cost, social, wellbeing). The activity, primary-action and
+resources headings carry the app's icons too, and each resource's link is an
+icon and an address rather than a boxed "Website:" pill, which paid for the
+card's extra height. Page 2, at Linder's request: a hand for grip strength, a
+chair for sit-to-stand, a heart-pulse for the heart rate ranges; the app's own
+measurements block gained the same two icons.
+
+⚠️ **How the icons are drawn, and why.** html2canvas prints text about 6px lower
+than the browser lays it out, so an icon beside a word printed above it; and an
+inline SVG moved to compensate was printed cropped, whether moved by `top`, a
+transform or margins (all three tried, in the real PDF). `PdfIcon` renders the
+icon once, serialises it and swaps in an `<img>` of itself, which html2canvas
+draws whole, then moves it down 6px without changing the row's height. After:
+every page-1 layout fits (425 × 4 languages), and page 2 is unchanged.
+
 ### Open, for the owner's decision
 
-- **S3 · the current answer still reaches Gemini** (exact age, grip, reps,
-  measurement venue, free text, a full postal code). The simplest fix is to
-  skip the AI acknowledgement on those steps and use the fixed one.
+- ~~**S3 · the current answer still reaches Gemini**~~ **FIXED 2026-09-24 as
+  `CP55`, the owner's "yes".** Age, grip, sit-to-stand, the measurement venue,
+  the free-text "one thing to change" and the previous ID are never sent: the
+  chat does not ask for a model reply on those steps and keeps its fixed one,
+  and the server refuses them even if called directly (`NO_MODEL_DOMAINS`, held
+  equal to the chat's list by test). A postal code reaches the model as its
+  two-digit sector only, as the answer and as an earlier answer. This closes
+  `CP35` properly.
 - **S1 · anyone can write records to `community_assessments` without signing in,**
   in any shape. That can skew the planning figures, crowd real records out of
   the nightly count (it reads 20,000 with no ordering), and, with the small-group

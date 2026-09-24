@@ -15,6 +15,7 @@ import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, saveResult, loadResult, clearAssessment } from '../utils/assessmentSession';
+import PdfIcon from './PdfIcon';
 /*
   ⚠️ BUNDLED, NOT FETCHED FROM `/nexus.png`. The PDF header used to load the
      public-folder copy by URL, and a browser holding a cached older file drew
@@ -590,6 +591,25 @@ const siteOf = (url) => {
   } catch { return url; }
 };
 
+/** The tier's icon for the PDF, the same one the app's result card shows. */
+const PDF_TIER_ICON = { Red: ShieldAlert, Amber: Activity, Green: CheckCircle2 };
+const PdfTierIcon = ({ tier }) => {
+  const Icon = PDF_TIER_ICON[tier] || Activity;
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      <Icon size={24} color="white" strokeWidth={2.25} />
+    </div>
+  );
+};
+
+/** One flag line in the PDF's result card: the app's icon, then the sentence. */
+const PdfFlagLine = ({ icon: Icon, text }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, color: 'white', fontSize: 12.5, fontWeight: 700 }}>
+    <PdfIcon icon={Icon} size={14} color="white" strokeWidth={2.5} />
+    <span>{text}</span>
+  </div>
+);
+
 export default function ResultPage() {
   const location = useLocation();
   const navigate  = useNavigate();
@@ -890,15 +910,20 @@ export default function ResultPage() {
           */}
           <div style={{ padding: '10px 36px', display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
-            {/* Risk Tier */}
-            <div style={{ background: th.printBg, borderRadius: 12, padding: '10px 22px 12px' }}>
-              <div style={{ color: 'white', fontWeight: 900, fontSize: 27, marginBottom: 4 }}>{tierLabel}</div>
+            {/* Risk Tier. ⚠️ LAID OUT LIKE THE APP'S RESULT CARD, at the owner's request
+                (2026-09-24): centred, the tier's own icon above the label, and each
+                flag line led by the same icon the app shows beside it. The icons are
+                lucide SVGs, which html2canvas draws; the real PDF was checked. */}
+            <div style={{ background: th.printBg, borderRadius: 12, padding: '9px 22px 11px', textAlign: 'center' }}>
+              <PdfTierIcon tier={riskTier} />
+              <div style={{ color: 'rgba(255,255,255,0.85)', fontWeight: 900, fontSize: 10.5, letterSpacing: 3, textTransform: 'uppercase', marginTop: 2 }}>{t.title}</div>
+              <div style={{ color: 'white', fontWeight: 900, fontSize: 27, margin: '2px 0 4px' }}>{tierLabel}</div>
               <div style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: 13.5, lineHeight: 1.5, marginBottom: 6 }}>{tierDesc}</div>
               {(data.sdohFinancial || data.sdohSocial || hasPsycho) && (
-                <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 8, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  {data.sdohFinancial && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohFinText}</div>}
-                  {data.sdohSocial    && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohSocText}</div>}
-                  {hasPsycho          && <div style={{ color: 'white', fontSize: 12.5, fontWeight: 700 }}>• {t.sdohPsychoText}</div>}
+                <div style={{ borderTop: '1px solid rgba(255,255,255,0.25)', paddingTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+                  {data.sdohFinancial && <PdfFlagLine icon={DollarSign} text={t.sdohFinText} />}
+                  {data.sdohSocial    && <PdfFlagLine icon={Users} text={t.sdohSocText} />}
+                  {hasPsycho          && <PdfFlagLine icon={Brain} text={t.sdohPsychoText} />}
                 </div>
               )}
             </div>
@@ -906,7 +931,7 @@ export default function ResultPage() {
             {/* PAVS Metrics */}
             {data?.pavsScore != null && (
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '9px 20px 11px' }}>
-                <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 6 }}>{t.pavsTitle}</div>
+                <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><PdfIcon icon={Activity} size={14} color="#0d9488" strokeWidth={2.5} />{t.pavsTitle}</div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {[
                     { value: data.pavsScore,           label: t.pavsWeekly },
@@ -930,7 +955,7 @@ export default function ResultPage() {
 
             {/* Primary Action Banner */}
             <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 12, padding: '9px 20px 11px' }}>
-              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 4 }}>{t.primaryAction}</div>
+              <div style={{ fontWeight: 900, fontSize: 11.5, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}><PdfIcon icon={Target} size={14} color="#0f766e" strokeWidth={2.5} />{t.primaryAction}</div>
               <div style={{ fontWeight: 700, fontSize: 13.5, color: '#134e4a', lineHeight: 1.6 }}>
                 {ctaBanner.emoji} {ctaBanner.action[lang] || ctaBanner.action.en}
               </div>
@@ -939,7 +964,7 @@ export default function ResultPage() {
 
             {/* Resources Grid */}
             <div>
-              <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 3, borderBottom: '2px solid #e2e8f0', paddingBottom: 5, marginBottom: 6 }}>{t.resources}</div>
+              <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 3, borderBottom: '2px solid #e2e8f0', paddingBottom: 5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 6 }}><PdfIcon icon={Zap} size={14} color="#14b8a6" strokeWidth={2.5} />{t.resources}</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
                 {suggestedResources.map((resource) => {
                   const c = resource[lang] || resource.en;
@@ -951,7 +976,7 @@ export default function ResultPage() {
                         </div>
                         <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', lineHeight: 1.3 }}>{c.title}</div>
                       </div>
-                      <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.5 }}>{c.desc}</div>
+                      <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45 }}>{c.desc}</div>
                       {/*
                         ⚠️ THE SITE, NOT THE WHOLE ADDRESS. Printed in full, three
                            of these wrapped to a second line, and on 2026-09-24 that
@@ -960,8 +985,12 @@ export default function ResultPage() {
                            link over this pill still opens the exact page; on paper a
                            short site name is also easier to type than a deep path.
                       */}
-                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '3px 8px 7px', marginTop: 3, borderRadius: 4, border: '1px solid #99f6e4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        <span style={{ color: '#64748b', fontWeight: 600, marginRight: 4 }}>{t.webLink}</span>{siteOf(resource.url)}
+                      {/* A link line like the app's (icon, then the address), not a
+                          boxed "Website:" pill: the box cost a padded row per card, and
+                          the centred result card needed that room (2026-09-24). */}
+                      <div data-pdf-link={resource.url} style={{ fontSize: 11.5, color: '#0d9488', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', overflow: 'hidden', paddingBottom: 2 }}>
+                        <PdfIcon icon={ExternalLink} size={12} color="#0d9488" strokeWidth={2.5} />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{siteOf(resource.url)}</span>
                       </div>
                     </div>
                   );

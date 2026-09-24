@@ -69,6 +69,8 @@
  */
 
 import React from 'react';
+import { HeartPulse } from 'lucide-react';
+import PdfIcon from './PdfIcon';
 import { measuresCopyFor } from '../data/measuresCopy';
 import { zonesFor } from '../utils/heartRateZones';
 import { HR_ZONE_RAMP } from '../data/zonePalette';
@@ -89,7 +91,9 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
     if (result.suppressed === 'symptoms') {
         return (
             <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '12px 18px' }}>
-                <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', marginBottom: 4 }}>{m.hrHeading}</div>
+                <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PdfIcon icon={HeartPulse} size={15} color="#e11d48" />{m.hrHeading}
+                </div>
                 <div style={{ fontSize: 11.5, color: '#4c0519', lineHeight: 1.7 }}>{m.hrSuppressedSymptoms}</div>
             </div>
         );
@@ -118,7 +122,8 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                  than the citation list beneath it.
             */}
             <div>
-                <div style={{ fontWeight: 900, fontSize: 10.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2 }}>
+                <div style={{ fontWeight: 900, fontSize: 10.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <PdfIcon icon={HeartPulse} size={15} color="#e11d48" />
                     {m.hrHeading}
                 </div>
                 <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.45, marginTop: 4 }}>{m.hrIntro}</div>

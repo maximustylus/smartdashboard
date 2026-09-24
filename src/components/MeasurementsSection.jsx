@@ -34,7 +34,7 @@
  */
 
 import React from 'react';
-import { Activity, HeartPulse } from 'lucide-react';
+import { Activity, HeartPulse, Hand, Armchair } from 'lucide-react';
 import { measuresCopyFor, residentBand } from '../data/measuresCopy';
 import { GRIP_SOURCE, CHAIR_STAND_SOURCE, STS_60S_SOURCE } from '../data/functionalNorms';
 import { zonesFor, HR_EQUATIONS } from '../utils/heartRateZones';
@@ -133,7 +133,7 @@ const ScreenMeter = ({ result, unit, m }) => {
     );
 };
 
-const Measurement = ({ result, label, unit, m }) => {
+const Measurement = ({ result, label, unit, m, icon: Icon }) => {
     if (!result) return null;
     if (result.ok !== true && result.value === null && result.reason === 'missing') return null;
 
@@ -141,7 +141,9 @@ const Measurement = ({ result, label, unit, m }) => {
     return (
         <div className={CARD}>
             <div className="flex justify-between items-baseline gap-3">
-                <p className="text-xs font-black text-slate-800 dark:text-slate-100">{label}</p>
+                <p className="text-xs font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                    {Icon && <Icon size={14} className="text-teal-500 shrink-0" />}{label}
+                </p>
                 {result.value !== null && (
                     <p className="text-lg font-black text-teal-600 dark:text-teal-400 whitespace-nowrap">
                         {result.value} <span className="text-[10px] font-bold text-slate-400">{unit}</span>
@@ -292,8 +294,8 @@ export default function MeasurementsSection({ functional, lang, ageYears, sympto
                     <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300 -mt-2 mb-3">{m.reportIntro}</p>
 
                     <div className="flex flex-col gap-3">
-                        <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} />
-                        <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m} />
+                        <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} icon={Hand} />
+                        <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m} icon={Armchair} />
                     </div>
 
                     {functional?.setting && (

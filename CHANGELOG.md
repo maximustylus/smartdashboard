@@ -75,6 +75,11 @@ not changed by this release.
   person ("Saya faham." for "Difahami.", "Saya telah merekodkannya." for
   "Direkodkan.", six in all), and the Cloud Function's persona carries the same rule.
   The sit-to-stand test is named *senaman berdiri dan duduk*.
+- `CP55`: the exact age, grip and sit-to-stand figures, the measurement venue, the
+  free-text answer and the previous ID no longer reach Gemini on their own turn;
+  AURA keeps its fixed acknowledgement there, and the server refuses them too.
+  Postal codes reach the model as the two-digit sector. Completes `CP35`.
+
 - `CP49`: the same chat chip meant different things in different languages: the
   Malay heart-condition chip raised no flag, Tamil "too expensive"/"too far" no cost
   flag, the Tamil caregiving chip no caregiver flag, the Chinese "3+ days" strength
@@ -96,6 +101,13 @@ not changed by this release.
 - The Healthier SG line on page 3 of the report no longer carries the national
   ministry's acronym, in any language, following v2.16.0's removal of it from the
   product. `community` carries v2.16.0 to v2.16.2 as of 2026-09-18.
+
+### Changed
+
+- The printed report's result card matches the app: centred, with the tier icon
+  and the app's icons on each flag line, section heading and resource link. Page 2
+  shows icons for grip strength, sit-to-stand and heart rate. Print icons are
+  drawn as images (`PdfIcon`) because html2canvas cropped offset inline SVGs.
 
 ## [2.16.2] - 2026-09-17
 

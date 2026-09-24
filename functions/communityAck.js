@@ -167,13 +167,37 @@ const MODEL_VISIBLE_DOMAINS = [
     // resident more identifiable to whoever holds the prompt log.
 ];
 
+/**
+ * ⚠️ STEPS WHOSE ANSWER NEVER GOES TO THE MODEL, NOT EVEN ON ITS OWN TURN.
+ *    `MODEL_VISIBLE_DOMAINS` above kept these out of the EARLIER answers, but the
+ *    CURRENT answer was always sent, so the exact age, the grip and chair-stand
+ *    figures, the venue and the free-text "one thing to change" still reached
+ *    Gemini on the turn they were asked (`CP35` half fixed; stress test,
+ *    2026-09-24). The owner chose the fix: on these steps AURA uses its own fixed
+ *    acknowledgement and the model is not called. The chat does not ask; this
+ *    list is the server refusing even if a caller does.
+ */
+const NO_MODEL_DOMAINS = [
+    'age_years', 'grip_kg', 'sit_to_stand', 'measure_setting', 'one_change', 'previous_id',
+];
+
+/**
+ * A postal code goes to the model as its two-digit sector, the granularity the
+ * record keeps. The chat accepts a full six-digit code, which names one block.
+ */
+const coarsePostal = (value) => {
+    const digits = String(value || '').replace(/\D/g, '');
+    return digits.length >= 2 ? digits.slice(0, 2) : '';
+};
+
 const priorAnswerLines = (prior) => {
     if (!prior || typeof prior !== 'object') return [];
     const lines = [];
     MODEL_VISIBLE_DOMAINS.forEach((key) => {
         const value = Object.prototype.hasOwnProperty.call(prior, key) ? prior[key] : undefined;
         if (typeof value === 'string' && value.trim() !== '') {
-            lines.push('  ' + key + ': ' + value.slice(0, MAX_PRIOR_ANSWER_CHARS));
+            const shown = key === 'postal_code' ? coarsePostal(value) : value;
+            if (shown) lines.push('  ' + key + ': ' + shown.slice(0, MAX_PRIOR_ANSWER_CHARS));
         }
     });
     return lines;
@@ -193,12 +217,13 @@ const buildAckTurn = ({ domain, language, answer, priorLines }) => [
     'Reply in: ' + language,
     'The person just answered, between the markers:',
     '<<<ANSWER',
-    answer,
+    domain === 'postal_code' ? (coarsePostal(answer) || 'not given') : answer,
     'ANSWER>>>',
     priorLines.length > 0 ? 'Their earlier answers:\n' + priorLines.join('\n') : '',
 ].filter(Boolean).join('\n');
 
 module.exports = {
+    NO_MODEL_DOMAINS,
     COMMUNITY_DOMAINS,
     COMMUNITY_LANGUAGES,
     MAX_ANSWER_CHARS,

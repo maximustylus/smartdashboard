@@ -57,6 +57,14 @@ pathways, and the Cloud Function behind the chat.
   after the font increase, and its measurement block had never been enlarged.
   Both fixed; three places where PDF text sat on a box edge were also cleared.
   Tightest page now 16px spare (Tamil, both measurements, medication note).
+- **The printed report looks like the app (2026-09-24).** Page 1's result card
+  is centred with the tier's icon and the app's flag icons; headings and resource
+  links carry icons; page 2 has a hand, a chair and a heart-pulse for grip,
+  sit-to-stand and heart rate (asked for by Linder). Drawn as images so the PDF
+  prints them whole and level with their text.
+- **CP55 · the sensitive answers never reach Gemini** (owner's "yes"): age, grip,
+  sit-to-stand, venue, free text and previous ID keep AURA's fixed reply, and the
+  server refuses them too. Postal codes go as the two-digit sector.
 - **P13, a six-agent stress test (2026-09-24).** Fixed before release:
   **CP49** the same chip meant different things by language (Malay heart
   condition, Tamil cost and caregiving, Chinese 3+ strength days, session

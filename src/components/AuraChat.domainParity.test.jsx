@@ -29,10 +29,10 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { DOMAIN_CONFIG } from '../data/communityDomains';
+import { DOMAIN_CONFIG, NO_MODEL_STEPS } from '../data/communityDomains';
 import rules from '../../functions/communityAck.js';
 
-const { COMMUNITY_DOMAINS, validateAckRequest } = rules;
+const { COMMUNITY_DOMAINS, NO_MODEL_DOMAINS, validateAckRequest, buildAckTurn } = rules;
 
 const clientKeys = DOMAIN_CONFIG.map((step) => step.key);
 
@@ -77,5 +77,21 @@ describe('the step list is internally consistent', () => {
             expect(typeof step.badge).toBe('string');
             expect(typeof step.group).toBe('string');
         });
+    });
+});
+
+describe('the answers that never go to Gemini (owner, 2026-09-24)', () => {
+    it('the chat and the server name the same steps', () => {
+        expect([...NO_MODEL_STEPS].sort()).toEqual([...NO_MODEL_DOMAINS].sort());
+    });
+
+    it('every one is a real step', () => {
+        NO_MODEL_STEPS.forEach((key) => expect(clientKeys).toContain(key));
+    });
+
+    it('a full postal code reaches the model as its two-digit sector only', () => {
+        const turn = buildAckTurn({ domain: 'postal_code', language: 'en', answer: '520123', priorLines: [] });
+        expect(turn).toContain('52');
+        expect(turn).not.toContain('520123');
     });
 });

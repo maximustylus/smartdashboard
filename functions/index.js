@@ -1524,6 +1524,10 @@ exports.communityAck = onCall({
     const checked = communityAckRules.validateAckRequest(request.data);
     if (!checked.ok) throw new HttpsError('invalid-argument', checked.message);
 
+    // The owner's decision, 2026-09-24: these answers never reach the model. An
+    // empty reply keeps the fixed acknowledgement already on screen.
+    if (communityAckRules.NO_MODEL_DOMAINS.includes(checked.domain)) return { text: '' };
+
     try {
         const turn = communityAckRules.buildAckTurn(checked);
 

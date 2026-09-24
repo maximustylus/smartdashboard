@@ -55,6 +55,16 @@ const gaveAMeasurement = (data) =>
      they belong; here the person answering sees plain words. The word
      "clinical" is banned from every public-facing surface.
 */
+/**
+ * Steps whose answer is never sent to Gemini for an acknowledgement: an exact age,
+ * measured figures, a venue, free text, an identifier. The owner's decision,
+ * 2026-09-24. The server holds the same list (`functions/communityAck.js`
+ * `NO_MODEL_DOMAINS`) and refuses these even if asked; a test keeps them equal.
+ */
+export const NO_MODEL_STEPS = Object.freeze([
+    'age_years', 'grip_kg', 'sit_to_stand', 'measure_setting', 'one_change', 'previous_id',
+]);
+
 export const DOMAIN_CONFIG = [
   /*
     ⚠️ THIS IS THE ORDER QUESTIONS ARE ASKED IN, AND IT IS NOW SAFE TO CHANGE.

@@ -38,7 +38,7 @@ const communityAck = httpsCallable(functions, 'communityAck');
 // caller-supplied prompt at all. Nothing here needs it: this component sends the
 // domain, the answer and the prior answers, and receives one sentence back.
 
-import { DOMAIN_CONFIG } from '../data/communityDomains';
+import { DOMAIN_CONFIG, NO_MODEL_STEPS } from '../data/communityDomains';
 import { badgeFor } from '../data/badgeCopy';
 
 // `AC14`: `TOTAL_STEPS` lived here with a comment saying "// 13" while the
@@ -489,6 +489,13 @@ const AuraChatbot = () => {
       // What the reply does is unchanged and worth restating: it rewrites the text
       // of the acknowledgement already on screen. `parseClinicalData`,
       // `calculateRiskScore` and `selectCTA` never see it.
+      // ⚠️ THE OWNER'S DECISION, 2026-09-24: on these steps the answer (an exact
+      //    age, a measured figure, a venue, free text) is not sent to Gemini at all.
+      //    The fixed acknowledgement already on screen stays. The server refuses
+      //    the same list (`functions/communityAck.js` `NO_MODEL_DOMAINS`), and
+      //    `AuraChat.domainParity.test.jsx` holds the two lists together.
+      if (NO_MODEL_STEPS.includes(stepKey)) return;
+
       var upgradeExpired = false;
       var upgradeTimer   = setTimeout(function() { upgradeExpired = true; }, AI_UPGRADE_WINDOW_MS);
 

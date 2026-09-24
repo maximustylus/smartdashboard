@@ -37,6 +37,8 @@
  */
 
 import React from 'react';
+import { Activity, Hand, Armchair } from 'lucide-react';
+import PdfIcon from './PdfIcon';
 import { measuresCopyFor, residentBand } from '../data/measuresCopy';
 import { GRIP_SOURCE, CHAIR_STAND_SOURCE, STS_60S_SOURCE } from '../data/functionalNorms';
 import ReferenceMeter from './ReferenceMeter';
@@ -69,7 +71,7 @@ const adviceFor = (result, m) => {
     return m.advice[band] || m.advice[band === 'below-average' || band === 'below-typical' ? 'below' : 'usual'];
 };
 
-const Measurement = ({ result, label, unit, m, hideAdvice = false }) => {
+const Measurement = ({ result, label, unit, m, icon: Icon, hideAdvice = false }) => {
     if (!result) return null;
     // Nothing given and nothing refused: the resident skipped it, so it does not
     // appear at all rather than appearing as an empty row about themselves.
@@ -79,7 +81,13 @@ const Measurement = ({ result, label, unit, m, hideAdvice = false }) => {
     return (
         <div style={ROW}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-                <div style={{ fontWeight: 800, fontSize: 12.5, color: '#0f172a' }}>{label}</div>
+                {/* Each measurement leads with its own icon: a hand for grip, a chair
+                    for sit-to-stand (asked for by Linder, 2026-09-24). Inline, so the
+                    page is no taller. */}
+                <div style={{ fontWeight: 800, fontSize: 12.5, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {Icon && <PdfIcon icon={Icon} size={15} color="#0d9488" />}
+                    <span>{label}</span>
+                </div>
                 {result.value !== null && (
                     <div style={{ fontWeight: 900, fontSize: 17, color: '#0f766e', whiteSpace: 'nowrap' }}>
                         {result.value} <span style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>{unit}</span>
@@ -169,7 +177,8 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div>
-                <div style={{ fontWeight: 900, fontSize: 14.5, color: '#0f172a', letterSpacing: 0.3 }}>
+                <div style={{ fontWeight: 900, fontSize: 14.5, color: '#0f172a', letterSpacing: 0.3, display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <PdfIcon icon={Activity} size={16} color="#0d9488" strokeWidth={2.5} />
                     {m.reportHeading}
                 </div>
                 {/*
@@ -189,8 +198,8 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
                  2026-09-24). The second card now omits it only when it is the same
                  words as the first.
             */}
-            <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} />
-            <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m}
+            <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} icon={Hand} />
+            <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m} icon={Armchair}
                 hideAdvice={Boolean(adviceFor(grip, m)) && adviceFor(grip, m) === adviceFor(sitToStand, m)} />
 
             {functional?.setting && (
