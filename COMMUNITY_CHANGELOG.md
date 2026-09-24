@@ -29,7 +29,7 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
-## Unreleased — on `community` · `P12`, the owner's Malay read-through
+## Shipped in [2.16.3] — `P12` the owner's Malay read-through, `P13` the stress test, the report redesign
 
 - **CP45** — `Saya mostly uruskan sendiri`: the English word was left in the
   Malay chip, and the matcher behind it knew no Malay, Chinese or Tamil word for

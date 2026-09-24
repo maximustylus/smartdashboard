@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 48 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45`–`CP54` (on `community`) |
+| `DONE`, evidenced | 49 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45`–`CP55` (v2.16.3) |
 | `OPEN`, mine | 1 | `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -1711,7 +1711,7 @@ that abandoning there costs nothing the assessment needs.
 
 ---
 
-## `P12` — the owner's Malay read-through · `CP45` `CP46` `CP47` `CP48` · `CD29` · **on `community`**
+## `P12` — the owner's Malay read-through · `CP45` `CP46` `CP47` `CP48` · `CD29` · **SHIPPED v2.16.3**
 
 The first native read of any of this portal's Malay, by the owner's team on
 2026-09-17. It found what two model rounds did not.
@@ -1875,7 +1875,7 @@ persona rule only takes effect when the Cloud Function is deployed.
 
 ---
 
-## `P13` — stress test by six agents, 2026-09-24 · `CP49`–`CP54` fixed · open items below
+## `P13` — stress test by six agents, 2026-09-24 · `CP49`–`CP55` fixed, **SHIPPED v2.16.3** · open items below
 
 Six agents went through the portal on `community` at `f19100b`, one area each:
 answer logic, the result page and PDF, the Cloud Function and rules,

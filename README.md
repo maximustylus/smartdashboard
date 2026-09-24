@@ -1,6 +1,6 @@
-# NEXUS: Smart Operations Dashboard v2.16.2
+# NEXUS: Smart Operations Dashboard v2.16.3
 
-![Version](https://img.shields.io/badge/Version-v2.16.2-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
+![Version](https://img.shields.io/badge/Version-v2.16.3-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
 
 **NEXUS** (formerly IDC App) is a clinician-led progressive web application for team operations, workload tracking, staff wellbeing, rostering and community health screening. It uses a multi-team Firebase data model so each department and institution has its own membership, settings and operational records.
 
@@ -104,14 +104,17 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 
 | Item | Status | Evidence and meaning |
 |---|---|---|
-| Application version | `IMPLEMENTED` — **v2.16.2** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
+| Application version | `IMPLEMENTED` — **v2.16.3** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
 | AU18 response parser | `IMPLEMENTED` and `VERIFIED`, released in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. It was deployed after v2.12.3 without changing the displayed version; v2.12.4 closes that gap. |
 | Community functional measures | `IMPLEMENTED` — **v2.14.0** | Grip strength and sit-to-stand are asked in both pathways, banded against published references, and reported on **page 2** of the printed report and on the result screen. Each carries a reference meter drawing only published points; heart rate ranges are worked out from the resident's age. Optional throughout: neither figure feeds the risk score (`CD20`). `CD21` and `CD23` remain with the owner. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
-The deployed application reports **v2.16.2**, which lets a team lead change one duty on one
-day by hand — without regenerating the roster — and records every such change in a log the
+The deployed application reports **v2.16.3**. That release is the community portal's: the
+same answer now means the same thing in all four languages, the next resident on a shared
+device starts clean, sensitive answers never reach Gemini, and the printed report is laid out
+like the app, in the resident's language on every page. **v2.16.2** before it lets a team
+lead change one duty on one day by hand — without regenerating the roster — and records every such change in a log the
 team can read (`ROSTER_TODO.md` queue item 3), and declutters the Configure wizard into three
 layers of explanation. It carries the **v2.15.0**–**v2.15.2** community-portal fixes made on
 `main` in the meantime. The community portal’s reference meters, heart rate ranges and
@@ -348,7 +351,7 @@ NEXUS is an operational and workload management tool. It is not a clinical syste
 
 ### Supported versions
 
-The current application version is **2.16.2**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
+The current application version is **2.16.3**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
 
 ### Access and data controls
 
@@ -434,7 +437,7 @@ Use these focused checks after a deployment:
 
 ## Releases and current work
 
-[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.16.2**.
+[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.16.3**.
 
 The next work is governed by the live ledgers:
 

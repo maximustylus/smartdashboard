@@ -54,6 +54,12 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.16.3] - 2026-09-24
+
+The community portal release: the owner's Malay read-through, a six-agent stress
+test and the report redesign, in one patch. No new capability and no schema change.
+Classified as a patch.
+
 ### Fixed
 
 - `CP45`: the Malay "manage on my own" chip carried the English word "mostly", and
