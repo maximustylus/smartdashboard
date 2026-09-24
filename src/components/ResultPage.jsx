@@ -1015,7 +1015,7 @@ export default function ResultPage() {
         {showMeasurements && (
           <div ref={printRefMeasures} style={PDF_PAGE_STYLE}>
             <PdfHeader subtitle={t.reportTitle} {...headerProps} />
-            <div style={{ padding: '16px 40px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div style={{ padding: '6px 28px 10px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
               <MeasurementsPanel
                 functional={data.functional}
                 lang={lang}

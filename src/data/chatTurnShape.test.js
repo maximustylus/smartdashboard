@@ -148,3 +148,33 @@ describe('only the last question may say it is the last one', () => {
         expect([...new Set(offenders)]).toEqual([]);
     });
 });
+
+describe('AURA speaks as a person in Malay, not as a form confirming a save', () => {
+    /*
+      ⚠️ FOUND BY THE OWNER'S MALAY READ-THROUGH, 2026-09-24. Two fixed
+         acknowledgements read "Difahami." and "Direkodkan.": a passive verb with
+         nobody in it, which is how a system reports a save, and nothing like how
+         a person answers somebody who has just told them something. Now "Saya
+         faham." and "Saya telah merekodkannya.". This fails if a bare passive,
+         alone or after "Baik,", comes back into any Malay acknowledgement.
+    */
+    const BARE_PASSIVE = /(^|[.!?]\s+)(Baik,\s+)?di[a-z]+(kan|i)\.(\s|$)/i;
+    const SAMPLE_ANSWERS = ['0 hari', '3–4 hari', 'Ya', 'Tidak', '5', 'Saya tidak pasti'];
+
+    it('no Malay acknowledgement is a bare passive', () => {
+        const reflections = copyFor('ms').reflections;
+        const keys = Object.keys(reflections).filter((key) => typeof reflections[key] === 'function');
+        expect(keys.length, 'no Malay reflections found, so this checked nothing').toBeGreaterThan(10);
+        keys.forEach((key) => {
+            SAMPLE_ANSWERS.forEach((answer) => {
+                const said = String(reflections[key](answer) || '');
+                expect(said, `${key} for "${answer}": "${said}"`).not.toMatch(BARE_PASSIVE);
+            });
+        });
+    });
+
+    it('still catches the two the owner found, so the check is not decorative', () => {
+        ['Difahami. ', 'Baik, direkodkan. '].forEach((s) => expect(s).toMatch(BARE_PASSIVE));
+        ['Saya faham. ', 'Baik, saya telah merekodkannya. '].forEach((s) => expect(s).not.toMatch(BARE_PASSIVE));
+    });
+});

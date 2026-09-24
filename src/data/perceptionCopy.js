@@ -91,7 +91,7 @@ export const PERCEPTION_COPY = Object.freeze({
 
         comfortPrompt: 'Sejauh mana anda berasa selesa dan selamat menerima penjagaan kesihatan dalam komuniti? 1 bermaksud tidak selesa langsung dan 5 bermaksud sangat selesa.',
         comfortChips: Object.freeze(['1, tidak selesa langsung', '2', '3', '4', '5, sangat selesa']),
-        comfortAck: 'Difahami. ',
+        comfortAck: 'Saya faham. ',
 
         changePrompt: 'Jika anda boleh mengubah satu perkara tentang penjagaan kesihatan di kejiranan anda, apakah itu?',
         changeChips: Object.freeze(['Tiada yang terlintas']),

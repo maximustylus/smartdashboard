@@ -41,7 +41,7 @@ export const BADGE_COPY = Object.freeze({
     postal_code:     Object.freeze({ en: 'Resource Mapping',             ms: 'Pemetaan Sumber',            zh: '资源定位',            ta: 'வள வரைபடம்' }),
     healthier_sg:    Object.freeze({ en: 'Healthier SG',                 ms: 'Healthier SG',               zh: 'Healthier SG',        ta: 'Healthier SG' }),
     grip_kg:         Object.freeze({ en: 'Grip Strength',                ms: 'Kekuatan Genggaman',         zh: '握力',                ta: 'பிடி வலிமை' }),
-    sit_to_stand:    Object.freeze({ en: 'Standing Up From a Chair',     ms: 'Bangun Dari Kerusi',         zh: '从椅子上站起',        ta: 'நாற்காலியிலிருந்து எழுதல்' }),
+    sit_to_stand:    Object.freeze({ en: 'Standing Up From a Chair',     ms: 'Senaman Berdiri Dan Duduk',  zh: '从椅子上站起',        ta: 'நாற்காலியிலிருந்து எழுதல்' }),
     measure_setting: Object.freeze({ en: 'Where It Was Measured',        ms: 'Di Mana Ia Diukur',          zh: '测量地点',            ta: 'எங்கு அளக்கப்பட்டது' }),
     services_aware:  Object.freeze({ en: 'Local Services',               ms: 'Perkhidmatan Tempatan',      zh: '本地服务',            ta: 'உள்ளூர் சேவைகள்' }),
     ever_referred:   Object.freeze({ en: 'Referral History',             ms: 'Sejarah Rujukan',            zh: '转介记录',            ta: 'பரிந்துரை வரலாறு' }),

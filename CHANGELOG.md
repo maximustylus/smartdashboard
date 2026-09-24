@@ -64,11 +64,19 @@ not changed by this release.
   removed.
 - `CP47`: page 3 of the report (disclaimer, evidence table, privacy, Healthier SG)
   was English in every language. Now in the resident's language; the disclaimer
-  is registered as safety-critical and awaits review or a waiver.
+  is registered as safety-critical and ships on the owner's signed waiver
+  (`CD29`, 2026-09-24).
 - Every font in the printed report one step larger; Healthier SG logos enlarged
   and the printed URLs removed, rows still link. Nothing clips.
 - Malay terminology per the owner's read-through: `pelan` to `rancangan`, aerobic
   `kuat` to `tinggi` (Malaysia's health ministry: *tahap tinggi*), including in two waived safety strings.
+- Malay, the owner's second read: AURA's fixed acknowledgements speak in the first
+  person ("Saya faham." for "Difahami.", "Saya telah merekodkannya." for
+  "Direkodkan.", six in all), and the Cloud Function's persona carries the same rule.
+  The sit-to-stand test is named *senaman berdiri dan duduk*.
+- `CP48`: page 2 of the report (the measurements) lost its last lines in Malay and
+  Tamil after the font increase, and its measurement block had not been enlarged.
+  Both fixed, with three places where PDF text touched a box edge. Nothing clips.
 - The Healthier SG line on page 3 of the report no longer carries the national
   ministry's acronym, in any language, following v2.16.0's removal of it from the
   product. `community` carries v2.16.0 to v2.16.2 as of 2026-09-18.

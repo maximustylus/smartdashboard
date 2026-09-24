@@ -1340,6 +1340,10 @@ safety-critical with nobody's name against it and no waiver. Unlike the three ab
 it is not shipped and cannot be: the gate holds until `CD29` is settled. That is
 the gate working as designed, not a broken build.
 
+**2026-09-24 — settled by waiver.** The owner answered "waive". The build is green
+again because somebody signed, exactly as for the three above: four safety strings
+now ride on the owner's signature, none on a reader's.
+
 ---
 
 ## `P9` — the measurement questions landed 2026-09-12
@@ -1513,7 +1517,6 @@ larger than one respondent.
 
 ```
 P0.3  App Check + rate limit                 ─ needs the Firebase console
-CD29  page 3 disclaimer: review or waive     ─ OWNER'S CALL; the build is RED until then
 CD13  native-speaker review of 19 strings    ─ owner's; the only thing left on group 1 + 4
 CD10  groups 2, 3, rest of 4                 ─ owner's call; group 2 is the URGENT tier
 CD4 / CD11                                   ─ owner's, in parallel, not blocked on me
@@ -1706,7 +1709,7 @@ that abandoning there costs nothing the assessment needs.
 
 ---
 
-## `P12` — the owner's Malay read-through · `CP45` `CP46` `CP47` · `CD29` · **on `community`**
+## `P12` — the owner's Malay read-through · `CP45` `CP46` `CP47` `CP48` · `CD29` · **on `community`**
 
 The first native read of any of this portal's Malay, by the owner's team on
 2026-09-17. It found what two model rounds did not.
@@ -1741,10 +1744,9 @@ the on-screen disclaimer and privacy blocks read from the same table.
 
 ⚠️ `governance.disclaimer` is registered as safety-critical. It tells somebody
 with chest pain to seek immediate medical attention; its ms/zh/ta is machine
-translated and unread, so the build is red until a person reviews it or the owner
-signs a waiver, as with `hrCaution`. That decision is `CD29`, below.
+translated and unread. The owner waived it on 2026-09-24 (`CD29`, below).
 
-### `CD29` — the page 3 disclaimer in Malay, Chinese and Tamil: review or waive · **OWNER'S CALL**
+### `CD29` — the page 3 disclaimer in Malay, Chinese and Tamil: review or waive · **WAIVED 2026-09-24**
 
 `governance.disclaimer` is the sentence that tells a resident with chest pain or
 dizziness to seek immediate medical attention, now printed in the resident's
@@ -1758,6 +1760,12 @@ rendered and looked at on 2026-09-17 (`scratchpad/ms14-3.png`); it has not been
 read by a Malay reader, and Chinese and Tamil have not been rendered for anyone.
 The text is in the review pack at §A7.
 
+**Settled 2026-09-24: waived.** The owner answered "waive". `REVIEW_WAIVERS` now
+carries `governance.disclaimer`, signed by the repository owner on that date, with
+the risk it accepts written out: a softened translation would read fluently and
+stop being an instruction. The gate is green. This is a debt, not a review, and a
+reader's name in `reviewedBy` is still what clears it.
+
 Also on the owner's direction the same day: every font in the printed report is
 one step larger (7 to 8.5, 9 to 10.5, 10 to 11.5, 11 to 12.5, 14 to 16, 24 to 27),
 with the room taken back from padding and gaps and one changelog sentence in the
@@ -1766,6 +1774,49 @@ printed URLs are gone; each row stays a live link in the PDF. Headroom after:
 page 1 worst case 24px, Tamil page 3 37px, nothing clipping in sixteen scenarios.
 The heart-rate chips were re-measured at the new size and sit 1.6px below centre,
 as before.
+
+### ⚠️ `CP48` — page 2 lost its last lines in Malay and Tamil after the font increase · **FIXED 2026-09-24**
+
+The 2026-09-17 record above says page 2 was "unchanged, ample". It was wrong. The
+sweep behind that sentence did not include the tallest page 2 there is: both
+measurements, both meters, and the heart-rate block with the medication note.
+`scripts/pdf-headroom.mjs` does, and on 2026-09-24 it showed page 2 over its limit
+since the heart-rate block was enlarged on 2026-09-17:
+
+    measured              ms  page 2   -3px    CLIPPED
+    measured-medication   ms  page 2  -33px    CLIPPED
+    measured-medication   ta  page 2  -20px    CLIPPED
+
+What is lost is the bottom of the page: the "Compared against" citations. The
+figures and the heart-rate caution were above the cut. Live since v2.15.0? No:
+the font increase is on `community` only, so no resident has downloaded it.
+
+The same check found that the measurement block itself (`MeasurementsPanel`) had
+never been enlarged, against the owner's "all fonts larger throughout". Fixed
+together: every size in that block one step up (9 to 10.5, 10 to 11.5, 11 to 12.5,
+13 to 14.5, 15 to 17), and the room paid for from page 2's margins (36px to 28px
+at the sides, which also removes Tamil line wraps), card padding and gaps.
+
+The real downloaded PDF, rasterised, showed three things the sweep cannot, because
+html2canvas draws text a few pixels lower than the browser lays it out:
+
+- the last line of the heart-rate notes printed on the top edge of the caution
+  box (likely there since v2.14.x; the gap was 2px before today as well);
+- the intro line under the page heading was cut by the first card;
+- the Tamil column header above the heart-rate chips was grazed by the first chip.
+
+Each now has room below it. The zone table's "What it is for" heading also sat
+beside "Zone" rather than over its column; it is aligned. The Malay column header
+`Denyutan seminit` wrapped to two lines and is now `Denyut/minit`.
+
+After, all six scenarios in four languages:
+
+    tightest  measured-medication  ta  page 2   16px spare
+              measured-medication  ms  page 2   33px
+              worst-case           en  page 1   24px
+
+Nothing clips. Tamil page 2 in the tallest case is the thinnest margin on the
+report and the first place to look if anything is added to page 2.
 
 ### Malay terminology, per the owner and Malaysia's health ministry physical activity guidance
 
@@ -1783,7 +1834,36 @@ directed by the owner; the prohibition is untouched. Recorded in
 
 The sit-to-stand wording was checked against the ministry text supplied; that text
 describes the physical activity guidelines and does not name the chair-stand
-test, so the Malay for it (`bangun dari kerusi`) is unchanged pending a term.
+test. **On 2026-09-24 the owner named it: `senaman berdiri dan duduk`.** It is now
+the test's name in the Malay chat step label, the measurement labels on screen and
+on page 2, and the two questions. The questions keep `bangun dari kerusi` for the
+movement being counted, so the name and what to count are both said once. The
+owner wrote `diri`; the standard form `berdiri` was used, to be switched if the
+shorter word was meant.
+
+### AURA acknowledges in the first person in Malay · 2026-09-24
+
+The owner's team flagged "Difahami." and "Direkodkan.": a passive verb with
+nobody in it, the way a system confirms a save, not the way a person answers.
+Six fixed acknowledgements in that register were changed, the two named and four
+of the same kind:
+
+| Was | Now |
+|---|---|
+| `Difahami.` | `Saya faham.` |
+| `Direkodkan.` | `Saya telah merekodkannya.` |
+| `Baik, direkodkan.` | `Baik, saya telah merekodkannya.` |
+| `Tempoh sesi anda direkodkan.` | `Saya telah merekodkan tempoh sesi anda.` |
+| `Memetakan sumber berdekatan sekarang.` | `Saya sedang mencari sumber berdekatan.` |
+| `Baik, rekod baharu akan dimulakan.` | `Baik, saya akan mulakan rekod baharu.` |
+
+The owner suggested `Saya telah merakami`. `merakam` in standard Malay is to
+record sound or pictures, and `merakami` is not a standard form, so
+`merekodkannya`, the root the app already used, was chosen instead. Most
+acknowledgements a resident reads are written by the model at request time, so
+the persona in `functions/index.js` now carries the same rule, and
+`chatTurnShape.test.js` fails if a bare passive returns to the fixed copy. The
+persona rule only takes effect when the Cloud Function is deployed.
 
 ---
 

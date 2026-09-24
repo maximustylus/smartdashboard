@@ -73,7 +73,7 @@ import { measuresCopyFor } from '../data/measuresCopy';
 import { zonesFor } from '../utils/heartRateZones';
 import { HR_ZONE_RAMP } from '../data/zonePalette';
 
-const NOTE = { fontSize: 9.5, color: '#64748b', lineHeight: 1.45 };
+const NOTE = { fontSize: 9.5, color: '#64748b', lineHeight: 1.38 };
 
 /**
  * `result` is computed ONCE by `MeasurementsPanel` and passed in, because that
@@ -110,7 +110,7 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
     const spreadNote = (m.hrSpreadNote || '').replace('11', String(spreadBpm));
 
     return (
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '7px 12px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/*
               ⚠️ THE SAME HEADING TREATMENT AS THE OTHER BLOCKS ON THIS PAGE.
                  This was 11px bold sentence case, which is the page's SUB-heading
@@ -135,11 +135,13 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
                   "Light" and "Hard" beside somebody's own report look like a grade
                   until a heading says the word names an intensity.
                 */}
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, paddingBottom: 6 }}>
                     <div style={{ width: 86, flexShrink: 0, fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8, textAlign: 'center' }}>
                         {m.hrColRange}
                     </div>
-                    <div style={{ fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                    {/* The zone-name column is 78px plus a 6px gap; 76px plus this row's 8px lands "What it is for"
+                        over the purposes rather than beside "Zone". */}
+                    <div style={{ width: 76, flexShrink: 0, fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
                         {m.hrColZone}
                     </div>
                     <div style={{ fontSize: 8.5, fontWeight: 900, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
@@ -269,7 +271,13 @@ export default function HeartRateZones({ result: passed, ageYears, symptomFlag, 
             */}
 
             {/* ⚠️ SAFETY-CRITICAL. A prohibition, gated by `copyReview.js`. */}
-            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '7px 10px' }}>
+            {/*
+              `marginTop` and the deeper bottom padding are for html2canvas, which
+              draws text a few pixels lower than the browser lays it out. With the
+              container's 2px gap alone, the last line of the note above printed
+              ON the top edge of this box in the downloaded PDF (seen 2026-09-24).
+            */}
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 8, padding: '6px 10px 9px', marginTop: 5 }}>
                 <div style={{ fontSize: 10, color: '#4c0519', lineHeight: 1.5 }}>{m.hrCaution}</div>
             </div>
         </div>

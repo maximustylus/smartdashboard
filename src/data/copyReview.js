@@ -437,6 +437,26 @@ export const REVIEW_WAIVERS = Object.freeze({
             + 'increase how hard you exercise") over the prohibition it replaced, '
             + 'knowing it permits rather than forbids exercising harder first.',
     }),
+    /*
+      ──────────────────────────────────────────────────────────────────────────
+      2026-09-24 · the page 3 disclaimer · `CD29`
+      ──────────────────────────────────────────────────────────────────────────
+
+      A THIRD, SEPARATE SIGNATURE, asked for by name. The build was held red on
+      this key from 2026-09-17 until the owner answered "waive" on 2026-09-24. The
+      Malay page was rendered and looked at by the owner before signing; the
+      Malay text itself has not been read line by line by a Malay reader, and
+      the Chinese and Tamil have been read by nobody.
+    */
+    'governance.disclaimer': Object.freeze({
+        by: 'Repository owner (maximustylus)', on: '2026-09-24',
+        why: 'Chose to ship page 3 in the resident\'s language rather than hold it in '
+            + 'English until a native review. Risk stated and accepted: the one '
+            + 'sentence that sends somebody with chest pain or dizziness to seek '
+            + 'immediate medical attention is machine translated in ms, zh and ta, '
+            + 'and a softened translation ("you may wish to see a doctor") would read '
+            + 'fluently and stop being an instruction.',
+    }),
     'measures.doNotSelfTest': Object.freeze({
         by: 'Repository owner (maximustylus)', on: '2026-09-13',
         why: 'Chose to go live for community testing before a native-speaker review '

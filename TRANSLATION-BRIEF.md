@@ -24,7 +24,7 @@ The portal serves four languages, so each item needs **three** translations:
 | **4** — the printed handover slip | 24 strings | 🟡 **the 10 flag lines shipped**, bilingual; the other 14 English only |
 | **5** — functional measures | 49 strings | ✅ **shipped** v2.13.0 / v2.14.0, machine-translated, **unreviewed**. ⚠️ **5 are safety-critical and live under owner waivers** |
 | **6** — the six questions the form asked alone, plus 2026-09-16 rewording | 21 new strings + 12 changed | ✅ **shipped** v2.15.0, machine-translated, **unreviewed**. None safety-critical. Review pack: [`docs/TRANSLATION-REVIEW-2026-09-16.md`](docs/TRANSLATION-REVIEW-2026-09-16.md) |
-| **7** — page 3 of the report and the on-screen disclaimer | 30 strings | 🟡 on `community`, machine-translated, **unreviewed**. ⚠️ **the disclaimer is safety-critical and unwaived: the build is red** (`CD29`). Pack §A7 |
+| **7** — page 3 of the report and the on-screen disclaimer | 30 strings | 🟡 on `community`, machine-translated, **unreviewed**. ⚠️ **the disclaimer is safety-critical and live on the owner's waiver of 2026-09-24** (`CD29`). Pack §A7 |
 | **8** — the 25 step labels above each chat question | 25 strings | ✅ **shipped** v2.15.2, machine-translated, **unreviewed**. Not safety-critical. Pack §A8 |
 
 **The first native read happened on 2026-09-17**: the owner's team read the Malay chat
@@ -647,6 +647,11 @@ chip (`mostly`), `pelan` for `rancangan`, aerobic `kuat` for `tinggi` per Malays
 health ministry's *tahap tinggi*, and the intensity vocabulary in two waived safety
 strings. The chip finding was also a flag defect (`CP45`). This is what native
 review looks like and why nothing else substitutes for it.
+
+**2026-09-24, the second read.** Two more from the owner: AURA's fixed Malay
+acknowledgements were in a passive, system register ("Difahami.", "Direkodkan.")
+and are now first person ("Saya faham.", "Saya telah merekodkannya."), six
+strings in all; and the sit-to-stand test is named `senaman berdiri dan duduk`.
 
 ---
 

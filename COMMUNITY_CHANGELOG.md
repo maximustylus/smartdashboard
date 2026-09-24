@@ -41,7 +41,7 @@ pathways, and the Cloud Function behind the chat.
   removed as redundant.
 - **CP47** — page 3 was English in every language. Now `governanceCopy.js` in
   four languages, on the PDF and on screen. The disclaimer is registered as
-  safety-critical; the build is red until it is reviewed or waived.
+  safety-critical and ships on the owner's waiver of 2026-09-24 (`CD29`).
 - Every font in the printed report is one step larger, paid for from padding and
   gaps and one changelog sentence in the evidence table. Healthier SG logos 40 to
   44px, printed URLs gone, rows still link. Headroom re-swept: nothing clips.
@@ -49,6 +49,14 @@ pathways, and the Cloud Function behind the chat.
   and the heart-rate block, including `hrCaution` and `hrSuppressedSymptoms`,
   one word each, prohibition untouched. First human correction to any of this
   portal's Malay.
+- Malay, the owner's second read (2026-09-24): AURA's fixed acknowledgements
+  are first person ("Saya faham.", "Saya telah merekodkannya."), six strings,
+  and the model persona is held to the same rule. The sit-to-stand test is named
+  `senaman berdiri dan duduk` in the chat, the form and the report.
+- **CP48** — page 2 of the report clipped its last lines in Malay and Tamil
+  after the font increase, and its measurement block had never been enlarged.
+  Both fixed; three places where PDF text sat on a box edge were also cleared.
+  Tightest page now 16px spare (Tamil, both measurements, medication note).
 - 2026-09-18: `main`'s v2.16.0 to v2.16.2 (the roster releases) merged into
   `community`. v2.16.0 removed the national ministry's acronym from the product, so
   the Healthier SG line on page 3 now reads "the Healthier SG framework" in all

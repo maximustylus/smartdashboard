@@ -9,8 +9,8 @@ this pack is for a person.
 **What it is not.** A model reading a machine translation is evidence, not a review. The
 five safety-critical strings already live under the owner's waivers are in
 `TRANSLATION-BRIEF.md` Group 5 and are not repeated here. One string in this pack IS
-safety-critical: `governance.disclaimer` in §A7, registered and unwaived, so the build
-is red until it is reviewed or waived (`CD29`). Nothing else here gates the build.
+safety-critical: `governance.disclaimer` in §A7. The owner waived it on 2026-09-24
+(`CD29`), so it ships unread; it is still the first row in this pack to read.
 
 **Where it ships.** Sections A1 to A6 and B shipped in v2.15.0 and §A8 in v2.15.2;
 `main` is v2.16.2 as of 2026-09-18. §A7 is on `community` and not yet released.
@@ -273,7 +273,7 @@ chip pairs are new.
 
 ### A7 · Page 3 of the report, and the on-screen disclaimer · 2026-09-17
 
-The governance page was English in every language. ⚠️ **`governance.disclaimer` is safety-critical and registered**: the build is red until a person reviews it or the owner waives it. Instrument names and acronyms stay in English on purpose.
+The governance page was English in every language. ⚠️ **`governance.disclaimer` is safety-critical and registered**, and ships on the owner's waiver of 2026-09-24 until a person reviews it. Instrument names and acronyms stay in English on purpose.
 
 **`governance.disclaimerHeading`** · EN: *Important medical disclaimer*
 

@@ -57,8 +57,8 @@ const SOURCE_BY_ID = {
      readers this page is for are mostly over 60.
 */
 const ROW = {
-    border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 16px',
-    background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 4,
+    border: '1px solid #e2e8f0', borderRadius: 12, padding: '6px 14px 10px',
+    background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 3,
 };
 
 const Measurement = ({ result, label, unit, m }) => {
@@ -71,17 +71,17 @@ const Measurement = ({ result, label, unit, m }) => {
     return (
         <div style={ROW}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}>
-                <div style={{ fontWeight: 800, fontSize: 11, color: '#0f172a' }}>{label}</div>
+                <div style={{ fontWeight: 800, fontSize: 12.5, color: '#0f172a' }}>{label}</div>
                 {result.value !== null && (
-                    <div style={{ fontWeight: 900, fontSize: 15, color: '#0f766e', whiteSpace: 'nowrap' }}>
-                        {result.value} <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b' }}>{unit}</span>
+                    <div style={{ fontWeight: 900, fontSize: 17, color: '#0f766e', whiteSpace: 'nowrap' }}>
+                        {result.value} <span style={{ fontSize: 11.5, fontWeight: 700, color: '#64748b' }}>{unit}</span>
                     </div>
                 )}
             </div>
 
             {band ? (
                 <>
-                    <div style={{ fontWeight: 700, fontSize: 11, color: '#0f766e' }}>{m.bands[band]}</div>
+                    <div style={{ fontWeight: 700, fontSize: 12.5, color: '#0f766e' }}>{m.bands[band]}</div>
                     {/*
                       ⚠️ THE METER IS INSIDE THE `band` BRANCH ON PURPOSE. The other
                          branch is every case where no comparison was made: age
@@ -100,12 +100,12 @@ const Measurement = ({ result, label, unit, m }) => {
                       its own and borrows the one for staying where you are, rather
                       than this page inventing a third level the source does not have.
                     */}
-                    <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.6 }}>
+                    <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45 }}>
                         {m.advice[band] || m.advice[band === 'below-average' || band === 'below-typical' ? 'below' : 'usual']}
                     </div>
                 </>
             ) : (
-                <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45 }}>
                     {m.reasons[result.reason] || m.reasons.missing}
                 </div>
             )}
@@ -119,10 +119,10 @@ const Measurement = ({ result, label, unit, m }) => {
                  catch a plausible-looking 14.
             */}
             {result.maybeWrongProtocol === true && (
-                <div style={{ fontSize: 10, color: '#b45309', lineHeight: 1.6 }}>{m.maybeWrongProtocol}</div>
+                <div style={{ fontSize: 11.5, color: '#b45309', lineHeight: 1.45 }}>{m.maybeWrongProtocol}</div>
             )}
             {result.implausibleForProtocol === true && result.maybeWrongProtocol !== true && (
-                <div style={{ fontSize: 10, color: '#b45309', lineHeight: 1.6 }}>
+                <div style={{ fontSize: 11.5, color: '#b45309', lineHeight: 1.45 }}>
                     {result.implausibleDirection === 'high' ? m.implausibleHigh : m.implausibleLow}
                 </div>
             )}
@@ -159,9 +159,9 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
     const showsEquations = Array.isArray(heartRate.zones);
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <div>
-                <div style={{ fontWeight: 900, fontSize: 13, color: '#0f172a', letterSpacing: 0.3 }}>
+                <div style={{ fontWeight: 900, fontSize: 14.5, color: '#0f172a', letterSpacing: 0.3 }}>
                     {m.reportHeading}
                 </div>
                 {/*
@@ -171,21 +171,21 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
                      string reused in two places reads as the portal not knowing
                      where it is.
                 */}
-                <div style={{ fontSize: 10, color: '#475569', lineHeight: 1.6, marginTop: 4 }}>{m.reportIntro}</div>
+                <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45, marginTop: 3, paddingBottom: 3 }}>{m.reportIntro}</div>
             </div>
 
             <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} />
             <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m} />
 
             {functional?.setting && (
-                <div style={{ fontSize: 10, color: '#64748b' }}>
+                <div style={{ fontSize: 11.5, color: '#64748b', padding: '2px 0 3px' }}>
                     <strong style={{ color: '#475569' }}>{m.measuredAt}:</strong> {m.settings[functional.setting]}
                 </div>
             )}
 
             {/* ⚠️ SAFETY-CRITICAL, AND ON THIS PAGE BECAUSE THE NUMBERS ARE. */}
-            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '10px 14px' }}>
-                <div style={{ fontSize: 10, color: '#4c0519', lineHeight: 1.7 }}>{m.notADiagnosis}</div>
+            <div style={{ background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: 12, padding: '6px 14px 10px' }}>
+                <div style={{ fontSize: 11.5, color: '#4c0519', lineHeight: 1.5 }}>{m.notADiagnosis}</div>
             </div>
 
             {/*
@@ -199,12 +199,12 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
             <HeartRateZones result={heartRate} lang={lang} />
 
             {(sourceIds.length > 0 || showsEquations) && (
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '10px 14px' }}>
-                    <div style={{ fontWeight: 900, fontSize: 9, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 2 }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '8px 14px' }}>
+                    <div style={{ fontWeight: 900, fontSize: 10.5, color: '#64748b', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 2 }}>
                         {m.comparedAgainst}
                     </div>
                     {showsEquations && (
-                        <div style={{ fontSize: 9, color: '#475569', lineHeight: 1.6, marginBottom: 5 }}>
+                        <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45, marginBottom: 3 }}>
                             {HR_EQUATIONS.tanaka.short}
                             {HR_EQUATIONS.tanaka.doi && <> · doi:{HR_EQUATIONS.tanaka.doi}</>}
                             {' · '}
@@ -215,7 +215,7 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
                         const source = SOURCE_BY_ID[id];
                         if (!source) return null;
                         return (
-                            <div key={id} style={{ fontSize: 9, color: '#475569', lineHeight: 1.6, marginBottom: 5 }}>
+                            <div key={id} style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45, marginBottom: 3 }}>
                                 {source.citation}
                                 {source.doi && <> · doi:{source.doi}</>}
                                 {/*

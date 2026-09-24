@@ -300,14 +300,14 @@ export const MEASURES_COPY = {
         gripUnit: 'kilogram (kg)',
         gripLabel: 'Kekuatan genggaman',
         stsPrompt: {
-            'sts-60s': 'Adakah sesiapa pernah mengira anda bangun dari kerusi selama satu minit? Jika ya, masukkan berapa kali anda bangun dalam satu minit itu.',
-            'sts-30s': 'Adakah sesiapa pernah mengira anda bangun dari kerusi selama tiga puluh saat? Jika ya, masukkan berapa kali anda bangun dalam tiga puluh saat itu.',
+            'sts-60s': 'Adakah sesiapa pernah mengira senaman berdiri dan duduk anda selama satu minit? Jika ya, masukkan berapa kali anda bangun dari kerusi dalam satu minit itu.',
+            'sts-30s': 'Adakah sesiapa pernah mengira senaman berdiri dan duduk anda selama tiga puluh saat? Jika ya, masukkan berapa kali anda bangun dari kerusi dalam tiga puluh saat itu.',
         },
         stsUnit: 'kali',
         stsLabel: {
-            'sts-60s': 'Bangun dari kerusi, satu minit',
-            'sts-30s': 'Bangun dari kerusi, tiga puluh saat',
-            unsure: 'Bangun dari kerusi',
+            'sts-60s': 'Senaman berdiri dan duduk, satu minit',
+            'sts-30s': 'Senaman berdiri dan duduk, tiga puluh saat',
+            unsure: 'Senaman berdiri dan duduk',
         },
         stsUnsure: 'Saya tidak pasti berapa lama masa yang dikira',
         settingPrompt: 'Di mana ukuran ini diambil?',
@@ -361,7 +361,7 @@ export const MEASURES_COPY = {
         hrSuppressedSymptoms: 'Anda memberitahu kami bahawa anda mengalami gejala apabila bersenam pada intensiti tinggi, jadi kami tidak menunjukkan julat kadar denyutan jantung. Rujuk profesional kesihatan anda sebelum anda meningkatkan intensiti senaman anda.',
 
         hrColourNote: 'Ini warna zon senaman yang biasa digunakan. Ia tidak bermaksud perkara yang sama seperti warna keputusan penilaian anda.',
-        hrColRange: 'Denyutan seminit',
+        hrColRange: 'Denyut/minit',
         hrColZone: 'Zon',
         hrColPurpose: 'Untuk apa',
         hrZoneNames: {
