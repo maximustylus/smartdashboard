@@ -208,12 +208,39 @@ const hasCue = (fragment, cues, edge) => cues.some((cue) => {
     return start.startsWith(cue);
 });
 
+/**
+ * ⚠️ "NO A OR B", IN CHINESE AND TAMIL. Found by the 2026-09-24 stress test:
+ *    「没有头晕或胸痛」 and "நெஞ்சு வலி அல்லது தலைச்சுற்றல் இல்லை" ("no dizziness or
+ *    chest pain") routed a resident who had just DENIED both to URGENT, because
+ *    adjacency only reached the term next to the negator. English and Malay
+ *    already carried a denial across `or` (see `CLAUSE_BREAK`); these two do the
+ *    same for the other two languages, and still only across `or`, never `and`,
+ *    for the same over-triage reason as in English.
+ *
+ *    Chinese: a negator, a short stretch, then 或/或者/、 immediately before the
+ *    term. Bare 不 is left out: it sits inside ordinary words (不知所措).
+ *
+ *    Tamil negates AFTER, and a condition is usually a noun phrase: "இதய நோய்
+ *    இல்லை" ("heart disease — no"). The term matched is "இதய", so the negator is
+ *    one word away, not adjacent. One intervening word is allowed, then optionally
+ *    அல்லது ("or") and up to three more words, then the negator.
+ */
+const ZH_NEGATED_LIST = /(没有|没|无|未|从未|从来没有)[^，。；,;.!?]{0,15}(或者|或|、)\s*$/;
+const TA_NEGATED_AFTER = new RegExp(
+    '^\\s*(?:[^\\s,.;]+\\s+)?(?:அல்லது\\s+(?:[^\\s,.;]+\\s+){0,3})?(?:'
+    + TAMIL_NEGATORS.join('|') + ')(?=$|[\\s,.;!?])',
+    // ⚠️ The negator must be a whole word. Without the lookahead, அல்ல matched the
+    //    start of அல்லது ("or") and the "two or more falls" chip read as one fall.
+);
+
 /** Whether the match at [start, end) in `value` is inside a denial. */
 const isNegated = (value, start, end) => {
     const before = trailingClause(value.slice(0, start));
     const after = leadingClause(value.slice(end));
     return hasCue(before, NEGATORS_BEFORE, 'end')
+        || ZH_NEGATED_LIST.test(before)
         || hasCue(after, TAMIL_NEGATORS, 'start')
+        || TA_NEGATED_AFTER.test(after)
         || hasCue(after, DISMISSALS_AFTER, 'start');
 };
 
@@ -252,12 +279,18 @@ export const matchesSymptom = buildMatcher([
 export const matchesCondition = buildMatcher([
     'blood pressure', 'prediabetes', 'diabetes', 'heart',
     'darah tinggi', '高血压', '糖尿病', '心脏',
+    'jantung',   // ms · "Penyakit jantung". Missing until 2026-09-24: the Malay
+                 // heart-condition chip raised no flag at all.
     'உயர் இரத்த', 'நீரிழிவு', 'இதய',
 ]);
 
 export const matchesFinancialBarrier = buildMatcher([
     'expensive', 'cost', 'afford', 'mahal', 'kos', 'too far', 'jauh',
     '贵', 'செலவு', '太远',
+    // ta · the chat chips "மிகவும் விலை அதிகம்" (too expensive) and "மிகவும் தூரம்"
+    // (too far). Only the form's word செலவு was here, so until 2026-09-24 a Tamil
+    // resident who tapped either chip was never flagged for cost.
+    'விலை', 'தூரம்',
 ]);
 
 /**
@@ -362,7 +395,24 @@ export const matchesCaregiverStrain = buildMatcher([
     'caregiving', 'caregiver', 'carer',
     'penjagaan',            // ms — "tanggungjawab penjagaan"
     '照顾',                  // zh — "照顾"
-    'பராமரிப்பு',            // ta — "பராமரிப்பு"
+    // ta — the stem, not the word. The form says பராமரிப்பு, the chat chip says
+    // பராமரிப்பால் ("by caregiving"); matching the full word missed the chip until
+    // 2026-09-24.
+    'பராமரிப்',
+]);
+
+/**
+ * "Some stress but managing" is NOT distress. The owner's decision, 2026-09-24
+ * ("no need"), settling the question recorded in COMMUNITY_TODO.md: coping with
+ * some stress does not raise the wellbeing flag, in any language or pathway.
+ * Until then it flagged in English and Tamil (their chips contain the distress
+ * word) and not in Malay or Chinese, so the same answer gave different results.
+ */
+export const matchesCopingWithStress = buildMatcher([
+    'managing', 'manageable', 'coping',
+    'boleh kawal',      // ms · "Ada sedikit tekanan tapi boleh kawal"
+    '能应对',            // zh · "有些压力但能应对"
+    'சமாளிக்கிறேன்',     // ta · "சில மன அழுத்தம் ஆனால் சமாளிக்கிறேன்"
 ]);
 
 export const matchesFoodInsecurity = buildMatcher(['yes', 'ya', '是', 'ஆம்']);
@@ -432,6 +482,25 @@ const matchesNoFalls = buildMatcher([
     'tidak pernah',             // ms · the current chip, "Tidak pernah jatuh"
     '没有跌倒',                  // zh · and NOT bare 没有, which is a general negator
     'விழுந்ததில்லை',            // ta · "have not fallen", one word
+    // Typed phrasings, added 2026-09-24 after the stress test found "never",
+    // "tak pernah", 「没摔过」 and "விழவில்லை" all recorded as a fall and printed
+    // on the handover slip. Phrases, not bare negators, for the reason above.
+    'never fallen', 'never fell', 'never had a fall', 'not fallen', 'no fall',
+    'tak pernah jatuh', 'belum pernah jatuh', 'tidak jatuh',
+    '从来没有跌倒', '没有摔倒', '没摔倒', '没摔过', '没跌倒',
+    'விழவில்லை',
+]);
+
+/*
+ * A bare "no" word is only a "no falls" answer when it is the WHOLE answer. Inside
+ * a sentence 没有 or "never" can deny anything; on its own, in reply to "have you
+ * had a fall?", it can only mean no.
+ */
+const BARE_NO_FALLS = new Set([
+    'never', 'nope', 'nil', 'zero', '0', 'not at all',
+    'tak', 'tak pernah', 'tidak', 'belum', 'belum pernah', 'tiada', 'tak ada',
+    '没有', '没', '无', '从来没有', '从没有', '没摔',
+    'இல்லை', 'இல்ல', 'கிடையாது',
 ]);
 const matchesTwoOrMore = buildMatcher([
     'two or more', 'two', 'three', 'more than one', '2+',
@@ -465,8 +534,9 @@ const parseFallsAnswer = (answer) => {
     if (text === '') return { falls: 0, avoidsActivity: false, fallsRisk: false, asked: false };
 
     const avoidsActivity = matchesAvoidance(text);
+    const bare = text.toLowerCase().replace(/[\s.!。！]+$/u, '').trim();
     // ⚠️ The negative first — see the note above.
-    if (matchesNoFalls(text) && !avoidsActivity) {
+    if ((BARE_NO_FALLS.has(bare) || matchesNoFalls(text)) && !avoidsActivity) {
         return { falls: 0, avoidsActivity: false, fallsRisk: false, asked: true };
     }
     const falls = matchesTwoOrMore(text) ? 2 : 1;
@@ -753,8 +823,10 @@ const MINS_CHIP = Object.freeze([
     [/45.?60/i,       52],
     [/30.?45/i,       37],
     [/20.?30/i,       25],
-    [/60\s*\+/i,      65],
-    [/less than 20/i, 15],
+    [/60\s*\+|60\s*分钟以上/i, 65],
+    // Every language's "less than 20" chip. Until 2026-09-24 only the English one
+    // was here, so ms/zh/ta fell to the digit scan and scored 20, not 15.
+    [/less than 20|kurang 20|少于\s*20|20\s*நிமிடங்களுக்கும் குறைவு/i, 15],
 ]);
 
 /** Chip midpoints, byte-identical to `ConventionalForm.DAYS_MIDPOINT`. */

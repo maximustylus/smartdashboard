@@ -50,8 +50,10 @@ const SOCIAL_FLAG_VALUES = new Set([
   'I mostly manage on my own',
   'I feel quite isolated',
 ]);
+// "Some stress but managing" left this set on 2026-09-24, the owner's decision:
+// coping with some stress is not distress. `matchesCopingWithStress` does the same
+// for the chat, so both pathways and all four languages agree.
 const PSYCHOLOGICAL_FLAG_VALUES = new Set([
-  'Some stress but managing',
   'Feeling quite stressed or low',
   'Overwhelmed by caregiving',
   'Overwhelmed by financial pressure',

@@ -57,6 +57,15 @@ pathways, and the Cloud Function behind the chat.
   after the font increase, and its measurement block had never been enlarged.
   Both fixed; three places where PDF text sat on a box edge were also cleared.
   Tightest page now 16px spare (Tamil, both measurements, medication note).
+- **P13, a six-agent stress test (2026-09-24).** Fixed before release:
+  **CP49** the same chip meant different things by language (Malay heart
+  condition, Tamil cost and caregiving, Chinese 3+ strength days, session
+  minutes); chat and form now agree for every simulated resident. **CP50** "no
+  A or B" is a denial in Chinese and Tamil. **CP51** a typed "no" to falls is no
+  fall. **CP52** the next person on a shared device starts clean, and the two
+  pathways no longer overwrite each other. **CP53**/**CP54** PDF page 1 (English,
+  east sectors) and page 2 (Tamil) fit again. "Some stress but managing" no
+  longer flags, at the owner's decision. Open items are in the ledger.
 - 2026-09-18: `main`'s v2.16.0 to v2.16.2 (the roster releases) merged into
   `community`. v2.16.0 removed the national ministry's acronym from the product, so
   the Healthier SG line on page 3 now reads "the Healthier SG framework" in all

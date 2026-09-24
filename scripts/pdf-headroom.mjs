@@ -164,6 +164,120 @@ const SCENARIOS = {
         score: 182, postalSector: '73', sessionId: 'NX-HEADROOM4', ctaTier: 'COMMUNITY',
         previousSessionId: null, data: flags({ functional: measurements('refused') }),
     },
+    /*
+      ⚠️ THE TWO CASES THIS SCRIPT MISSED, found by the 2026-09-24 stress test.
+         Every fixture above used sector 73. East sectors (SingHealth) print two
+         resources with long descriptions and addresses, and this one clipped the
+         QR code and Assessment ID off English page 1 by 47px. The second is the
+         "wrong stopwatch" case (a one-minute count far below what the test
+         records), whose extra warning clipped Tamil page 2 by 18px.
+    */
+    'east-social-care': {
+        score: 2, postalSector: '46', sessionId: 'NX-HEADROOM7', ctaTier: 'SOCIAL_CARE',
+        previousSessionId: 'NX-OLD123456',
+        data: flags({
+            pavsScore: 0, pavsDays: 0, pavsMinutes: 0, strengthDays: 0,
+            sdohFinancial: true, sdohSocial: true, sdohPsychological: true,
+            postalSector: '46', previousId: 'NX-OLD123456',
+        }),
+    },
+    'wrong-stopwatch': {
+        score: 5, postalSector: '65', sessionId: 'NX-HEADROOM8', ctaTier: 'CLINICAL',
+        previousSessionId: null,
+        data: flags({
+            pavsScore: 0, pavsDays: 0, pavsMinutes: 0, strengthDays: 0,
+            medFlag: true, psychoFlag: true, sdohFinancial: true, sdohSocial: true,
+            sdohPsychological: true, sdohFoodInsecure: true, caregiverStrain: true,
+            sdohHousing: true, fallsCount: 2, fallsRisk: true, fearOfFalling: true,
+            healthierSgEnrolled: false, age: '41-60', ageYears: 35, postalSector: '65',
+            ethnicity: 'Indian', housingType: 'HDB 1-2 Room',
+            functional: {
+        "grip": {
+            "ok": true,
+            "band": "high",
+            "value": 40,
+            "unit": "kg",
+            "ageBand": "35-39",
+            "sex": "female",
+            "lowThreshold": 24.1,
+            "scale": {
+                "resolution": "percentiles",
+                "levels": [
+                    5,
+                    10,
+                    20,
+                    30,
+                    40,
+                    50,
+                    60,
+                    70,
+                    80,
+                    90,
+                    95
+                ],
+                "points": [
+                    19,
+                    21.3,
+                    24.1,
+                    26.2,
+                    28,
+                    29.7,
+                    31.4,
+                    33.2,
+                    35.4,
+                    38.4,
+                    40.8
+                ],
+                "usualFrom": 24.1,
+                "usualTo": 35.4
+            },
+            "setting": "sport-exercise-medicine",
+            "sourceId": "tomkinson-2025-absolute",
+            "referencePopulation": "international"
+        },
+        "sitToStand": {
+            "ok": true,
+            "band": "below-typical",
+            "value": 14,
+            "unit": "reps",
+            "protocol": "sts-60s",
+            "seconds": 60,
+            "implausibleForProtocol": true,
+            "implausibleDirection": "low",
+            "maybeWrongProtocol": true,
+            "ageBand": "35-39",
+            "sex": "female",
+            "typicalRange": [
+                37,
+                50
+            ],
+            "scale": {
+                "resolution": "quartiles",
+                "levels": [
+                    2.5,
+                    25,
+                    50,
+                    75,
+                    97.5
+                ],
+                "points": [
+                    25,
+                    37,
+                    42,
+                    50,
+                    63
+                ],
+                "usualFrom": 37,
+                "usualTo": 50
+            },
+            "setting": "sport-exercise-medicine",
+            "sourceId": "strassmann-2013-1min",
+            "referencePopulation": "swiss"
+        },
+        "setting": "sport-exercise-medicine"
+    },
+        }),
+    },
     // Every flag raised, the longest call to action, and a linked previous record.
     'worst-case': {
         score: 0, postalSector: '73', sessionId: 'NX-HEADROOM2', ctaTier: 'URGENT',

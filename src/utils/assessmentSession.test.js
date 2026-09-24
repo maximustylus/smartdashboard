@@ -13,7 +13,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
     getSessionId, saveProgress, loadProgress, clearProgress,
-    saveResult, loadResult, clearAssessment,
+    saveResult, loadResult, clearAssessment, beginFreshIfFinished, PROGRESS_SHAPE,
 } from './assessmentSession';
 
 beforeEach(() => { sessionStorage.clear(); });
@@ -156,5 +156,37 @@ describe('clearAssessment — the shared-device case', () => {
         clearAssessment();
         const everything = Object.keys(sessionStorage).map((k) => sessionStorage.getItem(k)).join(' ');
         expect(everything).not.toContain('chest pain');
+    });
+});
+
+describe('the next person on a shared device (stress test, 2026-09-24)', () => {
+    beforeEach(() => sessionStorage.clear());
+
+    it('a finished assessment is cleared when a new one starts, with a new id', () => {
+        const first = getSessionId();
+        saveResult({ score: 3, data: {} });
+        expect(beginFreshIfFinished()).toBe(true);
+        expect(loadResult()).toBeNull();
+        expect(getSessionId()).not.toBe(first);
+    });
+
+    it('an assessment still in progress is left alone', () => {
+        const id = getSessionId();
+        saveProgress('chat', { currentStep: 3, messages: [], collectedData: {} });
+        expect(beginFreshIfFinished()).toBe(false);
+        expect(getSessionId()).toBe(id);
+        expect(loadProgress('chat')).not.toBeNull();
+    });
+
+    it('opening the other pathway does not wipe this one', () => {
+        saveProgress('form', { answers: { age: '67' }, step: 2 });
+        saveProgress('chat', { currentStep: 0, messages: [], collectedData: {} });
+        expect(loadProgress('form')).toEqual({ answers: { age: '67' }, step: 2 });
+    });
+
+    it('still reads a tab saved under the old single key', () => {
+        sessionStorage.setItem('nexus_assessment_progress',
+            JSON.stringify({ pathway: 'form', state: { step: 1 }, shape: PROGRESS_SHAPE }));
+        expect(loadProgress('form')).toEqual({ step: 1 });
     });
 });

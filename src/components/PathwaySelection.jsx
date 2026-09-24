@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 // ADDED SUN AND MOON ICONS
 import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'lucide-react';
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId } from '../utils/assessmentSession';
+import { getSessionId, beginFreshIfFinished } from '../utils/assessmentSession';
 
 const DICTIONARY = {
   en: {
@@ -49,7 +49,7 @@ export default function PathwaySelection() {
   const [lang, setLang] = useState('en');
   const [animate, setAnimate] = useState(false);
   // One id per assessment, shared by every screen — see `src/utils/assessmentSession.js`.
-  const [sessionId] = useState(getSessionId);
+  const [sessionId] = useState(() => { beginFreshIfFinished(); return getSessionId(); });
 
   // ADDED MISSING THEME STATE
   const [isDark, setIsDark] = useState(false);

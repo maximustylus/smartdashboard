@@ -42,8 +42,12 @@
  *    collects no identifying information: answers about food insecurity and
  *    psychological distress left on a shared machine are identifying in practice.
  *
- *    That is also why `clearAssessment()` exists and is called once the result has
- *    been read — see `ResultPage`.
+ *    That is also why `clearAssessment()` exists. ⚠️ Until 2026-09-24 nothing
+ *    called it, although this comment and the ledger said `ResultPage` did: the
+ *    next person in the same tab got the last person's result and was filed
+ *    under the same id (found by the stress test). It is now called when the
+ *    resident leaves the result page, and `beginFreshIfFinished()` clears a
+ *    finished assessment whenever a new one starts.
  */
 
 const SESSION_ID_KEY = 'nexus_assessment_id';
@@ -156,12 +160,20 @@ export const getSessionId = () => {
  */
 export const PROGRESS_SHAPE = 'p9-2026-09-14';
 
+/*
+ * ⚠️ ONE SLOT PER PATHWAY. Until 2026-09-24 the chat and the form saved to the
+ *    same key, and each wrote it as soon as it opened, so a resident who looked
+ *    at the other pathway and came back had lost every answer. The old single
+ *    key is still READ, for a tab that was mid-assessment across the release.
+ */
+const progressKey = (pathway) => `${IN_PROGRESS_KEY}:${pathway}`;
+
 export const saveProgress = (pathway, state) =>
-    writeJson(IN_PROGRESS_KEY, { pathway, state, shape: PROGRESS_SHAPE });
+    writeJson(progressKey(pathway), { pathway, state, shape: PROGRESS_SHAPE });
 
 /** The saved answers for this pathway, or `null`. */
 export const loadProgress = (pathway) => {
-    const stored = readJson(IN_PROGRESS_KEY);
+    const stored = readJson(progressKey(pathway)) ?? readJson(IN_PROGRESS_KEY);
     if (!stored || stored.pathway !== pathway) return null;
     // Saved before the stamp existed, or under a different question order. Either
     // way the indices inside it no longer mean what they meant. See `PROGRESS_SHAPE`.
@@ -169,7 +181,12 @@ export const loadProgress = (pathway) => {
     return stored.state ?? null;
 };
 
-export const clearProgress = () => removeRaw(IN_PROGRESS_KEY);
+/** Both pathways' saved answers: an assessment is finished, whichever door it used. */
+export const clearProgress = () => {
+    removeRaw(progressKey('chat'));
+    removeRaw(progressKey('form'));
+    removeRaw(IN_PROGRESS_KEY);
+};
 
 // ── 3. The finished result ───────────────────────────────────────────────────
 
@@ -188,7 +205,20 @@ export const loadResult = () => readJson(RESULT_KEY);
  * — see the shared-device note in the header.
  */
 export const clearAssessment = () => {
-    removeRaw(IN_PROGRESS_KEY);
+    clearProgress();
     removeRaw(RESULT_KEY);
     removeRaw(SESSION_ID_KEY);
+};
+
+/**
+ * Called where an assessment starts (the language gate and the pathway picker).
+ * A saved RESULT means the last assessment in this tab is finished, so whoever is
+ * starting now is starting a new one: clear it, and they get a new id. An
+ * assessment still IN PROGRESS has no result yet and is left alone, so a resident
+ * who steps back to the picker mid-way keeps their answers.
+ */
+export const beginFreshIfFinished = () => {
+    if (readRaw(RESULT_KEY) === null) return false;
+    clearAssessment();
+    return true;
 };

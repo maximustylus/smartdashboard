@@ -21,7 +21,7 @@ import { toSector } from './singapore/postalSectors';
 import { measurementResults, toStorableMeasurements } from './measurementAnswers';
 import {
   matchesSymptom, matchesCondition, matchesFinancialBarrier, matchesSocialIsolation,
-  matchesPsychologicalDistress, matchesCaregiverStrain, matchesFoodInsecurity,
+  matchesPsychologicalDistress, matchesCopingWithStress, matchesCaregiverStrain, matchesFoodInsecurity,
   matchesIncomeInadequacy, matchesOneToTwoRoomRental,
   parseAgeBand, exactAge, isSixtyPlusPerson,
   matchesFemale, matchesMale,
@@ -62,10 +62,15 @@ export const parseClinicalData = (raw) => {
 
   // Strength
   const strStr      = (raw.strength || '').toLowerCase();
-  const strengthDays = strStr.includes('3+') ? 3
-                     : strStr.includes('2')   ? 2
-                     : strStr.includes('1')   ? 1
-                     : 0;
+  /*
+    The first whole number from 1 to 7, capped at 3 because the chips stop at
+    "3+". Until 2026-09-24 this looked for the text '3+', so the Chinese chip
+    「每周 3 天以上」 (no plus sign) scored 0 and added a risk point. A number
+    outside 1 to 7 is not a count of days ("20 minutes") and scores 0, as before.
+  */
+  const strDigits    = strStr.match(/\d+/);
+  const strN         = strDigits ? parseInt(strDigits[0], 10) : 0;
+  const strengthDays = strN >= 1 && strN <= 7 ? Math.min(strN, 3) : 0;
 
   // Medical safety
   const medStr      = (raw.medical || '').toLowerCase();
@@ -91,7 +96,7 @@ export const parseClinicalData = (raw) => {
 
   // SDOH — Psychological 
   const wellStr      = (raw.wellbeing || '').toLowerCase();
-  const sdohPsychological = matchesPsychologicalDistress(wellStr);
+  const sdohPsychological = matchesPsychologicalDistress(wellStr) && !matchesCopingWithStress(wellStr);
   // Its own domain as well as a distress signal — see `matchesCaregiverStrain`.
   const caregiverStrain   = matchesCaregiverStrain(wellStr);
 

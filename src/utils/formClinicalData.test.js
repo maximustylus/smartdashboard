@@ -185,11 +185,16 @@ describe('deriveFormClinicalData', () => {
     [{ incomeAdequacy: 'Inadequate' }, 'sdohFinancial'],
     [{ social: 'I mostly manage on my own' }, 'sdohSocial'],
     [{ social: 'I feel quite isolated' }, 'sdohSocial'],
-    [{ wellbeing: 'Some stress but managing' }, 'sdohPsychological'],
     [{ wellbeing: 'Feeling quite stressed or low' }, 'sdohPsychological'],
     [{ wellbeing: 'Overwhelmed by financial pressure' }, 'sdohPsychological'],
   ])('maps controlled social answer %# to %s', (override, flag) => {
     expect(deriveFormClinicalData(answers(override))[flag]).toBe(true);
+  });
+
+  it('does not flag "Some stress but managing" (owner, 2026-09-24)', () => {
+    // Coping with some stress is not distress. The chat agrees in all four
+    // languages; see `chipParity.test.js`.
+    expect(deriveFormClinicalData(answers({ wellbeing: 'Some stress but managing' })).sdohPsychological).toBe(false);
   });
 
   it('maps caregiving strain to both psychological and caregiver flags', () => {

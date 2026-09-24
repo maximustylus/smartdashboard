@@ -60,7 +60,7 @@ sentence told a reader for nine days that a broken clinical score was live to th
 
 | | Count | Ids / rows |
 |---|---|---|
-| `DONE`, evidenced | 41 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45` `CP46` `CP47` (on `community`) |
+| `DONE`, evidenced | 48 | `CP1`–`CP3` `CP5`–`CP7` `CP9` `CP12`–`CP19` · `CP20`–`CP29` · `CP31`–`CP39` · `CP40`–`CP44` (v2.15.0) · `CP28` (v2.15.2) · `CP45`–`CP54` (on `community`) |
 | `OPEN`, mine | 1 | `CP30` (the report's page 1 is 2px from clipping, worst-case English) |
 | `OWNER DECISION`, console only | 1 | `CP7`'s last two steps — see *Turning App Check on*, below. The code is shipped and inert. |
 | `OPEN`, translation | 1 | `CP10`/`CD10` groups 2, 3 and the rest of 4 — group 1 and the slip's flag lines are shipped, see `7.7` |
@@ -252,7 +252,7 @@ Cheap, and each one removes a way the portal can drift back into a P1.
 | 4.1 | One theme key | `CP12`. A prior *"FIX 1"* changed three files to `nexus-theme` and left four on `nexus_theme`, including `App.jsx`, which owns the class on `<html>` — splitting the setting along the pathway gate rather than unifying it. | Opus-alone | `DONE` | `189a61b` · `src/utils/theme.js` |
 | 4.2 | Share `selectCTA` and the tier table | ~~Two copies kept in agreement by a comment that was already false (`CP9`).~~ `src/utils/ctaRouting.js` now owns the route precedence and route-to-tier table. Chat and form both call it; the form now preserves the established `SOCIAL_CARE` priority for an isolated respondent aged 60+. The source-scanning parity test was replaced by direct contract and ResultPage coverage tests. | Opus-alone | `DONE` | `src/utils/ctaRouting.test.js` — **18 tests**; focused Community run — **73 passed**; `npm run build` — pass; `npm test` — **110 files / 3,721 tests passed**; `npm run lint` — pass, 0 warnings |
 | 4.3 | Test the remaining pure logic | ~~`deriveFlags` and `parseClinicalData` have no tests.~~ `parseClinicalData` was extracted to `src/utils/clinicalParse.js` with tests under `AC5` (`AURA-TODO.md` 4.6). The form derivation is now exported from `src/utils/formClinicalData.js`; the component calls that tested function for previews and submission. | Opus-alone | `DONE` | `src/utils/formClinicalData.test.js` — **32 tests**; focused derivation + pathway parity — **55 passed**; `npm run build` — pass; `npm test` — **110 files / 3,708 tests passed**; `npm run lint` — pass, 0 warnings |
-| 4.4 | Persist in-progress state | `CP12`. **`sessionStorage`, not `localStorage`** — the portal runs on community-centre terminals and clinic tablets, and answers about food insecurity and psychological distress left for the next person are identifying in practice. The result is mirrored on arrival and restored before the redirect effect runs; both pathways resume mid-assessment; `clearAssessment()` wipes id, answers and result together. | Opus-alone | `DONE` | `src/utils/assessmentSession.js` · 15 tests |
+| 4.4 | Persist in-progress state | `CP12`. **`sessionStorage`, not `localStorage`** — the portal runs on community-centre terminals and clinic tablets, and answers about food insecurity and psychological distress left for the next person are identifying in practice. The result is mirrored on arrival and restored before the redirect effect runs; both pathways resume mid-assessment; `clearAssessment()` wipes id, answers and result together. ⚠️ **Corrected 2026-09-24: `clearAssessment()` existed and was never called, so this row was not true until `CP52`.** | Opus-alone | `DONE` (since `CP52`) | `src/utils/assessmentSession.js` · 15 tests |
 | 4.5 | `path="*"` route | `CP12`. `firebase.json` rewrites everything to `index.html`, so a mistyped URL loaded the whole SPA and rendered **nothing** — a blank page, indistinguishable from a broken site, for visitors arriving from a QR code or a forwarded link. | Opus-alone | `DONE` | `NotFound.jsx` · 14 tests asserting the wildcard cannot shadow a real route, against react-router's own matcher |
 | 4.6 | One session id | `CP12`. **Five** were minted — the four screens plus a fallback in `ResultPage` — and all were shown as *"ID:"*. The one written to Firestore was the third, so an id quoted off any other screen matched nothing in the record, on a portal that invites returning respondents to type a previous id in. | Opus-alone | `DONE` | `getSessionId()` · `grep Math.random src/components/` returns **one hit, not a session id**: `AuraGreeting.jsx` (picks a quote). *(Two until 2026-09-06 — `AuraPulseBot.jsx`'s anonymous wellbeing-log key, `AU13`, closed in v2.12.3.)* *(Corrected 2026-09-03: this cell said "returns nothing", which was false — `AU13`'s own subject, and the document set's worked example of an evidence string that outran its grep.)* |
 
@@ -964,7 +964,7 @@ audit finding was wrong (see the foot of this section).
 
 | | What it was | Found by |
 |---|---|---|
-| `CP35` | **The exact age, grip in kg and rep count were posted to Gemini on every chat turn.** | gap hunt |
+| `CP35` | **The exact age, grip in kg and rep count were posted to Gemini on every chat turn.** ⚠️ **Only half fixed: the earlier answers are filtered, the CURRENT answer is not, so these still reach Gemini on their own turn (stress test 2026-09-24, `P13` open item S3).** | gap hunt |
 | `CP36` | A part-finished assessment saved before this deploy resumed at a moved index and filed answers under the wrong questions. | gap hunt |
 | `CP37` | An age the portal could not read ("75+", "seventy five") silently cost a resident the whole 60+ pathway. | gap hunt |
 | `B1` | The wrong-stopwatch guard did not fire in the case it exists for. | gap hunt |
@@ -1505,6 +1505,8 @@ to the owner rather than to me:**
   wording says the person is coping; the flag adds a risk point and counts them in
   the population distress figure. Defensible either way, but it should be a
   decision rather than a side effect of the term list containing `'stress'`.
+  **Settled 2026-09-24 by the owner: "no need". It no longer flags, in any
+  language or in the form (`CP49`, `P13`).**
 - **`'I mostly manage on my own'` sets `socialIsolation`.** Same shape, and this one
   reads correct to me — recorded so the next pass does not "fix" it.
 
@@ -1870,6 +1872,71 @@ acknowledgements a resident reads are written by the model at request time, so
 the persona in `functions/index.js` now carries the same rule, and
 `chatTurnShape.test.js` fails if a bare passive returns to the fixed copy. The
 persona rule only takes effect when the Cloud Function is deployed.
+
+---
+
+## `P13` — stress test by six agents, 2026-09-24 · `CP49`–`CP54` fixed · open items below
+
+Six agents went through the portal on `community` at `f19100b`, one area each:
+answer logic, the result page and PDF, the Cloud Function and rules,
+translations, phone journeys, and privacy. Each reproduced every finding it
+reported; the most serious were reproduced again independently before anything
+was changed. About seventy distinct gaps. The fixes below were made the same day,
+before release; everything else is listed as open, with the owner's calls marked.
+
+### Fixed
+
+| id | What | How it is held |
+|---|---|---|
+| `CP49` | **The same chip meant different things in different languages.** Malay "Penyakit jantung" raised no condition flag; Tamil "too expensive" and "too far" raised no cost flag; the Tamil caregiving chip raised no caregiver flag; Chinese 「每周 3 天以上」 scored 0 strength days; "less than 20 minutes" and Chinese "60+" scored differently by language; "Some stress but managing" flagged in English and Tamil only. In a 20,000-resident simulation, Malay chat and form disagreed on the risk score for 36% of residents. After: **zero disagreements, all four languages.** | `chipParity.test.js` runs every chip of every step in every language against the English chip at the same position. It fails on the old parser with every one of these listed. |
+| `CP50` | **Denying both symptoms in Chinese or Tamil routed to URGENT.** 「没有头晕或胸痛」 and "நெஞ்சு வலி அல்லது தலைச்சுற்றல் இல்லை" set the symptom flag; "இதய நோய் இல்லை" and 「我没有心脏病或高血压」 set the condition flag. A denial now carries across "or" in both languages, as it already did in English and Malay, and never across "and". | `chipParity.test.js` |
+| `CP51` | **A typed "no" to the falls question recorded a fall.** "never", "tak pernah", 「没有」, "இல்லை" and nine others printed a fall on the handover slip. Natural phrasings are recognised, and a bare negator counts only when it is the whole answer. | `chipParity.test.js` |
+| `CP52` | **The next person on a shared device inherited the last one's result and id,** and opening the other pathway wiped the answers in progress. `clearAssessment()` is now called when the result page is left, a finished assessment is cleared when a new one starts, and each pathway saves to its own slot. | `assessmentSession.test.js` |
+| `CP53` | **English page 1 of the PDF cut off the QR code and the Assessment ID** for east-side residents (up to 47px), since the font increase. Resource cards print the site name, not the full address (the link still opens the exact page); the page QR is 44px; spacing trimmed. All 425 distinct page-1 layouts now fit in all four languages, 33px spare at worst. | `pdf-headroom.mjs` scenario `east-social-care` |
+| `CP54` | **Tamil page 2 lost its last lines in the "wrong stopwatch" case** (18px). The second measurement no longer repeats an identical advice sentence, and the references are one paragraph. All 36 variants fit; Tamil has 7px spare in the tightest, and the real downloaded PDF was checked. | `pdf-headroom.mjs` scenario `wrong-stopwatch` |
+
+### Open, for the owner's decision
+
+- **S3 · the current answer still reaches Gemini** (exact age, grip, reps,
+  measurement venue, free text, a full postal code). The simplest fix is to
+  skip the AI acknowledgement on those steps and use the fixed one.
+- **S1 · anyone can write records to `community_assessments` without signing in,**
+  in any shape. That can skew the planning figures, crowd real records out of
+  the nightly count (it reads 20,000 with no ordering), and, with the small-group
+  totals readable by any signed-in account, reveal individuals. Needs tighter
+  rules plus App Check on Firestore, in the Firebase console.
+- **S2 · Gemini's reply is not checked before a resident sees it.** English,
+  dashes, links and a drug dose all passed through in a test. Needs a server-side
+  check with the fixed sentence as fallback.
+- **S4 · the rate limit** can be burst past and stops counting under load; invalid
+  calls use up the national ceiling. The public endpoint also tries Pro models
+  first. The key is on the Blaze plan (owner, 2026-09-24), so this is cost and
+  availability, not data use.
+- **S5 · typed NRIC, phone numbers and names are stored as typed,** and an NRIC is
+  accepted as a "previous ID". The privacy notice says none is collected.
+  `src/utils/nric.js` exists and is used only by Feeds.
+
+### Open, engineering
+
+- Typed session lengths and days: "1 hr" reads as 1 minute, "every day" in Malay,
+  Chinese or Tamil as 0 days, typed strength answers as 0.
+- A double tap on a chat chip also answers the next question; there is no undo.
+- The chat's last six seconds: progress is cleared before the result is saved.
+- The form: the falls and Healthier SG questions and the summary tiles are
+  English in every language; an unanswered falls question blocks submission with
+  no message; Tamil "Prediabetes or diabetes" lost "or diabetes".
+- Copy: Malay typo "erkoka" on every Amber result; the chat's two closing lines are
+  English; a Malay "no" to the food question is told it will go into the plan;
+  "food security" translated as "food safety" in Malay and Chinese; the Gemini
+  persona gets a bare language code.
+- Result page: three button labels name a different site from the one they open;
+  Download has no busy state (a double click saves two files); the report date is
+  the day it is opened; the Tamil activity explanation is cut off on phones; the
+  retention paragraph, "AURA Smart Analysis" and "PAGE X OF Y" are English.
+- Phones: chips 30px tall with 12px text; several 10px hints below 3:1 contrast;
+  focus is lost after each answer; form selects have no accessible name.
+- The QR image is fetched from `api.qrserver.com` on every result view, which is
+  not disclosed; a local image would remove the request.
 
 ---
 

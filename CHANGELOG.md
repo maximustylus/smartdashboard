@@ -75,6 +75,21 @@ not changed by this release.
   person ("Saya faham." for "Difahami.", "Saya telah merekodkannya." for
   "Direkodkan.", six in all), and the Cloud Function's persona carries the same rule.
   The sit-to-stand test is named *senaman berdiri dan duduk*.
+- `CP49`: the same chat chip meant different things in different languages: the
+  Malay heart-condition chip raised no flag, Tamil "too expensive"/"too far" no cost
+  flag, the Tamil caregiving chip no caregiver flag, the Chinese "3+ days" strength
+  chip scored 0. A new test runs every chip in every language against English.
+- `CP50`: "no dizziness or chest pain" in Chinese or Tamil routed to URGENT. A
+  denial now carries across "or" in all four languages.
+- `CP51`: a typed "never" (and twelve other ways of saying no) to the falls
+  question recorded a fall.
+- `CP52`: the next resident on a shared device inherited the last one's result and
+  assessment id; opening the other pathway wiped the answers in progress.
+- `CP53`/`CP54`: English page 1 cut off the QR code and Assessment ID for east-side
+  residents, and Tamil page 2 its last lines in one case. Resource cards print the
+  site name; both cases are now in `pdf-headroom.mjs`.
+- "Some stress but managing" no longer raises the wellbeing flag, in any language
+  or the form (owner's decision).
 - `CP48`: page 2 of the report (the measurements) lost its last lines in Malay and
   Tamil after the font increase, and its measurement block had not been enlarged.
   Both fixed, with three places where PDF text touched a box edge. Nothing clips.

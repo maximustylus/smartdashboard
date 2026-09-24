@@ -61,7 +61,15 @@ const ROW = {
     background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 3,
 };
 
-const Measurement = ({ result, label, unit, m }) => {
+/** The advice sentence for a banded result, or null. Shared so the panel can tell
+    when both measurements would print the same sentence. */
+const adviceFor = (result, m) => {
+    const band = result ? residentBand(result) : null;
+    if (!band) return null;
+    return m.advice[band] || m.advice[band === 'below-average' || band === 'below-typical' ? 'below' : 'usual'];
+};
+
+const Measurement = ({ result, label, unit, m, hideAdvice = false }) => {
     if (!result) return null;
     // Nothing given and nothing refused: the resident skipped it, so it does not
     // appear at all rather than appearing as an empty row about themselves.
@@ -101,7 +109,7 @@ const Measurement = ({ result, label, unit, m }) => {
                       than this page inventing a third level the source does not have.
                     */}
                     <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45 }}>
-                        {m.advice[band] || m.advice[band === 'below-average' || band === 'below-typical' ? 'below' : 'usual']}
+                        {hideAdvice ? null : adviceFor(result, m)}
                     </div>
                 </>
             ) : (
@@ -174,8 +182,16 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
                 <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.45, marginTop: 3, paddingBottom: 3 }}>{m.reportIntro}</div>
             </div>
 
+            {/*
+              ⚠️ ONE ADVICE SENTENCE, NOT THE SAME ONE TWICE. When both figures sit
+                 in the same band, both cards printed the identical sentence, and in
+                 Tamil the repeat was what pushed page 2 past its limit (stress test,
+                 2026-09-24). The second card now omits it only when it is the same
+                 words as the first.
+            */}
             <Measurement result={grip} label={m.gripLabel} unit={m.gripUnit} m={m} />
-            <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m} />
+            <Measurement result={sitToStand} label={stsLabel} unit={m.stsUnit} m={m}
+                hideAdvice={Boolean(adviceFor(grip, m)) && adviceFor(grip, m) === adviceFor(sitToStand, m)} />
 
             {functional?.setting && (
                 <div style={{ fontSize: 11.5, color: '#64748b', padding: '2px 0 3px' }}>
@@ -203,31 +219,43 @@ export default function MeasurementsPanel({ functional, lang, ageYears, symptomF
                     <div style={{ fontWeight: 900, fontSize: 10.5, color: '#64748b', marginBottom: 3, textTransform: 'uppercase', letterSpacing: 2 }}>
                         {m.comparedAgainst}
                     </div>
-                    {showsEquations && (
-                        <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45, marginBottom: 3 }}>
-                            {HR_EQUATIONS.tanaka.short}
-                            {HR_EQUATIONS.tanaka.doi && <> · doi:{HR_EQUATIONS.tanaka.doi}</>}
-                            {' · '}
-                            {HR_EQUATIONS.astrand.short}
-                        </div>
-                    )}
-                    {sourceIds.map((id) => {
-                        const source = SOURCE_BY_ID[id];
-                        if (!source) return null;
-                        return (
-                            <div key={id} style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45, marginBottom: 3 }}>
-                                {source.citation}
-                                {source.doi && <> · doi:{source.doi}</>}
-                                {/*
-                                  The population is printed, not implied. None of
-                                  these three is Singaporean, and a resident comparing
-                                  themselves to a Swiss or United States sample is
-                                  entitled to know that is what they are doing.
-                                */}
-                                <> · {m.populations[source.referencePopulation] || source.referencePopulation}</>
-                            </div>
-                        );
-                    })}
+                    {/*
+                      ONE PARAGRAPH, references separated by semicolons. One block per
+                      reference cost a line and a gap each, and in Tamil that was the
+                      last 20px page 2 did not have (stress test, 2026-09-24).
+                    */}
+                    <div style={{ fontSize: 10.5, color: '#475569', lineHeight: 1.45 }}>
+                        {[
+                            ...(showsEquations ? [
+                                <React.Fragment key="eq">
+                                    {HR_EQUATIONS.tanaka.short}
+                                    {HR_EQUATIONS.tanaka.doi && <> · doi:{HR_EQUATIONS.tanaka.doi}</>}
+                                    {'; '}
+                                    {/* Its own full stop would print as "1952.;" before the separator. */}
+                                    {String(HR_EQUATIONS.astrand.short).replace(/\.$/, '')}
+                                </React.Fragment>,
+                            ] : []),
+                            ...sourceIds.map((id) => {
+                                const source = SOURCE_BY_ID[id];
+                                if (!source) return null;
+                                return (
+                                    <React.Fragment key={id}>
+                                        {source.citation}
+                                        {source.doi && <> · doi:{source.doi}</>}
+                                        {/*
+                                          The population is printed, not implied. None of
+                                          these three is Singaporean, and a resident comparing
+                                          themselves to a Swiss or United States sample is
+                                          entitled to know that is what they are doing.
+                                        */}
+                                        <> · {m.populations[source.referencePopulation] || source.referencePopulation}</>
+                                    </React.Fragment>
+                                );
+                            }),
+                        ].filter(Boolean).map((entry, i) => (
+                            <React.Fragment key={i}>{i > 0 && '; '}{entry}</React.Fragment>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

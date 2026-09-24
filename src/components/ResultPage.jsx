@@ -14,7 +14,7 @@ import MeasurementsSection from './MeasurementsSection';
 import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, saveResult, loadResult } from '../utils/assessmentSession';
+import { getSessionId, saveResult, loadResult, clearAssessment } from '../utils/assessmentSession';
 /*
   ⚠️ BUNDLED, NOT FETCHED FROM `/nexus.png`. The PDF header used to load the
      public-folder copy by URL, and a browser holding a cached older file drew
@@ -574,6 +574,11 @@ const PDF_PAGE_STYLE = {
 };
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
+/** `https://www.aic.sg/care-services/…` → `aic.sg`, for the printed resource cards. */
+const siteOf = (url) => {
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+};
+
 export default function ResultPage() {
   const location = useLocation();
   const navigate  = useNavigate();
@@ -872,10 +877,10 @@ export default function ResultPage() {
             fixed header/footer strips, and the tightened padding/gap keep the
             fullest page (Red tier, three SDOH bullets, six resources) inside it.
           */}
-          <div style={{ padding: '12px 36px', display: 'flex', flexDirection: 'column', gap: 8, flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '10px 36px', display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, overflow: 'hidden' }}>
 
             {/* Risk Tier */}
-            <div style={{ background: th.printBg, borderRadius: 12, padding: '12px 22px' }}>
+            <div style={{ background: th.printBg, borderRadius: 12, padding: '10px 22px 12px' }}>
               <div style={{ color: 'white', fontWeight: 900, fontSize: 27, marginBottom: 4 }}>{tierLabel}</div>
               <div style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700, fontSize: 13.5, lineHeight: 1.5, marginBottom: 6 }}>{tierDesc}</div>
               {(data.sdohFinancial || data.sdohSocial || hasPsycho) && (
@@ -889,7 +894,7 @@ export default function ResultPage() {
 
             {/* PAVS Metrics */}
             {data?.pavsScore != null && (
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 20px' }}>
+              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '9px 20px 11px' }}>
                 <div style={{ fontWeight: 900, fontSize: 11.5, color: '#64748b', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 6 }}>{t.pavsTitle}</div>
                 <div style={{ display: 'flex', gap: 12 }}>
                   {[
@@ -897,7 +902,7 @@ export default function ResultPage() {
                     { value: data.pavsDays    ?? '–',  label: t.pavsDays },
                     { value: data.pavsDays === 0 ? 0 : (data.pavsMinutes ?? '–'), label: t.pavsMins },
                   ].map(({ value, label }, i) => (
-                    <div key={i} style={{ flex: 1, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '8px 8px', textAlign: 'center' }}>
+                    <div key={i} style={{ flex: 1, background: 'white', border: '1px solid #e2e8f0', borderRadius: 8, padding: '6px 8px 8px', textAlign: 'center' }}>
                       <div style={{ fontWeight: 900, fontSize: 25, color: '#0f172a' }}>{value}</div>
                       <div style={{ fontSize: 10.5, color: '#94a3b8', marginTop: 3, fontWeight: 600 }}>{label}</div>
                     </div>
@@ -913,7 +918,7 @@ export default function ResultPage() {
             )}
 
             {/* Primary Action Banner */}
-            <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 12, padding: '12px 20px' }}>
+            <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: 12, padding: '9px 20px 11px' }}>
               <div style={{ fontWeight: 900, fontSize: 11.5, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 3, marginBottom: 4 }}>{t.primaryAction}</div>
               <div style={{ fontWeight: 700, fontSize: 13.5, color: '#134e4a', lineHeight: 1.6 }}>
                 {ctaBanner.emoji} {ctaBanner.action[lang] || ctaBanner.action.en}
@@ -928,7 +933,7 @@ export default function ResultPage() {
                 {suggestedResources.map((resource) => {
                   const c = resource[lang] || resource.en;
                   return (
-                    <div key={resource.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '8px 12px', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div key={resource.id} style={{ border: '1px solid #e2e8f0', borderRadius: 10, padding: '6px 12px 8px', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: 3 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                         <div data-pdf-link={resource.url} style={{ width: 32, height: 32, flexShrink: 0, background: 'white', border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <img src={`${baseUrl}${resource.logo}`} alt="" crossOrigin="anonymous" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -936,8 +941,16 @@ export default function ResultPage() {
                         <div style={{ fontWeight: 900, fontSize: 12.5, color: '#0f172a', lineHeight: 1.3 }}>{c.title}</div>
                       </div>
                       <div style={{ fontSize: 11.5, color: '#475569', lineHeight: 1.5 }}>{c.desc}</div>
-                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '4px 8px', borderRadius: 4, border: '1px solid #99f6e4', wordBreak: 'break-all' }}>
-                        <span style={{ color: '#64748b', fontWeight: 600, marginRight: 4 }}>{t.webLink}</span>{resource.url}
+                      {/*
+                        ⚠️ THE SITE, NOT THE WHOLE ADDRESS. Printed in full, three
+                           of these wrapped to a second line, and on 2026-09-24 that
+                           pushed the QR code and the Assessment ID off the bottom of
+                           English page 1 for east-side residents (up to 47px). The
+                           link over this pill still opens the exact page; on paper a
+                           short site name is also easier to type than a deep path.
+                      */}
+                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '4px 8px 6px', borderRadius: 4, border: '1px solid #99f6e4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        <span style={{ color: '#64748b', fontWeight: 600, marginRight: 4 }}>{t.webLink}</span>{siteOf(resource.url)}
                       </div>
                     </div>
                   );
@@ -946,9 +959,9 @@ export default function ResultPage() {
             </div>
 
             {/* QR + Assessment ID footer area */}
-            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
               <div data-pdf-link={nexusUrl} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <img src={qrCodeUrl} alt="QR" crossOrigin="anonymous" style={{ width: 60, height: 60, border: '1px solid #e2e8f0', borderRadius: 6, padding: 3 }} />
+                <img src={qrCodeUrl} alt="QR" crossOrigin="anonymous" style={{ width: 44, height: 44, border: '1px solid #e2e8f0', borderRadius: 6, padding: 2 }} />
                 <div>
                   <div style={{ fontWeight: 900, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: 3, color: '#0f172a' }}>{t.scanQR}</div>
                   <div style={{ color: '#0d9488', fontSize: 11.5, fontWeight: 700, marginTop: 2 }}>{nexusUrl}</div>
@@ -1129,7 +1142,9 @@ export default function ResultPage() {
         {/* Top nav */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-3 px-1 flex-wrap">
           <div className="flex items-center gap-2">
-            <button onClick={() => navigate('/')}
+            {/* Leaving the result ends the assessment in this tab, so the next
+                person on a shared device starts clean. The PDF is the copy to keep. */}
+            <button onClick={() => { clearAssessment(); navigate('/'); }}
               className="flex items-center gap-2 px-4 py-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 font-bold text-xs uppercase tracking-widest rounded-full border border-slate-200 dark:border-slate-700 shadow-sm transition-all group">
               <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> {t.back}
             </button>
