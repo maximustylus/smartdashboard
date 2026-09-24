@@ -29,7 +29,7 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
-## Unreleased — on `community` · `CP56`, the Firestore rule for assessments
+## Shipped in [2.16.4] — `CP56`, the Firestore rule for assessments
 
 - **CP56** — `community_assessments` accepted any fields, any sizes and a
   caller-chosen document id from anyone. It now accepts exactly the chat's, the

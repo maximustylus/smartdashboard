@@ -1925,7 +1925,7 @@ every page-1 layout fits (425 × 4 languages), and page 2 is unchanged.
   two-digit sector only, as the answer and as an earlier answer. This closes
   `CP35` properly.
 - ~~**S1 · anyone can write records to `community_assessments` without signing in,
-  in any shape.**~~ **Rules half FIXED 2026-09-24 as `CP56`.** The rule now accepts
+  in any shape.**~~ **Rules half FIXED 2026-09-24 as `CP56`, SHIPPED v2.16.4.** The rule now accepts
   exactly the three shapes the app writes: every field named and typed, numbers in
   range, text capped at 500 characters (the app trims to the same), the exact age
   and raw measurements refused, and only document ids `addDoc` generates, so no

@@ -54,6 +54,10 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.16.4] - 2026-09-24
+
+A security patch to the community portal's Firestore rule. No change a resident sees.
+
 ### Security
 
 - `CP56`: the `community_assessments` rule accepted any fields, any sizes and a

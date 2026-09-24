@@ -1,7 +1,7 @@
 {
   "name": "idc-app",
   "private": true,
-  "version": "2.16.3",
+  "version": "2.16.4",
   "type": "module",
   "scripts": {
     "dev": "vite",
