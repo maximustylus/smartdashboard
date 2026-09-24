@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
-  Download, Share2, ArrowLeft, ExternalLink,
+  Download, ArrowLeft, ExternalLink,
   ShieldAlert, Activity, CheckCircle2, Loader2,
   TrendingUp, Sun, Moon, Zap, Users, Brain,
   DollarSign, Target, Globe,
@@ -60,7 +60,6 @@ const DICTIONARY = {
     primaryAction: 'Your Primary Action',
     resources: 'Recommended Community Resources',
     download: 'Download PDF',
-    share: 'Share Result',
     back: 'Back to Gateway',
     cta: 'Take Action Today',
     reportTitle: 'SMART DASHBOARD',
@@ -71,8 +70,6 @@ const DICTIONARY = {
     pavsLabel: 'Activity Score',
     scanQR: 'Scan to access digital portal',
     webLink: 'Website: ',
-    sharePrefix: 'My NEXUS AURA result:',
-    shareTopRec: 'Primary Action:',
     sharePathway: 'Discover your community health pathway at NEXUS:',
   },
   ms: {
@@ -103,7 +100,6 @@ const DICTIONARY = {
     primaryAction: 'Tindakan Utama Anda',
     resources: 'Sumber Komuniti yang Disyorkan',
     download: 'Muat Turun PDF',
-    share: 'Kongsi Keputusan',
     back: 'Kembali ke Pintu Utama',
     cta: 'Ambil Tindakan Hari Ini',
     reportTitle: 'SMART DASHBOARD',
@@ -114,8 +110,6 @@ const DICTIONARY = {
     pavsLabel: 'Skor Aktiviti',
     scanQR: 'Imbas untuk akses portal digital',
     webLink: 'Laman Web: ',
-    sharePrefix: 'Keputusan NEXUS AURA saya:',
-    shareTopRec: 'Tindakan Utama:',
     sharePathway: 'Terokai laluan kesihatan komuniti anda di NEXUS:',
   },
   zh: {
@@ -146,7 +140,6 @@ const DICTIONARY = {
     primaryAction: '您的首要行动',
     resources: '推荐的社区资源',
     download: '下载 PDF',
-    share: '分享结果',
     back: '返回主页',
     cta: '今天就采取行动',
     reportTitle: 'SMART DASHBOARD',
@@ -157,8 +150,6 @@ const DICTIONARY = {
     pavsLabel: '活动评分',
     scanQR: '扫描以访问数字门户',
     webLink: '网址: ',
-    sharePrefix: '我的 NEXUS AURA 结果：',
-    shareTopRec: '首要行动：',
     sharePathway: '在 NEXUS 探索您的社区健康路径：',
   },
   ta: {
@@ -189,7 +180,6 @@ const DICTIONARY = {
     primaryAction: 'உங்கள் முதல் நடவடிக்கை',
     resources: 'பரிந்துரைக்கப்பட்ட சமூக வளங்கள்',
     download: 'PDF பதிவிறக்குக',
-    share: 'முடிவைப் பகிர்க',
     back: 'முகப்பிற்குத் திரும்பு',
     cta: 'இன்றே நடவடிக்கை எடுங்கள்',
     reportTitle: 'SMART DASHBOARD',
@@ -200,8 +190,6 @@ const DICTIONARY = {
     pavsLabel: 'செயல்பாட்டு மதிப்பெண்',
     scanQR: 'டிஜிட்டல் போர்ட்டலை அணுக ஸ்கேன் செய்யவும்',
     webLink: 'இணையதளம்: ',
-    sharePrefix: 'எனது NEXUS AURA முடிவு:',
-    shareTopRec: 'முதல் நடவடிக்கை:',
     sharePathway: 'NEXUS இல் உங்கள் சமூக சுகாதார வழியைக் கண்டறியவும்:',
   },
 };
@@ -814,41 +802,15 @@ export default function ResultPage() {
     if (built) built.pdf.save(built.filename);
   };
 
-  /**
-   * ⚠️ SHARE SENDS THE REPORT, NOT A LINK. Until 2026-09-17 this shared a line of
-   *    text and the portal's URL, so a resident who tapped "Share Result" to
-   *    send their result to a family member sent them an invitation to take the
-   *    assessment themselves. The PDF is what they meant to send.
-   *
-   *    The file goes through the OS share sheet where the browser supports
-   *    sharing files (`navigator.canShare({ files })`: Safari on iOS, Chrome on
-   *    Android, and most desktop browsers on a recent OS). Where it does not,
-   *    the report is downloaded instead, which is the nearest thing to "here is
-   *    my result" that browser can do. The old text-and-link share is gone,
-   *    since a link is not a result.
-   */
-  const handleShare = async () => {
-    recordTelemetry(postalSector, { action: 'share_result', score, language: lang, ctaTier });
-    const built = await buildReportPdf();
-    if (!built) return;
-    const { pdf, filename } = built;
-
-    const file = new File([pdf.output('blob')], filename, { type: 'application/pdf' });
-    const actionText = ctaBanner.action[lang] || ctaBanner.action.en;
-    const shareText  = `${t.sharePrefix} ${tierLabel}.\n\n${t.shareTopRec} ${actionText}`;
-
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: 'NEXUS AURA Result', text: shareText });
-        return;
-      } catch (err) {
-        // A dismissed share sheet rejects with AbortError: a cancellation, not a
-        // failure, and not a reason to then push a download at the person.
-        if (err && err.name === 'AbortError') return;
-      }
-    }
-    pdf.save(filename);
-  };
+  /*
+    ⚠️ ONE ACTION, DOWNLOAD. There was a "Print summary" button until 2026-09-17
+       and a "Share Result" button until 2026-09-24, both removed at the owner's
+       direction: the downloaded PDF is the result, and a phone or computer can
+       already print it or share it from wherever it lands. Two more buttons that
+       did the same thing less directly were two more ways to wonder which one to
+       press. The old `share_result` and `print_handover_slip` telemetry events
+       are still read by `functions/insights.cjs` for past data.
+  */
 
   const handleResourceClick = (id, url) => {
     recordTelemetry(postalSector, { action: `click_${id}`, score, language: lang });
@@ -1188,10 +1150,6 @@ export default function ResultPage() {
               ))}
             </div>
 
-            <button onClick={handleShare}
-              className={`flex items-center gap-2 px-4 py-2.5 ${SURFACE} ${R.chip} ${LIFT} text-slate-600 dark:text-slate-300 font-bold text-xs uppercase tracking-widest motion-safe:hover:-translate-y-0.5 ${RISE}`}>
-              <Share2 size={13} /> {t.share}
-            </button>
             <button onClick={handleDownloadPDF}
               className={`flex items-center gap-2 px-4 py-2.5 bg-teal-600/95 backdrop-blur-md text-white font-bold text-xs uppercase tracking-widest ${R.chip} ${LIFT} hover:bg-teal-700 motion-safe:hover:-translate-y-0.5 ${RISE}`}>
               <Download size={13} /> {t.download}

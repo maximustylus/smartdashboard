@@ -59,9 +59,10 @@ not changed by this release.
 - `CP45`: the Malay "manage on my own" chip carried the English word "mostly", and
   the social-isolation flag it should set fired in English only. Matcher now
   covers four languages.
-- `CP46`: "Share Result" shared a link to the portal. It now shares the report PDF
-  itself, and downloads it where the browser cannot share files. "Print summary"
-  removed.
+- `CP46`: "Share Result" shared a link to the portal, not the result. Both it and
+  "Print summary" are removed at the owner's direction: the result page has one
+  action, Download PDF, and the downloaded file can be printed or shared from the
+  device it lands on.
 - `CP47`: page 3 of the report (disclaimer, evidence table, privacy, Healthier SG)
   was English in every language. Now in the resident's language; the disclaimer
   is registered as safety-critical and ships on the owner's signed waiver

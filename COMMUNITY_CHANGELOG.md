@@ -36,9 +36,9 @@ pathways, and the Cloud Function behind the chat.
   that answer, so "I mostly manage on my own" flagged social isolation in English
   only. Fixed in the chip and the matcher; every social chip is now tested in
   every language.
-- **CP46** — Share sent the portal's URL. It now sends the report PDF through the
-  OS share sheet, or downloads it where files cannot be shared. Print summary
-  removed as redundant.
+- **CP46** — Share sent the portal's URL, not the result. Share and Print summary
+  are both removed as redundant (2026-09-17 and 2026-09-24): Download PDF is the
+  one action, and the file can be printed or shared from the device.
 - **CP47** — page 3 was English in every language. Now `governanceCopy.js` in
   four languages, on the PDF and on screen. The disclaimer is registered as
   safety-critical and ships on the owner's waiver of 2026-09-24 (`CD29`).

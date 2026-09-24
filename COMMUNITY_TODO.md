@@ -1734,6 +1734,12 @@ shares the file where the browser can share files (`navigator.canShare`), and
 downloads it where it cannot. The "Print summary" button is gone at the owner's
 direction: the PDF covers it.
 
+**2026-09-24, superseded: Share is removed too.** The owner: users can download the
+PDF, and print or share it from there. Download PDF is now the only action on the
+result page, and `ResultPage.claims.test.js` fails if a share or print button
+returns. The `share_result` and `print_handover_slip` telemetry events are still
+read by `functions/insights.cjs`, for the data recorded before they went.
+
 ### `CP47` — page 3 of the report was English in every language · **FIXED**
 
 The governance page (the medical disclaimer, the evidence table, the privacy

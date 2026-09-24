@@ -90,3 +90,22 @@ describe('the result page claims only what the code does', () => {
             .forEach((phrase) => expect(page, `missing: ${phrase}`).toContain(phrase));
     });
 });
+
+describe('the result page offers one action: download the PDF', () => {
+    /*
+      The owner's direction: "Print summary" removed 2026-09-17, "Share Result"
+      removed 2026-09-24. A downloaded PDF can already be printed or shared from
+      the phone or computer it lands on, so the extra buttons were redundant.
+      This fails if either comes back.
+    */
+    const source = read('components/ResultPage.jsx');
+
+    it('has a download button', () => {
+        expect(source).toMatch(/onClick=\{handleDownloadPDF\}/);
+    });
+
+    it('has no share and no print button', () => {
+        expect(source).not.toMatch(/navigator\.share|handleShare|Share2/);
+        expect(source).not.toMatch(/window\.print|handlePrintSlip|Printer/);
+    });
+});

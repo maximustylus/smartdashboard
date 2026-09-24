@@ -14,7 +14,7 @@ NEXUS brings the daily work of a department into connected views: understand wor
 |---|---|
 | **Team members** | View assignments, request cover, record workload, complete wellbeing check-ins and participate in team discussions. |
 | **Department leads** | Configure duties and staffing rules, review assignment gaps and workload, manage team membership and generate operational analysis. |
-| **Community visitors** | Complete a structured health-screening conversation or form and receive a navigation result and a three-page PDF report they can download or share. |
+| **Community visitors** | Complete a structured health-screening conversation or form and receive a navigation result and a three-page PDF report to download, then print or share from their device. |
 | **Evaluators and collaborators** | Explore sample workflows in Demo Mode and inspect the implementation, verification evidence and governance ledgers. |
 
 ## Implemented capabilities
@@ -74,7 +74,7 @@ The separate `/individuals` pathway lets community visitors answer structured qu
 - **Choose a format:** use the conversational pathway or work through the form.
 - **Choose a language:** access English, Malay, Chinese or Tamil interface text; outstanding translation reviews are tracked in the Community ledger.
 - **Receive a navigation result:** application code parses answers, calculates the screening score and selects the next-step routing.
-- **Carry the result forward:** download or share the three-page PDF report. The browser's own print command produces a one-page handover slip for a follow-up conversation.
+- **Carry the result forward:** download the three-page PDF report, then print or share it from the device. The browser's own print command on the result page produces a one-page handover slip for a follow-up conversation.
 
 Gemini supplies optional acknowledgement wording in the conversational pathway. It does not determine the screening score or routing. The result is a health-navigation aid, not a diagnosis or treatment recommendation.
 
