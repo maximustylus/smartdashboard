@@ -988,9 +988,12 @@ export default function ResultPage() {
                       {/* A link line like the app's (icon, then the address), not a
                           boxed "Website:" pill: the box cost a padded row per card, and
                           the centred result card needed that room (2026-09-24). */}
-                      <div data-pdf-link={resource.url} style={{ fontSize: 11.5, color: '#0d9488', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', overflow: 'hidden', paddingBottom: 2 }}>
+                      {/* No `overflow: hidden` here: html2canvas draws the text ~6px below its
+                          box, so a clipping box cut the address in half in the real PDF.
+                          `siteOf` keeps every address short enough not to need it. */}
+                      <div data-pdf-link={resource.url} style={{ fontSize: 11.5, color: '#0d9488', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', paddingBottom: 2 }}>
                         <PdfIcon icon={ExternalLink} size={12} color="#0d9488" strokeWidth={2.5} />
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{siteOf(resource.url)}</span>
+                        <span>{siteOf(resource.url)}</span>
                       </div>
                     </div>
                   );
