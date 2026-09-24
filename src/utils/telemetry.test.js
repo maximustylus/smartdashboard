@@ -34,7 +34,7 @@ vi.mock('firebase/firestore', () => ({
     serverTimestamp: () => ({ __serverTimestamp: true }),
 }));
 
-const { recordTelemetry, WRITE_DEADLINE_MS } = await import('./telemetry');
+const { recordTelemetry, WRITE_DEADLINE_MS, MAX_STORED_TEXT } = await import('./telemetry');
 
 beforeEach(() => {
     addDoc.mockReset();
@@ -207,5 +207,26 @@ describe('a payload is stripped of what must never be stored', () => {
         await recordTelemetry('73', { payload: { ageYears: 67 } });
         expect(written().postalSector).toBe('73');
         expect(written().createdAt).toEqual({ __serverTimestamp: true });
+    });
+});
+
+describe('text is trimmed to what firestore.rules accepts (2026-09-24)', () => {
+    const written = () => addDoc.mock.calls[0][1];
+    beforeEach(() => { addDoc.mockResolvedValue({ id: 'doc1' }); });
+
+    it('trims every string, at any depth, to MAX_STORED_TEXT so a long answer is kept, not refused', async () => {
+        const long = 'x'.repeat(5000);
+        await recordTelemetry('73', {
+            payload: { ethnicity: long, perception: { improve: long, barriers: [long] } },
+        });
+        expect(MAX_STORED_TEXT).toBe(500);
+        expect(written().payload.ethnicity).toHaveLength(500);
+        expect(written().payload.perception.improve).toHaveLength(500);
+        expect(written().payload.perception.barriers[0]).toHaveLength(500);
+    });
+
+    it('leaves short text, numbers and booleans exactly as they were', async () => {
+        await recordTelemetry('73', { payload: { gender: 'Female', pavsScore: 105, medFlag: true, previousId: null } });
+        expect(written().payload).toEqual({ gender: 'Female', pavsScore: 105, medFlag: true, previousId: null });
     });
 });

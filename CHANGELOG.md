@@ -54,6 +54,20 @@ not changed by this release.
 
 ## [Unreleased]
 
+### Security
+
+- `CP56`: the `community_assessments` rule accepted any fields, any sizes and a
+  document id chosen by the caller, from anyone, and the nightly rollup read in
+  id order, so forged records could skew the published figures and crowd real
+  ones out. The rule now accepts only the three record shapes the app writes,
+  every field typed and capped, and only ids Firestore generates; the rollup
+  reads newest first; `telemetry.js` trims text to the rule's 500-character cap;
+  the form's record takes the chat's shape (its unused `enrichment` and
+  `demographics` maps are no longer written). Verified under the Firestore
+  emulator: 187 checks, and 104 records captured from the real app all accepted.
+  App Check on Firestore, a console setting, is still required to stop
+  well-formed forgeries.
+
 ## [2.16.3] - 2026-09-24
 
 The community portal release: the owner's Malay read-through, a six-agent stress

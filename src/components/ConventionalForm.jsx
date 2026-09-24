@@ -769,9 +769,22 @@ export default function ConventionalForm() {
 
       await recordTelemetry(sector, {
         sessionId, action: 'conventional_form_v4', language: lang,
-        score, ctaTier, flags,
-        enrichment: { food: f.foodInsecure, income: f.incomeAdequacy, housing: f.housing },
-        perception: { aware: f.aware, referred: f.referred, rating: f.rating, trust: f.trust, barriers: f.barriers, improve: f.improve },
+        score, ctaTier,
+        /*
+          ⚠️ THE SAME SHAPE AS THE CHAT'S RECORD, since 2026-09-24. The perception
+             answers sit inside `flags`, as the chat's sit inside `payload`, and
+             income adequacy is one of them. The form used to add `enrichment` and
+             `demographics` maps as well: nothing read either, both repeated values
+             already in `flags` (age band, gender, ethnicity, housing), and checking
+             them pushed `firestore.rules` past Firestore's 1,000-expression limit.
+        */
+        flags: {
+          ...flags,
+          perception: {
+            aware: f.aware, referred: f.referred, rating: f.rating, trust: f.trust,
+            barriers: f.barriers, improve: f.improve, incomeAdequacy: f.incomeAdequacy,
+          },
+        },
         /*
           ⚠️ `flags.age` IS THE BAND, AND SENDING `f.ageYears` HERE WOULD BE A REAL
              REGRESSION. This payload already carries postal sector, gender,
@@ -779,7 +792,6 @@ export default function ConventionalForm() {
              record to very few people in a sector. The band is what the rollup
              counts and it is all that leaves the device.
         */
-        demographics: { age: flags.age, gender: f.gender, race: f.race, sector },
       });
 
       // The answers have become a result; the in-progress copy is no longer the

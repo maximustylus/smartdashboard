@@ -1924,11 +1924,23 @@ every page-1 layout fits (425 × 4 languages), and page 2 is unchanged.
   equal to the chat's list by test). A postal code reaches the model as its
   two-digit sector only, as the answer and as an earlier answer. This closes
   `CP35` properly.
-- **S1 · anyone can write records to `community_assessments` without signing in,**
-  in any shape. That can skew the planning figures, crowd real records out of
-  the nightly count (it reads 20,000 with no ordering), and, with the small-group
-  totals readable by any signed-in account, reveal individuals. Needs tighter
-  rules plus App Check on Firestore, in the Firebase console.
+- ~~**S1 · anyone can write records to `community_assessments` without signing in,
+  in any shape.**~~ **Rules half FIXED 2026-09-24 as `CP56`.** The rule now accepts
+  exactly the three shapes the app writes: every field named and typed, numbers in
+  range, text capped at 500 characters (the app trims to the same), the exact age
+  and raw measurements refused, and only document ids `addDoc` generates, so no
+  caller chooses where a record sorts. The nightly rollup reads newest first. The
+  form's record was given the chat's shape: its `enrichment` and `demographics`
+  maps duplicated `flags`, nothing read them, and checking them took the rule past
+  Firestore's 1,000-expression limit, which the emulator showed would have refused
+  every real submission. Verified: 187 emulator checks, and 104 records captured
+  from the real app all accepted. `communityRulesParity.test.js` fails in CI if a
+  parser gains a field the rule does not list.
+  ⚠️ **STILL OPEN, and only the owner can close it: App Check on Firestore**, in the
+  Firebase console. A well-formed false record can still be written by anyone, in
+  any number, because the portal has no sign-in; only App Check proves a request
+  comes from the real app. Until then, forged records of the right shape can still
+  skew counts and weaken small-cell suppression.
 - **S2 · Gemini's reply is not checked before a resident sees it.** English,
   dashes, links and a drug dose all passed through in a test. Needs a server-side
   check with the fixed sentence as fallback.

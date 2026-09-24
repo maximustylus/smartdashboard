@@ -1719,7 +1719,12 @@ exports.buildCommunityInsights = onSchedule({
     // would silently describe a subset, so the shortfall is logged and surfaced in
     // the document rather than left to look like a quiet month.
     const LIMIT = 20000;
-    const snap = await db.collection('community_assessments').limit(LIMIT).get();
+    // ⚠️ NEWEST FIRST, NOT DOCUMENT-ID ORDER. Without an order the read ran in id
+    //    order, so records under ids that sort early (`!0001`) were always read
+    //    and real ones could be pushed past the cap (stress test, 2026-09-24).
+    //    The rules now also refuse any id `addDoc` would not generate.
+    const snap = await db.collection('community_assessments')
+        .orderBy('createdAt', 'desc').limit(LIMIT).get();
     const records = snap.docs.map((doc) => doc.data());
     const truncated = snap.size >= LIMIT;
 

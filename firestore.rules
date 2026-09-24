@@ -833,14 +833,181 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    /**
+     * ⚠️ ANONYMOUS WRITES ARE ALLOWED HERE, SO THE SHAPE IS THE WHOLE DEFENCE.
+     *    Until 2026-09-24 this rule checked three things: `createdAt` is the server
+     *    clock, `postalSector` is a string of four characters or fewer, and there
+     *    are at most twenty top-level keys. Anything else went: any field, any
+     *    type, nested maps up to the 1 MiB document limit, and a document id of
+     *    the caller's choosing. The stress test showed what that permits: forged
+     *    records written under ids like `!0001` sorted ahead of every real one in
+     *    the nightly rollup's read, 200 of them turned a sector's real 100% food
+     *    insecurity into a published 6%, and ten alone invented a sector.
+     *
+     *    What is enforced now:
+     *      · the id is one Firestore generated (`addDoc`: 20 letters and digits),
+     *        so no caller can choose where its record sorts;
+     *      · the record is EXACTLY one of the three shapes the app writes (the
+     *        chat's completed assessment, the form's, and a result-page action),
+     *        every key named, every value typed, every string and list capped;
+     *      · numbers sit in the ranges the app can produce;
+     *      · the exact age and the raw measurements, which `telemetry.js` strips,
+     *        are refused if they ever arrive, so a regression there fails loudly
+     *        instead of storing them.
+     *
+     * ⚠️ WHAT THIS DOES NOT DO. A caller can still write any number of records
+     *    that are well-formed and false, because the portal is public and has no
+     *    sign-in. Only App Check, which proves a request comes from the real app,
+     *    closes that; it is switched on in the Firebase console (`P0.3`). The
+     *    rollup now reads newest first (`functions/index.js`), so old real records
+     *    cannot be pushed out of it by volume either.
+     *
+     * Tested under the emulator by `scripts/firestore-rules-verify.mjs`, which
+     * builds each shape from the same fields the app sends.
+     */
     match /community_assessments/{assessmentId} {
       allow read: if false;
-      allow create: if request.resource.data.keys().hasAll(['createdAt', 'postalSector'])
+      allow create: if assessmentId.matches('^[A-Za-z0-9]{20}$')
                     && request.resource.data.createdAt == request.time
                     && request.resource.data.postalSector is string
-                    && request.resource.data.postalSector.size() <= 4
-                    && request.resource.data.keys().size() <= 20;
+                    && request.resource.data.postalSector.matches('^([0-9]{2}|--)$')
+                    && (isChatAssessment(request.resource.data)
+                        || isFormAssessment(request.resource.data)
+                        || isResultAction(request.resource.data));
       allow update, delete: if false;
+    }
+
+    // ── The three shapes `community_assessments` accepts ──────────────────────
+
+    function isCtaTier(v) {
+      return v in ['URGENT', 'SOCIAL_CARE', 'CLINICAL', 'COMMUNITY', 'WELLBEING',
+                   'FREE_FIRST', 'START', 'LEVEL_UP', 'ADVANCED'];
+    }
+    function isLang(v) { return v in ['en', 'ms', 'zh', 'ta']; }
+    function isSessionId(v) { return v is string && v.matches('^NX-[A-Z0-9]{6,12}$'); }
+
+    // ⚠️ WRITTEN FOR THE 1,000-EXPRESSION LIMIT. Firestore stops evaluating a
+    //    request after 1,000 expressions and DENIES it. The first version of these
+    //    checks passed review and exceeded the limit on every real chat and form
+    //    submission; only the emulator showed it. A function's argument is
+    //    re-evaluated wherever the body uses it, so a helper handed
+    //    `x.get('perception', null)` recomputed it at every mention, nested three
+    //    deep. Each helper therefore binds its argument once with `let`. Change
+    //    any of this and re-run the emulator suite.
+    //
+    // Free text is capped at 500 characters; `telemetry.js` trims to the same
+    // length before writing, so a long answer is shortened, not refused.
+    function txt(v) { let x = v; return x == null || (x is string && x.size() <= 500); }
+    function yesNo(v) { let x = v; return x is bool; }
+    // The form stores its two yes/no perception answers as true/false, the chat as
+    // the chip text; either is accepted.
+    function txtOrBool(v) { let x = v; return x is bool || txt(x); }
+    function num(v, hi) { let x = v; return x is number && x >= 0 && x <= hi; }
+
+    // One measurement as stored: bands and labels only, never the figure. The key
+    // list is pinned; the values are short labels the app chooses, and checking
+    // each one's length cost more of the expression budget than it protected.
+    function measure(v) {
+      let x = v;
+      return x == null || (x is map
+          && x.keys().hasOnly(['band', 'ageBand', 'sex', 'sourceId', 'protocol', 'setting']));
+    }
+    function storable(v) {
+      let x = v;
+      return x == null || (x is map
+          && x.keys().hasOnly(['grip', 'sitToStand', 'setting'])
+          && measure(x.get('grip', null)) && measure(x.get('sitToStand', null))
+          && txt(x.get('setting', null)));
+    }
+    // The form stores the barriers it offers, from a fixed list; the chat stores
+    // the chip text. Either way at most one short string or that list.
+    function barriers(v) {
+      let x = v;
+      return txt(x) || (x is list && x.size() <= 6
+          && x.hasOnly(['Lack of time', 'Too expensive', 'Too far away',
+                        'I prefer hospitals over community', 'Unsure what is available',
+                        'No barriers for me']));
+    }
+    function perception(v) {
+      let x = v;
+      return x == null || (x is map
+          && x.keys().hasOnly(['aware', 'referred', 'rating', 'trust', 'barriers', 'improve', 'incomeAdequacy'])
+          && txtOrBool(x.get('aware', null)) && txtOrBool(x.get('referred', null))
+          && txt(x.get('rating', null))
+          && txt(x.get('trust', null))
+          && barriers(x.get('barriers', null)) && txt(x.get('improve', null))
+          && txt(x.get('incomeAdequacy', null)));
+    }
+
+    // The derived flags, as `parseClinicalData` (chat) and
+    // `deriveFormClinicalData` (form) produce them. ⚠️ `ageYears` and
+    // `functional` are deliberately NOT in the list: `telemetry.js` strips them,
+    // and a record carrying either is refused rather than stored.
+    function isFlags(v) {
+      let m = v;
+      return m is map && m.keys().hasOnly([
+            'pavsScore', 'pavsDays', 'pavsMinutes', 'strengthDays',
+            'symptomFlag', 'medFlag', 'sdohFinancial', 'sdohSocial', 'sdohPsychological',
+            'sdohFoodInsecure', 'caregiverStrain', 'sdohHousing', 'psychoFlag',
+            'fallsCount', 'fallsRisk', 'fearOfFalling', 'fallsAsked', 'healthierSgEnrolled',
+            'gender', 'age', 'ethnicity', 'housingType', 'postalSector', 'previousId',
+            'functionalStorable', 'perception'])
+          && num(m.get('pavsScore', 0), 10080) && num(m.get('pavsDays', 0), 7)
+          && num(m.get('pavsMinutes', 0), 1440) && num(m.get('strengthDays', 0), 7)
+          && num(m.get('fallsCount', 0), 100)
+          && yesNo(m.get('symptomFlag', false)) && yesNo(m.get('medFlag', false))
+          && yesNo(m.get('sdohFinancial', false)) && yesNo(m.get('sdohSocial', false))
+          && yesNo(m.get('sdohPsychological', false)) && yesNo(m.get('sdohFoodInsecure', false))
+          && yesNo(m.get('caregiverStrain', false)) && yesNo(m.get('sdohHousing', false))
+          && yesNo(m.get('psychoFlag', false)) && yesNo(m.get('fallsRisk', false))
+          && yesNo(m.get('fearOfFalling', false)) && yesNo(m.get('fallsAsked', false))
+          && m.get('healthierSgEnrolled', null) in [true, false, null]
+          && txt(m.get('gender', null)) && txt(m.get('age', null)) && txt(m.get('ethnicity', null))
+          && txt(m.get('housingType', null)) && txt(m.get('postalSector', null))
+          && txt(m.get('previousId', null))
+          && storable(m.get('functionalStorable', null))
+          && perception(m.get('perception', null));
+    }
+
+    // `AuraChat.jsx` concludeTriage.
+    function isChatAssessment(data) {
+      let d = data;
+      return d.keys().hasOnly(['event', 'sessionId', 'previousSessionId', 'payload',
+                               'computedRisk', 'ctaTier', 'postalSector', 'createdAt'])
+          && d.keys().hasAll(['event', 'sessionId', 'payload'])
+          && d.event == 'aura_triage_complete_v2'
+          && isSessionId(d.sessionId)
+          && txt(d.get('previousSessionId', null))
+          && num(d.get('computedRisk', 0), 100)
+          && (!('ctaTier' in d) || isCtaTier(d.ctaTier))
+          && isFlags(d.payload);
+    }
+
+    // `ConventionalForm.jsx` handleSubmit. The same flags as the chat, with the
+    // perception answers inside them; the form's old `enrichment` and
+    // `demographics` maps duplicated `flags` and are no longer written.
+    function isFormAssessment(data) {
+      let d = data;
+      return d.keys().hasOnly(['sessionId', 'action', 'language', 'score', 'ctaTier', 'flags',
+                               'postalSector', 'createdAt'])
+          && d.keys().hasAll(['sessionId', 'action', 'flags'])
+          && d.action == 'conventional_form_v4'
+          && isSessionId(d.sessionId)
+          && (!('language' in d) || isLang(d.language))
+          && num(d.get('score', 0), 100)
+          && (!('ctaTier' in d) || isCtaTier(d.ctaTier))
+          && isFlags(d.flags);
+    }
+
+    // `ResultPage.jsx`: a PDF download or a tap on a resource. No flags, no id.
+    function isResultAction(data) {
+      let d = data;
+      return d.keys().hasOnly(['action', 'score', 'language', 'ctaTier', 'postalSector', 'createdAt'])
+          && d.action is string
+          && d.action.matches('^(download_pdf|click_[a-z0-9_]{1,40})$')
+          && num(d.get('score', 0), 100)
+          && (!('language' in d) || isLang(d.language))
+          && (!('ctaTier' in d) || isCtaTier(d.ctaTier));
     }
 
 

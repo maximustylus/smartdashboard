@@ -36,7 +36,10 @@
 // the migration copies rather than moves, so those documents still exist and a
 // stale path left in the app must not keep working.
 //
-// LAST RUN: 2026-09-17 against the Firestore emulator (firebase-tools 13.35.1) — 163 passed, 0 failed.
+// LAST RUN: 2026-09-24 against the Firestore emulator (firebase-tools 13) — 187 passed, 0 failed,
+// after `community_assessments` was tightened. The same day 104 records captured from the
+// real `recordTelemetry` (60 chat in four languages, 40 form, 4 result actions) were all
+// accepted by the new rule.
 // (Previous recorded run, 2026-08-21: 95 passed, 0 failed; the script has grown since — 15 of the 163 are the roster change-log block.)
 //
 // -----------------------------------------------------------------------------
@@ -600,11 +603,134 @@ await check('a client-supplied timestamp is refused (server clock pinned)',
 await check('even a lead cannot read feedback back (write-only sink)',
     assertFails(getDocs(collection(as(ALIF), 'beta_feedback'))));
 
-const telemetry = () => ({ createdAt: serverTimestamp(), postalSector: '54' });
-await check('the public CAN submit screening telemetry (the live pathway)',
-    assertSucceeds(addDoc(collection(anon, 'community_assessments'), telemetry())));
+/*
+ * ⚠️ THE THREE SHAPES THE APP WRITES, AND NOTHING ELSE (2026-09-24). Until then
+ *    this suite certified `{ createdAt, postalSector }` as a valid submission,
+ *    which was the problem: the rule accepted any fields, any sizes and any id.
+ *    The fixtures below carry the same fields `AuraChat.jsx`, `ConventionalForm.jsx`
+ *    and `ResultPage.jsx` send, after `telemetry.js` has stripped them.
+ */
+const flags = (over = {}) => ({
+    pavsScore: 105, pavsDays: 3.5, pavsMinutes: 30, strengthDays: 2,
+    symptomFlag: false, medFlag: true, sdohFinancial: true, sdohSocial: false,
+    sdohPsychological: false, sdohFoodInsecure: false, caregiverStrain: false,
+    sdohHousing: false, psychoFlag: false, fallsCount: 1, fallsRisk: true,
+    fearOfFalling: false, fallsAsked: true, healthierSgEnrolled: null,
+    gender: 'Female', age: '60+', ethnicity: 'Chinese', housingType: 'HDB 4 Room',
+    postalSector: '52', previousId: null,
+    functionalStorable: {
+        grip: { band: 'low', ageBand: '65-69', sex: 'female', sourceId: 'tomkinson-2025-absolute', setting: 'community-event' },
+        sitToStand: null,
+    },
+    ...over,
+});
+const chatRecord = (over = {}, payloadOver = {}) => ({
+    event: 'aura_triage_complete_v2', sessionId: 'NX-ABC123XYZ', previousSessionId: null,
+    payload: flags({
+        perception: { aware: 'Yes', referred: 'No', rating: 'About the same', trust: '4',
+            barriers: 'Too expensive', improve: 'More evening sessions', incomeAdequacy: 'Not adequate' },
+        ...payloadOver,
+    }),
+    computedRisk: 3, ctaTier: 'CLINICAL', postalSector: '52', createdAt: serverTimestamp(),
+    ...over,
+});
+const formRecord = (over = {}) => ({
+    sessionId: 'NX-ABC123XYZ', action: 'conventional_form_v4', language: 'ms',
+    score: 3, ctaTier: 'FREE_FIRST',
+    flags: flags({
+        postalSector: null,
+        // The form's two yes/no answers are true/false, not text: the first
+        // draft of the rule refused them, and every real form submission with it.
+        perception: { aware: true, referred: false, rating: '', trust: '3',
+            barriers: ['Too expensive', 'Too far away'], improve: '', incomeAdequacy: 'Inadequate' },
+    }),
+    postalSector: '52', createdAt: serverTimestamp(),
+    ...over,
+});
+const actionRecord = (over = {}) => ({
+    action: 'download_pdf', score: 3, language: 'en', ctaTier: 'CLINICAL',
+    postalSector: '52', createdAt: serverTimestamp(), ...over,
+});
+const put = (data) => addDoc(collection(anon, 'community_assessments'), data);
+// Removes a key outright. The SDK throws on an `undefined` value before the rules
+// are consulted, which would make a refusal check pass for the wrong reason.
+const without = (obj, key) => { const copy = { ...obj }; delete copy[key]; return copy; };
+
+await check('the chat CAN submit its completed assessment (anonymous, the live pathway)',
+    assertSucceeds(put(chatRecord())));
+await check('the form CAN submit its completed assessment',
+    assertSucceeds(put(formRecord())));
+await check('a PDF download CAN be recorded',
+    assertSucceeds(put(actionRecord())));
+await check('a tap on a resource CAN be recorded (no tier)',
+    assertSucceeds(put(without(actionRecord({ action: 'click_singhealth_careline' }), 'ctaTier'))));
+await check('an unknown postal sector is recorded as "--"',
+    assertSucceeds(put(actionRecord({ postalSector: '--' }))));
+
+/*
+ * ⚠️ THE HEAVIEST RECORDS THE APP CAN PRODUCE MUST STILL FIT. Firestore denies a
+ *    request whose rule evaluation passes 1,000 expressions, and the first draft
+ *    of this rule did exactly that for every real assessment. These carry every
+ *    optional field at once: both measurements, all seven perception answers at
+ *    the 500-character cap, a previous id, and all six barriers.
+ */
+const long = 'x'.repeat(500);
+const heavyMeasures = {
+    grip: { band: 'low', ageBand: '65-69', sex: 'female', sourceId: 'tomkinson-2025-absolute', setting: 'community-event' },
+    sitToStand: { band: 'below-typical', ageBand: '65-69', sex: 'female', sourceId: 'strassmann-2013-1min', protocol: 'sts-60s', setting: 'community-event' },
+    setting: 'community-event',
+};
+await check('the heaviest chat record fits the rule budget',
+    assertSucceeds(put(chatRecord({ previousSessionId: long }, {
+        previousId: long, ethnicity: long, housingType: long, functionalStorable: heavyMeasures,
+        perception: { aware: long, referred: long, rating: long, trust: long, barriers: long, improve: long, incomeAdequacy: long },
+    }))));
+await check('the heaviest form record fits the rule budget',
+    assertSucceeds(put(formRecord({ flags: flags({
+        previousId: long, ethnicity: long, housingType: long, functionalStorable: heavyMeasures,
+        perception: { aware: long, referred: long, rating: long, trust: long, improve: long, incomeAdequacy: long,
+            barriers: ['Lack of time', 'Too expensive', 'Too far away', 'I prefer hospitals over community',
+                'Unsure what is available', 'No barriers for me'] },
+    }) }))));
+
+await check('a bare { createdAt, postalSector } is REFUSED now (it was the whole old rule)',
+    assertFails(put({ createdAt: serverTimestamp(), postalSector: '54' })));
+await check('a caller-chosen id is refused (it would sort ahead of every real record)',
+    assertFails(setDoc(doc(anon, 'community_assessments/!0001'), actionRecord())));
 await check('a missing postalSector is refused',
-    assertFails(addDoc(collection(anon, 'community_assessments'), { createdAt: serverTimestamp() })));
+    assertFails(put(without(actionRecord(), 'postalSector'))));
+await check('a full six-digit postal code is refused (sector only)',
+    assertFails(put(actionRecord({ postalSector: '520123' }))));
+await check('an extra top-level field is refused',
+    assertFails(put(chatRecord({ note: 'hello' }))));
+await check('an extra field inside the flags is refused',
+    assertFails(put(chatRecord({}, { invented: true }))));
+await check('the exact age is refused if it ever arrives (telemetry.js strips it)',
+    assertFails(put(chatRecord({}, { ageYears: 67 }))));
+await check('the raw measurements are refused if they ever arrive',
+    assertFails(put(chatRecord({}, { functional: { grip: { value: 18 } } }))));
+await check('a flag of the wrong type is refused',
+    assertFails(put(chatRecord({}, { medFlag: 'yes' }))));
+await check('a number outside what the app can produce is refused',
+    assertFails(put(chatRecord({}, { pavsDays: 99 }))));
+await check('text over 500 characters is refused (telemetry.js trims to 500)',
+    assertFails(put(chatRecord({}, { ethnicity: 'x'.repeat(501) }))));
+await check('an unknown event name is refused',
+    assertFails(put(chatRecord({ event: 'anything' }))));
+await check('a record with no flags cannot pass as an assessment',
+    assertFails(put(without(chatRecord(), 'payload'))));
+await check('an unknown action is refused',
+    assertFails(put(actionRecord({ action: 'share_result' }))));
+await check('an invented call-to-action tier is refused',
+    assertFails(put(actionRecord({ ctaTier: 'VIP' }))));
+await check('the old duplicate maps from the form are refused (nothing read them)',
+    assertFails(put(formRecord({ demographics: { age: '60+', gender: 'Female', race: 'Malay', sector: '52' } }))));
+await check('a barrier the form does not offer is refused',
+    assertFails(put(formRecord({ flags: flags({ perception: { barriers: ['x'.repeat(400)] } }) }))));
+await check('a malformed session id is refused',
+    assertFails(put(formRecord({ sessionId: 'anything' }))));
+await check('a client-supplied timestamp is refused (server clock pinned)',
+    assertFails(put(actionRecord({ createdAt: new Date('2020-01-01') }))));
 /**
  * ⚠️ A WRITE-ONLY SINK, AND THE READ IS DENIED TO EVERYBODY — including a lead, and
  *    including a super-admin. These records carry postal sector, age band, gender,

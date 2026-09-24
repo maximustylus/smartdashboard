@@ -29,6 +29,18 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Unreleased — on `community` · `CP56`, the Firestore rule for assessments
+
+- **CP56** — `community_assessments` accepted any fields, any sizes and a
+  caller-chosen document id from anyone. It now accepts exactly the chat's, the
+  form's and the result page's records, typed and capped, with Firestore-generated
+  ids only; the nightly rollup reads newest first; text is trimmed to 500
+  characters before writing; the form's record has the chat's shape. Emulator:
+  187 checks pass and 104 real app records are all accepted. App Check, in the
+  Firebase console, is still needed to stop well-formed forgeries.
+
+---
+
 ## Shipped in [2.16.3] — `P12` the owner's Malay read-through, `P13` the stress test, the report redesign
 
 - **CP45** — `Saya mostly uruskan sendiri`: the English word was left in the

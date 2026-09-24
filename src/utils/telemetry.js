@@ -130,8 +130,16 @@ const NEVER_STORED = Object.freeze([
     'functional',
 ]);
 
-/** Deep copy with the fields above removed, whatever shape the payload has. */
+/**
+ * The longest string stored. `firestore.rules` refuses anything longer in
+ * `community_assessments`, so text is trimmed here to the same length: a resident
+ * who types a long answer has it shortened, and the record is still written.
+ */
+export const MAX_STORED_TEXT = 500;
+
+/** Deep copy with the fields above removed and text trimmed, whatever shape the payload has. */
 const withoutIdentifyingDetail = (value) => {
+    if (typeof value === 'string') return value.slice(0, MAX_STORED_TEXT);
     if (Array.isArray(value)) return value.map(withoutIdentifyingDetail);
     if (value === null || typeof value !== 'object') return value;
     // Dates, timestamps and other non-plain objects pass through untouched: copying
