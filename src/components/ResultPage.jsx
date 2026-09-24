@@ -574,9 +574,20 @@ const PDF_PAGE_STYLE = {
 };
 
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
-/** `https://www.aic.sg/care-services/…` → `aic.sg`, for the printed resource cards. */
+/**
+ * The address as printed on a resource card: in full when it is short enough to
+ * fit on one line (`for.sg/exercise`, `touch.org.sg`), the site alone when it is
+ * not (`https://www.aic.sg/care-services/…` → `aic.sg`). A short link reduced to
+ * its site would be meaningless: every `for.sg` link would print as "for.sg".
+ */
+const SHORT_ADDRESS = 30;
 const siteOf = (url) => {
-  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url; }
+  try {
+    const u = new URL(url);
+    const host = u.hostname.replace(/^www\./, '');
+    const full = (host + u.pathname).replace(/\/$/, '');
+    return full.length <= SHORT_ADDRESS ? full : host;
+  } catch { return url; }
 };
 
 export default function ResultPage() {
@@ -949,7 +960,7 @@ export default function ResultPage() {
                            link over this pill still opens the exact page; on paper a
                            short site name is also easier to type than a deep path.
                       */}
-                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '4px 8px 6px', borderRadius: 4, border: '1px solid #99f6e4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div data-pdf-link={resource.url} style={{ fontSize: 10.5, color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '3px 8px 7px', marginTop: 3, borderRadius: 4, border: '1px solid #99f6e4', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         <span style={{ color: '#64748b', fontWeight: 600, marginRight: 4 }}>{t.webLink}</span>{siteOf(resource.url)}
                       </div>
                     </div>
