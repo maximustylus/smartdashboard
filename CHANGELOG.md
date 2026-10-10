@@ -54,6 +54,48 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.17.0] - 2026-10-10
+
+The community portal's event release, for Health Fiesta 2026 at Bukit Canberra on
+11 October. Everything a resident sees is in their language; the stand's figures
+go to a collection of their own.
+
+### Added
+
+- **Event mode** (`src/data/eventMode.js`): on the event day, a tap on either
+  pathway shows the event banner first; tapping it starts the **short assessment**
+  (11 questions in the chat, 2 pages in the form; everything the risk score, the
+  safety routing, the mapping and the strength bands need). A date window in
+  Singapore time decides, with `?event=fiesta` and `?event=off` as overrides. The
+  journey-time model puts the short flow at about 2 minutes 50 seconds, down from
+  about 6.
+- **The M3@Woodlands "Scan & Follow" poster** for residents in sectors 70 to 76:
+  on the result page with four buttons, and as a page of the PDF with link
+  annotations over the four QR codes (WhatsApp, Facebook, Instagram, TikTok).
+- **`event_records`**: one row per thing that happens at the stand (gate tap,
+  completion, PDF download, link tap) with no answers, under its own Firestore
+  rule (12 emulator checks), and `scripts/event-export.cjs` to pull an event's
+  CSV and summary for a stakeholder deck.
+- **Journey-time simulation** (`scripts/.scratch/sim`, not shipped): the built
+  app driven end to end, then a bootstrap over reading and tapping speeds. About
+  6 minutes to a result by either pathway in all four languages.
+
+### Changed
+
+- The chat's closing screen opens the result on a tap (it said "tap anywhere"
+  and did nothing for five seconds); both closing lines are in the person's
+  language.
+- The first human review of the Malay chat: a professional translator's wording
+  for the opening question, the zero-days reply and the chip hint, recorded in
+  `copyReview.js`.
+- Translated, all four languages, after a scan of every recorded screen: the
+  pathway page's collection notice and AI statement (`CD10`), the result page's
+  retention paragraph, the form's falls and Healthier SG questions, its summary
+  tiles and submit spinner. The chat's English-only plan card is shown to
+  English readers only until it is translated. "erkoka" is "terokai".
+- The retention parity test reads the dictionaries the notices now live in and
+  requires the period in every language.
+
 ## [2.16.4] - 2026-09-24
 
 A security patch to the community portal's Firestore rule. No change a resident sees.
