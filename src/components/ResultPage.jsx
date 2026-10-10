@@ -82,7 +82,7 @@ const DICTIONARY = {
     amber: 'Keperluan Sederhana (Kuning)',
     green: 'Keperluan Rendah (Hijau)',
     redDesc: 'Profil risiko anda memerlukan penjagaan yang diawasi. Sila berunding dengan profesional kesihatan sebelum memulakan program senaman baharu.',
-    amberDesc: 'Anda mempunyai keperluan sederhana. Pertimbangkan untuk meningkatkan aktiviti anda secara beransur-ansur dan erkoka sumber komuniti di bawah.',
+    amberDesc: 'Anda mempunyai keperluan sederhana. Pertimbangkan untuk meningkatkan aktiviti anda secara beransur-ansur dan terokai sumber komuniti di bawah.',
     greenDesc: 'Anda memenuhi garis panduan aktiviti fizikal. Teruskan dan pertimbangkan untuk meningkatkan tahap dengan program berstruktur.',
     sdohFinText: 'Kos dikenal pasti sebagai halangan. Pilihan percuma dan bersubsidi diutamakan di bawah.',
     sdohSocText: 'Hubungan sosial dikenal pasti. Sumber kumpulan komuniti dan rakan disertakan.',
