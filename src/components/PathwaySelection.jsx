@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 // ADDED SUN AND MOON ICONS
 import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'lucide-react';
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, beginFreshIfFinished } from '../utils/assessmentSession';
+import { getSessionId, beginFreshIfFinished, saveEventMode } from '../utils/assessmentSession';
+import { EVENT, isEventActive } from '../data/eventMode';
+import eventBanner from '../assets/health-fiesta-2026.jpg';
 
 const DICTIONARY = {
   en: {
@@ -13,6 +15,7 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'Conversational AI guided assessment.',
     formTitle: 'Self-Guided',
+    eventTap: 'Tap the poster to start the short Health Fiesta screening. About 3 minutes.',
     formDesc: 'Standard questionnaire format.',
   },
   ms: {
@@ -22,6 +25,7 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'Penilaian berpandukan AI perbualan.',
     formTitle: 'Bimbingan Sendiri',
+    eventTap: 'Ketik poster untuk memulakan saringan ringkas Health Fiesta. Kira-kira 3 minit.',
     formDesc: 'Format soal selidik standard.',
   },
   zh: {
@@ -31,6 +35,7 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: '对话式AI引导评估。',
     formTitle: '自主指导',
+    eventTap: '点击海报，开始 Health Fiesta 简短筛查。约 3 分钟。',
     formDesc: '标准问卷格式。',
   },
   ta: {
@@ -40,6 +45,7 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'உரையாடல் AI வழிகாட்டப்பட்ட மதிப்பீடு.',
     formTitle: 'சுய வழிகாட்டுதல்',
+    eventTap: 'Health Fiesta சுருக்கமான பரிசோதனையைத் தொடங்க போஸ்டரைத் தட்டவும். சுமார் 3 நிமிடங்கள்.',
     formDesc: 'நிலையான கேள்வித்தாள் வடிவம்.',
   },
 };
@@ -50,6 +56,18 @@ export default function PathwaySelection() {
   const [animate, setAnimate] = useState(false);
   // One id per assessment, shared by every screen — see `src/utils/assessmentSession.js`.
   const [sessionId] = useState(() => { beginFreshIfFinished(); return getSessionId(); });
+  /*
+    ⚠️ THE EVENT GATE. On the event day a tap on either pathway shows the event
+       banner first; tapping the banner records that this person is at the stand
+       (`saveEventMode`) and sends them into the short assessment. Any other day
+       the tap goes straight through, as it always has. See `eventMode.js`.
+  */
+  const eventOn = isEventActive(new Date(), window.location.search);
+  const [pendingPath, setPendingPath] = useState(null);
+  const choose = (path) => (eventOn ? setPendingPath(path) : navigate(path));
+  // The query string travels with the person, so `?event=fiesta` (the testing
+  // override) still applies on the chat and form pages, not only here.
+  const enterEvent = () => { saveEventMode(EVENT.id); navigate(pendingPath + window.location.search); };
 
   // ADDED MISSING THEME STATE
   const [isDark, setIsDark] = useState(false);
@@ -94,6 +112,16 @@ export default function PathwaySelection() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 transition-colors duration-700 flex flex-col items-center justify-center relative overflow-hidden p-4 md:p-6 font-sans">
+      {pendingPath && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={EVENT.name}>
+          <button type="button" onClick={enterEvent} className="w-full max-w-sm text-center active:scale-[0.98] transition-transform">
+            <img src={eventBanner} alt={EVENT.name} className="w-full rounded-3xl shadow-2xl border-4 border-white/90" />
+            <span className="mt-4 inline-block px-5 py-3 rounded-full bg-white text-slate-900 text-sm font-black shadow-lg">
+              {t.eventTap}
+            </span>
+          </button>
+        </div>
+      )}
       
       {/* VISUAL BACKGROUND ELEMENTS */}
       <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" 
@@ -140,7 +168,7 @@ export default function PathwaySelection() {
           
           {/* AURACHAT CARD */}
           <button
-            onClick={() => navigate('/individuals/chat')}
+            onClick={() => choose('/individuals/chat')}
             className="group relative bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-pink-500/50 text-center overflow-hidden flex flex-col items-center"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-300"></div>
@@ -159,7 +187,7 @@ export default function PathwaySelection() {
 
           {/* SELF-GUIDED FORM CARD */}
           <button
-            onClick={() => navigate('/individuals/form')}
+            onClick={() => choose('/individuals/form')}
             className="group relative bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 text-center overflow-hidden flex flex-col items-center"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-300"></div>

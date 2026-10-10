@@ -53,6 +53,10 @@
 const SESSION_ID_KEY = 'nexus_assessment_id';
 const IN_PROGRESS_KEY = 'nexus_assessment_progress';
 const RESULT_KEY = 'nexus_assessment_result';
+// Set when a person comes through the event gate on the pathway page, so both
+// pathways know to ask the short assessment. Session-scoped like the rest: the
+// next tab, or the same tablet after a close, starts clean. See `eventMode.js`.
+const EVENT_KEY = 'nexus_event_mode';
 
 /**
  * Every access is wrapped. Safari in private mode THROWS on `sessionStorage`
@@ -195,6 +199,10 @@ export const clearProgress = () => {
  * reload can restore it instead of bouncing a person who has finished back to the
  * pathway picker with nothing.
  */
+/** The event the person came through the gate for, or `null`. */
+export const loadEventMode = () => readRaw(EVENT_KEY);
+export const saveEventMode = (eventId) => writeRaw(EVENT_KEY, eventId);
+
 export const saveResult = (result) => writeJson(RESULT_KEY, result);
 
 /** The saved result, or `null`. Shape is validated by the caller, not here. */

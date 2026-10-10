@@ -11,7 +11,7 @@ import { parseAgeYears } from '../utils/clinicalFlags';
 // The word-level matchers moved with the parser into `clinicalParse.js` (`AC5`);
 // what stays is the one gate this component evaluates itself.
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, saveProgress, loadProgress, clearProgress } from '../utils/assessmentSession';
+import { getSessionId, saveProgress, loadProgress, clearProgress, loadEventMode } from '../utils/assessmentSession';
 // `AC5` — the parser lives in its own tested module now; see its header.
 import { parseClinicalData } from '../utils/clinicalParse';
 import { selectCTA } from '../utils/ctaRouting';
@@ -39,6 +39,7 @@ const communityAck = httpsCallable(functions, 'communityAck');
 // domain, the answer and the prior answers, and receives one sentence back.
 
 import { DOMAIN_CONFIG, NO_MODEL_STEPS } from '../data/communityDomains';
+import { isEventActive, concisePrompts } from '../data/eventMode';
 import { badgeFor } from '../data/badgeCopy';
 
 // `AC14`: `TOTAL_STEPS` lived here with a comment saying "// 13" while the
@@ -313,6 +314,14 @@ const AuraChatbot = () => {
 
   const [lang]      = useState(() => applyDocumentLanguage(readLanguage()));
   const langData    = copyFor(lang);
+  /*
+    ⚠️ THE SHORT ASSESSMENT DROPS A QUESTION BY WITHHOLDING ITS PROMPT. The
+       person came through the event gate (`PathwaySelection`), the event is on,
+       and `isStepAvailable` already skips any step whose prompt is missing, so
+       the order, the age gate and the parsers are untouched. See `eventMode.js`.
+  */
+  const [concise]   = useState(() => Boolean(loadEventMode()) && isEventActive(new Date(), window.location.search));
+  const prompts     = concise ? concisePrompts(langData.prompts) : langData.prompts;
   // Copy is addressed by question name, never by counting. See `COPY_ORDER`.
   const keyAt       = (i) => DOMAIN_CONFIG[i]?.key;
   const [sessionId] = useState(getSessionId);
@@ -365,10 +374,10 @@ const AuraChatbot = () => {
   */
   useEffect(() => {
     if (messages.length > 0) return;
-    const opening = firstActiveStep(DOMAIN_CONFIG, langData.prompts, {});
+    const opening = firstActiveStep(DOMAIN_CONFIG, prompts, {});
     if (opening === -1) return;
     setCurrentStep(opening);
-    appendBotMessage(langData.prompts[keyAt(opening)], opening);
+    appendBotMessage(prompts[keyAt(opening)], opening);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -456,10 +465,10 @@ const AuraChatbot = () => {
     // ⚠️ NOT `currentStep + 1`. Steps are skipped when they do not apply to this
     //    person (the falls branch is 60+ only) or when the active language has no
     //    prompt for them — see `src/utils/chatSteps.js`.
-    const nextStep  = nextActiveStep(DOMAIN_CONFIG, currentStep, langData.prompts, updatedData);
+    const nextStep  = nextActiveStep(DOMAIN_CONFIG, currentStep, prompts, updatedData);
 
     if (nextStep !== -1) {
-      const nextPromptRaw = langData.prompts[keyAt(nextStep)];
+      const nextPromptRaw = prompts[keyAt(nextStep)];
       const nextPrompt    = typeof nextPromptRaw === 'function' ? nextPromptRaw(updatedData) : nextPromptRaw;
       const staticText    = (staticAck ? staticAck + ' ' : '') + nextPrompt;
 
@@ -705,8 +714,8 @@ const AuraChatbot = () => {
         and the 60+ branch opens or does not.
       */}
       <ProgressBar
-        currentStep={activeStepPosition(DOMAIN_CONFIG, currentStep, langData.prompts, collectedData) - 1}
-        total={activeStepCount(DOMAIN_CONFIG, langData.prompts, collectedData)}
+        currentStep={activeStepPosition(DOMAIN_CONFIG, currentStep, prompts, collectedData) - 1}
+        total={activeStepCount(DOMAIN_CONFIG, prompts, collectedData)}
         langData={langData}
       />
 
