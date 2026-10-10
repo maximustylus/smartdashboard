@@ -178,7 +178,7 @@ export const DICTIONARY = {
     back: 'Kembali',
     typing: 'AURA sedang menaip\u2026',
     inputPlaceholder: 'Taip jawapan anda atau pilih di bawah\u2026',
-    hintText: 'Pilih pilihan atau taip sendiri:',
+    hintText: 'Buat pilihan atau taipkan jawapan.',
     sessionLabel: 'Sesi',
     domainLabel: 'Domain Saringan',
     ctaTitle: 'Rancangan Kesihatan Peribadi Anda',
@@ -191,9 +191,11 @@ export const DICTIONARY = {
     planReady: 'Inilah rancangan kesihatan komuniti peribadi anda, berdasarkan tahap aktiviti dan profil kesihatan anda. Ketik di mana-mana untuk membuka keputusan penuh anda.',
     progressLabel: (step, total) => `Langkah ${step + 1} daripada ${total}`,
     prompts: [
-      'Hai, saya AURA 👋 Pada minggu biasa, berapa hari anda melakukan aktiviti fizikal tahap sederhana atau tinggi? (cth. berjalan pantas, berbasikal, berenang)',
+      // ⚠️ REVIEWED BY A PERSON, 2026-10-10: a professional translator's wording,
+      //    kept verbatim. Record in `copyReview.js` under `prompt.pavs_days`.
+      'Hai, saya AURA. 👋 Saya di sini untuk menghubungkan anda dengan bahan sumber kesihatan dalam masyarakat yang bersesuaian. Mari mulakan dengan kegiatan fizikal. Biasanya, dalam seminggu berapa harikah anda melakukan kegiatan fizikal tahap sederhana atau tinggi? (contohnya, berjalan pantas, berbasikal, berenang, ke gim)',
       /* 1  pavs_mins */ (data) => data.pavs_days === '0 hari' || data.pavs_days === '0 days'
-        ? 'Jika anda mula aktif secara fizikal, lebih kurang berapa lama anda rasa anda mampu melakukannya setiap kali?'
+        ? 'Jika anda mula menjadi aktif, berapa lamakah anda rasa anda mampu melakukan aktiviti?'
         : 'Berapa minit biasanya anda bersenam pada setiap sesi aktif tersebut?',
       'Adakah anda melakukan aktiviti menguatkan otot? (cth. angkat berat, band rintangan, senaman berat badan)',
       'Adakah anda mempunyai sebarang penyakit kronik seperti darah tinggi, pradiabetes, atau penyakit jantung? Adakah anda pernah rasa sakit dada atau pening ketika aktif?',
@@ -211,7 +213,7 @@ export const DICTIONARY = {
       /* 15 healthier_sg   */ 'Adakah anda berdaftar dengan doktor keluarga Healthier SG? Ini mempengaruhi program yang boleh anda dirujuk untuk sertai.',
     ],
     reflections: [
-      (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'Memulakan dari sifar adalah normal. ' : 'Permulaan yang baik. '; },
+      (input) => { const n = parseInt((input.match(/\d+/) || ['0'])[0], 10); return n === 0 ? 'Normal kalau anda bermula daripada asas terendah. Ramai orang dalam keadaan yang serupa. Inilah sebabnya program-program ini wujud. ' : 'Permulaan yang baik. '; },
       () => 'Saya telah merekodkan tempoh sesi anda. ',
       () => 'Latihan kekuatan sama pentingnya dengan senaman aerobik. ',
       () => 'Terima kasih kerana berkongsi. Saya akan pastikan cadangan anda selamat. ',

@@ -91,6 +91,36 @@ export const COPY_REVIEW = Object.freeze({
     }),
 
     /*
+      ── The first human review, 2026-10-10 ─────────────────────────────────────
+      A professional translator (a senior manager at MDDI) read the Malay chat
+      from a phone and rewrote the opening question, the zero-days reply with its
+      follow-up question, and the hint above the chips. Her wording is in the
+      dictionary verbatim. Not safety-critical, so these were never gated; they
+      are registered because a person has now read them and the registry is the
+      one place that fact is kept.
+    */
+    'prompt.pavs_days': Object.freeze({
+        where: 'src/data/communityChatCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: 'Nur Hasibah Binte Abu Bakar, MDDI, 2026-10-10', zh: null, ta: null }),
+    }),
+    'prompt.pavs_mins': Object.freeze({
+        where: 'src/data/communityChatCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: 'Nur Hasibah Binte Abu Bakar, MDDI, 2026-10-10', zh: null, ta: null }),
+    }),
+    'reflection.pavs_days': Object.freeze({
+        where: 'src/data/communityChatCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: 'Nur Hasibah Binte Abu Bakar, MDDI, 2026-10-10', zh: null, ta: null }),
+    }),
+    'chat.hintText': Object.freeze({
+        where: 'src/data/communityChatCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: 'Nur Hasibah Binte Abu Bakar, MDDI, 2026-10-10', zh: null, ta: null }),
+    }),
+
+    /*
       ⚠️ REGISTERED ON 2026-09-13, AFTER SHIPPING — the registry did not know these
          existed. They are the ten lines printed on the handover slip a resident
          carries to a community centre, translated by Gemini for group 4 and never
