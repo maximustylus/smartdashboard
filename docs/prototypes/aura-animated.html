@@ -3,14 +3,14 @@
 <style>
 /* Layout: one glass stage on a pastel wash; state chips under it; the controls that change how it feels last. */
 :root {
-  --bg: #f7f5fc; --wash-a: #ddd3f9; --wash-b: #cff3e4;
+  --bg: #f7f5fc; --wash-a: #d6d0f8; --wash-b: #cff3e4;
   --ink: #3b4256; --ink-2: #6b7280; --ink-3: #9aa1b4;
-  --violet: #b9a7f2; --sky: #b7dbf7; --mint: #9fe3c6; --blush: #f7c8d3; --amber: #f6d8a8;
+  --brand: #5843de; --violet: #5843de; --sky: #b7dbf7; --mint: #9fe3c6; --blush: #f7c8d3; --amber: #f6d8a8;
   --glass: rgba(255,255,255,.55); --glass-line: rgba(255,255,255,.75);
   --lift: rgba(255,255,255,.9); --drop: rgba(109,94,190,.16);
-  --paper: #fffdfa; --rule: #e6e3f0; --margin: #b7dbf7; --cover: #b9a7f2; --binding: #9f8be6;
-  --paint: #b9a7f2; --lead: #3b4256; --pencil-grey: #9aa1b4; --ink-stroke: #3b4256;
-  --chip: rgba(255,255,255,.6); --chip-on: #3b4256; --chip-on-fg: #fff;
+  --paper: #fffdfa; --rule: #e4e1f3; --margin: #c9c2f5; --cover: #5843de; --binding: #4433c0;
+  --paint: #5843de; --lead: #3b4256; --pencil-grey: #9aa1b4; --ink-stroke: #3b4256;
+  --chip: rgba(255,255,255,.6); --chip-on: #5843de; --chip-on-fg: #fff;
   --display: "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
@@ -19,8 +19,8 @@
   --ink: #ece9f6; --ink-2: #b4b0c4; --ink-3: #7e7a90;
   --glass: rgba(30,28,42,.55); --glass-line: rgba(255,255,255,.14);
   --lift: rgba(255,255,255,.05); --drop: rgba(0,0,0,.45);
-  --paper: #23212e; --rule: #34313f; --margin: #4a6a8a; --cover: #6a5cb0; --binding: #574a99;
-  --paint: #8f7fd8; --lead: #ece9f6; --pencil-grey: #7e7a90; --ink-stroke: #ece9f6;
+  --paper: #23212e; --rule: #34313f; --margin: #4a4290; --cover: #4f41cc; --binding: #3d31a6;
+  --paint: #6f5ee8; --lead: #ece9f6; --pencil-grey: #7e7a90; --ink-stroke: #ece9f6;
   --chip: rgba(255,255,255,.07); --chip-on: #ece9f6; --chip-on-fg: #15141c;
   color-scheme: dark;
 }}
@@ -29,8 +29,8 @@
   --ink: #ece9f6; --ink-2: #b4b0c4; --ink-3: #7e7a90;
   --glass: rgba(30,28,42,.55); --glass-line: rgba(255,255,255,.14);
   --lift: rgba(255,255,255,.05); --drop: rgba(0,0,0,.45);
-  --paper: #23212e; --rule: #34313f; --margin: #4a6a8a; --cover: #6a5cb0; --binding: #574a99;
-  --paint: #8f7fd8; --lead: #ece9f6; --pencil-grey: #7e7a90; --ink-stroke: #ece9f6;
+  --paper: #23212e; --rule: #34313f; --margin: #4a4290; --cover: #4f41cc; --binding: #3d31a6;
+  --paint: #6f5ee8; --lead: #ece9f6; --pencil-grey: #7e7a90; --ink-stroke: #ece9f6;
   --chip: rgba(255,255,255,.07); --chip-on: #ece9f6; --chip-on-fg: #15141c;
   color-scheme: dark;
 }
@@ -58,18 +58,18 @@ h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: v
   box-shadow: -3px -3px 8px var(--lift), 4px 6px 14px var(--drop); transition: transform .15s, background .2s, color .2s; }
 .chip:active { transform: scale(.97); }
 .chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-fg); }
-.chip:focus-visible, .persona:focus-visible, input:focus-visible, textarea:focus-visible, .toggle:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+.chip:focus-visible, .persona:focus-visible, input:focus-visible, textarea:focus-visible, .toggle:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .controls { padding: 18px; display: grid; gap: 16px; }
 .row { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; }
 .row label { font-weight: 600; font-size: 14px; }
 .row small { color: var(--ink-2); grid-column: 1 / -1; font-size: 13px; }
 .row output { font-family: var(--mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 4ch; text-align: right; }
-input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--violet); }
+input[type=range] { grid-column: 1 / -1; width: 100%; accent-color: var(--brand); }
 textarea { grid-column: 1 / -1; width: 100%; min-height: 84px; resize: vertical; font: inherit; font-size: max(16px, 1rem); color: var(--ink); background: var(--paper); border: 1px solid var(--glass-line); border-radius: 20px; padding: 12px 14px; }
 .btn { font: inherit; font-weight: 600; font-size: 14px; border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; background: var(--ink); color: var(--bg); box-shadow: 4px 6px 14px var(--drop); }
 .btn.quiet { background: var(--chip); color: var(--ink); border: 1px solid var(--glass-line); }
 .toggle { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
-.toggle input { width: 18px; height: 18px; accent-color: var(--violet); margin: 0; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--brand); margin: 0; }
 .personas { display: flex; gap: 10px; flex-wrap: wrap; }
 .persona { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; box-shadow: -3px -3px 8px var(--lift), 4px 6px 14px var(--drop); }
 .persona[aria-pressed="true"] { border-color: var(--ink); }
@@ -117,48 +117,48 @@ text.ink { fill: var(--ink-stroke); }
 
   <div class="card">
     <div class="stage">
-      <svg id="stage" viewBox="0 0 320 236" role="img" aria-label="A notebook on a desk with a pencil beside it, animating through AURA's states">
-        <g id="book" class="px">
-          <rect id="cover" x="40" y="30" width="200" height="172" rx="12" fill="var(--cover)"/>
+      <svg id="stage" viewBox="0 0 320 256" role="img" aria-label="A notebook on a desk with a pencil beside it, animating through AURA's states">
+        <g id="book" class="px" transform="translate(0,20)">
+          <rect id="cover" x="40" y="30" width="150" height="172" rx="12" fill="var(--cover)"/>
           <rect id="binding" x="40" y="30" width="18" height="172" rx="6" fill="var(--binding)"/>
           <g id="rings" fill="var(--paper)">
             <circle cx="49" cy="52" r="2.6"/><circle cx="49" cy="80" r="2.6"/><circle cx="49" cy="108" r="2.6"/><circle cx="49" cy="136" r="2.6"/><circle cx="49" cy="164" r="2.6"/><circle cx="49" cy="192" r="2.6"/>
           </g>
-          <rect id="ghost-page" x="62" y="40" width="168" height="152" rx="6" fill="var(--paper)" opacity="0"/>
+          <rect id="ghost-page" x="62" y="40" width="118" height="152" rx="6" fill="var(--paper)" opacity="0"/>
           <g id="ghost-lines" class="fade" stroke="var(--pencil-grey)" stroke-width="2" stroke-linecap="round" opacity="0">
-            <path d="M90 140h112"/><path d="M90 158h96"/><path d="M90 176h120"/>
+            <path d="M90 140h76"/><path d="M90 158h60"/><path d="M90 176h82"/>
           </g>
           <g id="page">
-            <rect x="62" y="40" width="168" height="152" rx="6" fill="var(--paper)" stroke="var(--rule)"/>
+            <rect x="62" y="40" width="118" height="152" rx="6" fill="var(--paper)" stroke="var(--rule)"/>
             <g stroke="var(--rule)" stroke-width="1">
-              <path d="M74 62h148"/><path d="M74 82h148"/><path d="M74 102h148"/><path d="M74 122h148"/><path d="M74 142h148"/><path d="M74 162h148"/><path d="M74 182h148"/>
+              <path d="M74 62h98"/><path d="M74 82h98"/><path d="M74 102h98"/><path d="M74 122h98"/><path d="M74 142h98"/><path d="M74 162h98"/><path d="M74 182h98"/>
             </g>
             <path d="M88 46v140" stroke="var(--margin)" stroke-width="1.2"/>
-            <polygon id="dogear" class="fade" points="214,40 230,40 230,56" fill="var(--rule)"/>
-            <polygon id="dogear2" class="fade" points="214,40 230,56 214,56" fill="var(--paper)" stroke="var(--rule)"/>
+            <polygon id="dogear" class="fade" points="164,40 180,40 180,56" fill="var(--rule)"/>
+            <polygon id="dogear2" class="fade" points="164,40 180,56 164,56" fill="var(--paper)" stroke="var(--rule)"/>
           </g>
-          <rect id="short-page" class="fade" x="62" y="40" width="168" height="92" rx="6" fill="var(--paper)" stroke="var(--rule)"/>
-          <g id="short-lines" class="fade" stroke="var(--rule)" stroke-width="1"><path d="M74 62h148"/><path d="M74 82h148"/><path d="M74 102h148"/></g>
+          <rect id="short-page" class="fade" x="62" y="40" width="118" height="92" rx="6" fill="var(--paper)" stroke="var(--rule)"/>
+          <g id="short-lines" class="fade" stroke="var(--rule)" stroke-width="1"><path d="M74 62h98"/><path d="M74 82h98"/><path d="M74 102h98"/></g>
 
           <!-- listening marks -->
           <path class="stroke listen" style="--len:22" d="M96 58c6 2 10 0 16 2"/>
           <path class="stroke listen" style="--len:30" d="M116 58c8 3 14-2 22 1"/>
           <path class="stroke listen" style="--len:18" d="M96 78c5 1 8 1 12 0"/>
           <!-- drafting lines -->
-          <path class="stroke draft" style="--len:120" d="M96 58h118"/>
-          <path class="stroke draft" style="--len:96" d="M96 78h94"/>
-          <path class="stroke draft" style="--len:110" d="M96 98h108"/>
-          <path class="stroke draft" style="--len:70" d="M96 118h68"/>
-          <path class="stroke draft" style="--len:104" d="M96 138h102"/>
-          <path class="stroke draft" style="--len:52" d="M96 158h50"/>
+          <path class="stroke draft" style="--len:80" d="M96 58h78"/>
+          <path class="stroke draft" style="--len:64" d="M96 78h62"/>
+          <path class="stroke draft" style="--len:76" d="M96 98h74"/>
+          <path class="stroke draft" style="--len:50" d="M96 118h48"/>
+          <path class="stroke draft" style="--len:72" d="M96 138h70"/>
+          <path class="stroke draft" style="--len:40" d="M96 158h38"/>
           <!-- sketchy (uncertain) version of the first draft line -->
-          <path class="stroke sketch" d="M96 56c20 3 38-2 58 1s40 3 60 0"/>
-          <path class="stroke sketch" d="M97 60c22-2 40 3 58 0s38-2 58 1"/>
+          <path class="stroke sketch" d="M96 56c14 3 26-2 40 1s26 3 40 0"/>
+          <path class="stroke sketch" d="M97 60c14-2 26 3 40 0s26-2 40 1"/>
           <!-- proposal box -->
-          <rect id="box" class="fade" x="142" y="92" width="52" height="22" rx="4" fill="none" stroke="var(--pencil-grey)" stroke-dasharray="3 3"/>
-          <text id="num" class="fade" x="168" y="108" text-anchor="middle" font-size="14">35</text>
+          <rect id="box" class="fade" x="120" y="92" width="52" height="22" rx="4" fill="none" stroke="var(--pencil-grey)" stroke-dasharray="3 3"/>
+          <text id="num" class="fade" x="146" y="108" text-anchor="middle" font-size="14">35</text>
           <g id="crumbs">
-            <circle class="crumb" style="--dx:-6px" cx="150" cy="116" r="1.4"/><circle class="crumb" style="--dx:4px" cx="160" cy="118" r="1.2"/><circle class="crumb" style="--dx:-2px" cx="170" cy="116" r="1.5"/><circle class="crumb" style="--dx:8px" cx="180" cy="118" r="1.1"/><circle class="crumb" style="--dx:-9px" cx="188" cy="115" r="1.3"/>
+            <circle class="crumb" style="--dx:-6px" cx="128" cy="116" r="1.4"/><circle class="crumb" style="--dx:4px" cx="138" cy="118" r="1.2"/><circle class="crumb" style="--dx:-2px" cx="148" cy="116" r="1.5"/><circle class="crumb" style="--dx:8px" cx="158" cy="118" r="1.1"/><circle class="crumb" style="--dx:-9px" cx="166" cy="115" r="1.3"/>
           </g>
           <!-- research notes -->
           <g id="notes">
@@ -167,24 +167,24 @@ text.ink { fill: var(--ink-stroke); }
             <path class="stroke note" style="--len:12" d="M68 152h10"/><text class="fade note-q" x="80" y="156" font-size="10">?</text>
           </g>
           <!-- strike -->
-          <rect id="strike-row" class="fade" x="96" y="94" width="110" height="7" rx="3" fill="var(--rule)"/>
-          <path id="strike" class="stroke" style="--len:118" d="M94 98c30-1 60 1 114-1"/>
+          <rect id="strike-row" class="fade" x="96" y="94" width="72" height="7" rx="3" fill="var(--rule)"/>
+          <path id="strike" class="stroke" style="--len:80" d="M94 98c20-1 40 1 76-1"/>
           <!-- rework note -->
           <text id="shorter" class="fade" x="100" y="150" font-size="9.5">this is shorter</text>
           <!-- signature -->
-          <path id="sig" class="stroke" style="--len:40" d="M184 184c4-6 8 4 12-2s6 2 10-3"/>
-          <rect id="cover-close" x="58" y="30" width="182" height="172" rx="12" fill="var(--cover)"/>
+          <path id="sig" class="stroke" style="--len:40" d="M136 184c4-6 8 4 12-2s6 2 10-3"/>
+          <rect id="cover-close" x="58" y="30" width="132" height="172" rx="12" fill="var(--cover)"/>
         </g>
 
         <polygon id="chip" points="0,0 -5,-2 -5,2" fill="var(--lead)"/>
         <g id="pencil" class="px">
-          <rect x="-112" y="-6" width="10" height="12" rx="2.5" fill="var(--blush)"/>
-          <rect x="-102" y="-6" width="6" height="12" fill="#c9cbd6"/>
-          <rect x="-96" y="-6" width="76" height="12" fill="var(--paint)"/>
-          <rect x="-96" y="-6" width="76" height="3" fill="rgba(255,255,255,.35)"/>
-          <rect x="-96" y="3" width="76" height="3" fill="rgba(0,0,0,.08)"/>
-          <polygon points="-20,-6 -20,6 -6,2 -6,-2" fill="#e9d9c3"/>
-          <polygon class="tip" points="-6,-2 -6,2 0,0" fill="var(--lead)"/>
+          <rect x="-150" y="-6" width="10" height="12" rx="2.5" fill="var(--blush)"/>
+          <rect x="-140" y="-6" width="6" height="12" fill="#c9cbd6"/>
+          <rect x="-134" y="-6" width="112" height="12" fill="var(--paint)"/>
+          <rect x="-134" y="-6" width="112" height="3" fill="rgba(255,255,255,.28)"/>
+          <rect x="-134" y="3" width="112" height="3" fill="rgba(0,0,0,.14)"/>
+          <polygon points="-22,-6 -22,6 -7,2 -7,-2" fill="#e9d9c3"/>
+          <polygon class="tip" points="-7,-2 -7,2 0,0" fill="var(--lead)"/>
         </g>
       </svg>
       <div class="caption"><code id="state-code">idle</code><p id="state-text">Resting beside the page. Nothing to do, nothing to perform.</p></div>
@@ -227,7 +227,7 @@ text.ink { fill: var(--ink-stroke); }
     <div class="personas" id="personas"></div>
   </section>
 
-  <p class="foot">Everything here is a starting value to be felt, not a measurement. The pixel hint is a render setting; the real render is Blender's job. Pastel, light mode first, dual extruded shadow, 28 px radius, after the owner's style system.</p>
+  <p class="foot">Everything here is a starting value to be felt, not a measurement. The pixel hint is a render setting; the real render is Blender's job. NEXUS brand #5843de on the pencil and the cover, pastel wash around it, dual extruded shadow, 28 px radius, after the owner's style system.</p>
 </div>
 
 <script>
@@ -241,8 +241,9 @@ text.ink { fill: var(--ink-stroke); }
   const reduce = () => root.dataset.reduce === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Pencil placement: tip at (x,y), leaning at rot degrees. 180 flips it onto the eraser.
-  const put = (x, y, rot = -38) => { pencil.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`; };
-  const HOME = [214, 74];
+  const BOOK_Y = 20; // the book group is translated down to make room for the longer pencil
+  const put = (x, y, rot = -38) => { pencil.style.transform = `translate(${x}px, ${y + BOOK_Y}px) rotate(${rot}deg)`; };
+  const HOME = [192, 74];
 
   function reset() {
     timers.forEach(clearTimeout); timers = [];
@@ -262,7 +263,7 @@ text.ink { fill: var(--ink-stroke); }
     idle: { label: 'Idle', run() { say('idle', 'Resting beside the page. Nothing to do, nothing to perform.'); } },
     typing: { label: 'You are typing', run() {
       say('listening · typing', 'Taps like a listener, never like a clock. Leaves no mark. Use the controls below to feel the tempo.');
-      put(150, 92, -38); startTaps(true);
+      put(128, 92, -38); startTaps(true);
     } },
     listen: { label: 'Listening, replying', run() {
       say('coach · reply', 'Short marks as AURA replies. Never while you speak.');
@@ -270,7 +271,7 @@ text.ink { fill: var(--ink-stroke); }
     } },
     thinking: { label: 'Thinking', run() {
       say('thinking', 'Rises, hovers, settles. No tapping. Nothing is written until there is something to say.');
-      put(150, 70); later(() => put(150, 50, -30), 300); later(() => put(150, 70, -38), 1700);
+      put(130, 70); later(() => put(130, 50, -30), 300); later(() => put(130, 70, -38), 1700);
     } },
     drafting: { label: 'Drafting a document', run() {
       say('assistant · drafting', 'Lines fill the page left to right. Grey: it is a draft until you take it. The first line is sketched twice: that is what working from recall looks like.');
@@ -278,28 +279,28 @@ text.ink { fill: var(--ink-stroke); }
       later(() => { $$('.sketch').forEach(s => s.classList.remove('on')); }, 1400);
       const rows = [58, 78, 98, 118, 138, 158];
       $$('.draft').forEach((p, i) => later(() => { put(96, rows[i]); p.classList.add('on'); later(() => put(96 + p.getTotalLength(), rows[i]), 50); }, 1500 + i * 520));
-      later(() => { put(184, 184, -30); $('#sig').classList.add('on'); }, 1500 + 6 * 520 + 200);
+      later(() => { put(136, 184, -30); $('#sig').classList.add('on'); }, 1500 + 6 * 520 + 200);
       later(() => say('assistant · drafted', 'And it signs the bottom of the page. The provenance footer, written.'), 1500 + 6 * 520 + 900);
     } },
     propose: { label: 'Proposing a write', run() {
       say('data entry · proposing', 'Pencils the figure into a ruled box, then stops dead and waits. Nothing is written until you click.');
-      $('#box').classList.add('on'); put(150, 108);
-      later(() => { $('#num').classList.add('on'); put(176, 108); }, 500);
-      later(() => { put(200, 96, -38); say('data entry · waiting', 'Still. No sway, no blink. The card is yours to approve or refuse.'); }, 1100);
+      $('#box').classList.add('on'); put(128, 108);
+      later(() => { $('#num').classList.add('on'); put(154, 108); }, 500);
+      later(() => { put(178, 96, -38); say('data entry · waiting', 'Still. No sway, no blink. The card is yours to approve or refuse.'); }, 1100);
     } },
     approve: { label: '→ Approved', run() {
-      $('#box').classList.add('on'); $('#num').classList.add('on'); put(200, 96, -38);
+      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, -38);
       say('data entry · approved', 'Your click. The grey stroke becomes ink. Only you ink it.');
       later(() => { $('#num').classList.add('ink'); $('#box').setAttribute('stroke-dasharray', '0'); $('#box').classList.add('ink'); }, 500);
       later(() => $('#box').setAttribute('stroke-dasharray', '3 3'), 6000);
     } },
     refuse: { label: '→ Refused', run() {
-      $('#box').classList.add('on'); $('#num').classList.add('on'); put(200, 96, -38);
+      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, -38);
       say('data entry · refused', 'The eraser end comes round. A rub, a few crumbs, a clean box.');
-      later(() => put(146, 124, 142), 400);
-      later(() => put(186, 124, 142), 1100);
-      later(() => { put(150, 124, 142); $$('.crumb').forEach(c => c.classList.add('on')); $('#num').style.opacity = '0'; }, 1600);
-      later(() => put(200, 96, -38), 2500);
+      later(() => put(124, 124, 142), 400);
+      later(() => put(164, 124, 142), 1100);
+      later(() => { put(128, 124, 142); $$('.crumb').forEach(c => c.classList.add('on')); $('#num').style.opacity = '0'; }, 1600);
+      later(() => put(178, 96, -38), 2500);
     } },
     research: { label: 'Research', run() {
       say('research · citations', 'Margin notes, each with a question mark. It becomes a tick only when a person verifies it, which the app cannot do. So it stays.');
@@ -315,7 +316,7 @@ text.ink { fill: var(--ink-stroke); }
     strike: { label: 'Injection caught', run() {
       say('rule 15 · content is data', 'One calm line through the smuggled instruction. Then it carries on. No flinch.');
       $('#strike-row').classList.add('on'); put(94, 98);
-      later(() => { $('#strike').classList.add('on'); put(208, 96); }, 600);
+      later(() => { $('#strike').classList.add('on'); put(170, 96); }, 600);
       later(() => put(...HOME), 1600);
     } },
     snap: { label: 'Cannot reach the model', run() {
@@ -327,7 +328,7 @@ text.ink { fill: var(--ink-stroke); }
     } },
     rest: { label: 'Rest', run() {
       say('rest', 'After half a minute alone. Lies in the gutter; the cover closes gently. No zzz. 3am is a real shift.');
-      put(226, 198, 0); later(() => { $('#cover-close').classList.add('on'); }, 700); later(() => stage.classList.add('dim'), 1200);
+      put(190, 198, 0); later(() => { $('#cover-close').classList.add('on'); }, 700); later(() => stage.classList.add('dim'), 1200);
     } },
     ghost: { label: 'Ghost Protocol', run() {
       say('anonymous', 'Unbound. A loose sheet, no cover, no name. Anonymous means there is no book to be found in. The pencil writes lighter.');
@@ -337,7 +338,7 @@ text.ink { fill: var(--ink-stroke); }
     } },
     dogear: { label: 'Assumptions declared', run() {
       say('P1 · assumptions', 'A dog-ear on the page. Present, not alarming. It stays until the gap is filled.');
-      $$('.draft').forEach(p => p.classList.add('on')); later(() => { $('#dogear').classList.add('on'); $('#dogear2').classList.add('on'); put(226, 48, -60); }, 500);
+      $$('.draft').forEach(p => p.classList.add('on')); later(() => { $('#dogear').classList.add('on'); $('#dogear2').classList.add('on'); put(176, 48, -60); }, 500);
     } },
   };
 
@@ -393,7 +394,7 @@ text.ink { fill: var(--ink-stroke); }
   let simTimer = null;
   const SAMPLE = 'Rough shift. Two arrests back to back and I still have documentation to finish. I honestly do not know if I am coping or just used to it. The second one was a kid and I keep seeing the monitor. I have not eaten since this morning and the notes are not going to write themselves.';
   $('#simulate').addEventListener('click', () => {
-    clearTimeout(simTimer); draft.value = ''; chars = 0; typedSinceStill = 0; stopTaps(); select('typing', { silent: true }); put(150, 92, -38);
+    clearTimeout(simTimer); draft.value = ''; chars = 0; typedSinceStill = 0; stopTaps(); select('typing', { silent: true }); put(128, 92, -38);
     let i = 0;
     // Pauses at full stops, so you can watch it go still and then resume.
     const tick = () => {
@@ -425,8 +426,8 @@ text.ink { fill: var(--ink-stroke); }
 
   // ---- Personas (colour from src/config/personas.js) ----
   const PERSONAS = [
-    ['Well Well', '#9fe3c6', '#7fcfae'], ['Aim Assist', '#b7dbf7', '#8fc3ee'], ['Data Dude', '#b9a7f2', '#9f8be6'],
-    ['Magnify Mama', '#d7c3f5', '#bba1ea'], ['Huge Grant', '#f6d8a8', '#ecc07a'], ['Ghost Protocol', '#d9d4ea', '#bdb5d6'],
+    ['Well Well', '#9fe3c6', '#7fcfae'], ['Aim Assist', '#b7dbf7', '#8fc3ee'], ['Data Dude', '#5843de', '#4433c0'],
+    ['Magnify Mama', '#9d8ff0', '#7a68e3'], ['Huge Grant', '#f6d8a8', '#ecc07a'], ['Ghost Protocol', '#d9d4ea', '#bdb5d6'],
   ];
   const pp = $('#personas');
   PERSONAS.forEach(([name, paint, cover], i) => {
