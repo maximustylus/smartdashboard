@@ -98,7 +98,7 @@ export const NORTH_POSTER = Object.freeze({
     links: Object.freeze([
         Object.freeze({
             id: 'whatsapp',
-            label: Object.freeze({ en: 'Join the WhatsApp community', ms: 'Sertai komuniti WhatsApp', zh: '加入 WhatsApp 社群', ta: 'WhatsApp சமூகத்தில் சேரவும்' }),
+            label: Object.freeze({ en: 'WhatsApp', ms: 'WhatsApp', zh: 'WhatsApp', ta: 'WhatsApp' }),
             url: 'https://go.gov.sg/m3wcwa',
             box: Object.freeze({ x: 0.302, y: 0.349, w: 0.152, h: 0.108 }),
         }),
