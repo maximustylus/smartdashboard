@@ -6,7 +6,6 @@ import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'l
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, beginFreshIfFinished, saveEventMode } from '../utils/assessmentSession';
 import { EVENT, isEventActive } from '../data/eventMode';
-import { recordEventTelemetry } from '../utils/telemetry';
 import eventBanner from '../assets/health-fiesta-2026.jpg';
 
 const DICTIONARY = {
@@ -71,7 +70,12 @@ export default function PathwaySelection() {
   // override) still applies on the chat and form pages, not only here.
   const enterEvent = () => {
     saveEventMode(EVENT.id);
-    recordEventTelemetry({ action: 'enter', pathway: pendingPath.endsWith('/chat') ? 'chat' : 'form', language: lang });
+    // Loaded on the tap, not at module load: `telemetry.js` reaches `firebase.js`,
+    // which initialises messaging at import time and throws outside a real
+    // browser. This page renders in tests; the tap does not run there.
+    import('../utils/telemetry')
+      .then((m) => m.recordEventTelemetry({ action: 'enter', pathway: pendingPath.endsWith('/chat') ? 'chat' : 'form', language: lang }))
+      .catch(() => {});
     navigate(pendingPath + window.location.search);
   };
 
