@@ -177,10 +177,17 @@ describe('the notice and the code agree', () => {
         const { dirname, resolve } = await import('node:path');
         const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-        ['src/components/ResultPage.jsx', 'src/components/PathwaySelection.jsx'].forEach((file) => {
+        // The result page's notice moved into the governance dictionary on
+        // 2026-10-10 so it could be translated; the pathway page's notice lives in
+        // that component's own dictionary. Each file carries the sentence in four
+        // languages, so the English wording must be there AND the number must
+        // appear at least four times, once per language.
+        ['src/data/governanceCopy.js', 'src/components/PathwaySelection.jsx'].forEach((file) => {
             const text = readFileSync(resolve(root, file), 'utf8');
-            expect(text, `${file} must state the retention period`)
+            expect(text, `${file} must state the retention period in English`)
                 .toContain(`${RETENTION_MONTHS} months`);
+            const mentions = text.split(String(RETENTION_MONTHS)).length - 1;
+            expect(mentions, `${file} must state the period in every language`).toBeGreaterThanOrEqual(4);
         });
     });
 });
