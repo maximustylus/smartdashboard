@@ -762,7 +762,15 @@ const AuraChatbot = () => {
               </div>
 
               {/* CTA card */}
-              {msg.ctaData && <CtaCard ctaData={msg.ctaData} langData={langData} />}
+              {/*
+                ⚠️ ENGLISH ONLY, SO ENGLISH ONLY SEES IT. `CTA` below is ten routes of
+                   English copy (the action, the Healthier SG line, the resources)
+                   with no translation, and this card was shown in every language
+                   for the five seconds before the result page, which carries the
+                   same plan translated. Until `CTA` is translated, a Malay, Chinese
+                   or Tamil speaker goes straight to the plan they can read.
+              */}
+              {msg.ctaData && lang === 'en' && <CtaCard ctaData={msg.ctaData} langData={langData} />}
             </div>
           </div>
         ))}
