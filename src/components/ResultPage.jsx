@@ -445,11 +445,11 @@ const DataGovernance = ({ lang }) => (
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
       {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).privacyBody}
     </p>
+    {/* From the dictionary, like the paragraph above it: this was the one English
+        paragraph left on the Malay, Chinese and Tamil report (found 2026-10-10). */}
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-3">
-      <strong>How long it is kept:</strong> assessment records are deleted automatically{' '}
-      <strong>24 months</strong> after they are created. Nothing is kept beyond that, and there is
-      no account to close. The record cannot be traced back to you, which is also why it cannot
-      be retrieved or amended on request.
+      <strong>{(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).retentionHeading}</strong>{' '}
+      {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).retentionBody}
     </p>
   </div>
 );
