@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 // ADDED SUN AND MOON ICONS
 import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'lucide-react';
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
@@ -112,15 +113,21 @@ export default function PathwaySelection() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 transition-colors duration-700 flex flex-col items-center justify-center relative overflow-hidden p-4 md:p-6 font-sans">
-      {pendingPath && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={EVENT.name}>
-          <button type="button" onClick={enterEvent} className="w-full max-w-sm text-center active:scale-[0.98] transition-transform">
-            <img src={eventBanner} alt={EVENT.name} className="w-full rounded-3xl shadow-2xl border-4 border-white/90" />
+      {/* A portal, not a child: the page's animated wrapper would otherwise be
+          the containing block for `fixed`, and the overlay sized to the page
+          rather than the screen (measured: 1295px tall on an 844px phone). */}
+      {pendingPath && createPortal(
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm overflow-y-auto" role="dialog" aria-modal="true" aria-label={EVENT.name}>
+          <div className="min-h-full flex items-center justify-center p-4">
+          <button type="button" onClick={enterEvent} className="flex flex-col items-center text-center active:scale-[0.98] transition-transform">
+            <img src={eventBanner} alt={EVENT.name} className="w-auto max-w-full max-h-[62vh] rounded-3xl shadow-2xl border-4 border-white/90" />
             <span className="mt-4 inline-block px-5 py-3 rounded-full bg-white text-slate-900 text-sm font-black shadow-lg">
               {t.eventTap}
             </span>
           </button>
-        </div>
+          </div>
+        </div>,
+        document.body,
       )}
       
       {/* VISUAL BACKGROUND ELEMENTS */}
