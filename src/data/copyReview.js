@@ -121,6 +121,28 @@ export const COPY_REVIEW = Object.freeze({
     }),
 
     /*
+      ── Health Fiesta 2026, registered 2026-10-10, machine-translated ──────────
+      Written the night before the event and read by nobody. Registered so the
+      debt is visible rather than quietly passing. None stops a person doing
+      something, so none is gated.
+    */
+    'pathway.eventTap': Object.freeze({
+        where: 'src/components/PathwaySelection.jsx',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
+    'result.northPoster': Object.freeze({
+        where: 'src/data/eventMode.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
+    'chat.closing': Object.freeze({
+        where: 'src/data/communityChatCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
+
+    /*
       ⚠️ REGISTERED ON 2026-09-13, AFTER SHIPPING — the registry did not know these
          existed. They are the ten lines printed on the handover slip a resident
          carries to a community centre, translated by Gemini for group 4 and never
