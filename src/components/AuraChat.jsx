@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import { calculateRiskScore } from '../utils/scoring';
 import { ChevronLeft, Send, Sun, Moon, ExternalLink, CheckCircle, BrainCircuit, Info as InfoIcon } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -39,7 +39,8 @@ const communityAck = httpsCallable(functions, 'communityAck');
 // domain, the answer and the prior answers, and receives one sentence back.
 
 import { DOMAIN_CONFIG, NO_MODEL_STEPS } from '../data/communityDomains';
-import { isEventActive, concisePrompts } from '../data/eventMode';
+import { isEventActive, concisePrompts, isNorthSector } from '../data/eventMode';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { badgeFor } from '../data/badgeCopy';
 
 // `AC14`: `TOTAL_STEPS` lived here with a comment saying "// 13" while the
@@ -608,6 +609,12 @@ const AuraChatbot = () => {
         payload: parsed,
         computedRisk: riskScore,
         ctaTier: ctaSelection.tier,
+      });
+      // Event stand only (a no-op otherwise); not awaited, never on the path to the result.
+      recordEventTelemetry({
+        action: 'complete', pathway: 'chat', language: lang, postalSector: parsed.postalSector,
+        ctaTier: ctaSelection.tier, score: riskScore,
+        measured: hasMeasurementsToShow(parsed.functional), north: isNorthSector(parsed.postalSector),
       });
 
       // The conversation has become a result; the in-progress copy is no longer

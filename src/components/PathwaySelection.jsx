@@ -6,6 +6,7 @@ import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'l
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, beginFreshIfFinished, saveEventMode } from '../utils/assessmentSession';
 import { EVENT, isEventActive } from '../data/eventMode';
+import { recordEventTelemetry } from '../utils/telemetry';
 import eventBanner from '../assets/health-fiesta-2026.jpg';
 
 const DICTIONARY = {
@@ -68,7 +69,11 @@ export default function PathwaySelection() {
   const choose = (path) => (eventOn ? setPendingPath(path) : navigate(path));
   // The query string travels with the person, so `?event=fiesta` (the testing
   // override) still applies on the chat and form pages, not only here.
-  const enterEvent = () => { saveEventMode(EVENT.id); navigate(pendingPath + window.location.search); };
+  const enterEvent = () => {
+    saveEventMode(EVENT.id);
+    recordEventTelemetry({ action: 'enter', pathway: pendingPath.endsWith('/chat') ? 'chat' : 'form', language: lang });
+    navigate(pendingPath + window.location.search);
+  };
 
   // ADDED MISSING THEME STATE
   const [isDark, setIsDark] = useState(false);

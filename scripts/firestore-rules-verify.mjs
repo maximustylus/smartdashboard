@@ -893,6 +893,42 @@ await seed();
         assertFails(comment('Handover notes:\npatient S1234567D for review\nthanks')));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// `event_records` — the event stand's own write-only sink (Health Fiesta 2026)
+{
+    const eventRecord = (over = {}) => ({
+        eventId: 'health-fiesta-2026', action: 'complete', pathway: 'chat', language: 'ms',
+        postalSector: '73', sessionId: 'NX-ABC123XYZ', ctaTier: 'START', score: 2,
+        measured: true, north: true, createdAt: serverTimestamp(), ...over,
+    });
+    const putEvent = (data) => addDoc(collection(anon, 'event_records'), data);
+    console.log('\nevent_records');
+    await check('a completed short assessment CAN be recorded',
+        assertSucceeds(putEvent(eventRecord())));
+    await check('a gate entry CAN be recorded with only the action, pathway and language',
+        assertSucceeds(putEvent({ eventId: 'health-fiesta-2026', action: 'enter', pathway: 'form', language: 'ta', sessionId: 'NX-ABC123XYZ', createdAt: serverTimestamp() })));
+    await check('a PDF download CAN be recorded',
+        assertSucceeds(putEvent({ eventId: 'health-fiesta-2026', action: 'download_pdf', language: 'en', postalSector: '73', ctaTier: 'START', sessionId: 'NX-ABC123XYZ', createdAt: serverTimestamp() })));
+    await check('a poster link tap CAN be recorded',
+        assertSucceeds(putEvent({ eventId: 'health-fiesta-2026', action: 'click_north_whatsapp', language: 'en', postalSector: '73', sessionId: 'NX-ABC123XYZ', createdAt: serverTimestamp() })));
+    await check('an unknown event is refused',
+        assertFails(putEvent(eventRecord({ eventId: 'something-else' }))));
+    await check('an unknown action is refused',
+        assertFails(putEvent(eventRecord({ action: 'answers' }))));
+    await check('an extra field is refused (no answers can ride along)',
+        assertFails(putEvent(eventRecord({ answers: { pavs_days: '0 days' } }))));
+    await check('a missing session id is refused',
+        assertFails(putEvent(without(eventRecord(), 'sessionId'))));
+    await check('a client timestamp is refused',
+        assertFails(putEvent(eventRecord({ createdAt: new Date() }))));
+    await check('a caller-chosen id is refused',
+        assertFails(setDoc(doc(anon, 'event_records/!0001'), eventRecord())));
+    await check('a bad sector is refused',
+        assertFails(putEvent(eventRecord({ postalSector: '7' }))));
+    await check('nobody can read event records from the client, signed in or not',
+        assertFails(getDocs(collection(as(BRANDON), 'event_records'))));
+}
+
 await env.cleanup();
 console.log(`\n${'═'.repeat(64)}\n  ${pass} passed, ${fail} failed\n${'═'.repeat(64)}`);
 process.exit(fail === 0 ? 0 : 1);

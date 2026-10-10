@@ -50,7 +50,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateRiskScore } from '../utils/scoring';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import {
   ChevronLeft, ChevronRight, Activity, ShieldAlert,
   Users, MapPin, Send, Sun, Moon, Brain, Home, Info, Zap, Globe,
@@ -58,7 +58,8 @@ import {
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
 import { getSessionId, saveProgress, loadProgress, clearProgress, loadEventMode } from '../utils/assessmentSession';
-import { isEventActive, CONCISE_FORM_STEPS } from '../data/eventMode';
+import { isEventActive, CONCISE_FORM_STEPS, isNorthSector } from '../data/eventMode';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { isValidSector } from '../utils/singapore/postalSectors';
 import { isSixtyPlusPerson, parseAgeYears } from '../utils/clinicalFlags';
 import { measuresCopyFor } from '../data/measuresCopy';
@@ -806,6 +807,11 @@ export default function ConventionalForm() {
              record to very few people in a sector. The band is what the rollup
              counts and it is all that leaves the device.
         */
+      });
+      // Event stand only (a no-op otherwise); not awaited, never on the path to the result.
+      recordEventTelemetry({
+        action: 'complete', pathway: 'form', language: lang, postalSector: sector,
+        ctaTier, score, measured: hasMeasurementsToShow(flags.functional), north: isNorthSector(sector),
       });
 
       // The answers have become a result; the in-progress copy is no longer the

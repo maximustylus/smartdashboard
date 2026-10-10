@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import MeasurementsPanel from './MeasurementsPanel';
 import MeasurementsSection from './MeasurementsSection';
 import { hasMeasurementsToShow } from '../utils/measurementAnswers';
@@ -459,7 +459,7 @@ const DataGovernance = ({ lang }) => (
   screen the four links are buttons; the PDF carries the same four as link
   annotations over the QR codes (see the print template).
 */
-const NorthPosterCard = ({ lang }) => {
+const NorthPosterCard = ({ lang, onLink }) => {
   const L = (o) => o[lang] || o.en;
   return (
     <div className={`p-5 ${R.panel} ${LIFT} border backdrop-blur-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800`}>
@@ -468,7 +468,7 @@ const NorthPosterCard = ({ lang }) => {
       <img src={northPoster} alt={L(NORTH_POSTER.title)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 mb-3" />
       <div className="grid grid-cols-2 gap-2">
         {NORTH_POSTER.links.map((l) => (
-          <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer"
+          <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" onClick={() => onLink?.(l.id)}
             className="inline-flex items-center justify-center gap-1.5 px-3 py-3 rounded-full text-xs font-bold bg-teal-600 text-white shadow-sm hover:opacity-90 transition-opacity">
             {L(l.label)} <ExternalLink size={11} />
           </a>
@@ -869,6 +869,7 @@ export default function ResultPage() {
 
   const handleDownloadPDF = async () => {
     recordTelemetry(postalSector, { action: 'download_pdf', score, language: lang, ctaTier });
+    recordEventTelemetry({ action: 'download_pdf', language: lang, postalSector, ctaTier });
     const built = await buildReportPdf();
     if (built) built.pdf.save(built.filename);
   };
@@ -885,6 +886,7 @@ export default function ResultPage() {
 
   const handleResourceClick = (id, url) => {
     recordTelemetry(postalSector, { action: `click_${id}`, score, language: lang });
+    recordEventTelemetry({ action: `click_${id}`, language: lang, postalSector });
     window.open(url, '_blank');
   };
 
@@ -1324,7 +1326,7 @@ export default function ResultPage() {
               </div>
             </div>
 
-            {showNorth && <NorthPosterCard lang={lang} />}
+            {showNorth && <NorthPosterCard lang={lang} onLink={(id) => recordEventTelemetry({ action: `click_north_${id}`, language: lang, postalSector })} />}
 
             {/*
               ⚠️ ON THE SCREEN, AND NOT ONLY IN THE DOWNLOAD. The same panel exists
