@@ -50,14 +50,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateRiskScore } from '../utils/scoring';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import {
   ChevronLeft, ChevronRight, Activity, ShieldAlert,
   Users, MapPin, Send, Sun, Moon, Brain, Home, Info, Zap, Globe,
 } from 'lucide-react';
 import { readTheme, writeTheme } from '../utils/theme';
 import { readLanguage, writeLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, saveProgress, loadProgress, clearProgress } from '../utils/assessmentSession';
+import { getSessionId, saveProgress, loadProgress, clearProgress, loadEventMode } from '../utils/assessmentSession';
+import { isEventActive, CONCISE_FORM_STEPS, isNorthSector } from '../data/eventMode';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { isValidSector } from '../utils/singapore/postalSectors';
 import { isSixtyPlusPerson, parseAgeYears } from '../utils/clinicalFlags';
 import { measuresCopyFor } from '../data/measuresCopy';
@@ -286,6 +288,18 @@ const D = {
     postalQ: 'First 2 digits of your Postal Code',
     postalHint: 'e.g. 73 (Woodlands) · 75–76 (Yishun) · 75 (Sembawang) · 68 (Admiralty / Canberra)',
     prevIdQ: 'Previous NEXUS Assessment ID',
+    fallsQ: 'In the past 12 months, have you had a fall, including a slip or trip where you ended up on the ground?',
+    hsgQ: 'Are you enrolled with a Healthier SG GP?',
+    sumActivity: 'Activity',
+    sumSafety: 'Safety',
+    sumFinancial: 'Financial',
+    sumSocial: 'Social',
+    sumSymptom: 'Symptom',
+    sumCondition: 'Condition',
+    sumClear: 'Clear',
+    sumFlagged: 'Flagged',
+    minWk: 'min/wk',
+    processing: 'Processing',
     // `CP33`: only the English claimed progress tracking here. The other three
     // already said only that records are linked, which is true.
     prevIdHint: 'If you completed a previous AURA or NEXUS assessment, paste your ID here so the two records can be matched up later. We cannot show you a comparison yet. Leave blank if this is your first assessment.',
@@ -361,6 +375,18 @@ const D = {
     postalQ: '2 digit pertama Poskod anda',
     postalHint: 'cth. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',
     prevIdQ: 'ID Penilaian NEXUS Sebelumnya',
+    fallsQ: 'Dalam 12 bulan yang lalu, pernahkah anda jatuh, termasuk tergelincir atau tersandung sehingga jatuh ke tanah atau lantai?',
+    hsgQ: 'Adakah anda berdaftar dengan doktor keluarga Healthier SG?',
+    sumActivity: 'Aktiviti',
+    sumSafety: 'Keselamatan',
+    sumFinancial: 'Kewangan',
+    sumSocial: 'Sosial',
+    sumSymptom: 'Simptom',
+    sumCondition: 'Keadaan',
+    sumClear: 'Tiada',
+    sumFlagged: 'Ditanda',
+    minWk: 'minit/minggu',
+    processing: 'Memproses',
     prevIdHint: 'Jika anda pernah menjalani penilaian AURA atau NEXUS, tampal ID anda di sini. Biarkan kosong jika ini penilaian pertama anda.',
     summaryHead: 'Ringkasan Penilaian',
     optional: 'Pilihan',
@@ -433,6 +459,18 @@ const D = {
     postalQ: '邮政编码前2位',
     postalHint: '例如 73（兀兰）· 75–76（义顺）· 68（甘巴旺）',
     prevIdQ: '之前的 NEXUS 评估 ID',
+    fallsQ: '在过去 12 个月里，您跌倒过吗？包括滑倒或绊倒而摔在地上的情况。',
+    hsgQ: '您是否已向 Healthier SG 家庭医生登记？',
+    sumActivity: '活动',
+    sumSafety: '安全',
+    sumFinancial: '经济',
+    sumSocial: '社交',
+    sumSymptom: '有症状',
+    sumCondition: '有病况',
+    sumClear: '无',
+    sumFlagged: '已标记',
+    minWk: '分钟/周',
+    processing: '处理中',
     prevIdHint: '如果您之前完成了 AURA 或 NEXUS 评估，请粘贴您的 ID 以关联记录。如这是第一次，请留空。',
     summaryHead: '评估摘要',
     optional: '可选',
@@ -505,6 +543,18 @@ const D = {
     postalQ: 'அஞ்சல் குறியீட்டின் முதல் 2 இலக்கங்கள்',
     postalHint: 'எ.கா. 73 (Woodlands) · 75–76 (Yishun) · 68 (Canberra)',
     prevIdQ: 'முந்தைய NEXUS மதிப்பீட்டு ID',
+    fallsQ: 'கடந்த 12 மாதங்களில், நீங்கள் விழுந்ததுண்டா? வழுக்கி அல்லது தடுக்கி விழுந்து தரையில் விழுந்தது உட்பட.',
+    hsgQ: 'நீங்கள் Healthier SG குடும்ப மருத்துவரிடம் பதிவு செய்துள்ளீர்களா?',
+    sumActivity: 'செயல்பாடு',
+    sumSafety: 'பாதுகாப்பு',
+    sumFinancial: 'நிதி',
+    sumSocial: 'சமூகம்',
+    sumSymptom: 'அறிகுறி',
+    sumCondition: 'நிலை',
+    sumClear: 'இல்லை',
+    sumFlagged: 'குறிக்கப்பட்டது',
+    minWk: 'நிமிடம்/வாரம்',
+    processing: 'செயலாக்கம்',
     prevIdHint: 'முன்பு AURA அல்லது NEXUS மதிப்பீட்டை முடித்திருந்தால், ID ஐ ஒட்டவும்.',
     summaryHead: 'மதிப்பீட்டு சுருக்கம்',
     optional: 'விருப்பமானது',
@@ -614,13 +664,26 @@ const LANGS = [
 export default function ConventionalForm() {
   const navigate    = useNavigate();
   const [lang,      setLang]    = useState('en');
+  /*
+    ⚠️ THE SHORT ASSESSMENT, FOR THE EVENT STAND. The person came through the
+       event gate (`PathwaySelection`) and the event is on: two of the four pages
+       are skipped and the fields the short list drops are hidden and not
+       required. Everything else, including the validation and the parser, is the
+       same form. See `eventMode.js`.
+  */
+  const [concise]   = useState(() => Boolean(loadEventMode()) && isEventActive(new Date(), window.location.search));
+  const visibleSteps = concise ? CONCISE_FORM_STEPS : [0, 1, 2, 3];
+  const lastStep    = visibleSteps[visibleSteps.length - 1];
   /**
    * ⚠️ RESTORED FROM sessionStorage, NOT RESET TO ZERO. Four steps of answers
    *    lived only in component state, so a refresh — or a rotation that triggered
    *    one, or iOS reclaiming a backgrounded tab — sent the person back to the
    *    first question with nothing kept. See `src/utils/assessmentSession.js`.
    */
-  const [step,      setStep]    = useState(() => loadProgress('form')?.step ?? 0);
+  const [step,      setStep]    = useState(() => {
+    const saved = loadProgress('form')?.step ?? 0;
+    return visibleSteps.includes(saved) ? saved : 0;
+  });
   const [ready,     setReady]   = useState(false);
   // Lazy init — reads localStorage SYNCHRONOUSLY before first render.
   // Sets classList.dark inside the initialiser so Tailwind dark: utilities
@@ -705,16 +768,16 @@ export default function ConventionalForm() {
       if (!f.pavsMins)         return 'pavsMins';
       if (!f.strength)         return 'strength';
       if (f.medical.length < 1) return 'medical';
-      if (!f.wellbeing)        return 'wellbeing';
+      if (!concise && !f.wellbeing) return 'wellbeing';
     }
-    if (step === 1) {
+    if (step === 1 && !concise) {
       if (f.barriers.length < 1)   return 'barriers';
       if (!f.social)               return 'social';
       if (f.foodInsecure === null)  return 'foodInsecure';
       if (!f.incomeAdequacy)       return 'incomeAdequacy';
       if (!f.housing)              return 'housing';
     }
-    if (step === 2) {
+    if (step === 2 && !concise) {
       if (f.aware === null)    return 'aware';
       if (f.referred === null) return 'referred';
       if (!f.rating)           return 'rating';
@@ -726,7 +789,7 @@ export default function ConventionalForm() {
       //    comparison away silently, at the end, with no way to tell the person why.
       if (parseAgeYears(f.ageYears) === null) return 'ageYears';
       if (!f.gender)                 return 'gender';
-      if (!f.race)                   return 'race';
+      if (!concise && !f.race)       return 'race';
       // ⚠️ VALIDATES THE SECTOR, NOT THE LENGTH. `'99'` and `'74'` are two
       //    characters and neither is a Singapore postal sector; the old check let
       //    both through and they were stored as locations. `isValidSector` tests
@@ -793,6 +856,11 @@ export default function ConventionalForm() {
              counts and it is all that leaves the device.
         */
       });
+      // Event stand only (a no-op otherwise); not awaited, never on the path to the result.
+      recordEventTelemetry({
+        action: 'complete', pathway: 'form', language: lang, postalSector: sector,
+        ctaTier, score, measured: hasMeasurementsToShow(flags.functional), north: isNorthSector(sector),
+      });
 
       // The answers have become a result; the in-progress copy is no longer the
       // live one and keeping it would resume a completed assessment.
@@ -810,7 +878,7 @@ export default function ConventionalForm() {
   // FIX 8: back guard — confirms before discarding partial step
   const handleBack = () => {
     if (step === 0) { navigate('/individuals/pathway'); return; }
-    setStep(p => p - 1);
+    setStep(p => visibleSteps[Math.max(0, visibleSteps.indexOf(p) - 1)]);
   };
 
   // ── STEP COMPONENTS ────────────────────────────────────────────────────────
@@ -859,6 +927,7 @@ export default function ConventionalForm() {
         </div>
       </Card>
 
+      {!concise && (
       <Card tinted>
         <div className="flex items-start gap-3 mb-4">
           <Brain size={18} className="text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
@@ -874,6 +943,7 @@ export default function ConventionalForm() {
           ))}
         </div>
       </Card>
+      )}
     </div>
   );
 
@@ -1021,6 +1091,7 @@ export default function ConventionalForm() {
                 {GENDER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o[lang] || o.en}</option>)}
               </select>
             </div>
+            {!concise && (
             <div>
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{t.raceQ}<Req /></label>
               <select value={f.race} onChange={e => set('race', e.target.value)} className={selCls}>
@@ -1028,6 +1099,7 @@ export default function ConventionalForm() {
                 {RACE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o[lang] || o.en}</option>)}
               </select>
             </div>
+            )}
             <div>
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">{t.postalQ}<Req /></label>
               <input type="text" maxLength={2} value={f.postalCode}
@@ -1046,7 +1118,7 @@ export default function ConventionalForm() {
             {isSixtyPlusPerson({ age_years: f.ageYears }) && (
               <div className="md:col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                  In the past 12 months, have you had a fall — including a slip or trip where you ended up on the ground?<Req />
+                  {t.fallsQ}<Req />
                 </label>
                 <select value={f.falls} onChange={e => set('falls', e.target.value)} className={selCls}>
                   <option value="">{t.sel}</option>
@@ -1120,9 +1192,10 @@ export default function ConventionalForm() {
               );
             })()}
 
+            {!concise && (
             <div className="md:col-span-2">
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
-                Are you enrolled with a Healthier SG GP?
+                {t.hsgQ}
                 <span className="text-slate-400 font-normal text-xs ml-1">({t.optional})</span>
               </label>
               <select value={f.healthierSg} onChange={e => set('healthierSg', e.target.value)} className={selCls}>
@@ -1130,7 +1203,9 @@ export default function ConventionalForm() {
                 {HEALTHIER_SG_OPTIONS.map(o => <option key={o.value} value={o.value}>{o[lang] || o.en}</option>)}
               </select>
             </div>
+            )}
 
+            {!concise && (
             <div className="md:col-span-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                 {t.prevIdQ} <span className="text-slate-400 font-normal text-xs ml-1">({t.optional})</span>
@@ -1139,6 +1214,7 @@ export default function ConventionalForm() {
                 className={inputCls} placeholder="NX-XXXXXXXXX" />
               <p className="text-xs text-slate-400 mt-2 leading-relaxed">{t.prevIdHint}</p>
             </div>
+            )}
           </div>
 
           {liveScore > 0 && (
@@ -1148,10 +1224,10 @@ export default function ConventionalForm() {
               </p>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                  { label: 'Activity',  value: `${liveScore} min/wk`,  alert: false },
-                  { label: 'Safety',  value: preview.symptomFlag ? '⚠ Symptom' : preview.medFlag ? '⚠ Condition' : '✓ Clear', alert: preview.symptomFlag || preview.medFlag },
-                  { label: 'Financial', value: preview.sdohFinancial    ? '⚠ Flagged' : '✓ Clear', alert: preview.sdohFinancial },
-                  { label: 'Social',    value: preview.sdohPsychological || preview.sdohSocial ? '⚠ Flagged' : '✓ Clear', alert: preview.sdohPsychological || preview.sdohSocial },
+                  { label: t.sumActivity, value: `${liveScore} ${t.minWk}`, alert: false },
+                  { label: t.sumSafety, value: preview.symptomFlag ? `⚠ ${t.sumSymptom}` : preview.medFlag ? `⚠ ${t.sumCondition}` : `✓ ${t.sumClear}`, alert: preview.symptomFlag || preview.medFlag },
+                  { label: t.sumFinancial, value: preview.sdohFinancial ? `⚠ ${t.sumFlagged}` : `✓ ${t.sumClear}`, alert: preview.sdohFinancial },
+                  { label: t.sumSocial, value: preview.sdohPsychological || preview.sdohSocial ? `⚠ ${t.sumFlagged}` : `✓ ${t.sumClear}`, alert: preview.sdohPsychological || preview.sdohSocial },
                 ].map(({ label, value, alert }) => (
                   <div key={label} className={`border rounded-xl p-3 text-center ${alert ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-700' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'}`}>
                     <p className={`text-sm font-black ${alert ? 'text-amber-700 dark:text-amber-300' : 'text-slate-900 dark:text-white'}`}>{value}</p>
@@ -1219,10 +1295,10 @@ export default function ConventionalForm() {
                 <span className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">{t.steps[step]}</span>
                 <span className="text-[10px] text-slate-400 ml-2 hidden md:inline">— {t.subs[step]}</span>
               </div>
-              <span className="text-xs font-bold text-teal-600 dark:text-teal-400">{Math.round(((step + 1) / 4) * 100)}%</span>
+              <span className="text-xs font-bold text-teal-600 dark:text-teal-400">{Math.round(((visibleSteps.indexOf(step) + 1) / visibleSteps.length) * 100)}%</span>
             </div>
             <div className="flex gap-2">
-              {t.steps.map((_, i) => (
+              {visibleSteps.map((i) => (
                 <div key={i} className="flex-1 h-1.5 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800">
                   <div className={`h-full w-full origin-left transition-transform duration-500 ${step > i ? 'bg-teal-400 scale-x-100' : step === i ? 'bg-teal-500 scale-x-100' : 'scale-x-0'}`} />
                 </div>
@@ -1241,9 +1317,9 @@ export default function ConventionalForm() {
             <ChevronLeft size={15} /> {t.btnPrev}
           </button>
 
-          {step < 3 ? (
+          {step !== lastStep ? (
             <div className="flex flex-col items-end gap-1.5">
-              <button type="button" onClick={() => setStep(p => Math.min(3, p + 1))} disabled={!valid}
+              <button type="button" onClick={() => setStep(p => visibleSteps[Math.min(visibleSteps.length - 1, visibleSteps.indexOf(p) + 1)])} disabled={!valid}
                 className={`flex justify-center items-center gap-2 py-3.5 px-8 font-bold text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${valid ? 'bg-teal-600 text-white hover:bg-teal-700 shadow-[0_8px_20px_rgba(13,148,136,0.25)]' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
                 {t.btnNext} <ChevronRight size={15} />
               </button>
@@ -1259,7 +1335,7 @@ export default function ConventionalForm() {
               <button type="button" onClick={handleSubmit} disabled={busy || !valid}
                 className={`w-full flex justify-center items-center gap-2 py-3.5 px-8 font-bold text-xs uppercase tracking-widest rounded-xl transition-all active:scale-95 ${valid && !busy ? 'bg-slate-900 dark:bg-teal-500 text-white hover:bg-slate-800 dark:hover:bg-teal-400 shadow-[0_8px_20px_rgba(15,23,42,0.2)] dark:shadow-[0_8px_20px_rgba(20,184,166,0.25)]' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'}`}>
                 {busy
-                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing…</>
+                  ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> {t.processing}…</>
                   : <>{t.btnSubmit} <Send size={15} /></>}
               </button>
               {!valid && missing && t.missing[missing] && (

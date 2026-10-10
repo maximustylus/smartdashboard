@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 // ADDED SUN AND MOON ICONS
 import { MessageSquare, FileText, ChevronLeft, BrainCircuit, Sun, Moon } from 'lucide-react';
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, beginFreshIfFinished } from '../utils/assessmentSession';
+import { getSessionId, beginFreshIfFinished, saveEventMode } from '../utils/assessmentSession';
+import { EVENT, isEventActive } from '../data/eventMode';
+import eventBanner from '../assets/health-fiesta-2026.jpg';
 
 const DICTIONARY = {
   en: {
@@ -13,6 +16,11 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'Conversational AI guided assessment.',
     formTitle: 'Self-Guided',
+    eventTap: 'Tap the poster to start the short Health Fiesta screening. About 3 minutes.',
+    noticeHead: 'Before you begin',
+    notice: 'This assessment records your answers, including age band, gender, ethnic group, housing type and the first two digits of your postal code, so that community health programmes can be planned for the areas that need them. It is de-identified at the point of capture: it does not collect or store your name, NRIC, contact details or financial information, and your postal sector is used only to map you to nearby services. Records are deleted automatically after 24 months. You will get your result either way.',
+    ai: 'The AuraChat pathway is guided by AURA, a generative AI assistant (Google Gemini). The AI phrases the conversation; your result is calculated by fixed scoring rules, not by the AI, and it is not medical advice or a diagnosis. What AURA can and cannot do, and how your data is handled, is set out in the',
+    aiLink: 'Chatbot Info Card',
     formDesc: 'Standard questionnaire format.',
   },
   ms: {
@@ -22,6 +30,11 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'Penilaian berpandukan AI perbualan.',
     formTitle: 'Bimbingan Sendiri',
+    eventTap: 'Ketik poster untuk memulakan saringan ringkas Health Fiesta. Kira-kira 3 minit.',
+    noticeHead: 'Sebelum anda bermula',
+    notice: 'Penilaian ini merekodkan jawapan anda, termasuk kumpulan umur, jantina, kumpulan etnik, jenis perumahan dan dua digit pertama poskod anda, supaya program kesihatan komuniti dapat dirancang untuk kawasan yang memerlukannya. Ia dinyahkenal pasti pada titik pengumpulan: ia tidak mengumpul atau menyimpan nama, NRIC, maklumat hubungan atau maklumat kewangan anda, dan sektor pos anda digunakan hanya untuk memetakan perkhidmatan berdekatan. Rekod dipadam secara automatik selepas 24 bulan. Anda tetap akan menerima keputusan anda.',
+    ai: 'Laluan AuraChat dipandu oleh AURA, pembantu AI generatif (Google Gemini). AI ini menyusun perbualan; keputusan anda dikira mengikut peraturan pemarkahan yang tetap, bukan oleh AI, dan ia bukan nasihat perubatan atau diagnosis. Apa yang AURA boleh dan tidak boleh lakukan, serta cara data anda dikendalikan, dinyatakan dalam',
+    aiLink: 'Kad Maklumat Chatbot',
     formDesc: 'Format soal selidik standard.',
   },
   zh: {
@@ -31,6 +44,11 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: '对话式AI引导评估。',
     formTitle: '自主指导',
+    eventTap: '点击海报，开始 Health Fiesta 简短筛查。约 3 分钟。',
+    noticeHead: '开始之前',
+    notice: '本评估会记录您的回答，包括年龄段、性别、种族、住房类型和邮区前两位数字，以便为有需要的地区规划社区健康项目。资料在采集时即已去识别化：不会收集或存储您的姓名、身份证号码、联系方式或财务信息，邮区仅用于为您定位附近的服务。记录将在 24 个月后自动删除。无论如何，您都会收到您的结果。',
+    ai: 'AuraChat 路径由生成式 AI 助手 AURA（Google Gemini）引导。AI 负责组织对话；您的结果由固定的评分规则计算，而非由 AI 决定，且不构成医疗建议或诊断。AURA 能做什么、不能做什么，以及您的数据如何处理，均载于',
+    aiLink: '聊天机器人信息卡',
     formDesc: '标准问卷格式。',
   },
   ta: {
@@ -40,6 +58,11 @@ const DICTIONARY = {
     chatTitle: 'AuraChat',
     chatDesc: 'உரையாடல் AI வழிகாட்டப்பட்ட மதிப்பீடு.',
     formTitle: 'சுய வழிகாட்டுதல்',
+    eventTap: 'Health Fiesta சுருக்கமான பரிசோதனையைத் தொடங்க போஸ்டரைத் தட்டவும். சுமார் 3 நிமிடங்கள்.',
+    noticeHead: 'தொடங்குவதற்கு முன்',
+    notice: 'இந்த மதிப்பீடு உங்கள் பதில்களைப் பதிவு செய்கிறது; வயதுப் பிரிவு, பாலினம், இனக்குழு, வீட்டு வகை மற்றும் உங்கள் அஞ்சல் குறியீட்டின் முதல் இரண்டு இலக்கங்கள் உட்பட. இதன் மூலம் தேவைப்படும் பகுதிகளுக்குச் சமூக சுகாதாரத் திட்டங்களைத் திட்டமிட முடியும். சேகரிக்கும் இடத்திலேயே அடையாளம் நீக்கப்படுகிறது: உங்கள் பெயர், NRIC, தொடர்பு விவரங்கள் அல்லது நிதித் தகவல்களைச் சேகரிக்கவோ சேமிக்கவோ இல்லை; உங்கள் அஞ்சல் துறை அருகிலுள்ள சேவைகளைக் காட்ட மட்டுமே பயன்படுகிறது. பதிவுகள் 24 மாதங்களுக்குப் பிறகு தானாக நீக்கப்படும். எப்படியும் உங்கள் முடிவைப் பெறுவீர்கள்.',
+    ai: 'AuraChat பாதை AURA எனும் உருவாக்கும் AI உதவியாளரால் (Google Gemini) வழிநடத்தப்படுகிறது. உரையாடலை AI வடிவமைக்கிறது; உங்கள் முடிவு நிலையான மதிப்பெண் விதிகளால் கணக்கிடப்படுகிறது, AI ஆல் அல்ல; இது மருத்துவ ஆலோசனையோ நோயறிதலோ அல்ல. AURA என்ன செய்யும், என்ன செய்யாது, உங்கள் தரவு எவ்வாறு கையாளப்படுகிறது என்பது',
+    aiLink: 'சாட்பாட் தகவல் அட்டையில்',
     formDesc: 'நிலையான கேள்வித்தாள் வடிவம்.',
   },
 };
@@ -50,6 +73,27 @@ export default function PathwaySelection() {
   const [animate, setAnimate] = useState(false);
   // One id per assessment, shared by every screen — see `src/utils/assessmentSession.js`.
   const [sessionId] = useState(() => { beginFreshIfFinished(); return getSessionId(); });
+  /*
+    ⚠️ THE EVENT GATE. On the event day a tap on either pathway shows the event
+       banner first; tapping the banner records that this person is at the stand
+       (`saveEventMode`) and sends them into the short assessment. Any other day
+       the tap goes straight through, as it always has. See `eventMode.js`.
+  */
+  const eventOn = isEventActive(new Date(), window.location.search);
+  const [pendingPath, setPendingPath] = useState(null);
+  const choose = (path) => (eventOn ? setPendingPath(path) : navigate(path));
+  // The query string travels with the person, so `?event=fiesta` (the testing
+  // override) still applies on the chat and form pages, not only here.
+  const enterEvent = () => {
+    saveEventMode(EVENT.id);
+    // Loaded on the tap, not at module load: `telemetry.js` reaches `firebase.js`,
+    // which initialises messaging at import time and throws outside a real
+    // browser. This page renders in tests; the tap does not run there.
+    import('../utils/telemetry')
+      .then((m) => m.recordEventTelemetry({ action: 'enter', pathway: pendingPath.endsWith('/chat') ? 'chat' : 'form', language: lang }))
+      .catch(() => {});
+    navigate(pendingPath + window.location.search);
+  };
 
   // ADDED MISSING THEME STATE
   const [isDark, setIsDark] = useState(false);
@@ -94,6 +138,22 @@ export default function PathwaySelection() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 transition-colors duration-700 flex flex-col items-center justify-center relative overflow-hidden p-4 md:p-6 font-sans">
+      {/* A portal, not a child: the page's animated wrapper would otherwise be
+          the containing block for `fixed`, and the overlay sized to the page
+          rather than the screen (measured: 1295px tall on an 844px phone). */}
+      {pendingPath && createPortal(
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm overflow-y-auto" role="dialog" aria-modal="true" aria-label={EVENT.name}>
+          <div className="min-h-full flex items-center justify-center p-4">
+          <button type="button" onClick={enterEvent} className="flex flex-col items-center text-center active:scale-[0.98] transition-transform">
+            <img src={eventBanner} alt={EVENT.name} className="w-auto max-w-full max-h-[62vh] rounded-3xl shadow-2xl border-4 border-white/90" />
+            <span className="mt-4 inline-block px-5 py-3 rounded-full bg-white text-slate-900 text-sm font-black shadow-lg">
+              {t.eventTap}
+            </span>
+          </button>
+          </div>
+        </div>,
+        document.body,
+      )}
       
       {/* VISUAL BACKGROUND ELEMENTS */}
       <div className="absolute inset-0 z-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" 
@@ -140,7 +200,7 @@ export default function PathwaySelection() {
           
           {/* AURACHAT CARD */}
           <button
-            onClick={() => navigate('/individuals/chat')}
+            onClick={() => choose('/individuals/chat')}
             className="group relative bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-pink-500/50 text-center overflow-hidden flex flex-col items-center"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-pink-400 to-rose-500 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-300"></div>
@@ -159,7 +219,7 @@ export default function PathwaySelection() {
 
           {/* SELF-GUIDED FORM CARD */}
           <button
-            onClick={() => navigate('/individuals/form')}
+            onClick={() => choose('/individuals/form')}
             className="group relative bg-white dark:bg-[#111827] p-10 rounded-[2rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/50 text-center overflow-hidden flex flex-col items-center"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-300"></div>
@@ -193,9 +253,8 @@ export default function PathwaySelection() {
           user-agent string. Before that commit no honest version of this paragraph
           could have been written.
 
-          ⚠️ ENGLISH ONLY, KNOWINGLY — every other string on this screen comes from
-             `DICTIONARY[lang]`. A privacy notice a person cannot read is not a
-             notice, so this is a gap, not a finish. Tracked as `CD10`.
+          Translated 2026-10-10 (machine, unreviewed; see `copyReview.js`
+          `pathway.notice`): it had been English only, tracked as `CD10`.
 
           This is a NOTICE, not consent: there is no control here to decline and
           still get a result, because building one is a product decision rather
@@ -203,36 +262,27 @@ export default function PathwaySelection() {
         */}
         <div className="mt-8 mx-auto max-w-3xl rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm px-5 py-4">
           <p className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-            Before you begin
+            {t.noticeHead}
           </p>
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-            This assessment records your answers — including age band, gender, ethnic group,
-            housing type and the first two digits of your postal code — so that community health
-            programmes can be planned for the areas that need them. It is{' '}
-            <strong>de-identified at the point of capture</strong>: it does not collect or store
-            your name, NRIC, contact details or financial information, and your postal sector is
-            used only to map you to nearby services. Records are deleted automatically after{' '}
-            <strong>24 months</strong>. You will get your result either way.
+            {t.notice}
           </p>
           {/*
             The IMDA first-use safety statement (`AURA-TODO.md` P9.2), on the same
             screen as the collection notice and for the same reason: this is the
-            last point common to both pathways before the first question. English
-            only, knowingly, like the paragraph above it — the same `CD10` gap.
+            last point common to both pathways before the first question. Now from
+            the dictionary, like the paragraph above it.
             AuraChat's header carries the persistent link (P9.3) once inside.
           */}
           <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-            The AuraChat pathway is guided by <strong>AURA, a generative AI assistant</strong>{' '}
-            (Google Gemini). The AI phrases the conversation; your result is calculated by fixed
-            scoring rules, not by the AI, and it is <strong>not medical advice or a diagnosis</strong>.
-            What AURA can and cannot do, and how your data is handled, is set out in the{' '}
+            {t.ai}{' '}
             <a
               href="/aura-info"
               target="_blank"
               rel="noopener noreferrer"
               className="font-black underline underline-offset-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300"
             >
-              Chatbot Info Card
+              {t.aiLink}
             </a>.
           </p>
         </div>

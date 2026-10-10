@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import MeasurementsPanel from './MeasurementsPanel';
 import MeasurementsSection from './MeasurementsSection';
 import { hasMeasurementsToShow } from '../utils/measurementAnswers';
@@ -25,6 +25,8 @@ import PdfIcon from './PdfIcon';
      answer for it.
 */
 import nexusLogo from '../assets/nexus-logo.png';
+import northPoster from '../assets/m3-woodlands-scan-follow.jpg';
+import { NORTH_POSTER, isNorthSector } from '../data/eventMode';
 import { GOVERNANCE_COPY } from '../data/governanceCopy';
 import { generateCommunityResourcePlan } from '../utils/communityResourcePlan';
 import { sectorInfo } from '../utils/singapore/postalSectors';
@@ -80,7 +82,7 @@ const DICTIONARY = {
     amber: 'Keperluan Sederhana (Kuning)',
     green: 'Keperluan Rendah (Hijau)',
     redDesc: 'Profil risiko anda memerlukan penjagaan yang diawasi. Sila berunding dengan profesional kesihatan sebelum memulakan program senaman baharu.',
-    amberDesc: 'Anda mempunyai keperluan sederhana. Pertimbangkan untuk meningkatkan aktiviti anda secara beransur-ansur dan erkoka sumber komuniti di bawah.',
+    amberDesc: 'Anda mempunyai keperluan sederhana. Pertimbangkan untuk meningkatkan aktiviti anda secara beransur-ansur dan terokai sumber komuniti di bawah.',
     greenDesc: 'Anda memenuhi garis panduan aktiviti fizikal. Teruskan dan pertimbangkan untuk meningkatkan tahap dengan program berstruktur.',
     sdohFinText: 'Kos dikenal pasti sebagai halangan. Pilihan percuma dan bersubsidi diutamakan di bawah.',
     sdohSocText: 'Hubungan sosial dikenal pasti. Sumber kumpulan komuniti dan rakan disertakan.',
@@ -443,14 +445,38 @@ const DataGovernance = ({ lang }) => (
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
       {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).privacyBody}
     </p>
+    {/* From the dictionary, like the paragraph above it: this was the one English
+        paragraph left on the Malay, Chinese and Tamil report (found 2026-10-10). */}
     <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-3">
-      <strong>How long it is kept:</strong> assessment records are deleted automatically{' '}
-      <strong>24 months</strong> after they are created. Nothing is kept beyond that, and there is
-      no account to close. The record cannot be traced back to you, which is also why it cannot
-      be retrieved or amended on request.
+      <strong>{(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).retentionHeading}</strong>{' '}
+      {(GOVERNANCE_COPY[lang] || GOVERNANCE_COPY.en).retentionBody}
     </p>
   </div>
 );
+
+/*
+  The M3@Woodlands "Scan & Follow" poster, for residents in sectors 70 to 76. On
+  screen the four links are buttons; the PDF carries the same four as link
+  annotations over the QR codes (see the print template).
+*/
+const NorthPosterCard = ({ lang, onLink }) => {
+  const L = (o) => o[lang] || o.en;
+  return (
+    <div className={`p-5 ${R.panel} ${LIFT} border backdrop-blur-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800`}>
+      <p className="text-xs font-bold uppercase tracking-widest text-teal-600 dark:text-teal-400 mb-1">{L(NORTH_POSTER.title)}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-3">{L(NORTH_POSTER.lead)}</p>
+      <img src={northPoster} alt={L(NORTH_POSTER.title)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 mb-3" />
+      <div className="grid grid-cols-2 gap-2">
+        {NORTH_POSTER.links.map((l) => (
+          <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" onClick={() => onLink?.(l.id)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-3 rounded-full text-xs font-bold bg-teal-600 text-white shadow-sm hover:opacity-90 transition-opacity">
+            {L(l.label)} <ExternalLink size={11} />
+          </a>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const PrimaryActionBanner = ({ ctaTier, t, lang }) => {
   const config = CTA_BANNER[ctaTier] || CTA_BANNER.START;
@@ -636,6 +662,7 @@ export default function ResultPage() {
   */
   const printRefMeasures = useRef(null);
   const printRefGovernance = useRef(null);
+  const printRefNorth = useRef(null);
 
   /**
    * ⚠️ A FINISHED ASSESSMENT USED TO DIE ON RELOAD. The result arrived only as
@@ -674,7 +701,10 @@ export default function ResultPage() {
        in `measurementAnswers.js`, and both read it.
   */
   const showMeasurements = hasMeasurementsToShow(data?.functional);
-  const totalPages       = showMeasurements ? 3 : 2;
+  // North-side residents (sectors 70 to 76) get the M3@Woodlands poster as a page
+  // of its own, before governance. See `NORTH_POSTER` in `eventMode.js`.
+  const showNorth        = isNorthSector(postalSector);
+  const totalPages       = 2 + (showMeasurements ? 1 : 0) + (showNorth ? 1 : 0);
 
   const riskTier        = getRiskTier(score);
   // The id the record was written under, not a fresh one. This used to mint a
@@ -772,11 +802,12 @@ export default function ResultPage() {
 
     try {
       const light = { ...captureOpts, onclone: (doc) => doc.documentElement.classList.remove('dark') };
-      const [canvasCover, canvasMeasures, canvasGovernance] = await Promise.all([
+      const [canvasCover, canvasMeasures, canvasNorth, canvasGovernance] = await Promise.all([
         html2canvas(printRef.current, captureOpts),
         // `null` rather than a skipped slot, so the destructure stays aligned
         // whether or not the resident gave any measurement.
         printRefMeasures.current ? html2canvas(printRefMeasures.current, light) : Promise.resolve(null),
+        printRefNorth.current ? html2canvas(printRefNorth.current, light) : Promise.resolve(null),
         html2canvas(printRefGovernance.current, light),
       ]);
 
@@ -825,6 +856,10 @@ export default function ResultPage() {
         pdf.addPage();
         addCanvasPage(canvasMeasures, printRefMeasures.current);
       }
+      if (canvasNorth && printRefNorth.current) {
+        pdf.addPage();
+        addCanvasPage(canvasNorth, printRefNorth.current);
+      }
       pdf.addPage();
       addCanvasPage(canvasGovernance, printRefGovernance.current);
 
@@ -834,6 +869,7 @@ export default function ResultPage() {
 
   const handleDownloadPDF = async () => {
     recordTelemetry(postalSector, { action: 'download_pdf', score, language: lang, ctaTier });
+    recordEventTelemetry({ action: 'download_pdf', language: lang, postalSector, ctaTier });
     const built = await buildReportPdf();
     if (built) built.pdf.save(built.filename);
   };
@@ -850,6 +886,7 @@ export default function ResultPage() {
 
   const handleResourceClick = (id, url) => {
     recordTelemetry(postalSector, { action: `click_${id}`, score, language: lang });
+    recordEventTelemetry({ action: `click_${id}`, language: lang, postalSector });
     window.open(url, '_blank');
   };
 
@@ -1049,6 +1086,21 @@ export default function ResultPage() {
               />
             </div>
             <PdfFooter pageNum={2} totalPages={totalPages} />
+          </div>
+        )}
+        {/* ── NORTH POSTER: sectors 70 to 76 only ──────────────────────────
+            The poster is almost exactly A4 (1131 x 1600), so it fills the page.
+            Each QR code carries a real link annotation in the PDF via
+            `data-pdf-link`, positioned from the footprint decoded off the poster. */}
+        {showNorth && (
+          <div ref={printRefNorth} style={PDF_PAGE_STYLE}>
+            <div style={{ position: 'relative', width: 794, height: 1123 }}>
+              <img src={northPoster} alt="" style={{ width: 794, height: 1123, objectFit: 'cover', display: 'block' }} />
+              {NORTH_POSTER.links.map((l) => (
+                <a key={l.id} href={l.url} data-pdf-link={l.url} aria-label={l.id}
+                  style={{ position: 'absolute', left: l.box.x * 794, top: l.box.y * 1123, width: l.box.w * 794, height: l.box.h * 1123 }} />
+              ))}
+            </div>
           </div>
         )}
         {/* ── LAST PAGE: Governance ───────────────────────────────────────
@@ -1273,6 +1325,8 @@ export default function ResultPage() {
                 ))}
               </div>
             </div>
+
+            {showNorth && <NorthPosterCard lang={lang} onLink={(id) => recordEventTelemetry({ action: `click_north_${id}`, language: lang, postalSector })} />}
 
             {/*
               ⚠️ ON THE SCREEN, AND NOT ONLY IN THE DOWNLOAD. The same panel exists

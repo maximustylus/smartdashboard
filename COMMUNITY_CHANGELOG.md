@@ -29,6 +29,19 @@ pathways, and the Cloud Function behind the chat.
 
 ---
 
+## Shipped in [2.17.0] — Health Fiesta 2026
+
+- Event mode: the gate, the short assessment (11 chat questions, 2 form pages),
+  the north poster for sectors 70 to 76 on screen and in the PDF, and
+  `event_records` with `scripts/event-export.cjs`. See `src/data/eventMode.js`.
+- The closing screen opens the result on a tap; both closing lines translated.
+- First human review of Malay copy (three lines, a professional translator).
+- `CD10` closed for the pathway page: the collection notice and AI statement are
+  in all four languages. Also translated: the retention paragraph, the form's
+  falls and Healthier SG questions, summary tiles, submit spinner.
+- Still English: the chat's plan card (hidden for non-English readers until
+  translated) and the Chatbot Info Card page.
+
 ## Shipped in [2.16.4] — `CP56`, the Firestore rule for assessments
 
 - **CP56** — `community_assessments` accepted any fields, any sizes and a

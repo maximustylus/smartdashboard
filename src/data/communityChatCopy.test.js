@@ -76,3 +76,18 @@ describe('every language can ask every question', () => {
         expect([...silent].sort()).toEqual([...NO_ACKNOWLEDGEMENT].sort());
     });
 });
+
+describe('the two closing lines exist in every language', () => {
+    for (const lang of ['en', 'ms', 'zh', 'ta']) {
+        it(`${lang}: generating and planReady are non-empty strings`, () => {
+            const c = copyFor(lang);
+            expect(typeof c.generating).toBe('string');
+            expect(c.generating.trim().length).toBeGreaterThan(10);
+            expect(typeof c.planReady).toBe('string');
+            expect(c.planReady.trim().length).toBeGreaterThan(10);
+        });
+    }
+    it('the four are distinct, so no language is quietly falling back to English', () => {
+        expect(new Set(['en', 'ms', 'zh', 'ta'].map((l) => copyFor(l).planReady)).size).toBe(4);
+    });
+});

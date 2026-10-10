@@ -64,6 +64,7 @@
  */
 
 import { db } from '../firebase';
+import { loadEventMode, getSessionId } from './assessmentSession';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { toSector, UNKNOWN_SECTOR } from './singapore/postalSectors';
 
@@ -185,6 +186,36 @@ export const recordTelemetry = async (postalSector, payload) => {
     } catch (error) {
         // Swallowed on purpose — see the header. The visitor must reach their result.
         console.error('[NEXUS Telemetry] Transmission failed:', error);
+        return false;
+    }
+};
+
+/**
+ * ==============================================================================
+ * EVENT RECORDS — one row per thing that happened at an event stand
+ * ==============================================================================
+ *
+ * Written to `event_records`, apart from `community_assessments`, so an event's
+ * figures (residents through the gate, pathway, language, sector, PDFs,
+ * links tapped) can be pulled on their own for a stakeholder deck with
+ * `scripts/event-export.cjs`. No answers are stored here: only the action and
+ * the few labels the rule lists. A no-op outside event mode, so no call site
+ * needs to check. Bounded by the same deadline, and never on the path to a
+ * result: callers do not await it.
+ */
+export const EVENT_RECORDS = 'event_records';
+
+export const recordEventTelemetry = async (fields) => {
+    const eventId = loadEventMode();
+    if (!eventId) return false;
+    try {
+        const record = { eventId, sessionId: getSessionId(), ...fields, createdAt: serverTimestamp() };
+        if ('postalSector' in record) record.postalSector = toSector(record.postalSector) ?? UNKNOWN_SECTOR;
+        Object.keys(record).forEach((k) => { if (record[k] === undefined || record[k] === null) delete record[k]; });
+        const ref = await withDeadline(addDoc(collection(db, EVENT_RECORDS), record), WRITE_DEADLINE_MS, TIMED_OUT);
+        return ref !== TIMED_OUT;
+    } catch (error) {
+        console.warn('[NEXUS Event] Not recorded:', error?.message || error);
         return false;
     }
 };

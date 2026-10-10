@@ -34,7 +34,8 @@ vi.mock('firebase/firestore', () => ({
     serverTimestamp: () => ({ __serverTimestamp: true }),
 }));
 
-const { recordTelemetry, WRITE_DEADLINE_MS, MAX_STORED_TEXT } = await import('./telemetry');
+const { recordTelemetry, recordEventTelemetry, WRITE_DEADLINE_MS, MAX_STORED_TEXT } = await import('./telemetry');
+const { saveEventMode } = await import('./assessmentSession');
 
 beforeEach(() => {
     addDoc.mockReset();
@@ -228,5 +229,50 @@ describe('text is trimmed to what firestore.rules accepts (2026-09-24)', () => {
     it('leaves short text, numbers and booleans exactly as they were', async () => {
         await recordTelemetry('73', { payload: { gender: 'Female', pavsScore: 105, medFlag: true, previousId: null } });
         expect(written().payload).toEqual({ gender: 'Female', pavsScore: 105, medFlag: true, previousId: null });
+    });
+});
+
+describe('recordEventTelemetry — the event stand\'s own sink', () => {
+    beforeEach(() => { try { sessionStorage.clear(); } catch { /* jsdom */ } });
+
+    it('is a no-op outside event mode, so call sites need no guard', async () => {
+        addDoc.mockResolvedValue({ id: 'x' });
+        expect(await recordEventTelemetry({ action: 'enter', pathway: 'chat' })).toBe(false);
+        expect(addDoc).not.toHaveBeenCalled();
+    });
+
+    it('writes to event_records with the event, the session and a server timestamp', async () => {
+        saveEventMode('health-fiesta-2026');
+        addDoc.mockResolvedValue({ id: 'x' });
+        expect(await recordEventTelemetry({ action: 'complete', pathway: 'form', postalSector: 'S730123', north: true })).toBe(true);
+        const [target, record] = addDoc.mock.calls[0];
+        expect(target.__collection).toBe('event_records');
+        expect(record.eventId).toBe('health-fiesta-2026');
+        expect(record.sessionId).toMatch(/^NX-/);
+        expect(record.postalSector).toBe('73');
+        expect(record.createdAt).toEqual({ __serverTimestamp: true });
+        expect(record.north).toBe(true);
+    });
+
+    it('drops empty fields rather than sending null, which the rule would refuse', async () => {
+        saveEventMode('health-fiesta-2026');
+        addDoc.mockResolvedValue({ id: 'x' });
+        await recordEventTelemetry({ action: 'enter', pathway: 'chat', ctaTier: undefined, language: null });
+        const [, record] = addDoc.mock.calls[0];
+        expect('ctaTier' in record).toBe(false);
+        expect('language' in record).toBe(false);
+    });
+
+    it('an unknown sector is recorded as "--", like the main record', async () => {
+        saveEventMode('health-fiesta-2026');
+        addDoc.mockResolvedValue({ id: 'x' });
+        await recordEventTelemetry({ action: 'complete', postalSector: null });
+        expect(addDoc.mock.calls[0][1].postalSector).toBe('--');
+    });
+
+    it('never throws: a rejected write is logged and returns false', async () => {
+        saveEventMode('health-fiesta-2026');
+        addDoc.mockRejectedValue(new Error('permission-denied'));
+        expect(await recordEventTelemetry({ action: 'enter' })).toBe(false);
     });
 });

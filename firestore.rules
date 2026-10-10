@@ -877,6 +877,21 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── Event records ─────────────────────────────────────────────────────────
+    //
+    // One row per thing that happened at a community event stand: a person came
+    // through the gate, finished the short assessment, downloaded the PDF, tapped
+    // a link. Kept apart from `community_assessments` so an event's figures can be
+    // pulled on their own (`scripts/event-export.cjs`) without touching the
+    // general records or their rule. Write-only from the client, like the rest of
+    // this section; the id is SDK-minted; the event must be one this file knows.
+    match /event_records/{recordId} {
+      allow read: if false;
+      allow create: if recordId.matches('^[A-Za-z0-9]{20}$')
+                    && isEventRecord(request.resource.data);
+      allow update, delete: if false;
+    }
+
     // ── The three shapes `community_assessments` accepts ──────────────────────
 
     function isCtaTier(v) {
@@ -1000,6 +1015,24 @@ service cloud.firestore {
     }
 
     // `ResultPage.jsx`: a PDF download or a tap on a resource. No flags, no id.
+    function isEventRecord(data) {
+      let d = data;
+      return d.keys().hasOnly(['eventId', 'action', 'pathway', 'language', 'postalSector',
+                               'sessionId', 'ctaTier', 'score', 'measured', 'north', 'createdAt'])
+          && d.createdAt == request.time
+          && d.eventId in ['health-fiesta-2026']
+          && d.action is string
+          && d.action.matches('^(enter|complete|download_pdf|click_[a-z0-9_]{1,40})$')
+          && isSessionId(d.get('sessionId', ''))
+          && (!('pathway' in d) || d.pathway in ['chat', 'form'])
+          && (!('language' in d) || isLang(d.language))
+          && (!('postalSector' in d) || (d.postalSector is string && d.postalSector.matches('^([0-9]{2}|--)$')))
+          && (!('ctaTier' in d) || isCtaTier(d.ctaTier))
+          && num(d.get('score', 0), 100)
+          && (!('measured' in d) || d.measured is bool)
+          && (!('north' in d) || d.north is bool);
+    }
+
     function isResultAction(data) {
       let d = data;
       return d.keys().hasOnly(['action', 'score', 'language', 'ctaTier', 'postalSector', 'createdAt'])

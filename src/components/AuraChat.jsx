@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recordTelemetry } from '../utils/telemetry';
+import { recordTelemetry, recordEventTelemetry } from '../utils/telemetry';
 import { calculateRiskScore } from '../utils/scoring';
 import { ChevronLeft, Send, Sun, Moon, ExternalLink, CheckCircle, BrainCircuit, Info as InfoIcon } from 'lucide-react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
@@ -11,7 +11,7 @@ import { parseAgeYears } from '../utils/clinicalFlags';
 // The word-level matchers moved with the parser into `clinicalParse.js` (`AC5`);
 // what stays is the one gate this component evaluates itself.
 import { readLanguage, applyDocumentLanguage } from '../utils/language';
-import { getSessionId, saveProgress, loadProgress, clearProgress } from '../utils/assessmentSession';
+import { getSessionId, saveProgress, loadProgress, clearProgress, loadEventMode } from '../utils/assessmentSession';
 // `AC5` — the parser lives in its own tested module now; see its header.
 import { parseClinicalData } from '../utils/clinicalParse';
 import { selectCTA } from '../utils/ctaRouting';
@@ -39,6 +39,8 @@ const communityAck = httpsCallable(functions, 'communityAck');
 // domain, the answer and the prior answers, and receives one sentence back.
 
 import { DOMAIN_CONFIG, NO_MODEL_STEPS } from '../data/communityDomains';
+import { isEventActive, concisePrompts, isNorthSector } from '../data/eventMode';
+import { hasMeasurementsToShow } from '../utils/measurementAnswers';
 import { badgeFor } from '../data/badgeCopy';
 
 // `AC14`: `TOTAL_STEPS` lived here with a comment saying "// 13" while the
@@ -313,6 +315,14 @@ const AuraChatbot = () => {
 
   const [lang]      = useState(() => applyDocumentLanguage(readLanguage()));
   const langData    = copyFor(lang);
+  /*
+    ⚠️ THE SHORT ASSESSMENT DROPS A QUESTION BY WITHHOLDING ITS PROMPT. The
+       person came through the event gate (`PathwaySelection`), the event is on,
+       and `isStepAvailable` already skips any step whose prompt is missing, so
+       the order, the age gate and the parsers are untouched. See `eventMode.js`.
+  */
+  const [concise]   = useState(() => Boolean(loadEventMode()) && isEventActive(new Date(), window.location.search));
+  const prompts     = concise ? concisePrompts(langData.prompts) : langData.prompts;
   // Copy is addressed by question name, never by counting. See `COPY_ORDER`.
   const keyAt       = (i) => DOMAIN_CONFIG[i]?.key;
   const [sessionId] = useState(getSessionId);
@@ -365,10 +375,10 @@ const AuraChatbot = () => {
   */
   useEffect(() => {
     if (messages.length > 0) return;
-    const opening = firstActiveStep(DOMAIN_CONFIG, langData.prompts, {});
+    const opening = firstActiveStep(DOMAIN_CONFIG, prompts, {});
     if (opening === -1) return;
     setCurrentStep(opening);
-    appendBotMessage(langData.prompts[keyAt(opening)], opening);
+    appendBotMessage(prompts[keyAt(opening)], opening);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -456,10 +466,10 @@ const AuraChatbot = () => {
     // ⚠️ NOT `currentStep + 1`. Steps are skipped when they do not apply to this
     //    person (the falls branch is 60+ only) or when the active language has no
     //    prompt for them — see `src/utils/chatSteps.js`.
-    const nextStep  = nextActiveStep(DOMAIN_CONFIG, currentStep, langData.prompts, updatedData);
+    const nextStep  = nextActiveStep(DOMAIN_CONFIG, currentStep, prompts, updatedData);
 
     if (nextStep !== -1) {
-      const nextPromptRaw = langData.prompts[keyAt(nextStep)];
+      const nextPromptRaw = prompts[keyAt(nextStep)];
       const nextPrompt    = typeof nextPromptRaw === 'function' ? nextPromptRaw(updatedData) : nextPromptRaw;
       const staticText    = (staticAck ? staticAck + ' ' : '') + nextPrompt;
 
@@ -531,7 +541,7 @@ const AuraChatbot = () => {
       }).catch(function() { clearTimeout(upgradeTimer); });
 
     } else {
-      var closing = (staticAck ? staticAck + ' ' : '') + 'I have mapped your full profile. Generating your personalised plan now…';
+      var closing = (staticAck ? staticAck + ' ' : '') + langData.generating;
       setMessages(prev => [...prev, { sender: 'bot', text: closing, step: currentStep }]);
       setIsTyping(false);
       concludingRef.current = true; // `AC16` — see the ref's declaration
@@ -544,6 +554,19 @@ const AuraChatbot = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleUserSubmission(userInput);
+  };
+
+  /**
+   * The computed result, held between the closing message and the navigate so
+   * that a tap and the fallback timer open the same thing. `null` until the
+   * result exists, and again once it has been opened.
+   */
+  const pendingResultRef = useRef(null);
+  const openResult = () => {
+    const state = pendingResultRef.current;
+    if (!state) return;
+    pendingResultRef.current = null;
+    navigate('/individuals/result', { state });
   };
 
   const concludeTriage = async (finalData) => {
@@ -587,6 +610,12 @@ const AuraChatbot = () => {
         computedRisk: riskScore,
         ctaTier: ctaSelection.tier,
       });
+      // Event stand only (a no-op otherwise); not awaited, never on the path to the result.
+      recordEventTelemetry({
+        action: 'complete', pathway: 'chat', language: lang, postalSector: parsed.postalSector,
+        ctaTier: ctaSelection.tier, score: riskScore,
+        measured: hasMeasurementsToShow(parsed.functional), north: isNorthSector(parsed.postalSector),
+      });
 
       // The conversation has become a result; the in-progress copy is no longer
       // the live one and keeping it would resume a completed assessment.
@@ -594,33 +623,28 @@ const AuraChatbot = () => {
 
       setTimeout(() => {
         setIsComplete(true);
-        setMessages(prev => [...prev, {
-          sender: 'bot',
-          /*
-           * Merge note (PR #2 -> PR #4): main's community branch reworded this
-           * message (lay-person copy) AND still carried `step: TOTAL_STEPS - 1`,
-           * which `AC14` had deleted on this side — the constant was a stale
-           * count and the badge it produced on the final plan was wrong. The
-           * copy is kept; the `step` field stays deleted, per AC14's comment
-           * above the config array. Lint caught the half-merged state before
-           * it could ship as a ReferenceError on the completion path.
-           */
-          text: 'Here is your personalised community health plan based on your activity level and health profile. Save or screenshot this screen, then tap anywhere to continue.',
-          ctaData,
-        }]);
+        setMessages(prev => [...prev, { sender: 'bot', text: langData.planReady, ctaData }]);
 
-        setTimeout(() => {
-          navigate('/individuals/result', {
-            state: {
-              score: riskScore,
-              data: parsed,
-              postalSector: parsed.postalSector,
-              sessionId,
-              previousSessionId: parsed.previousId,
-              ctaTier: ctaSelection.tier,
-            },
-          });
-        }, 5000);
+        /*
+          ⚠️ THE TAP WORKS NOW. This message has always said "tap anywhere to
+             continue", and for as long as it has said it a tap did nothing: the
+             result page arrived on a fixed five-second timer, whatever the person
+             did. Measured in the journey-time simulation (2026-10-01) as 6.2
+             seconds of enforced waiting on the last screen, and the one place
+             the portal tells somebody to do something that has no effect.
+
+             The timer stays as the fallback for a person who reads the plan and
+             waits. `openResult` runs once, whichever fires first.
+        */
+        pendingResultRef.current = {
+          score: riskScore,
+          data: parsed,
+          postalSector: parsed.postalSector,
+          sessionId,
+          previousSessionId: parsed.previousId,
+          ctaTier: ctaSelection.tier,
+        };
+        setTimeout(openResult, 5000);
       }, 1200);
 
     } catch (err) {
@@ -637,7 +661,10 @@ const AuraChatbot = () => {
   const showQuickReplies = !isTyping && !isComplete && Boolean(langData.quickReplies[keyAt(currentStep)]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-stone-50 dark:bg-slate-950 font-sans transition-colors duration-500">
+    <div
+      className="flex flex-col h-screen max-w-md mx-auto bg-stone-50 dark:bg-slate-950 font-sans transition-colors duration-500"
+      onClick={isComplete ? openResult : undefined}
+    >
 
       {/* ── HEADER ── */}
       <header className="flex items-center justify-between px-4 pt-4 pb-2 bg-white dark:bg-[#111827] shadow-sm border-b border-slate-100 dark:border-slate-800">
@@ -694,8 +721,8 @@ const AuraChatbot = () => {
         and the 60+ branch opens or does not.
       */}
       <ProgressBar
-        currentStep={activeStepPosition(DOMAIN_CONFIG, currentStep, langData.prompts, collectedData) - 1}
-        total={activeStepCount(DOMAIN_CONFIG, langData.prompts, collectedData)}
+        currentStep={activeStepPosition(DOMAIN_CONFIG, currentStep, prompts, collectedData) - 1}
+        total={activeStepCount(DOMAIN_CONFIG, prompts, collectedData)}
         langData={langData}
       />
 
@@ -735,7 +762,15 @@ const AuraChatbot = () => {
               </div>
 
               {/* CTA card */}
-              {msg.ctaData && <CtaCard ctaData={msg.ctaData} langData={langData} />}
+              {/*
+                ⚠️ ENGLISH ONLY, SO ENGLISH ONLY SEES IT. `CTA` below is ten routes of
+                   English copy (the action, the Healthier SG line, the resources)
+                   with no translation, and this card was shown in every language
+                   for the five seconds before the result page, which carries the
+                   same plan translated. Until `CTA` is translated, a Malay, Chinese
+                   or Tamil speaker goes straight to the plan they can read.
+              */}
+              {msg.ctaData && lang === 'en' && <CtaCard ctaData={msg.ctaData} langData={langData} />}
             </div>
           </div>
         ))}
