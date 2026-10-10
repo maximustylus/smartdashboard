@@ -141,6 +141,19 @@ export const COPY_REVIEW = Object.freeze({
         safetyCritical: false,
         reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
     }),
+    // The collection notice and the AI statement on the pathway page (`CD10`), and
+    // the retention paragraph on the result page. All three were English only
+    // until 2026-10-10; machine-translated that night.
+    'pathway.notice': Object.freeze({
+        where: 'src/components/PathwaySelection.jsx',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
+    'governance.retention': Object.freeze({
+        where: 'src/data/governanceCopy.js',
+        safetyCritical: false,
+        reviewedBy: Object.freeze({ ms: null, zh: null, ta: null }),
+    }),
 
     /*
       ⚠️ REGISTERED ON 2026-09-13, AFTER SHIPPING — the registry did not know these
