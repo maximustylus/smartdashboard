@@ -531,7 +531,7 @@ const AuraChatbot = () => {
       }).catch(function() { clearTimeout(upgradeTimer); });
 
     } else {
-      var closing = (staticAck ? staticAck + ' ' : '') + 'I have mapped your full profile. Generating your personalised plan now…';
+      var closing = (staticAck ? staticAck + ' ' : '') + langData.generating;
       setMessages(prev => [...prev, { sender: 'bot', text: closing, step: currentStep }]);
       setIsTyping(false);
       concludingRef.current = true; // `AC16` — see the ref's declaration
@@ -544,6 +544,19 @@ const AuraChatbot = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     handleUserSubmission(userInput);
+  };
+
+  /**
+   * The computed result, held between the closing message and the navigate so
+   * that a tap and the fallback timer open the same thing. `null` until the
+   * result exists, and again once it has been opened.
+   */
+  const pendingResultRef = useRef(null);
+  const openResult = () => {
+    const state = pendingResultRef.current;
+    if (!state) return;
+    pendingResultRef.current = null;
+    navigate('/individuals/result', { state });
   };
 
   const concludeTriage = async (finalData) => {
@@ -594,33 +607,28 @@ const AuraChatbot = () => {
 
       setTimeout(() => {
         setIsComplete(true);
-        setMessages(prev => [...prev, {
-          sender: 'bot',
-          /*
-           * Merge note (PR #2 -> PR #4): main's community branch reworded this
-           * message (lay-person copy) AND still carried `step: TOTAL_STEPS - 1`,
-           * which `AC14` had deleted on this side — the constant was a stale
-           * count and the badge it produced on the final plan was wrong. The
-           * copy is kept; the `step` field stays deleted, per AC14's comment
-           * above the config array. Lint caught the half-merged state before
-           * it could ship as a ReferenceError on the completion path.
-           */
-          text: 'Here is your personalised community health plan based on your activity level and health profile. Save or screenshot this screen, then tap anywhere to continue.',
-          ctaData,
-        }]);
+        setMessages(prev => [...prev, { sender: 'bot', text: langData.planReady, ctaData }]);
 
-        setTimeout(() => {
-          navigate('/individuals/result', {
-            state: {
-              score: riskScore,
-              data: parsed,
-              postalSector: parsed.postalSector,
-              sessionId,
-              previousSessionId: parsed.previousId,
-              ctaTier: ctaSelection.tier,
-            },
-          });
-        }, 5000);
+        /*
+          ⚠️ THE TAP WORKS NOW. This message has always said "tap anywhere to
+             continue", and for as long as it has said it a tap did nothing: the
+             result page arrived on a fixed five-second timer, whatever the person
+             did. Measured in the journey-time simulation (2026-10-01) as 6.2
+             seconds of enforced waiting on the last screen, and the one place
+             the portal tells somebody to do something that has no effect.
+
+             The timer stays as the fallback for a person who reads the plan and
+             waits. `openResult` runs once, whichever fires first.
+        */
+        pendingResultRef.current = {
+          score: riskScore,
+          data: parsed,
+          postalSector: parsed.postalSector,
+          sessionId,
+          previousSessionId: parsed.previousId,
+          ctaTier: ctaSelection.tier,
+        };
+        setTimeout(openResult, 5000);
       }, 1200);
 
     } catch (err) {
@@ -637,7 +645,10 @@ const AuraChatbot = () => {
   const showQuickReplies = !isTyping && !isComplete && Boolean(langData.quickReplies[keyAt(currentStep)]);
 
   return (
-    <div className="flex flex-col h-screen max-w-md mx-auto bg-stone-50 dark:bg-slate-950 font-sans transition-colors duration-500">
+    <div
+      className="flex flex-col h-screen max-w-md mx-auto bg-stone-50 dark:bg-slate-950 font-sans transition-colors duration-500"
+      onClick={isComplete ? openResult : undefined}
+    >
 
       {/* ── HEADER ── */}
       <header className="flex items-center justify-between px-4 pt-4 pb-2 bg-white dark:bg-[#111827] shadow-sm border-b border-slate-100 dark:border-slate-800">

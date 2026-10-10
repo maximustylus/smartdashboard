@@ -33,7 +33,7 @@ describe('AC16 — the double-submit latch on the completion branch', () => {
     });
 
     it('latches BEFORE concludeTriage is invoked, in the same synchronous run', () => {
-        const branch = src.slice(src.indexOf('Generating your personalised plan now'));
+        const branch = src.slice(src.indexOf('langData.generating'));
         const set = branch.indexOf('concludingRef.current = true');
         const call = branch.indexOf('concludeTriage(updatedData)');
         expect(set).toBeGreaterThan(-1);
@@ -60,5 +60,36 @@ describe('AC16 — the double-submit latch on the completion branch', () => {
             src.indexOf('} catch (err)', src.indexOf('const concludeTriage')),
         );
         expect(success).not.toContain('concludingRef.current = false');
+    });
+});
+
+/**
+ * The closing screen said "tap anywhere to continue" for as long as it existed,
+ * and a tap did nothing: the result arrived on a fixed five-second timer. Found
+ * by the journey-time simulation (2026-10-01). These hold the fix in place.
+ */
+describe('the closing screen: a tap opens the result, the timer is the fallback', () => {
+    it('the root element opens the result on tap, only once the plan is on screen', () => {
+        expect(src).toMatch(/onClick=\{isComplete \? openResult : undefined\}/);
+    });
+
+    it('the fallback timer calls the same function as the tap', () => {
+        expect(src).toMatch(/setTimeout\(openResult, 5000\)/);
+    });
+
+    it('opens once: the pending result is cleared before the navigate', () => {
+        const fn = src.slice(src.indexOf('const openResult'), src.indexOf('const concludeTriage'));
+        const clear = fn.indexOf('pendingResultRef.current = null');
+        const go = fn.indexOf("navigate('/individuals/result'");
+        expect(clear).toBeGreaterThan(-1);
+        expect(go).toBeGreaterThan(clear);
+        expect(fn).toContain('if (!state) return;');
+    });
+
+    it('both closing lines come from the language dictionary, not an English literal', () => {
+        expect(src).not.toContain('Generating your personalised plan now');
+        expect(src).not.toContain('tap anywhere to continue');
+        expect(src).toContain('langData.generating');
+        expect(src).toContain('langData.planReady');
     });
 });
