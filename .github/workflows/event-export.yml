@@ -1,0 +1,44 @@
+# Pulls one event's `event_records` as a CSV and a summary, using the deploy
+# pipeline's service account, so nobody needs a laptop or a key file to get an
+# event's figures. Run from the Actions tab (or the API) with the event id; the
+# output is a workflow artifact. The rows hold no answers and nothing
+# identifying: see `src/utils/telemetry.js` `recordEventTelemetry`.
+name: Event Export
+
+on:
+  workflow_dispatch:
+    inputs:
+      eventId:
+        description: 'Event id, e.g. health-fiesta-2026'
+        required: true
+        default: 'health-fiesta-2026'
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the admin SDK (functions/ holds it)
+        working-directory: ./functions
+        run: npm ci --omit=dev
+      - name: Export
+        env:
+          GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          EVENT_ID: '${{ github.event.inputs.eventId }}'
+        run: |
+          set -euo pipefail
+          umask 077
+          KEY="$RUNNER_TEMP/sa.json"
+          printf '%s' "$GCP_SA_KEY" > "$KEY"
+          mkdir -p out && cd out
+          NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+            node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          rm -f "$KEY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: event-${{ github.event.inputs.eventId }}
+          path: out/
+          retention-days: 30
