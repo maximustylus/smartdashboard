@@ -54,6 +54,17 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.17.1] - 2026-10-11
+
+### Changed
+
+- The Health Fiesta event window closes at 14:30 on 11 October, when the stand
+  closed, rather than at midnight: the gate and the short assessment are off and
+  the portal is back to the full assessment. The north poster for sectors 70 to
+  76 and the event records stay. `.github/workflows/event-export.yml` pulls an
+  event's figures as a workflow artifact and into the job log, so no laptop or
+  key file is needed.
+
 ## [2.17.0] - 2026-10-10
 
 The community portal's event release, for Health Fiesta 2026 at Bukit Canberra on

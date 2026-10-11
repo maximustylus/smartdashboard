@@ -7,11 +7,12 @@ import { DOMAIN_CONFIG } from './communityDomains';
 import { copyFor } from './communityChatCopy';
 
 describe('the event window', () => {
-    it('is the whole of 11 October 2026, Singapore time', () => {
+    it('is 11 October 2026 until the stand closed at 14:30, Singapore time', () => {
         expect(isEventWindow(new Date('2026-10-10T23:59:00+08:00'))).toBe(false);
         expect(isEventWindow(new Date('2026-10-11T00:00:00+08:00'))).toBe(true);
         expect(isEventWindow(new Date('2026-10-11T07:45:00+08:00'))).toBe(true);
-        expect(isEventWindow(new Date('2026-10-11T23:59:59+08:00'))).toBe(true);
+        expect(isEventWindow(new Date('2026-10-11T14:30:00+08:00'))).toBe(true);
+        expect(isEventWindow(new Date('2026-10-11T14:31:00+08:00'))).toBe(false);
         expect(isEventWindow(new Date('2026-10-12T00:00:00+08:00'))).toBe(false);
     });
     it('the query string overrides the window both ways', () => {

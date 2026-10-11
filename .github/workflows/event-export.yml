@@ -37,6 +37,12 @@ jobs:
           NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
             node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
           rm -f "$KEY"
+          # The CSV in the log as well as the artifact, between markers, so it
+          # can be read through the API from anywhere that cannot reach the
+          # artifact store. De-identified rows only; nothing in it is an answer.
+          echo "===CSV-BEGIN==="
+          cat event-*.csv
+          echo "===CSV-END==="
       - uses: actions/upload-artifact@v4
         with:
           name: event-${{ github.event.inputs.eventId }}
