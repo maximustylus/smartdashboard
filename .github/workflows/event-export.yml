@@ -12,6 +12,10 @@ on:
         description: 'Event id, e.g. health-fiesta-2026'
         required: true
         default: 'health-fiesta-2026'
+      day:
+        description: 'Optional: a date (YYYY-MM-DD, Singapore time) to export that day\'s completed assessments instead'
+        required: false
+        default: ''
 
 jobs:
   export:
@@ -28,20 +32,26 @@ jobs:
         env:
           GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           EVENT_ID: '${{ github.event.inputs.eventId }}'
+          DAY: '${{ github.event.inputs.day }}'
         run: |
           set -euo pipefail
           umask 077
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           mkdir -p out && cd out
-          NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
-            node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          if [ -n "$DAY" ]; then
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/day-export.cjs "$DAY" | tee summary.txt
+          else
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          fi
           rm -f "$KEY"
           # The CSV in the log as well as the artifact, between markers, so it
           # can be read through the API from anywhere that cannot reach the
           # artifact store. De-identified rows only; nothing in it is an answer.
           echo "===CSV-BEGIN==="
-          cat event-*.csv
+          cat *.csv
           echo "===CSV-END==="
       - uses: actions/upload-artifact@v4
         with:
