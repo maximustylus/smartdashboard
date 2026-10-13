@@ -9,13 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       eventId:
-        description: 'Event id, e.g. health-fiesta-2026'
+        description: 'Event id (e.g. health-fiesta-2026), or a date YYYY-MM-DD for that day\'s assessments'
         required: true
         default: 'health-fiesta-2026'
-      day:
-        description: 'Optional: a date (YYYY-MM-DD, Singapore time) to export that day\'s completed assessments instead'
-        required: false
-        default: ''
 
 jobs:
   export:
@@ -32,14 +28,18 @@ jobs:
         env:
           GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           EVENT_ID: '${{ github.event.inputs.eventId }}'
-          DAY: '${{ github.event.inputs.day }}'
         run: |
           set -euo pipefail
           umask 077
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           mkdir -p out && cd out
-          if [ -n "$DAY" ]; then
+          # A date in place of an event id exports that day's completed
+          # assessments instead (scripts/day-export.cjs). One input, so the
+          # dispatch validates against any branch's copy of this file.
+          if [[ "$EVENT_ID" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]; then
+            DAY="$EVENT_ID"
+
             NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
               node ../scripts/day-export.cjs "$DAY" | tee summary.txt
           else
