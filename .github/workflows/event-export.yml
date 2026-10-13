@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       eventId:
-        description: 'Event id (e.g. health-fiesta-2026), or a date YYYY-MM-DD for that day\'s assessments'
+        description: 'Event id (e.g. health-fiesta-2026), or a date YYYY-MM-DD for the assessments of that day'
         required: true
         default: 'health-fiesta-2026'
 
