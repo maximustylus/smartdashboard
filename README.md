@@ -1,6 +1,6 @@
-# NEXUS: Smart Operations Dashboard v2.17.1
+# NEXUS: Smart Operations Dashboard v2.18.0
 
-![Version](https://img.shields.io/badge/Version-v2.17.1-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
+![Version](https://img.shields.io/badge/Version-v2.18.0-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
 
 **NEXUS** (formerly IDC App) is a clinician-led progressive web application for team operations, workload tracking, staff wellbeing, rostering and community health screening. It uses a multi-team Firebase data model so each department and institution has its own membership, settings and operational records.
 
@@ -104,13 +104,13 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 
 | Item | Status | Evidence and meaning |
 |---|---|---|
-| Application version | `IMPLEMENTED` — **v2.17.1** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
+| Application version | `IMPLEMENTED` — **v2.18.0** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
 | AU18 response parser | `IMPLEMENTED` and `VERIFIED`, released in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. It was deployed after v2.12.3 without changing the displayed version; v2.12.4 closes that gap. |
 | Community functional measures | `IMPLEMENTED` — **v2.14.0** | Grip strength and sit-to-stand are asked in both pathways, banded against published references, and reported on **page 2** of the printed report and on the result screen. Each carries a reference meter drawing only published points; heart rate ranges are worked out from the resident's age. Optional throughout: neither figure feeds the risk score (`CD20`). `CD21` and `CD23` remain with the owner. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
-The deployed application reports **v2.17.1**, which closes the Health Fiesta window; **v2.17.0** is the community portal's event release: an event
+The deployed application reports **v2.18.0**, which lets a team lead change a colleague's role — staff, lead or viewer — from the Team panel, checked on the server so a team can never be left without a lead, with every change logged for the team's leads. **v2.17.1** closes the Health Fiesta window; **v2.17.0** is the community portal's event release: an event
 day gate into a short assessment, the M3@Woodlands poster for north-side residents, and an
 event's own records for presentation. **v2.16.4** before it closes the public screening's Firestore
 collection to anything but the records the app itself writes (`CP56`). **v2.16.3** before it
@@ -355,12 +355,12 @@ NEXUS is an operational and workload management tool. It is not a clinical syste
 
 ### Supported versions
 
-The current application version is **2.17.1**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
+The current application version is **2.18.0**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
 
 ### Access and data controls
 
 - **Authentication and membership:** Firebase Authentication identifies staff. Firestore Rules check membership against `teams/{teamId}/members/{uid}` for team-scoped reads and writes. A registered account without membership cannot read team data.
-- **Roles:** lead authority is stored on the team membership document and checked again inside privileged Cloud Functions that use the Admin SDK. Client-side role checks are presentation controls only.
+- **Roles:** lead authority is stored on the team membership document and checked again inside privileged Cloud Functions that use the Admin SDK. Client-side role checks are presentation controls only. Since v2.18.0 no client may write `role` or `rostered` at all: the `setMemberRole` function changes them inside a transaction that counts leads, refuses to leave a team with none or to demote the lead the team was created for, and records each change in `teams/{teamId}/roleChanges`, readable by that team's leads only.
 - **Registration domain:** the institution-domain check is an onboarding aid. It can be bypassed through the Firebase Auth SDK and is not the authorization boundary.
 - **Feeds:** post creation runs through `processFeedPost`, which re-checks authentication and membership before writing. Gemini screens the post, while a deterministic check separately rejects NRIC/FIN-shaped tokens. Comments bypass Gemini and have narrower client and Firestore-rule checks. These controls do not establish general privacy screening or PDPA compliance.
 - **Privacy assurance:** the controls described here have specific scopes; they do not establish anonymity, de-identification or PDPA compliance. Assessment of an intended deployment must consider its actual data, access, use and governance arrangements.
@@ -441,7 +441,7 @@ Use these focused checks after a deployment:
 
 ## Releases and current work
 
-[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.17.1**.
+[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.18.0**.
 
 The next work is governed by the live ledgers:
 

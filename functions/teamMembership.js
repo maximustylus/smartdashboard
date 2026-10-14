@@ -476,11 +476,260 @@ const buildRemoveWrites = ({ teamId, targetUid }) => ({
     },
 });
 
+// ── CHANGING SOMEBODY'S ROLE ─────────────────────────────────────────────────
+//
+// Until v2.18.0 a role was chosen once, at invitation, and `firestore.rules` let a
+// lead rewrite it directly with no check on what that left behind. The panel's own
+// refusals told a lead to "promote somebody else first" with no control to do it,
+// and a lead who did write `role` by hand could demote the team's last lead — a
+// team nobody can administer, with no repair path inside the app.
+//
+// So the change is a Cloud Function, for the reason invitation and removal are:
+// the one rule that matters ("never zero leads") needs a COUNT, and a count across
+// documents is something a security rule cannot take. The rules now deny `role`
+// and `rostered` to every client, and this module decides.
+//
+// THE OWNER'S DECISIONS (2026-10-14), each enforced below:
+//   · all three roles — staff, lead, viewer — are reachable from the Team panel;
+//   · checked on the server, not only in the app;
+//   · a lead may step down themselves, if another lead remains;
+//   · every change is recorded, readable by the team's leads.
+
+const ROLE_REASONS = {
+    NOT_A_LEAD: 'not-a-lead',
+    NO_TEAM: 'no-team',
+    NOT_A_MEMBER: 'not-a-member',
+    BAD_ROLE: 'bad-role',
+    LAST_LEAD: 'last-lead',
+    TEAM_OWNER: 'team-owner',
+};
+
+/**
+ * What a membership's `rostered` becomes. A viewer is never rostered — the same
+ * rule `buildInviteWrites` applies — and a blank request keeps what they had.
+ */
+const resolveRostered = (nextRole, nextRostered, current) => {
+    if (nextRole === 'viewer') return false;
+    if (nextRostered === true || nextRostered === false) return nextRostered;
+    return current !== false;
+};
+
+/**
+ * Every reason a role change must not happen, or `ok` with what it resolves to.
+ *
+ * Returns `{ ok, reason, message, noChange, fromRole, toRole, fromRostered, toRostered }`.
+ *
+ * ⚠️ THE TWO REFUSALS THAT MATTER are the ones `assertRemovable` holds, for the same
+ *    reason: each would leave a team nobody can administer. Demoting a lead is
+ *    refused when they are the LAST lead, and when they are the lead the team was
+ *    CREATED for (`team.leadUid`) — the second regardless of the count, because the
+ *    count can be satisfied by a colleague they promoted an hour ago.
+ *
+ *    A lead stepping down THEMSELVES is the same question and gets the same answer:
+ *    allowed while another lead remains. It is not refused as "self", because a
+ *    team of two leads where one wants to hand over is exactly the case it is for.
+ */
+const assertRoleChangeable = ({
+    teamId,
+    team,
+    callerUid,
+    callerMembership,
+    targetUid,
+    targetMembership,
+    leadCount,
+    nextRole,
+    nextRostered,
+}) => {
+    const no = (reason, message) => ({
+        ok: false, reason, message, noChange: false,
+        fromRole: null, toRole: null, fromRostered: null, toRostered: null,
+    });
+
+    if (typeof teamId !== 'string' || teamId.trim() === '') {
+        return no(ROLE_REASONS.NO_TEAM, 'No team was named.');
+    }
+    if (!callerMembership || callerMembership.role !== 'lead') {
+        return no(ROLE_REASONS.NOT_A_LEAD, 'Only a lead of this team can change somebody\'s role.');
+    }
+    if (typeof targetUid !== 'string' || targetUid.trim() === '' || !targetMembership) {
+        return no(ROLE_REASONS.NOT_A_MEMBER, 'That person is not in this team, so there is no role to change.');
+    }
+    if (!MEMBER_ROLES.includes(nextRole)) {
+        return no(
+            ROLE_REASONS.BAD_ROLE,
+            'A member is a lead, staff or a viewer. "' + String(nextRole) + '" is none of those.',
+        );
+    }
+
+    const fromRole = MEMBER_ROLES.includes(targetMembership.role) ? targetMembership.role : 'staff';
+    const fromRostered = targetMembership.rostered !== false;
+    const toRole = nextRole;
+    const toRostered = resolveRostered(nextRole, nextRostered, targetMembership.rostered);
+
+    if (fromRole === toRole && fromRostered === toRostered) {
+        return {
+            ok: true, reason: null, message: 'Nothing to change.', noChange: true,
+            fromRole, toRole, fromRostered, toRostered,
+        };
+    }
+
+    const demotingALead = fromRole === 'lead' && toRole !== 'lead';
+    if (demotingALead) {
+        if (team && team.leadUid === targetUid) {
+            return no(
+                ROLE_REASONS.TEAM_OWNER,
+                'That is the lead this team was created for. Ask the NEXUS owner to transfer '
+                + 'the team before changing their role.',
+            );
+        }
+        // Unknown is the case this refusal is FOR — see `assertRemovable`.
+        const leads = Number.isFinite(Number(leadCount)) ? Number(leadCount) : 1;
+        if (leads <= 1) {
+            return no(
+                ROLE_REASONS.LAST_LEAD,
+                callerUid === targetUid
+                    ? 'You are the only lead. Make somebody else a lead first, then step down.'
+                    : 'That is the team\'s only lead. Make somebody else a lead first.',
+            );
+        }
+    }
+
+    return {
+        ok: true, reason: null, message: null, noChange: false,
+        fromRole, toRole, fromRostered, toRostered,
+    };
+};
+
+/**
+ * The two writes a role change performs: the membership, and one immutable record
+ * in `teams/{teamId}/roleChanges`. Returned as data, like the others. The record's
+ * clock is NOT here — the caller sets a server timestamp.
+ */
+const buildRoleChangeWrites = ({ teamId, targetUid, decision, byUid, byName, targetName }) => ({
+    member: {
+        path: ['teams', teamId, 'members', targetUid],
+        data: { role: decision.toRole, rostered: decision.toRostered },
+    },
+    log: {
+        collection: ['teams', teamId, 'roleChanges'],
+        data: {
+            targetUid,
+            targetName: asText(targetName),
+            fromRole: decision.fromRole,
+            toRole: decision.toRole,
+            fromRostered: decision.fromRostered,
+            toRostered: decision.toRostered,
+            byUid,
+            byName: asText(byName),
+        },
+    },
+});
+
+// ── HANDING A TEAM TO A NEW LEAD (v2.18.0) ───────────────────────────────────
+//
+// `teams/{id}.leadUid` names the lead a team was CREATED for, and the app refuses
+// to demote or remove that person — correctly, because it is the one guard a lead
+// count cannot satisfy by accident. That made it permanent: when the founding lead
+// of Sport and Exercise Medicine resigned (2026-10-14), nothing could hand the team
+// on. The rules forbid a client writing `leadUid`, and nothing else did.
+//
+// So the NEXUS owner does it, from the "NEXUS Admin" GitHub workflow, through
+// `scripts/transfer-team.cjs`. This is that script's whole judgment, pure, so the
+// refusals are tested rather than discovered in production.
+
+const TRANSFER_REASONS = {
+    NO_TEAM: 'no-team',
+    NOT_A_MEMBER: 'not-a-member',
+    BAD_ROLE: 'bad-role',
+};
+
+const lower = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '');
+
+/**
+ * Decide a transfer of `team` to the member whose email is `toEmail`.
+ *
+ * `members` is `[{ uid, email, displayName, role, rostered }]`. `previousLeadBecomes`
+ * is what the outgoing founding lead's membership turns into: `'lead'` (unchanged),
+ * `'staff'` or `'viewer'`.
+ *
+ * Returns `{ ok, reason, message, noChange, fromUid, toUid, toName, roleChanges }`,
+ * where `roleChanges` is `[{ uid, name, fromRole, toRole, fromRostered, toRostered }]`
+ * — the new lead's promotion if they were not already a lead, and the old lead's
+ * new role if it changes. The new lead is always a lead afterwards, so the team
+ * can never be left without one by this path.
+ */
+const assertTeamTransfer = ({ team, members, toEmail, previousLeadBecomes = 'lead' }) => {
+    const no = (reason, message) => ({
+        ok: false, reason, message, noChange: false, fromUid: null, toUid: null, toName: null, roleChanges: [],
+    });
+
+    if (!team) return no(TRANSFER_REASONS.NO_TEAM, 'That team does not exist. Check the team id.');
+    if (!MEMBER_ROLES.includes(previousLeadBecomes)) {
+        return no(TRANSFER_REASONS.BAD_ROLE, 'The outgoing lead can become a lead, staff or a viewer — "'
+            + String(previousLeadBecomes) + '" is none of those.');
+    }
+
+    const list = Array.isArray(members) ? members : [];
+    const wanted = lower(toEmail);
+    const target = wanted ? list.find((m) => lower(m.email) === wanted) : null;
+    if (!target) {
+        const known = list
+            .map((m) => `${m.displayName || '(no name)'} <${m.email || 'no email on record'}>`)
+            .join('; ');
+        return no(
+            TRANSFER_REASONS.NOT_A_MEMBER,
+            'Nobody in this team has the address ' + (wanted || '(blank)') + '. A team can only be handed '
+            + 'to somebody already in it. Members: ' + (known || 'none') + '.',
+        );
+    }
+
+    const fromUid = team.leadUid || null;
+    const outgoing = fromUid ? list.find((m) => m.uid === fromUid) : null;
+    const roleOfMember = (m) => (MEMBER_ROLES.includes(m.role) ? m.role : 'staff');
+    const roleChanges = [];
+
+    if (roleOfMember(target) !== 'lead') {
+        roleChanges.push({
+            uid: target.uid,
+            name: target.displayName || target.email || '',
+            fromRole: roleOfMember(target),
+            toRole: 'lead',
+            fromRostered: target.rostered !== false,
+            toRostered: target.rostered !== false,
+        });
+    }
+
+    if (outgoing && outgoing.uid !== target.uid && roleOfMember(outgoing) !== previousLeadBecomes) {
+        roleChanges.push({
+            uid: outgoing.uid,
+            name: outgoing.displayName || outgoing.email || '',
+            fromRole: roleOfMember(outgoing),
+            toRole: previousLeadBecomes,
+            fromRostered: outgoing.rostered !== false,
+            toRostered: previousLeadBecomes === 'viewer' ? false : outgoing.rostered !== false,
+        });
+    }
+
+    const noChange = fromUid === target.uid && roleChanges.length === 0;
+    return {
+        ok: true,
+        reason: null,
+        message: noChange ? 'This person already leads the team. Nothing to change.' : null,
+        noChange,
+        fromUid,
+        toUid: target.uid,
+        toName: target.displayName || target.email || '',
+        roleChanges,
+    };
+};
+
 module.exports = {
     MEMBER_ROLES,
     MAX_FIELD_CHARS,
     INVITE_REASONS,
     REMOVE_REASONS,
+    ROLE_REASONS,
+    TRANSFER_REASONS,
     normaliseDomain,
     emailDomain,
     isAllowedEmail,
@@ -489,4 +738,7 @@ module.exports = {
     buildInviteWrites,
     assertRemovable,
     buildRemoveWrites,
+    assertRoleChangeable,
+    buildRoleChangeWrites,
+    assertTeamTransfer,
 };

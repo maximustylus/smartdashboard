@@ -54,6 +54,88 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.18.0] - 2026-10-14
+
+A lead can change a colleague's role from the Team panel: staff, lead or viewer.
+
+Until now a role was chosen once, at invitation. The panel's own refusals told a lead
+to "promote somebody else to lead first", and there was no control to do it. Worse,
+`firestore.rules` let a lead write `role` directly with no check on what that left
+behind: one write could demote a team's last lead and leave a team nobody can
+administer, repairable only by hand in the Firebase console.
+
+### Added
+
+- **A role picker in each member's editor** (Admin → Professionals → Team, the pencil
+  on a member). The same three cards the invite form uses, with the *Include in the
+  roster* switch beside them; a viewer is never rostered and the switch goes away.
+  A choice that is not allowed is greyed out with the reason under the cards.
+- **`setMemberRole`, a Cloud Function that makes the change.** It runs in a transaction
+  that re-reads the caller and counts the team's leads, so two leads demoting each
+  other at the same moment cannot both succeed. It refuses, with a sentence, to demote
+  the team's last lead or the lead the team was created for. A lead may step down
+  themselves while another lead remains; the panel asks for a second press first,
+  because the panel closes to them as soon as it saves.
+- **A role-change log**, `teams/{teamId}/roleChanges`: who changed whose role, from
+  what to what, on a server clock, immutable. The newest ten are listed under the
+  member list, for the team's leads only.
+- **A "NEXUS Admin" button in GitHub Actions** (`.github/workflows/nexus-admin.yml`)
+  for the two changes nothing inside NEXUS may make, run with the deploy pipeline's
+  service account so the owner needs no key file:
+  - **register-domain** adds an email domain to `config/domains`, additively. The
+    live project had none, so the Team panel said "Setup outstanding" and every
+    "Add to team" was refused, including colleagues on `kkh.com.sg`.
+  - **transfer-team** hands a team to a new lead (`scripts/transfer-team.cjs`): the
+    founding lead (`teams/{id}.leadUid`) moves to them, they are made a lead if they
+    were not, and the outgoing lead becomes a lead, staff or viewer. One transaction,
+    each role change logged. Needed because the founding lead of Sport and Exercise
+    Medicine is handing over, and nothing could change `leadUid`.
+  Both preview by default; the change is made only when "apply" is ticked.
+
+### Changed
+
+- **`firestore.rules`: no client may write `role` or `rostered`.** Both left the lead's
+  update allowlist; the function is now the only path. A lead still edits profession,
+  grade, short name and duties directly, as before.
+- When a save changes both a member's details and their role, the details are written
+  first and the role last, so a lead stepping down does not lose the right to finish
+  their own save halfway through. If the role is refused, the message says the other
+  changes were saved.
+
+### Evidence
+
+- `functions/teamMembership.test.js` — 18 new tests: every refusal, self step-down,
+  unknown lead counts read as one, the founding lead, viewer never rostered, and a
+  check that the rules no longer list `role` or `rostered` for a lead.
+- `src/utils/roleChanges.test.js` — the panel's copy of the rule run against the
+  server's on 72 cases, plus the log wording.
+- `src/components/TeamMembersPanel.test.jsx` — 16 new tests: the picker, the disabled
+  choices, the two-press step-down, write order, server refusals, the sandbox, and the
+  log listener opened for leads only.
+- `scripts/firestore-rules-verify.mjs` — the check that a lead *can* write a role is
+  replaced by four checks that a lead cannot write `role` or `rostered` directly (and
+  still can write duties and short name), plus five on the log. Run 2026-10-14 under
+  the Firestore emulator: **207 passed, 0 failed**.
+- `src/utils/memberRosterLimits.test.js` used `'rostered'` to prove it was reading the
+  members allowlist; it now fingerprints on `'fte'` and asserts `'rostered'` is gone.
+- `assertTeamTransfer` — 8 tests in `functions/teamMembership.test.js`;
+  `scripts/transfer-team.test.mjs` — 10 tests pinning the dry-run default, the single
+  transaction, the log, and the workflow's preview-unless-applied, additive-only,
+  no-approval-rights and key-removal properties.
+
+### Fixed
+
+- The admin scripts printed "✗ undefined" for a missing or broken credential: they
+  read `credential.reason`, and the helper reports `problem`. They now print the
+  helper's sentence.
+
+### Known at release
+
+- Nobody is notified when their role changes; they find out from the app. A
+  notification would need the same channel coverage requests still lack (`Q3`).
+- The founding lead cannot be demoted from the app at all. Transferring a team stays a
+  task for the NEXUS owner, as removing them already was.
+
 ## [2.17.1] - 2026-10-11
 
 ### Changed

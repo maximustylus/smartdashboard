@@ -34,10 +34,10 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
 import {
     UserPlus, Trash2, Loader2, AlertCircle, CheckCircle2, Users, ShieldCheck, Eye, Stethoscope,
-    Pencil, X, Lock, ShieldAlert,
+    Pencil, X, Lock, ShieldAlert, History,
 } from 'lucide-react';
 import { useTeam } from '../context/TeamContext';
 import {
@@ -53,7 +53,8 @@ import {
 } from '../utils/memberProfile';
 import { PROFESSION_OPTIONS } from '../data/mockData';
 import { useMemberGrade } from '../hooks/useMemberGrade';
-import { memberPath, gradePath } from '../utils/teamPaths';
+import { memberPath, gradePath, roleChangesPath } from '../utils/teamPaths';
+import { roleOf, roleChangeBlockedReason, readRoleChanges, describeRoleChange } from '../utils/roleChanges';
 import { db } from '../firebase';
 import { useNexus } from '../context/NexusContext';
 import { useDomainAllowlist } from '../hooks/useDomainAllowlist';
@@ -90,7 +91,9 @@ const ROLES = [
 const readError = (error) => error?.message || 'Something went wrong.';
 
 const TeamMembersPanel = () => {
-    const { teamId, team, members, isLead } = useTeam();
+    const { teamId, team, members, isLead, membership } = useTeam();
+    // The signed-in lead's own uid, so their row can ask before they step down.
+    const myUid = membership?.uid || null;
     const { isDemo } = useNexus();
     // Is `config/domains` actually set up? Not the same question as "what are"
     // "the domains" — the hook always HAS a list, because it falls back so the
@@ -140,6 +143,25 @@ const TeamMembersPanel = () => {
     const [savingEdit, setSavingEdit] = useState(false);
 
     /**
+     * ── ROLE, IN THE SAME EDITOR (v2.18.0) ───────────────────────────────────
+     *
+     * The role was chosen once, at invitation, and the panel's own refusals told a
+     * lead to "promote somebody else first" with no control to do it. The draft is
+     * held here and sent to `setMemberRole`, never written directly: the rules no
+     * longer allow it, because only the server can count leads.
+     *
+     * `confirmStepDown` is the second press a lead needs to demote THEMSELVES — they
+     * lose this panel the moment it saves, so one click must not do it.
+     */
+    const [draftRole, setDraftRole] = useState('staff');
+    const [draftRostered, setDraftRostered] = useState(true);
+    const [confirmStepDown, setConfirmStepDown] = useState(false);
+
+    /** The team's role-change log, newest first. Leads only — the rules agree. */
+    const [roleChanges, setRoleChanges] = useState([]);
+    const [roleChangesError, setRoleChangesError] = useState('');
+
+    /**
      * ⚠️ ONE MEMBER'S GRADE, AND ONLY WHILE THEIR EDITOR IS OPEN.
      *
      *    `useTeamGrades` — the roster's hook — reads the whole department. Using it
@@ -168,6 +190,28 @@ const TeamMembersPanel = () => {
         if (!editingUid || gradeLoading || gradeTouched) return;
         setDraftGrade(storedGrade);
     }, [editingUid, gradeLoading, gradeTouched, storedGrade]);
+
+    /**
+     * The role-change log. Opened for a lead only — a staff member's read would be
+     * refused by the rules, and a refused listener is noise rather than news. The
+     * sandbox opens nothing.
+     */
+    useEffect(() => {
+        setRoleChanges([]);
+        setRoleChangesError('');
+        if (isDemo || !teamId || !isLead) return undefined;
+        const recent = query(collection(db, ...roleChangesPath(teamId)), orderBy('at', 'desc'), limit(10));
+        const unsub = onSnapshot(
+            recent,
+            (snapshot) => { setRoleChangesError(''); setRoleChanges(readRoleChanges(snapshot)); },
+            (err) => {
+                setRoleChangesError(err?.code === 'permission-denied'
+                    ? 'The role-change log could not be read. Only a lead of this team can see it.'
+                    : `The role-change log could not be loaded (${err?.code || 'unknown error'}).`);
+            },
+        );
+        return () => unsub();
+    }, [isDemo, teamId, isLead]);
 
     const sorted = useMemo(
         () => [...members].sort((a, b) => String(a.displayName || '').localeCompare(String(b.displayName || ''))),
@@ -281,6 +325,9 @@ const TeamMembersPanel = () => {
         // comma-separated text the field will hand back — otherwise opening the editor
         // and saving without touching anything would register as a change.
         setDraftOnlyTasks(normalizeOnlyTasks(member.onlyTasks).join(', '));
+        setDraftRole(roleOf(member));
+        setDraftRostered(member.rostered !== false);
+        setConfirmStepDown(false);
         setEditingUid(member.uid);
     };
 
@@ -291,6 +338,9 @@ const TeamMembersPanel = () => {
         setGradeTouched(false);
         setDraftShortName('');
         setDraftOnlyTasks('');
+        setDraftRole('staff');
+        setDraftRostered(true);
+        setConfirmStepDown(false);
     };
 
     const handleSaveMember = async (member) => {
@@ -346,7 +396,22 @@ const TeamMembersPanel = () => {
          */
         const gradeUpdate = buildGradeUpdate(draftGrade, storedGrade, new Date().toISOString(), 'lead');
 
-        if (!memberUpdate && !gradeUpdate) { closeEditor(); return; }
+        // ── the role half ──
+        const nextRostered = draftRole === 'viewer' ? false : draftRostered;
+        const roleChanged = draftRole !== roleOf(member) || nextRostered !== (member.rostered !== false);
+        const isSelf = Boolean(myUid) && member.uid === myUid;
+        if (roleChanged) {
+            const blocked = roleChangeBlockedReason({ member, team, leadCount, nextRole: draftRole, isSelf });
+            if (blocked) { setError(blocked); return; }
+            // Stepping down yourself takes a second press: this panel closes to you
+            // the moment it saves.
+            if (isSelf && roleOf(member) === 'lead' && draftRole !== 'lead' && !confirmStepDown) {
+                setConfirmStepDown(true);
+                return;
+            }
+        }
+
+        if (!memberUpdate && !gradeUpdate && !roleChanged) { closeEditor(); return; }
 
         setSavingEdit(true);
         try {
@@ -362,7 +427,34 @@ const TeamMembersPanel = () => {
             if (gradeUpdate) {
                 await setDoc(doc(db, ...gradePath(teamId, member.uid)), gradeUpdate, { merge: true });
             }
-            setNotice(`${member.displayName || member.email || 'That member'} was updated.`);
+            /**
+             * ⚠️ THE ROLE IS WRITTEN LAST, ON PURPOSE. A lead stepping down loses the
+             *    right to write `shortName`, `onlyTasks` and grades the moment the
+             *    role lands, so anything else they changed in the same save must
+             *    already be written. The server refuses rather than throws for the
+             *    cases a lead needs to read — last lead, founding lead — and those
+             *    come back as a sentence, with the other changes already saved.
+             */
+            const name = member.displayName || member.email || 'That member';
+            if (roleChanged) {
+                const result = await call('setMemberRole')({
+                    teamId, uid: member.uid, role: draftRole, rostered: nextRostered,
+                });
+                const data = result?.data || {};
+                if (data.success === false) {
+                    setError(
+                        (memberUpdate || gradeUpdate ? 'Their other changes were saved, but the role was not. ' : '')
+                        + (data.message || 'The role could not be changed.'),
+                    );
+                    return;
+                }
+                setNotice(isSelf && draftRole !== 'lead'
+                    ? `You are now ${draftRole === 'viewer' ? 'a viewer' : 'staff'} in this team. Another lead can make you a lead again.`
+                    : `${name} is now ${draftRole === 'lead' ? 'a lead' : draftRole === 'viewer' ? 'a viewer' : 'staff'}`
+                        + `${draftRole === 'viewer' || nextRostered ? '' : ', not in the roster'}.`);
+            } else {
+                setNotice(`${name} was updated.`);
+            }
             closeEditor();
         } catch (err) {
             setError(readError(err));
@@ -616,7 +708,7 @@ const TeamMembersPanel = () => {
                                     <button
                                         type="button"
                                         onClick={() => (isOpen ? closeEditor() : openEditor(member))}
-                                        aria-label={`Edit profession, grade and roster limits for ${member.displayName || member.email || member.uid}`}
+                                        aria-label={`Edit role, profession, grade and roster limits for ${member.displayName || member.email || member.uid}`}
                                         aria-expanded={isOpen}
                                         className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                                     >
@@ -652,6 +744,73 @@ const TeamMembersPanel = () => {
                               */}
                             {isLead && isOpen && (
                                 <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                                    {/* ── ROLE — the same three cards the invite form uses ── */}
+                                    <fieldset>
+                                        <legend className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5">Role</legend>
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            {ROLES.map(({ value, label, hint, Icon }) => {
+                                                const blockedHere = roleChangeBlockedReason({
+                                                    member, team, leadCount, nextRole: value, isSelf: member.uid === myUid,
+                                                });
+                                                const chosen = draftRole === value;
+                                                return (
+                                                    <label
+                                                        key={value}
+                                                        title={blockedHere || undefined}
+                                                        className={`p-3 rounded-xl border text-left transition-colors ${blockedHere ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${chosen
+                                                            ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30'
+                                                            : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}
+                                                    >
+                                                        <input
+                                                            type="radio"
+                                                            name={`member-role-${member.uid}`}
+                                                            value={value}
+                                                            checked={chosen}
+                                                            disabled={Boolean(blockedHere)}
+                                                            onChange={() => { setDraftRole(value); setConfirmStepDown(false); }}
+                                                            aria-label={`${label} — ${member.displayName || member.email || member.uid}`}
+                                                            className="sr-only"
+                                                        />
+                                                        <span className="flex items-center gap-2 text-xs font-black text-slate-800 dark:text-slate-100">
+                                                            <Icon size={14} /> {label}
+                                                        </span>
+                                                        <span className="block mt-1 text-[10px] text-slate-500 leading-snug">{hint}</span>
+                                                    </label>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* Why a demotion is unavailable, said once, under the cards. */}
+                                        {roleChangeBlockedReason({ member, team, leadCount, nextRole: 'staff', isSelf: member.uid === myUid }) && (
+                                            <p className="mt-1.5 text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                                                {roleChangeBlockedReason({ member, team, leadCount, nextRole: 'staff', isSelf: member.uid === myUid })}
+                                            </p>
+                                        )}
+                                    </fieldset>
+                                    {draftRole !== 'viewer' && (
+                                        <label className="flex items-start gap-3 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                checked={draftRostered}
+                                                onChange={(e) => setDraftRostered(e.target.checked)}
+                                                aria-label={`Include ${member.displayName || member.email || member.uid} in the roster`}
+                                                className="mt-0.5 h-4 w-4 rounded accent-indigo-600"
+                                            />
+                                            <span className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                <span className="font-bold">Include in the roster.</span>{' '}
+                                                Untick for somebody who runs the roster but does not work in it.
+                                            </span>
+                                        </label>
+                                    )}
+                                    {confirmStepDown && (
+                                        <div role="alert" className="p-3 rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
+                                            <p className="text-xs font-bold text-amber-800 dark:text-amber-200 leading-relaxed">
+                                                You are about to step down from lead. This panel, Configure and
+                                                generating the roster close to you as soon as it saves. Another lead can
+                                                make you a lead again.
+                                            </p>
+                                            <p className="mt-1 text-[11px] text-amber-700 dark:text-amber-300">Press Save again to confirm, or Cancel.</p>
+                                        </div>
+                                    )}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                         <div className="space-y-1.5">
                                             <label htmlFor={`member-profession-${member.uid}`} className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
@@ -800,7 +959,7 @@ const TeamMembersPanel = () => {
                                             className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-colors"
                                         >
                                             {savingEdit && <Loader2 size={13} className="animate-spin" />}
-                                            {savingEdit ? 'Saving…' : 'Save'}
+                                            {savingEdit ? 'Saving…' : (confirmStepDown ? 'Save — step down' : 'Save')}
                                         </button>
                                         <button
                                             type="button"
@@ -816,6 +975,36 @@ const TeamMembersPanel = () => {
                     );
                 })}
             </ul>
+
+            {/* ── WHO CHANGED WHOSE ROLE ──────────────────────────────────────
+              * Leads only, newest ten. Written by `setMemberRole` on a server
+              * clock; nobody can edit or delete a record. */}
+            {isLead && (roleChanges.length > 0 || roleChangesError) && (
+                <section aria-label="Role changes" className="space-y-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                        <History size={13} /> Role changes
+                    </h3>
+                    {roleChangesError && (
+                        <p className="text-xs text-amber-700 dark:text-amber-300">{roleChangesError}</p>
+                    )}
+                    <ul className="space-y-1">
+                        {roleChanges.map((change) => {
+                            const sentence = describeRoleChange(change);
+                            if (!sentence) return null;
+                            return (
+                                <li key={change.docId} data-role-change={change.docId} className="text-xs text-slate-600 dark:text-slate-300">
+                                    <span className="font-bold">{sentence}</span>
+                                    {change.at && (
+                                        <span className="ml-1.5 text-[10px] text-slate-400">
+                                            {change.at.toLocaleString('en-SG', { dateStyle: 'medium', timeStyle: 'short' })}
+                                        </span>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </section>
+            )}
         </div>
     );
 };
