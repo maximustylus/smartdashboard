@@ -54,6 +54,28 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.19.1] - 2026-10-14
+
+### Fixed
+
+- **"Confirm your email" flashed for a split second and vanished.** Signing in with
+  an unconfirmed address sent the link, signed the person OUT and threw an error —
+  but the app had already routed the signed-in person to the confirm screen, so they
+  saw it for an instant and landed back on a login form whose message was lost in the
+  remount. Reported by the owner with a screenshot. The account now stays signed in
+  and the confirm screen stays put; `accessStateFor` keeps an unconfirmed account away
+  from team data either way. A failed send no longer stops sign-in.
+- The confirm screen said the link went to "your work address". Since v2.19.0 an
+  account can have a personal address, so it now says "your email address".
+
+### Added
+
+- **`mark-verified` on the NEXUS Admin button** (`scripts/mark-verified.cjs`). The
+  owner moved their account to an iCloud address and the verification email never
+  arrived, in the inbox or junk. This confirms an address on the owner's word,
+  changing that one flag and nothing else. Previews unless "apply" is ticked; the
+  address prints masked.
+
 ## [2.19.0] - 2026-10-14
 
 An account can move to a new email address and keep everything. Built for the NEXUS

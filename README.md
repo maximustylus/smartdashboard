@@ -1,6 +1,6 @@
-# NEXUS: Smart Operations Dashboard v2.19.0
+# NEXUS: Smart Operations Dashboard v2.19.1
 
-![Version](https://img.shields.io/badge/Version-v2.19.0-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
+![Version](https://img.shields.io/badge/Version-v2.19.1-blue) ![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-646cff) ![Backend](https://img.shields.io/badge/Backend-Firebase-ffca28) ![Roster](https://img.shields.io/badge/Roster-deterministic-0f766e) ![AI](https://img.shields.io/badge/AI-Google%20Gemini-8e75b2) ![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2ea44f)
 
 **NEXUS** (formerly IDC App) is a clinician-led progressive web application for team operations, workload tracking, staff wellbeing, rostering and community health screening. It uses a multi-team Firebase data model so each department and institution has its own membership, settings and operational records.
 
@@ -104,13 +104,13 @@ A prompt instruction to Gemini is a request to a non-deterministic model. A tech
 
 | Item | Status | Evidence and meaning |
 |---|---|---|
-| Application version | `IMPLEMENTED` — **v2.19.0** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
+| Application version | `IMPLEMENTED` — **v2.19.1** | `package.json` is the version source; `src/version.js` supplies the label rendered in the app. |
 | Deployment | `IMPLEMENTED` | A push to `main` runs build, test and lint, then deploys Cloud Functions, Firestore Rules, indexes and Firebase Hosting. |
 | AU18 response parser | `IMPLEMENTED` and `VERIFIED`, released in **v2.12.4** | The staff AURA client and Cloud Functions share `functions/responseParser.cjs`. It was deployed after v2.12.3 without changing the displayed version; v2.12.4 closes that gap. |
 | Community functional measures | `IMPLEMENTED` — **v2.14.0** | Grip strength and sit-to-stand are asked in both pathways, banded against published references, and reported on **page 2** of the printed report and on the result screen. Each carries a reference meter drawing only published points; heart rate ranges are worked out from the resident's age. Optional throughout: neither figure feeds the risk score (`CD20`). `CD21` and `CD23` remain with the owner. |
 | Open work | `OPEN` / `OWNER DECISION` | The live queues are in `AURA-TODO.md`, `ROSTER_TODO.md` and `COMMUNITY_TODO.md`. README summaries never close those rows. |
 
-The deployed application reports **v2.19.0**, which lets an existing account move to a new email address — keeping its teams, roles and approver right — through the NEXUS Admin workflow, and checks the institution only when an account is created; **v2.18.1** keeps the NEXUS Admin workflow's public log free of names and addresses; **v2.18.0** lets a team lead change a colleague's role — staff, lead or viewer — from the Team panel, checked on the server so a team can never be left without a lead, with every change logged for the team's leads. **v2.17.1** closes the Health Fiesta window; **v2.17.0** is the community portal's event release: an event
+The deployed application reports **v2.19.1**, which keeps an unconfirmed account on the "Confirm your email" screen instead of flashing it away, and adds an owner-only way to confirm an address whose verification email never arrives; **v2.19.0** lets an existing account move to a new email address — keeping its teams, roles and approver right — through the NEXUS Admin workflow, and checks the institution only when an account is created; **v2.18.1** keeps the NEXUS Admin workflow's public log free of names and addresses; **v2.18.0** lets a team lead change a colleague's role — staff, lead or viewer — from the Team panel, checked on the server so a team can never be left without a lead, with every change logged for the team's leads. **v2.17.1** closes the Health Fiesta window; **v2.17.0** is the community portal's event release: an event
 day gate into a short assessment, the M3@Woodlands poster for north-side residents, and an
 event's own records for presentation. **v2.16.4** before it closes the public screening's Firestore
 collection to anything but the records the app itself writes (`CP56`). **v2.16.3** before it
@@ -355,7 +355,7 @@ NEXUS is an operational and workload management tool. It is not a clinical syste
 
 ### Supported versions
 
-The current application version is **2.19.0**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
+The current application version is **2.19.1**. [`SECURITY.md`](SECURITY.md) is the authority for support and vulnerability-reporting policy; `package.json` is the authority for the application version. Release changes belong in [`CHANGELOG.md`](CHANGELOG.md), avoiding a second release table that can drift.
 
 ### Access and data controls
 
@@ -441,7 +441,7 @@ Use these focused checks after a deployment:
 
 ## Releases and current work
 
-[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.19.0**.
+[`CHANGELOG.md`](CHANGELOG.md) is the authoritative release history. The current version is **v2.19.1**.
 
 The next work is governed by the live ledgers:
 
