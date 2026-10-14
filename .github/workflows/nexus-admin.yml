@@ -1,0 +1,92 @@
+# NEXUS Admin — the two changes nothing inside NEXUS may make, run by the owner
+# from the Actions tab with the deploy pipeline's service account, so nobody needs a
+# key file on a laptop. Same pattern as event-export.yml.
+#
+#   register-domain  add an email domain to config/domains, so leads can add
+#                    colleagues at that institution (scripts/bootstrap-config.cjs,
+#                    additive: it never removes a domain already there)
+#   transfer-team    hand a team to a new lead (scripts/transfer-team.cjs)
+#
+# EVERY RUN IS A PREVIEW unless "apply" is ticked. Read the preview in the job log,
+# then run it again with "apply" ticked to make the change.
+name: NEXUS Admin
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'What to do'
+        required: true
+        type: choice
+        options:
+          - register-domain
+          - transfer-team
+      domain:
+        description: 'register-domain: the email domain, e.g. kkh.com.sg'
+        required: false
+        default: 'kkh.com.sg'
+      team:
+        description: 'transfer-team: the team id'
+        required: false
+        default: 'kkh-sport-exercise-medicine'
+      newLeadEmail:
+        description: 'transfer-team: the new lead''s email (they must already be in the team)'
+        required: false
+      previousLeadBecomes:
+        description: 'transfer-team: what the outgoing lead becomes'
+        required: false
+        type: choice
+        default: viewer
+        options:
+          - viewer
+          - staff
+          - lead
+      apply:
+        description: 'Apply the change. Leave unticked to preview only.'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  admin:
+    runs-on: ubuntu-latest
+    # One admin change at a time, and never alongside a deploy of the same project.
+    concurrency: nexus-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the admin SDK (functions/ holds it)
+        working-directory: ./functions
+        run: npm ci --omit=dev
+      - name: Run
+        env:
+          GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          TASK: '${{ github.event.inputs.task }}'
+          DOMAIN: '${{ github.event.inputs.domain }}'
+          TEAM: '${{ github.event.inputs.team }}'
+          NEW_LEAD: '${{ github.event.inputs.newLeadEmail }}'
+          PREVIOUS_BECOMES: '${{ github.event.inputs.previousLeadBecomes }}'
+          APPLY: '${{ github.event.inputs.apply }}'
+        run: |
+          set -euo pipefail
+          umask 077
+          KEY="$RUNNER_TEMP/sa.json"
+          printf '%s' "$GCP_SA_KEY" > "$KEY"
+          trap 'rm -f "$KEY"' EXIT
+          WRITE_FLAG=""
+          if [ "$APPLY" = "true" ]; then WRITE_FLAG="--write"; fi
+          export NODE_PATH=functions/node_modules
+          export GOOGLE_APPLICATION_CREDENTIALS="$KEY"
+          case "$TASK" in
+            register-domain)
+              node scripts/bootstrap-config.cjs --merge-domains --domain "$DOMAIN" $WRITE_FLAG
+              ;;
+            transfer-team)
+              node scripts/transfer-team.cjs --team "$TEAM" --to "$NEW_LEAD" \
+                --previous-lead-becomes "$PREVIOUS_BECOMES" $WRITE_FLAG
+              ;;
+            *)
+              echo "Unknown task: $TASK"; exit 1
+              ;;
+          esac

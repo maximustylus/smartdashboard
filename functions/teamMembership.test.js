@@ -24,6 +24,7 @@ import {
     MEMBER_ROLES,
     INVITE_REASONS,
     REMOVE_REASONS,
+    ROLE_REASONS,
     emailDomain,
     isAllowedEmail,
     parseDomainAllowlist,
@@ -31,6 +32,10 @@ import {
     buildInviteWrites,
     assertRemovable,
     buildRemoveWrites,
+    assertRoleChangeable,
+    buildRoleChangeWrites,
+    assertTeamTransfer,
+    TRANSFER_REASONS,
 } from './teamMembership.js';
 import {
     emailDomain as clientEmailDomain,
@@ -587,5 +592,203 @@ describe('firestore.rules still defers to this module', () => {
         expect(block).not.toBe('');
         expect(block).toMatch(/allow create:\s*if false;/);
         expect(block).toMatch(/allow delete:\s*if false;/);
+    });
+});
+
+
+// ─── CHANGING SOMEBODY'S ROLE (v2.18.0) ──────────────────────────────────────
+
+describe('changing somebody\'s role', () => {
+    const TEAM = 'kkh-sport-exercise-medicine';
+    const base = {
+        teamId: TEAM,
+        team: { leadUid: 'uid-founder' },
+        callerUid: 'uid-alif',
+        callerMembership: { role: 'lead' },
+        targetUid: 'uid-brandon',
+        targetMembership: { role: 'staff', rostered: true },
+        leadCount: 2,
+        nextRole: 'lead',
+        nextRostered: true,
+    };
+    const decide = (overrides = {}) => assertRoleChangeable({ ...base, ...overrides });
+
+    it('promotes staff to lead', () => {
+        const d = decide();
+        expect(d).toMatchObject({ ok: true, noChange: false, fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true });
+    });
+
+    it('demotes a lead to staff when another lead remains', () => {
+        const d = decide({ targetMembership: { role: 'lead' }, nextRole: 'staff', leadCount: 2 });
+        expect(d).toMatchObject({ ok: true, fromRole: 'lead', toRole: 'staff' });
+    });
+
+    it('makes somebody a viewer, and a viewer is never rostered whatever was asked', () => {
+        const d = decide({ nextRole: 'viewer', nextRostered: true });
+        expect(d).toMatchObject({ ok: true, toRole: 'viewer', toRostered: false });
+    });
+
+    it('changes rostered alone, keeping the role', () => {
+        const d = decide({ nextRole: 'staff', nextRostered: false });
+        expect(d).toMatchObject({ ok: true, fromRole: 'staff', toRole: 'staff', fromRostered: true, toRostered: false });
+    });
+
+    it('keeps rostered as it was when the request does not say', () => {
+        const d = decide({ targetMembership: { role: 'staff', rostered: false }, nextRole: 'lead', nextRostered: undefined });
+        expect(d.toRostered).toBe(false);
+    });
+
+    it('reports no change rather than writing the same values', () => {
+        const d = decide({ nextRole: 'staff', nextRostered: true });
+        expect(d).toMatchObject({ ok: true, noChange: true });
+    });
+
+    it('lets a lead step down themselves while another lead remains', () => {
+        const d = decide({ targetUid: 'uid-alif', targetMembership: { role: 'lead' }, nextRole: 'staff', leadCount: 2 });
+        expect(d.ok).toBe(true);
+    });
+
+    it('refuses to leave the team with no lead — demoting a colleague', () => {
+        const d = decide({ targetMembership: { role: 'lead' }, nextRole: 'staff', leadCount: 1 });
+        expect(d).toMatchObject({ ok: false, reason: ROLE_REASONS.LAST_LEAD });
+        expect(d.message).toMatch(/only lead\. Make somebody else a lead first/);
+    });
+
+    it('refuses to leave the team with no lead — stepping down yourself, and says so in the first person', () => {
+        const d = decide({ targetUid: 'uid-alif', targetMembership: { role: 'lead' }, nextRole: 'viewer', leadCount: 1 });
+        expect(d).toMatchObject({ ok: false, reason: ROLE_REASONS.LAST_LEAD });
+        expect(d.message).toMatch(/^You are the only lead/);
+    });
+
+    it('treats an unknown lead count as one — unknown is what the refusal is for', () => {
+        for (const leadCount of [undefined, null, 'abc', NaN]) {
+            const d = decide({ targetMembership: { role: 'lead' }, nextRole: 'staff', leadCount });
+            expect(d.reason, String(leadCount)).toBe(ROLE_REASONS.LAST_LEAD);
+        }
+    });
+
+    it('refuses to demote the lead the team was created for, whatever the count', () => {
+        const d = decide({ targetUid: 'uid-founder', targetMembership: { role: 'lead' }, nextRole: 'staff', leadCount: 5 });
+        expect(d).toMatchObject({ ok: false, reason: ROLE_REASONS.TEAM_OWNER });
+    });
+
+    it('still lets the founding lead\'s rostered flag change — that grants nothing', () => {
+        const d = decide({ targetUid: 'uid-founder', targetMembership: { role: 'lead', rostered: true }, nextRole: 'lead', nextRostered: false });
+        expect(d).toMatchObject({ ok: true, toRole: 'lead', toRostered: false });
+    });
+
+    it('refuses a caller who is not a lead of this team', () => {
+        expect(decide({ callerMembership: { role: 'staff' } }).reason).toBe(ROLE_REASONS.NOT_A_LEAD);
+        expect(decide({ callerMembership: null }).reason).toBe(ROLE_REASONS.NOT_A_LEAD);
+    });
+
+    it('refuses a role outside lead, staff and viewer', () => {
+        const d = decide({ nextRole: 'admin' });
+        expect(d).toMatchObject({ ok: false, reason: ROLE_REASONS.BAD_ROLE });
+    });
+
+    it('refuses a target who is not in the team, and a missing team', () => {
+        expect(decide({ targetMembership: null }).reason).toBe(ROLE_REASONS.NOT_A_MEMBER);
+        expect(decide({ targetUid: '' }).reason).toBe(ROLE_REASONS.NOT_A_MEMBER);
+        expect(decide({ teamId: '' }).reason).toBe(ROLE_REASONS.NO_TEAM);
+    });
+
+    it('reads a membership with no role as staff', () => {
+        const d = decide({ targetMembership: {}, nextRole: 'lead' });
+        expect(d.fromRole).toBe('staff');
+    });
+});
+
+describe('buildRoleChangeWrites', () => {
+    it('writes the role and rostered, and one log record without a clock', () => {
+        const decision = assertRoleChangeable({
+            teamId: 't1', team: {}, callerUid: 'a', callerMembership: { role: 'lead' },
+            targetUid: 'b', targetMembership: { role: 'staff' }, leadCount: 1, nextRole: 'lead', nextRostered: true,
+        });
+        const w = buildRoleChangeWrites({ teamId: 't1', targetUid: 'b', decision, byUid: 'a', byName: 'Alif', targetName: 'Brandon' });
+        expect(w.member).toEqual({ path: ['teams', 't1', 'members', 'b'], data: { role: 'lead', rostered: true } });
+        expect(w.log.collection).toEqual(['teams', 't1', 'roleChanges']);
+        expect(w.log.data).toEqual({
+            targetUid: 'b', targetName: 'Brandon', fromRole: 'staff', toRole: 'lead',
+            fromRostered: true, toRostered: true, byUid: 'a', byName: 'Alif',
+        });
+        expect('at' in w.log.data).toBe(false);
+    });
+});
+
+describe('firestore.rules no longer lets a client write role or rostered', () => {
+    it('the lead update list has neither field, and the log is written by nobody', () => {
+        const rules = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), '..', 'firestore.rules'), 'utf8');
+        const block = rules.slice(rules.indexOf('match /members/{memberUid}'), rules.indexOf('match /roleChanges/{changeId}'));
+        const leadList = block.slice(block.indexOf('allow update: if isLead(teamId)'), block.indexOf(']);'));
+        expect(leadList).not.toMatch(/'role'/);
+        expect(leadList).not.toMatch(/'rostered'/);
+        const log = rules.slice(rules.indexOf('match /roleChanges/{changeId}'), rules.indexOf('match /grades/{memberUid}'));
+        expect(log).toMatch(/allow read: if isLead\(teamId\);/);
+        expect(log).toMatch(/allow write: if false;/);
+    });
+});
+
+
+// ─── HANDING A TEAM TO A NEW LEAD (v2.18.0) ──────────────────────────────────
+
+describe('handing a team to a new lead', () => {
+    const ALIF = { uid: 'u-alif', email: 'muhammad.alif@kkh.com.sg', displayName: 'Alif', role: 'lead', rostered: true };
+    const LINDER = { uid: 'u-linder', email: 'Derlinder@KKH.com.sg', displayName: 'Derlinder', role: 'staff', rostered: true };
+    const NISA = { uid: 'u-nisa', email: 'nisa@kkh.com.sg', displayName: 'Nisa', role: 'lead', rostered: false };
+    const team = { name: 'Sport & Exercise Medicine', leadUid: ALIF.uid };
+    const members = [ALIF, LINDER, NISA];
+
+    it('promotes a staff member to lead, takes the founding lead, and makes the old lead a viewer', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: 'derlinder@kkh.com.sg', previousLeadBecomes: 'viewer' });
+        expect(plan).toMatchObject({ ok: true, noChange: false, fromUid: ALIF.uid, toUid: LINDER.uid });
+        expect(plan.roleChanges).toEqual([
+            { uid: LINDER.uid, name: 'Derlinder', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true },
+            { uid: ALIF.uid, name: 'Alif', fromRole: 'lead', toRole: 'viewer', fromRostered: true, toRostered: false },
+        ]);
+    });
+
+    it('matches the address without caring about case or spaces', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: '  DERLINDER@kkh.com.sg ' });
+        expect(plan.toUid).toBe(LINDER.uid);
+    });
+
+    it('leaves the old lead a lead by default, and does not re-promote a lead', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg' });
+        expect(plan.ok).toBe(true);
+        expect(plan.roleChanges).toEqual([]);
+        expect(plan.toUid).toBe(NISA.uid);
+    });
+
+    it('keeps rostered as it was when the old lead becomes staff', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg', previousLeadBecomes: 'staff' });
+        expect(plan.roleChanges).toEqual([
+            { uid: ALIF.uid, name: 'Alif', fromRole: 'lead', toRole: 'staff', fromRostered: true, toRostered: true },
+        ]);
+    });
+
+    it('reports no change when the person already leads it', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: 'muhammad.alif@kkh.com.sg' });
+        expect(plan).toMatchObject({ ok: true, noChange: true });
+    });
+
+    it('refuses somebody not in the team, and lists who is', () => {
+        const plan = assertTeamTransfer({ team, members, toEmail: 'stranger@kkh.com.sg' });
+        expect(plan).toMatchObject({ ok: false, reason: TRANSFER_REASONS.NOT_A_MEMBER });
+        expect(plan.message).toMatch(/Derlinder <Derlinder@KKH\.com\.sg>/);
+    });
+
+    it('refuses a missing team and a role that does not exist', () => {
+        expect(assertTeamTransfer({ team: null, members, toEmail: 'nisa@kkh.com.sg' }).reason).toBe(TRANSFER_REASONS.NO_TEAM);
+        expect(assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg', previousLeadBecomes: 'admin' }).reason)
+            .toBe(TRANSFER_REASONS.BAD_ROLE);
+    });
+
+    it('always leaves the new lead as a lead, so the team cannot end up with none', () => {
+        for (const previousLeadBecomes of ['lead', 'staff', 'viewer']) {
+            const plan = assertTeamTransfer({ team, members, toEmail: 'derlinder@kkh.com.sg', previousLeadBecomes });
+            const newLeadChange = plan.roleChanges.find((c) => c.uid === LINDER.uid);
+            expect(newLeadChange.toRole).toBe('lead');
+        }
     });
 });

@@ -36,7 +36,7 @@
 // the migration copies rather than moves, so those documents still exist and a
 // stale path left in the app must not keep working.
 //
-// LAST RUN: 2026-09-24 against the Firestore emulator (firebase-tools 13) — 187 passed, 0 failed,
+// LAST RUN: 2026-10-14 against the Firestore emulator (firebase-tools 13) — 207 passed, 0 failed.
 // after `community_assessments` was tightened. The same day 104 records captured from the
 // real `recordTelemetry` (60 chat in four languages, 40 form, 4 result actions) were all
 // accepted by the new rule.
@@ -216,8 +216,31 @@ console.log('\n══ membership-as-data: a member document IS the permission �
         assertSucceeds(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { unavailable: ['2026-02-02'] })));
     await check('a member cannot edit a COLLEAGUE\'s availability',
         assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${YING}`), { unavailable: ['2026-02-02'] })));
-    await check('a lead CAN edit a colleague\'s role and duties',
-        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { role: 'staff', rostered: true })));
+    // v2.18.0: role and rostered moved to the `setMemberRole` Cloud Function, which
+    // can count leads. A direct write — even by a lead — is now refused.
+    await check('a lead CANNOT write a colleague\'s role directly (setMemberRole does)',
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { role: 'lead' })));
+    await check('a lead CANNOT write a colleague\'s rostered directly',
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { rostered: false })));
+    await check('a lead CANNOT demote themselves directly',
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${ALIF}`), { role: 'staff' })));
+    await check('a lead CAN still edit a colleague\'s duties and short name',
+        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BR', onlyTasks: ['EFT'] })));
+    await env.withSecurityRulesDisabled(async (c) => {
+        await setDoc(doc(c.firestore(), `teams/${TEAM_A}/roleChanges/rc-1`), {
+            targetUid: BRANDON, fromRole: 'staff', toRole: 'lead', byUid: ALIF, at: new Date(),
+        });
+    });
+    await check('a lead CAN read the role-change log',
+        assertSucceeds(getDocs(collection(as(ALIF), `teams/${TEAM_A}/roleChanges`))));
+    await check('a staff member CANNOT read the role-change log',
+        assertFails(getDocs(collection(brandon, `teams/${TEAM_A}/roleChanges`))));
+    await check('team B\'s lead CANNOT read team A\'s role-change log',
+        assertFails(getDocs(collection(as(SGH_LEAD), `teams/${TEAM_A}/roleChanges`))));
+    await check('nobody — not even a lead — can write a role-change record',
+        assertFails(addDoc(collection(as(ALIF), `teams/${TEAM_A}/roleChanges`), { targetUid: BRANDON, toRole: 'lead' })));
+    await check('nobody can edit a role-change record',
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/roleChanges/rc-1`), { toRole: 'viewer' })));
     await check('nobody may delete a membership (removal is a Cloud Function)',
         assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${YING}`))));
 

@@ -200,9 +200,14 @@ service cloud.firestore {
         //    could add a uid they do not control and then sign in as it.
         allow create: if false;
 
-        // A lead edits anybody's roster attributes. `role` and `rostered` are
-        // included: promoting a colleague to lead, or marking the roster master as
-        // carrying no duties, is exactly this screen's job.
+        // A lead edits anybody's roster attributes.
+        //
+        // ⚠️ `role` AND `rostered` ARE NO LONGER HERE (v2.18.0). They were, and that
+        //    let a lead demote the team's LAST lead with one write — a team nobody
+        //    can administer, repairable only by hand in the console. The rule that
+        //    prevents it needs a count of leads, which a rule cannot take, so both
+        //    fields are now written by the `setMemberRole` Cloud Function only, which
+        //    counts inside a transaction and records every change in `roleChanges`.
         //
         // ⚠️ `shortName` AND `onlyTasks` ARE LEAD-ONLY, AND ARE ABSENT FROM THE SELF
         //    LIST BELOW ON PURPOSE. `shortName` is what colleagues see on a shared
@@ -214,7 +219,7 @@ service cloud.firestore {
         allow update: if isLead(teamId)
                       && changedKeys().hasOnly([
                            'displayName', 'fte', 'skills',
-                           'unavailable', 'role', 'rostered', 'title', 'profession',
+                           'unavailable', 'title', 'profession',
                            'shortName', 'onlyTasks'
                          ]);
 
@@ -247,6 +252,17 @@ service cloud.firestore {
         //    they can no longer read and every listener fails permission-denied.
         //    Rules cannot write two documents, so they permit neither.
         allow delete: if false;
+      }
+
+      // ── Role changes: who made whom a lead, staff or viewer ────────────────
+      //
+      //    Written only by `setMemberRole` (Admin SDK, which rules do not govern),
+      //    one immutable record per change, on a server clock. Read by the team's
+      //    LEADS only: it is an administrative record of who holds power over the
+      //    team, and staff have no decision to make from it.
+      match /roleChanges/{changeId} {
+        allow read: if isLead(teamId);
+        allow write: if false;
       }
 
       // ── Pay grade: the roster needs it, colleagues do not ──────────────────
