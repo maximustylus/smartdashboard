@@ -54,6 +54,59 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-10-14
+
+Every pop-up now reads as NEXUS's own.
+
+### Changed
+
+- **The browser's pop-ups are gone.** NEXUS used `window.alert`, `window.confirm`
+  and `window.prompt` in nineteen places. The browser draws those boxes, titles them
+  with the site's address ("smartdashboard.web.app says"), and nobody can retitle
+  them; the owner asked for them to say NEXUS. They are replaced by one in-app box,
+  `src/components/nexusDialog.jsx` (`nexusAlert`, `nexusConfirm`, `nexusPrompt`),
+  titled **NEXUS says**, in the app's style. It is keyboard-operable: focus starts on
+  the main button or the field, Escape cancels and Enter accepts. Calls queue one at a
+  time, and no provider is needed.
+- **The Admin refusal explains itself.** It read "Admins Only Access". It now says the
+  Admin panel is for a team's leads and to ask the team's lead if you need it. The
+  rule behind it is unchanged.
+- Confirms that delete or move something now name the action on the button
+  (*Delete*, *Move*, *Clear*, *Decline*) instead of a bare OK.
+- The feedback widget's failure said "Check console", which is not something a
+  clinician can do. It now says to check the connection and try again.
+
+### Evidence
+
+- `src/components/nexusDialog.test.jsx`: alert, confirm, prompt, focus, Escape and
+  Enter, queueing, plus a scan of `src/` that fails if `alert(`, `confirm(` or
+  `prompt(` comes back anywhere in the app.
+- Checked in a browser on the production build: sharing a Feeds post in the sandbox
+  shows "NEXUS SAYS · Post link copied to clipboard." with one OK button, and OK closes it.
+- Full gate on the combined tree (with v2.19.1): lint 0, **4631 tests across 141 files**, build 0.
+
+## [2.19.1] - 2026-10-14
+
+### Fixed
+
+- **"Confirm your email" flashed for a split second and vanished.** Signing in with
+  an unconfirmed address sent the link, signed the person OUT and threw an error —
+  but the app had already routed the signed-in person to the confirm screen, so they
+  saw it for an instant and landed back on a login form whose message was lost in the
+  remount. Reported by the owner with a screenshot. The account now stays signed in
+  and the confirm screen stays put; `accessStateFor` keeps an unconfirmed account away
+  from team data either way. A failed send no longer stops sign-in.
+- The confirm screen said the link went to "your work address". Since v2.19.0 an
+  account can have a personal address, so it now says "your email address".
+
+### Added
+
+- **`mark-verified` on the NEXUS Admin button** (`scripts/mark-verified.cjs`). The
+  owner moved their account to an iCloud address and the verification email never
+  arrived, in the inbox or junk. This confirms an address on the owner's word,
+  changing that one flag and nothing else. Previews unless "apply" is ticked; the
+  address prints masked.
+
 ## [2.19.0] - 2026-10-14
 
 An account can move to a new email address and keep everything. Built for the NEXUS

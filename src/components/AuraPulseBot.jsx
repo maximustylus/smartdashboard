@@ -3,6 +3,7 @@ import {
   Table, TableRow, TableCell, WidthType 
 } from 'docx';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { nexusAlert, nexusConfirm } from './nexusDialog';
 import { 
   Bug, X, Send, BrainCircuit, Shield, Ghost, Users, Zap, RefreshCw,
   AlertTriangle, WifiOff, FileText, CheckCircle, Database, Trash2, Download,
@@ -228,8 +229,8 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
         setPendingLog(null);
     }, [setMessages]);
 
-    const handleClearChat = useCallback(() => {
-        if (!window.confirm("Clear this conversation and start fresh?")) return;
+    const handleClearChat = useCallback(async () => {
+        if (!(await nexusConfirm("Clear this conversation and start fresh?", { confirmLabel: 'Clear' }))) return;
         
         setPendingLog(null);
         
@@ -257,7 +258,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
     const toggleListening = useCallback(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
+            nexusAlert("Voice input is not supported in this browser. Please use Chrome, Edge, or Safari.");
             return;
         }
 
@@ -668,7 +669,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
         });
 
         if (events.length === 0) {
-            alert("No valid dates found in the document to export to Outlook.");
+            nexusAlert("No valid dates found in the document to export to Outlook.");
             return;
         }
 

@@ -131,3 +131,27 @@ describe('the change-email task in NEXUS Admin', () => {
         expect(workflow).toMatch(/change-email\)\s*\n\s*node scripts\/change-email\.cjs --from "\$CURRENT_EMAIL" --to "\$NEW_EMAIL" \$WRITE_FLAG/);
     });
 });
+
+describe('mark-verified (v2.19.1)', () => {
+    const verify = readFileSync(resolve(process.cwd(), 'scripts/mark-verified.cjs'), 'utf8');
+
+    it('changes the one flag and nothing else, and only with --write', () => {
+        expect(verify).toMatch(/const WRITE = argv\.includes\('--write'\);/);
+        expect(verify).toMatch(/if \(!WRITE\) \{/);
+        const updates = [...verify.matchAll(/auth\.updateUser\(([^)]*)\)/g)].map((m) => m[1]);
+        expect(updates).toEqual(['account.uid, { emailVerified: true }']);
+        // No database access at all, and no password handling.
+        expect(verify).not.toMatch(/getFirestore/);
+        expect(verify).not.toMatch(/password\s*:/i);
+    });
+
+    it('prints the address only masked', () => {
+        expect(verify).toMatch(/ACCOUNT : \$\{maskEmail\(email\)\}/);
+        expect(verify).not.toMatch(/console\.[a-z]+\([^;]*\$\{email\}/);
+    });
+
+    it('is wired into the workflow, reading the masked newEmail input', () => {
+        expect(workflow).toMatch(/- mark-verified/);
+        expect(workflow).toMatch(/mark-verified\)\s*\n\s*node scripts\/mark-verified\.cjs --email "\$NEW_EMAIL" \$WRITE_FLAG/);
+    });
+});

@@ -160,10 +160,27 @@ const WelcomeScreen = (props) => {
             if (authView === 'LOGIN') {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
+                /**
+                 * ⚠️ AN UNCONFIRMED ACCOUNT STAYS SIGNED IN (v2.19.1), AND THE APP SHOWS
+                 *    "Confirm your email". This used to send the link, SIGN OUT and
+                 *    throw. But the app's own auth listener had already routed the
+                 *    signed-in person to the confirm screen, so they saw it for a split
+                 *    second and were then thrown back to a login form whose message had
+                 *    been lost in the remount — reported by the owner on 2026-10-14 with
+                 *    a screenshot of the flash. `accessStateFor` keeps an unverified
+                 *    account away from team data whether or not it is signed in, so
+                 *    signing out bought nothing.
+                 *
+                 *    A failed send (most often too many in a row) is not a reason to
+                 *    stop: the confirm screen still explains what to do next.
+                 */
                 if (!userCredential.user.emailVerified) {
-                    await sendEmailVerification(userCredential.user);
-                    await signOut(auth);
-                    throw new Error("VERIFICATION REQUIRED: We just sent a fresh verification link to your email. Please click it before logging in.");
+                    try {
+                        await sendEmailVerification(userCredential.user);
+                    } catch (sendError) {
+                        console.warn('Verification email not sent:', sendError?.code || sendError);
+                    }
+                    return;
                 }
 
                 // A known face keeps their bridge role and title; anyone else is

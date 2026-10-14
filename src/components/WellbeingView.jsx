@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { nexusAlert } from './nexusDialog';
 import { db, auth } from '../firebase';
 import { doc, onSnapshot, setDoc, deleteField } from 'firebase/firestore';
 import { Users, Activity, Zap, X, Save, Lock, Bell, BellRing } from 'lucide-react';
@@ -90,7 +91,7 @@ const WellbeingView = ({ user }) => {
     // --- NOTIFICATION HANDLER ---
     const handleEnableNotifications = async () => {
         if (isDemo) {
-            alert("Sandbox Mode: Notification simulation successful.");
+            nexusAlert("Sandbox Mode: Notification simulation successful.");
             setHasToken(true);
             return;
         }
@@ -98,7 +99,7 @@ const WellbeingView = ({ user }) => {
         const currentFirebaseUser = auth.currentUser;
 
         if (!currentFirebaseUser?.uid) {
-            alert("Error: Firebase cannot verify your session. Try refreshing the page.");
+            nexusAlert("Error: Firebase cannot verify your session. Try refreshing the page.");
             return;
         }
 
@@ -114,13 +115,13 @@ const WellbeingView = ({ user }) => {
                 }, { merge: true });
                 
                 setHasToken(true);
-                alert("SUCCESS: Daily Pulse reminders enabled for this device.");
+                nexusAlert("SUCCESS: Daily Pulse reminders enabled for this device.");
             } else {
-                alert("Permission denied or VAPID error. Check your browser settings.");
+                nexusAlert("Permission denied or VAPID error. Check your browser settings.");
             }
         } catch (error) {
             console.error("Subscription error:", error);
-            alert("Failed to enable notifications.");
+            nexusAlert("Failed to enable notifications.");
         } finally {
             setIsSubscribing(false);
         }
@@ -129,7 +130,7 @@ const WellbeingView = ({ user }) => {
     // --- CLICK HANDLERS ---
     const handleCardClick = (person, currentEnergy, currentFocus, canEdit) => {
         if (!canEdit) {
-            alert("🔒 Access Denied: You are only authorized to update your own Social Battery.");
+            nexusAlert("🔒 Access Denied: You are only authorized to update your own Social Battery.");
             return;
         }
 

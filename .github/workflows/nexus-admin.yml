@@ -6,6 +6,8 @@
 #                    colleagues at that institution (scripts/bootstrap-config.cjs,
 #                    additive: it never removes a domain already there)
 #   transfer-team    hand a team to a new lead (scripts/transfer-team.cjs)
+#   mark-verified    confirm an account's address on the owner's word, when the
+#                    verification email never arrives (scripts/mark-verified.cjs)
 #   change-email     move one account to a new address, keeping the account
 #                    (scripts/change-email.cjs; needs the service account to hold
 #                    the Firebase Authentication Admin role)
@@ -24,6 +26,7 @@ on:
           - register-domain
           - transfer-team
           - change-email
+          - mark-verified
       domain:
         description: 'register-domain: the email domain, e.g. kkh.com.sg'
         required: false
@@ -48,7 +51,7 @@ on:
         description: 'change-email: the account''s current address'
         required: false
       newEmail:
-        description: 'change-email: the address it should move to'
+        description: 'change-email: the address it should move to. mark-verified: the address to confirm'
         required: false
       apply:
         description: 'Apply the change. Leave unticked to preview only.'
@@ -108,6 +111,9 @@ jobs:
               ;;
             change-email)
               node scripts/change-email.cjs --from "$CURRENT_EMAIL" --to "$NEW_EMAIL" $WRITE_FLAG
+              ;;
+            mark-verified)
+              node scripts/mark-verified.cjs --email "$NEW_EMAIL" $WRITE_FLAG
               ;;
             *)
               echo "Unknown task: $TASK"; exit 1

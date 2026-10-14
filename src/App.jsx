@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { nexusAlert } from './components/nexusDialog';
 // `useLocation` is intentionally not imported here: App's only use of it was a
 // dead `isPublicPathway` flag. `<Routes>` subscribes to the location itself.
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -1025,7 +1026,10 @@ export default function App() {
                         setIsAdminOpen(!isAdminOpen); 
                         setCurrentView('dashboard'); 
                     } else {
-                        alert("Admins Only Access");
+                        nexusAlert(
+                            'Admin is for a team\'s leads. You can see your team\'s roster and pulse as '
+                            + 'you are; if you need Admin, ask your team\'s lead to make you a lead.',
+                        );
                     }
                 }} 
                 className={`p-1.5 md:p-2 rounded-full transition-all active:scale-95 sm:hover:bg-slate-100 dark:sm:hover:bg-slate-700 ${isAdminOpen ? 'bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-600'}`}
