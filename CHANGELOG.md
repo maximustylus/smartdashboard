@@ -54,6 +54,37 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-10-14
+
+Every pop-up now reads as NEXUS's own.
+
+### Changed
+
+- **The browser's pop-ups are gone.** NEXUS used `window.alert`, `window.confirm`
+  and `window.prompt` in nineteen places. The browser draws those boxes, titles them
+  with the site's address ("smartdashboard.web.app says"), and nobody can retitle
+  them; the owner asked for them to say NEXUS. They are replaced by one in-app box,
+  `src/components/nexusDialog.jsx` (`nexusAlert`, `nexusConfirm`, `nexusPrompt`),
+  titled **NEXUS says**, in the app's style. It is keyboard-operable: focus starts on
+  the main button or the field, Escape cancels and Enter accepts. Calls queue one at a
+  time, and no provider is needed.
+- **The Admin refusal explains itself.** It read "Admins Only Access". It now says the
+  Admin panel is for a team's leads and to ask the team's lead if you need it. The
+  rule behind it is unchanged.
+- Confirms that delete or move something now name the action on the button
+  (*Delete*, *Move*, *Clear*, *Decline*) instead of a bare OK.
+- The feedback widget's failure said "Check console", which is not something a
+  clinician can do. It now says to check the connection and try again.
+
+### Evidence
+
+- `src/components/nexusDialog.test.jsx`: alert, confirm, prompt, focus, Escape and
+  Enter, queueing, plus a scan of `src/` that fails if `alert(`, `confirm(` or
+  `prompt(` comes back anywhere in the app.
+- Checked in a browser on the production build: sharing a Feeds post in the sandbox
+  shows "NEXUS SAYS · Post link copied to clipboard." with one OK button, and OK closes it.
+- Full gate: lint 0, **4628 tests across 141 files**, build 0.
+
 ## [2.19.1] - 2026-10-14
 
 ### Fixed

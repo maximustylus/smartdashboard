@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { nexusAlert } from './nexusDialog';
 import { db } from '../firebase'; 
 import * as firestore from 'firebase/firestore';
 import { X, ShieldCheck, Sparkles, Upload, FileJson } from 'lucide-react';
@@ -110,9 +111,9 @@ const SmartAnalysis = ({ teamData, staffLoads, onClose }) => {
             try {
                 const json = JSON.parse(event.target.result);
                 setImportedData(json);
-                alert(`SUCCESS: Loaded bulk data from ${file.name}`);
+                nexusAlert(`SUCCESS: Loaded bulk data from ${file.name}`);
             } catch (err) {
-                alert("❌ ERROR: The file is not a valid JSON format.");
+                nexusAlert("❌ ERROR: The file is not a valid JSON format.");
             }
         };
         reader.readAsText(file);
@@ -282,7 +283,7 @@ const SmartAnalysis = ({ teamData, staffLoads, onClose }) => {
          * signed-in-with-no-team case the holding screen now admits to the sandbox.
          */
         if (isDemo) {
-            alert('SANDBOX MODE: nothing was archived. The demo report is fabricated sample data, so publishing it would overwrite the real year-end report. Switch to Live to archive.');
+            nexusAlert('SANDBOX MODE: nothing was archived. The demo report is fabricated sample data, so publishing it would overwrite the real year-end report. Switch to Live to archive.');
             return;
         }
 
@@ -324,10 +325,10 @@ const SmartAnalysis = ({ teamData, staffLoads, onClose }) => {
                 });
 
             await Promise.all(batchPromises);
-            alert(`SUCCESS: Archived ${targetYear}!`);
+            nexusAlert(`SUCCESS: Archived ${targetYear}!`);
             onClose(); 
         } catch (e) {
-            alert("Archive Error: " + e.message);
+            nexusAlert("Archive Error: " + e.message);
         } finally {
             setLoading(false);
         }

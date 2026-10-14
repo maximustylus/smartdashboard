@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { nexusAlert } from './nexusDialog';
 import { Sparkles, MessageSquare, ThumbsUp, Share2, ShieldAlert, Image as ImageIcon, Loader2, X, Send, MoreHorizontal, Edit2, Trash2 } from 'lucide-react';
 import { useNexus } from '../context/NexusContext';
 import { useTeam } from '../context/TeamContext';
@@ -77,7 +78,7 @@ const CommentSection = ({ postId, user, isMock, postAuthor: _postAuthor }) => {
          * thing; the reasoning lives in `src/utils/nric.js`.
          */
         if (containsNric(draft)) {
-            alert(NRIC_REFUSAL);
+            nexusAlert(NRIC_REFUSAL);
             return;
         }
         if (isMock) {
@@ -259,7 +260,7 @@ const FeedsView = ({ user }) => {
             } 
         } else { 
             navigator.clipboard.writeText(postUrl); 
-            alert("Post link copied to clipboard!"); 
+            nexusAlert("Post link copied to clipboard."); 
         }
     };
 
