@@ -54,6 +54,46 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.19.0] - 2026-10-14
+
+An account can move to a new email address and keep everything. Built for the NEXUS
+owner, who is leaving KKH and keeping NEXUS: their account was on `kkh.com.sg`, a
+mailbox that is about to close.
+
+### Added
+
+- **`change-email` on the NEXUS Admin button** (`scripts/change-email.cjs`, decision
+  in `scripts/emailChange.cjs`). Keeps the account's uid, so its teams, roles,
+  roster history and approver right all stay. Writes the new address to Firebase
+  Auth, `users/{uid}` and each team membership. The new address is left
+  **unverified**: the next sign-in sends a link to it, so ownership is proved rather
+  than asserted. Refuses when the new address already belongs to another account.
+  Needs the deploy service account to hold the *Firebase Authentication Admin* role;
+  if it does not, the preview says so and changes nothing.
+- **An approver keeps the right through the change.** `config/superAdmins` matched
+  approvers by verified email only, so a changed address would silently have lost
+  it. The task swaps the address and adds the account's uid to `uids`, the durable
+  list, so approval no longer depends on any address.
+- `scripts/logMask.cjs`: the masking helper both admin scripts now share.
+
+### Changed
+
+- **The institution check on the sign-in screen applies to registration only.** It
+  decides who may create an account; it was never a security boundary (rules and
+  membership are). Run at every sign-in, it would have locked out an existing,
+  already-vetted account whose address had moved off an institutional domain,
+  which is exactly what `change-email` produces. New accounts are still refused
+  outside the registered domains.
+
+### Evidence
+
+- `scripts/emailChange.test.mjs` (14): the plan, the approver swap and uid pin, every
+  refusal, refusals that name no address, masked console output (checked by planting
+  an unmasked address, which the test caught), Auth-before-Firestore, and the
+  workflow masking both addresses outside any `env:` block.
+- `src/utils/accessPolicy.test.js`: the gate applies to `REGISTER` and nothing else,
+  and the sign-in screen consults it.
+
 ## [2.18.1] - 2026-10-14
 
 ### Fixed

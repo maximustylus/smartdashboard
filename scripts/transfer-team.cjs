@@ -48,22 +48,8 @@ const valueFor = (flag) => {
     return typeof value === 'string' && !value.startsWith('--') ? value.trim() : null;
 };
 
-/**
- * ⚠️ THIS SCRIPT'S OUTPUT IS PUBLIC. It normally runs in GitHub Actions, and the
- *    repository is public, so its log can be read by anybody. Nothing personal is
- *    printed in full: an address shows as its first letter and domain, a name as
- *    initials. Enough for the owner to recognise the right person; nothing a
- *    stranger could use.
- */
-const maskEmail = (email) => {
-    const text = typeof email === 'string' ? email.trim().toLowerCase() : '';
-    const at = text.indexOf('@');
-    return at > 0 ? `${text[0]}•••${text.slice(at)}` : '(no address)';
-};
-const initials = (name) => {
-    const words = typeof name === 'string' ? name.trim().split(/\s+/).filter(Boolean) : [];
-    return words.length > 0 ? words.map((w) => `${w[0].toUpperCase()}.`).join('') : '(no name)';
-};
+// Output is public (the repository is): see `logMask.cjs`.
+const { maskEmail, initials } = require('./logMask.cjs');
 
 /** Who the log says made the change. Not a person's uid: no person's session did. */
 const OWNER_ACTOR = { byUid: 'nexus-admin-workflow', byName: 'NEXUS owner (admin workflow)' };

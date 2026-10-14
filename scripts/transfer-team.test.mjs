@@ -56,6 +56,7 @@ describe('nothing personal reaches the public log', () => {
 
     it('masks addresses and prints names as initials only', () => {
         expect(script).toMatch(/NEW LEAD: \$\{maskEmail\(toEmail\)\}/);
+        expect(script).toMatch(/require\('\.\/logMask\.cjs'\)/);
         const calls = consoleCalls();
         expect(calls.length).toBeGreaterThan(5);
         for (const call of calls) {
@@ -72,7 +73,8 @@ describe('nothing personal reaches the public log', () => {
     it('the workflow never puts the new lead\'s address in a step env block, and masks it', () => {
         expect(workflow).not.toMatch(/NEW_LEAD:\s*'\$\{\{/);
         expect(workflow).not.toMatch(/env:[\s\S]*inputs\.newLeadEmail/);
-        expect(workflow).toMatch(/echo "::add-mask::\$NEW_LEAD"/);
+        expect(workflow).toMatch(/echo "::add-mask::\$v"/);
+        expect(workflow).toMatch(/for v in "\$NEW_LEAD"/);
     });
 });
 

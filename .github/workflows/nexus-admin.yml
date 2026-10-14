@@ -6,6 +6,9 @@
 #                    colleagues at that institution (scripts/bootstrap-config.cjs,
 #                    additive: it never removes a domain already there)
 #   transfer-team    hand a team to a new lead (scripts/transfer-team.cjs)
+#   change-email     move one account to a new address, keeping the account
+#                    (scripts/change-email.cjs; needs the service account to hold
+#                    the Firebase Authentication Admin role)
 #
 # EVERY RUN IS A PREVIEW unless "apply" is ticked. Read the preview in the job log,
 # then run it again with "apply" ticked to make the change.
@@ -20,6 +23,7 @@ on:
         options:
           - register-domain
           - transfer-team
+          - change-email
       domain:
         description: 'register-domain: the email domain, e.g. kkh.com.sg'
         required: false
@@ -40,6 +44,12 @@ on:
           - viewer
           - staff
           - lead
+      currentEmail:
+        description: 'change-email: the account''s current address'
+        required: false
+      newEmail:
+        description: 'change-email: the address it should move to'
+        required: false
       apply:
         description: 'Apply the change. Leave unticked to preview only.'
         required: false
@@ -76,7 +86,11 @@ jobs:
           NEW_LEAD="$(input newLeadEmail)"
           PREVIOUS_BECOMES="$(input previousLeadBecomes)"
           APPLY="$(input apply)"
-          if [ -n "$NEW_LEAD" ]; then echo "::add-mask::$NEW_LEAD"; fi
+          CURRENT_EMAIL="$(input currentEmail)"
+          NEW_EMAIL="$(input newEmail)"
+          for v in "$NEW_LEAD" "$CURRENT_EMAIL" "$NEW_EMAIL"; do
+            if [ -n "$v" ]; then echo "::add-mask::$v"; fi
+          done
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           trap 'rm -f "$KEY"' EXIT
@@ -91,6 +105,9 @@ jobs:
             transfer-team)
               node scripts/transfer-team.cjs --team "$TEAM" --to "$NEW_LEAD" \
                 --previous-lead-becomes "$PREVIOUS_BECOMES" $WRITE_FLAG
+              ;;
+            change-email)
+              node scripts/change-email.cjs --from "$CURRENT_EMAIL" --to "$NEW_EMAIL" $WRITE_FLAG
               ;;
             *)
               echo "Unknown task: $TASK"; exit 1

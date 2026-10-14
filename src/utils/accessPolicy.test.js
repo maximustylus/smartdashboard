@@ -10,8 +10,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
     DEFAULT_ALLOWED_DOMAINS,
+    domainGateAppliesTo,
     normaliseDomain,
     emailDomain,
     parseDomainAllowlist,
@@ -279,5 +282,22 @@ describe('accessPolicy — where a signed-in person lands', () => {
     it('only ACTIVE opens the app', () => {
         [ACCESS_UNVERIFIED, ACCESS_PENDING_LEAD, ACCESS_DECLINED, ACCESS_AWAITING_INVITE]
             .forEach((state) => expect(canEnterApp(state)).toBe(false));
+    });
+});
+
+describe('the institution gate applies to registration only (v2.19.0)', () => {
+    it('checks the domain when an account is being created', () => {
+        expect(domainGateAppliesTo('REGISTER')).toBe(true);
+    });
+
+    it('does not check it when an existing account signs in, or for anything else', () => {
+        for (const view of ['LOGIN', 'RESET', '', undefined, null]) {
+            expect(domainGateAppliesTo(view), String(view)).toBe(false);
+        }
+    });
+
+    it('WelcomeScreen consults it before refusing an address', () => {
+        const source = readFileSync(resolve(process.cwd(), 'src/components/WelcomeScreen.jsx'), 'utf8');
+        expect(source).toMatch(/if \(domainGateAppliesTo\(authView\) && !isAllowedEmail\(email, domains\)\)/);
     });
 });
