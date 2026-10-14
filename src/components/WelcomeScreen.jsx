@@ -22,6 +22,7 @@ import { checkAccess } from '../utils/legacyBridge';
 import { useDomainAllowlist } from '../hooks/useDomainAllowlist';
 import {
     isAllowedEmail,
+    domainGateAppliesTo,
     domainRefusalMessage,
     validateLeadDeclaration,
     buildLeadRequest,
@@ -142,7 +143,7 @@ const WelcomeScreen = (props) => {
             // ⚠️ This is a registration gate, not a security boundary — it runs in the
             // browser. `firestore.rules` and the approval function are what actually
             // protect clinical data. See `accessPolicy.js`.
-            if (!isAllowedEmail(email, domains)) {
+            if (domainGateAppliesTo(authView) && !isAllowedEmail(email, domains)) {
                 const refusal = new Error(domainRefusalMessage(email, domains));
                 // Shown verbatim rather than SHOUTED — it is two sentences of guidance,
                 // and uppercasing a list of domains makes it harder to read, not louder.
