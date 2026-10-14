@@ -672,14 +672,19 @@ const assertTeamTransfer = ({ team, members, toEmail, previousLeadBecomes = 'lea
     const list = Array.isArray(members) ? members : [];
     const wanted = lower(toEmail);
     const target = wanted ? list.find((m) => lower(m.email) === wanted) : null;
+    /**
+     * ⚠️ THE REFUSAL NAMES NOBODY. It runs in a GitHub Actions log, and this
+     *    repository is public: a first version listed every member's name and
+     *    address so the owner could spot a typo, which would have published the
+     *    department's staff list. A count and a pointer to the Team panel, where
+     *    the addresses are visible to the people entitled to see them, is enough.
+     */
     if (!target) {
-        const known = list
-            .map((m) => `${m.displayName || '(no name)'} <${m.email || 'no email on record'}>`)
-            .join('; ');
         return no(
             TRANSFER_REASONS.NOT_A_MEMBER,
-            'Nobody in this team has the address ' + (wanted || '(blank)') + '. A team can only be handed '
-            + 'to somebody already in it. Members: ' + (known || 'none') + '.',
+            'Nobody in this team has that address (the team has ' + list.length + ' '
+            + (list.length === 1 ? 'member' : 'members') + '). A team can only be handed to somebody '
+            + 'already in it. Check the spelling against the Team panel in NEXUS.',
         );
     }
 
