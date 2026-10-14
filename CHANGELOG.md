@@ -54,6 +54,27 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.18.1] - 2026-10-14
+
+### Fixed
+
+- **The NEXUS Admin workflow's log would have published staff names and addresses.**
+  This repository is public, so every Actions log is too. As shipped in v2.18.0 the
+  `transfer-team` task passed the new lead's address through a step's `env:` block,
+  which GitHub prints at the top of the log, and the script printed each affected
+  member's name and, when an address did not match, every member's name and address.
+  Found after merge and before anybody ran it. Now the inputs are read inside the step
+  from the event file and the address is masked with `::add-mask::` before anything
+  prints; the script shows an address as its first letter and domain and a name as
+  initials; and a mismatch reports only how many members the team has. The
+  `register-domain` task printed only the domain and is unchanged.
+
+### Evidence
+
+- `functions/teamMembership.test.js` asserts the mismatch message contains no
+  member's name or address; `scripts/transfer-team.test.mjs` asserts the script logs
+  only masked values and the workflow never puts the address in an `env:` block.
+
 ## [2.18.0] - 2026-10-14
 
 A lead can change a colleague's role from the Team panel: staff, lead or viewer.

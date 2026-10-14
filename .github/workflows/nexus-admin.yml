@@ -59,18 +59,24 @@ jobs:
       - name: Install the admin SDK (functions/ holds it)
         working-directory: ./functions
         run: npm ci --omit=dev
+      # ⚠️ THIS REPOSITORY IS PUBLIC, AND SO IS EVERY RUN'S LOG. GitHub prints a
+      #    step's `env:` block at the top of its log, so the new lead's address is
+      #    NOT passed through `env:`. It is read from the event file inside the step
+      #    and masked before anything prints; the scripts print only masked values.
       - name: Run
         env:
           GCP_SA_KEY: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          TASK: '${{ github.event.inputs.task }}'
-          DOMAIN: '${{ github.event.inputs.domain }}'
-          TEAM: '${{ github.event.inputs.team }}'
-          NEW_LEAD: '${{ github.event.inputs.newLeadEmail }}'
-          PREVIOUS_BECOMES: '${{ github.event.inputs.previousLeadBecomes }}'
-          APPLY: '${{ github.event.inputs.apply }}'
         run: |
           set -euo pipefail
           umask 077
+          input() { jq -r --arg k "$1" '.inputs[$k] // empty' "$GITHUB_EVENT_PATH"; }
+          TASK="$(input task)"
+          DOMAIN="$(input domain)"
+          TEAM="$(input team)"
+          NEW_LEAD="$(input newLeadEmail)"
+          PREVIOUS_BECOMES="$(input previousLeadBecomes)"
+          APPLY="$(input apply)"
+          if [ -n "$NEW_LEAD" ]; then echo "::add-mask::$NEW_LEAD"; fi
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           trap 'rm -f "$KEY"' EXIT

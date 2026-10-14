@@ -48,6 +48,23 @@ const valueFor = (flag) => {
     return typeof value === 'string' && !value.startsWith('--') ? value.trim() : null;
 };
 
+/**
+ * ⚠️ THIS SCRIPT'S OUTPUT IS PUBLIC. It normally runs in GitHub Actions, and the
+ *    repository is public, so its log can be read by anybody. Nothing personal is
+ *    printed in full: an address shows as its first letter and domain, a name as
+ *    initials. Enough for the owner to recognise the right person; nothing a
+ *    stranger could use.
+ */
+const maskEmail = (email) => {
+    const text = typeof email === 'string' ? email.trim().toLowerCase() : '';
+    const at = text.indexOf('@');
+    return at > 0 ? `${text[0]}•••${text.slice(at)}` : '(no address)';
+};
+const initials = (name) => {
+    const words = typeof name === 'string' ? name.trim().split(/\s+/).filter(Boolean) : [];
+    return words.length > 0 ? words.map((w) => `${w[0].toUpperCase()}.`).join('') : '(no name)';
+};
+
 /** Who the log says made the change. Not a person's uid: no person's session did. */
 const OWNER_ACTOR = { byUid: 'nexus-admin-workflow', byName: 'NEXUS owner (admin workflow)' };
 
@@ -70,7 +87,7 @@ const main = async () => {
     console.log('\n──────────────────────────────────────────────────────────────');
     console.log(`  PROJECT : ${credential.projectId}`);
     console.log(`  TEAM    : ${teamId}`);
-    console.log(`  NEW LEAD: ${toEmail}`);
+    console.log(`  NEW LEAD: ${maskEmail(toEmail)}`);
     console.log(`  OUTGOING LEAD BECOMES: ${previousLeadBecomes}`);
     console.log(`  MODE    : ${WRITE ? 'WRITE' : 'DRY RUN (nothing is written)'}`);
     console.log('──────────────────────────────────────────────────────────────\n');
@@ -89,11 +106,13 @@ const main = async () => {
         if (!plan.ok || plan.noChange) return plan;
 
         const outgoing = members.find((m) => m.uid === plan.fromUid);
-        console.log(`Team "${team.name || teamId}"`);
-        console.log(`  founding lead: ${outgoing ? (outgoing.displayName || outgoing.email) : plan.fromUid || '(none)'}`
-            + `  →  ${plan.toName}`);
+        const newLead = members.find((m) => m.uid === plan.toUid);
+        console.log(`Team ${teamId} (${members.length} members)`);
+        console.log(`  founding lead: ${outgoing ? initials(outgoing.displayName) : '(none)'}`
+            + `  →  ${newLead ? `${initials(newLead.displayName)} ${maskEmail(newLead.email)}` : '?'}`);
         for (const change of plan.roleChanges) {
-            console.log(`  ${change.name}: ${change.fromRole} → ${change.toRole}`
+            const who = members.find((m) => m.uid === change.uid);
+            console.log(`  ${who ? initials(who.displayName) : '?'}: ${change.fromRole} → ${change.toRole}`
                 + `${change.toRostered ? '' : ' (not rostered)'}`);
         }
 

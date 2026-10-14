@@ -772,10 +772,15 @@ describe('handing a team to a new lead', () => {
         expect(plan).toMatchObject({ ok: true, noChange: true });
     });
 
-    it('refuses somebody not in the team, and lists who is', () => {
+    it('refuses somebody not in the team WITHOUT naming anybody — its message reaches a public log', () => {
         const plan = assertTeamTransfer({ team, members, toEmail: 'stranger@kkh.com.sg' });
         expect(plan).toMatchObject({ ok: false, reason: TRANSFER_REASONS.NOT_A_MEMBER });
-        expect(plan.message).toMatch(/Derlinder <Derlinder@KKH\.com\.sg>/);
+        expect(plan.message).toMatch(/the team has 3 members/);
+        for (const m of members) {
+            expect(plan.message).not.toContain(m.displayName);
+            expect(plan.message.toLowerCase()).not.toContain(m.email.toLowerCase());
+        }
+        expect(plan.message).not.toContain('stranger@');
     });
 
     it('refuses a missing team and a role that does not exist', () => {

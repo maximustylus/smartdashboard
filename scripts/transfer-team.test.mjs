@@ -37,6 +37,45 @@ describe('transfer-team.cjs', () => {
     });
 });
 
+describe('nothing personal reaches the public log', () => {
+    /**
+     * Every `console.*(...)` call, start to its closing `);` — what reaches the log.
+     * The Firestore role-change record keeps the full name on purpose (it is read
+     * by the team's leads, behind the rules), so only console output is checked.
+     */
+    const consoleCalls = () => {
+        const calls = [];
+        let at = script.indexOf('console.');
+        while (at !== -1) {
+            const end = script.indexOf(');', at);
+            calls.push(script.slice(at, end + 2));
+            at = script.indexOf('console.', end);
+        }
+        return calls;
+    };
+
+    it('masks addresses and prints names as initials only', () => {
+        expect(script).toMatch(/NEW LEAD: \$\{maskEmail\(toEmail\)\}/);
+        const calls = consoleCalls();
+        expect(calls.length).toBeGreaterThan(5);
+        for (const call of calls) {
+            for (const m of call.matchAll(/([A-Za-z_.(]*)\b(\w+)\.displayName/g)) {
+                expect(m[1].endsWith('initials('), `unmasked name in: ${call}`).toBe(true);
+            }
+            for (const m of call.matchAll(/([A-Za-z_.(]*)\b(\w+)\.email\b/g)) {
+                expect(m[1].endsWith('maskEmail('), `unmasked address in: ${call}`).toBe(true);
+            }
+            expect(call, 'a raw name field is printed').not.toMatch(/change\.name|plan\.toName|\btoEmail\b(?!\))/);
+        }
+    });
+
+    it('the workflow never puts the new lead\'s address in a step env block, and masks it', () => {
+        expect(workflow).not.toMatch(/NEW_LEAD:\s*'\$\{\{/);
+        expect(workflow).not.toMatch(/env:[\s\S]*inputs\.newLeadEmail/);
+        expect(workflow).toMatch(/echo "::add-mask::\$NEW_LEAD"/);
+    });
+});
+
 describe('the NEXUS Admin workflow', () => {
     it('previews unless "apply" is ticked, and apply defaults to off', () => {
         expect(workflow).toMatch(/apply:[\s\S]*?type: boolean[\s\S]*?default: false/);
