@@ -83,7 +83,7 @@ Every pop-up now reads as NEXUS's own.
   `prompt(` comes back anywhere in the app.
 - Checked in a browser on the production build: sharing a Feeds post in the sandbox
   shows "NEXUS SAYS · Post link copied to clipboard." with one OK button, and OK closes it.
-- Full gate: lint 0, **4628 tests across 141 files**, build 0.
+- Full gate on the combined tree (with v2.19.1): lint 0, **4631 tests across 141 files**, build 0.
 
 ## [2.19.1] - 2026-10-14
 
