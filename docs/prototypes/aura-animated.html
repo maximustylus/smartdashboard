@@ -118,7 +118,7 @@ text.ink { fill: var(--ink-stroke); }
   <div class="card">
     <div class="stage">
       <svg id="stage" viewBox="0 0 320 256" role="img" aria-label="A notebook on a desk with a pencil beside it, animating through AURA's states">
-        <g id="book" class="px" transform="translate(0,20)">
+        <g id="book" class="px" transform="translate(70,20)">
           <rect id="cover" x="40" y="30" width="150" height="172" rx="12" fill="var(--cover)"/>
           <rect id="binding" x="40" y="30" width="18" height="172" rx="6" fill="var(--binding)"/>
           <g id="rings" fill="var(--paper)">
@@ -241,8 +241,10 @@ text.ink { fill: var(--ink-stroke); }
   const reduce = () => root.dataset.reduce === '1' || matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // Pencil placement: tip at (x,y), leaning at rot degrees. 180 flips it onto the eraser.
-  const BOOK_Y = 20; // the book group is translated down to make room for the longer pencil
-  const put = (x, y, rot = -38) => { pencil.style.transform = `translate(${x}px, ${y + BOOK_Y}px) rotate(${rot}deg)`; };
+  // Book coordinates: the book group is shifted so the pencil, leaning up-left from its tip, stays in frame.
+  const BOOK_X = 70, BOOK_Y = 20;
+  // Tip at (x, y). 30 deg points the tip at 4 o'clock, the body up to 10 o'clock: a pencil writing.
+  const put = (x, y, rot = 30) => { pencil.style.transform = `translate(${x + BOOK_X}px, ${y + BOOK_Y}px) rotate(${rot}deg)`; };
   const HOME = [192, 74];
 
   function reset() {
@@ -263,7 +265,7 @@ text.ink { fill: var(--ink-stroke); }
     idle: { label: 'Idle', run() { say('idle', 'Resting beside the page. Nothing to do, nothing to perform.'); } },
     typing: { label: 'You are typing', run() {
       say('listening · typing', 'Taps like a listener, never like a clock. Leaves no mark. Use the controls below to feel the tempo.');
-      put(128, 92, -38); startTaps(true);
+      put(128, 92, 30); startTaps(true);
     } },
     listen: { label: 'Listening, replying', run() {
       say('coach · reply', 'Short marks as AURA replies. Never while you speak.');
@@ -271,7 +273,7 @@ text.ink { fill: var(--ink-stroke); }
     } },
     thinking: { label: 'Thinking', run() {
       say('thinking', 'Rises, hovers, settles. No tapping. Nothing is written until there is something to say.');
-      put(130, 70); later(() => put(130, 50, -30), 300); later(() => put(130, 70, -38), 1700);
+      put(130, 70); later(() => put(130, 50, 22), 300); later(() => put(130, 70, 30), 1700);
     } },
     drafting: { label: 'Drafting a document', run() {
       say('assistant · drafting', 'Lines fill the page left to right. Grey: it is a draft until you take it. The first line is sketched twice: that is what working from recall looks like.');
@@ -279,28 +281,29 @@ text.ink { fill: var(--ink-stroke); }
       later(() => { $$('.sketch').forEach(s => s.classList.remove('on')); }, 1400);
       const rows = [58, 78, 98, 118, 138, 158];
       $$('.draft').forEach((p, i) => later(() => { put(96, rows[i]); p.classList.add('on'); later(() => put(96 + p.getTotalLength(), rows[i]), 50); }, 1500 + i * 520));
-      later(() => { put(136, 184, -30); $('#sig').classList.add('on'); }, 1500 + 6 * 520 + 200);
+      later(() => { put(136, 184, 22); $('#sig').classList.add('on'); }, 1500 + 6 * 520 + 200);
       later(() => say('assistant · drafted', 'And it signs the bottom of the page. The provenance footer, written.'), 1500 + 6 * 520 + 900);
     } },
     propose: { label: 'Proposing a write', run() {
       say('data entry · proposing', 'Pencils the figure into a ruled box, then stops dead and waits. Nothing is written until you click.');
       $('#box').classList.add('on'); put(128, 108);
       later(() => { $('#num').classList.add('on'); put(154, 108); }, 500);
-      later(() => { put(178, 96, -38); say('data entry · waiting', 'Still. No sway, no blink. The card is yours to approve or refuse.'); }, 1100);
+      later(() => { put(178, 96, 30); say('data entry · waiting', 'Still. No sway, no blink. The card is yours to approve or refuse.'); }, 1100);
     } },
     approve: { label: '→ Approved', run() {
-      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, -38);
+      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, 30);
       say('data entry · approved', 'Your click. The grey stroke becomes ink. Only you ink it.');
       later(() => { $('#num').classList.add('ink'); $('#box').setAttribute('stroke-dasharray', '0'); $('#box').classList.add('ink'); }, 500);
       later(() => $('#box').setAttribute('stroke-dasharray', '3 3'), 6000);
     } },
     refuse: { label: '→ Refused', run() {
-      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, -38);
+      $('#box').classList.add('on'); $('#num').classList.add('on'); put(178, 96, 30);
       say('data entry · refused', 'The eraser end comes round. A rub, a few crumbs, a clean box.');
-      later(() => put(124, 124, 142), 400);
-      later(() => put(164, 124, 142), 1100);
-      later(() => { put(128, 124, 142); $$('.crumb').forEach(c => c.classList.add('on')); $('#num').style.opacity = '0'; }, 1600);
-      later(() => put(178, 96, -38), 2500);
+      // Eraser to the box: tip = eraser point - (130, 75) at -150 deg.
+      later(() => put(124 - 130, 124 - 75, -150), 400);
+      later(() => put(164 - 130, 124 - 75, -150), 1100);
+      later(() => { put(128 - 130, 124 - 75, -150); $$('.crumb').forEach(c => c.classList.add('on')); $('#num').style.opacity = '0'; }, 1600);
+      later(() => put(178, 96, 30), 2500);
     } },
     research: { label: 'Research', run() {
       say('research · citations', 'Margin notes, each with a question mark. It becomes a tick only when a person verifies it, which the app cannot do. So it stays.');
@@ -310,7 +313,7 @@ text.ink { fill: var(--ink-stroke); }
       say('assistant · rework', 'The new page is visibly shorter, and the previous page shows through the paper. You see what was dropped. Then the margin note.');
       $$('.draft').forEach(p => p.classList.add('on'));
       later(() => { $('#ghost-page').setAttribute('opacity', '.35'); $$('.draft').forEach(p => p.style.opacity = '.28'); $('#short-page').classList.add('on'); $('#short-lines').classList.add('on'); $$('.draft').slice(0, 3).forEach(p => p.style.opacity = '1'); }, 900);
-      later(() => { put(100, 150, -38); $('#shorter').classList.add('on'); }, 1900);
+      later(() => { put(100, 150, 30); $('#shorter').classList.add('on'); }, 1900);
       later(() => $$('.draft').forEach(p => p.style.opacity = ''), 7000);
     } },
     strike: { label: 'Injection caught', run() {
@@ -322,8 +325,8 @@ text.ink { fill: var(--ink-stroke); }
     snap: { label: 'Cannot reach the model', run() {
       say('error · retry', 'The lead snaps. A small, honest tick. Then it sharpens, and that is the retry.');
       put(120, 80); later(() => put(120, 86), 400);
-      later(() => { const tip = pencil.querySelector('.tip'); tip.style.opacity = '0'; const c = $('#chip'); c.setAttribute('transform', 'translate(120,86) rotate(-38)'); c.classList.add('on'); put(120, 78, -44); }, 700);
-      later(() => put(120, 80, -34), 1300); later(() => put(120, 80, -42), 1500); later(() => put(120, 80, -38), 1700);
+      later(() => { const tip = pencil.querySelector('.tip'); tip.style.opacity = '0'; const c = $('#chip'); c.setAttribute('transform', `translate(${120 + BOOK_X},${86 + BOOK_Y}) rotate(30)`); c.classList.add('on'); put(120, 78, 36); }, 700);
+      later(() => put(120, 80, 24), 1300); later(() => put(120, 80, 34), 1500); later(() => put(120, 80, 30), 1700);
       later(() => { pencil.querySelector('.tip').style.opacity = '1'; say('error · sharpened', 'Sharpened. Trying once more.'); }, 2000);
     } },
     rest: { label: 'Rest', run() {
@@ -338,7 +341,7 @@ text.ink { fill: var(--ink-stroke); }
     } },
     dogear: { label: 'Assumptions declared', run() {
       say('P1 · assumptions', 'A dog-ear on the page. Present, not alarming. It stays until the gap is filled.');
-      $$('.draft').forEach(p => p.classList.add('on')); later(() => { $('#dogear').classList.add('on'); $('#dogear2').classList.add('on'); put(176, 48, -60); }, 500);
+      $$('.draft').forEach(p => p.classList.add('on')); later(() => { $('#dogear').classList.add('on'); $('#dogear2').classList.add('on'); put(176, 48, 30); }, 500);
     } },
   };
 
@@ -394,7 +397,7 @@ text.ink { fill: var(--ink-stroke); }
   let simTimer = null;
   const SAMPLE = 'Rough shift. Two arrests back to back and I still have documentation to finish. I honestly do not know if I am coping or just used to it. The second one was a kid and I keep seeing the monitor. I have not eaten since this morning and the notes are not going to write themselves.';
   $('#simulate').addEventListener('click', () => {
-    clearTimeout(simTimer); draft.value = ''; chars = 0; typedSinceStill = 0; stopTaps(); select('typing', { silent: true }); put(128, 92, -38);
+    clearTimeout(simTimer); draft.value = ''; chars = 0; typedSinceStill = 0; stopTaps(); select('typing', { silent: true }); put(128, 92, 30);
     let i = 0;
     // Pauses at full stops, so you can watch it go still and then resume.
     const tick = () => {
