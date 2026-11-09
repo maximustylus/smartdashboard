@@ -9,7 +9,6 @@ import { legacyPulseKeys, resolvePulseEntry, pulseStats, pulseTimestamp } from '
 
 // --- CONTEXT, DATA & FIREBASE MESSAGING ---
 import { useNexus } from '../context/NexusContext';
-import { isLegacyAdminEmail } from '../utils/legacyBridge';
 import { MOCK_STAFF } from '../data/mockData';
 import { requestForToken } from '../firebase'; // 🛡️ IMPORTING THE HANDSHAKE
 
@@ -351,17 +350,11 @@ const getBatteryIcon = (level) => {
                         const currentFocus = staffData ? staffData.focus : 0;
                         
                         // `AN14`: this said `user?.name === 'Nisa'` — the roster
-                        // master, by first name, in the public bundle. Her grant now
-                        // rides on the bridge profile's `role: 'admin'`.
-                        // ⚠️ `isLegacyAdminEmail` is BELT-AND-BRACES AT BEST: the
-                        // bridge profile carries no email field, so `user.email` is
-                        // only set when the `users/{uid}` document happens to hold
-                        // one — the same document whose staleness the clause was
-                        // meant to survive. Kept because it is harmless and covers
-                        // the doc-has-email-but-stale-role case; it does NOT cover
-                        // the doc-missing case an earlier comment implied.
+                        // master, by first name, in the public bundle. The grant is
+                        // `role: 'admin'` on her own `users/{uid}` document; the
+                        // legacy bridge that also carried it was deleted in v2.20.1.
                         // `AU12`: self is uid equality now, not name equality.
-                        const canEdit = isDemo || user?.role === 'admin' || isLegacyAdminEmail(user?.email) || user?.uid === person.uid;
+                        const canEdit = isDemo || user?.role === 'admin' || user?.uid === person.uid;
                         
                         return (
                             <div 

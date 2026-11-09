@@ -44,10 +44,6 @@ import AuraInfoCard from './components/AuraInfoCard';
 
 // UTILITIES
 import { MONTHS } from './utils';
-// `AN14`: recognition by digest, not by a shipped directory. `checkAccess` keeps
-// its name and its truthy-means-legacy-member contract; what changed is that the
-// bundle no longer contains anybody's name or address.
-import { checkAccess, isLegacyAdminEmail } from './utils/legacyBridge';
 import AccessGate from './components/AccessGate';
 import LeadRequestsPanel from './components/LeadRequestsPanel';
 import { useTeam } from './context/TeamContext';
@@ -257,7 +253,6 @@ export default function App() {
     const unsubscribe = auth.onAuthStateChanged((u) => {
       if (u) {
         try {
-          const initialProfile = checkAccess(u.email);
           const userDocRef = doc(db, ...userPath(u.uid));
 
           // The two facts that decide whether this person sees the app or a holding
@@ -268,17 +263,17 @@ export default function App() {
 
           unsubUserDoc = onSnapshot(userDocRef, (docSnap) => {
             if (docSnap.exists()) {
-              setUser({ ...initialProfile, ...docSnap.data(), uid: u.uid });
+              setUser({ ...docSnap.data(), uid: u.uid });
               setAuthFacts((prev) => ({ ...prev, teamIds: docSnap.data().teamIds }));
             } else {
-              setUser({ ...initialProfile, uid: u.uid });
+              setUser({ uid: u.uid });
               setAuthFacts((prev) => ({ ...prev, teamIds: undefined }));
             }
             setAuthLoading(false);
           }, (error) => {
             console.error("Error fetching user data:", error);
             if (auth.currentUser) {
-                setUser({ ...initialProfile, uid: u.uid });
+                setUser({ uid: u.uid });
             } else {
                 setUser(null);
             }
@@ -467,14 +462,13 @@ export default function App() {
    *    — so onboarding a department's lead is now data, exactly like onboarding
    *    anybody else.
    *
-   *    `AN14` follow-up: the two addresses were PLAINTEXT here — the SEVENTH
-   *    hardcoded copy of team #1's identity, found while removing the sixth. The
-   *    grant is unchanged (same two people, same disjunct); the addresses now live
-   *    as digests in `legacyBridge.js`, and this clause dies with the bridge.
+   *    The two addresses then lived on as digests in a "legacy bridge" that also
+   *    waved its seven recognised addresses past the access gate. It was deleted
+   *    in v2.20.1, once a read-only production check counted nobody relying on it
+   *    for entry and nobody an admin only because of it.
    */
   const hasAdminAccess = isDemo
     || isLead
-    || isLegacyAdminEmail(user?.email)
     || user?.role === 'admin';
 
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -602,25 +596,15 @@ export default function App() {
   );
 
   /**
-   * ── THE ACCESS GATE, AND THE BRIDGE THAT KEEPS THE LIVE TEAM WORKING ─────────
+   * ── THE ACCESS GATE ──────────────────────────────────────────────────────────
    *
-   * `accessStateFor` decides where a signed-in person lands. But the four clinicians
-   * currently rostering on NEXUS have no `teamIds` yet — the migration that gives
-   * them one has not run — so enforcing this unconditionally would take a live
-   * roster away from practising staff the moment this deploys. That is precisely the
-   * irreversible failure the rebuild plan is written to avoid.
-   *
-   * So the legacy directory is a BRIDGE: anyone `checkAccess` still recognises goes
-   * straight through, exactly as today. Only the population that could not exist
-   * before — anybody else at an allowlisted institution — is routed by state.
-   *
-   * ⚠️ DELETE THIS BRIDGE when `scripts/migrate-to-teams.cjs` has run and the ten
-   * directory members hold `teamIds`. Leaving it in place after that would mean ten
-   * named email addresses permanently bypass membership checks, which is the
-   * hardcoded-team defect coming back in a quieter form. The trigger is concrete:
-   * the migration's own verification step.
+   * `accessStateFor` decides where a signed-in person lands, for EVERYBODY. Until
+   * v2.20.1 seven recognised email addresses bypassed it — a bridge for the August
+   * 2026 migration, whose own comment said to delete it once those people held
+   * `teamIds`. They do (checked in production, counts only, before deletion), so
+   * membership is now the only way into the shell. There is no list of names or
+   * addresses, hashed or otherwise, anywhere in the bundle.
    */
-  const isLegacyDirectoryMember = !isDemo && !!checkAccess(user?.email);
   const accessState = accessStateFor({
     emailVerified: authFacts.emailVerified,
     teamIds: authFacts.teamIds,
@@ -638,7 +622,7 @@ export default function App() {
    */
   const isApprovalQueue = pathname === APPROVALS_PATH;
 
-  if (user && !isDemo && !isApprovalQueue && !isLegacyDirectoryMember && !canEnterApp(accessState)) {
+  if (user && !isDemo && !isApprovalQueue && !canEnterApp(accessState)) {
     return (
       <AccessGate
         state={accessState}

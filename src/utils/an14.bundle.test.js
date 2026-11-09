@@ -6,7 +6,7 @@
  * Seven colleagues' names and work email addresses shipped in the public bundle
  * from `TEAM_DIRECTORY`, on every route including the unauthenticated community
  * screening. The directory is deleted; recognition happens by salted digest in
- * `legacyBridge.js`. This suite is what makes the deletion STAY deleted.
+ * `legacyBridge.js` (itself deleted in v2.20.1). This suite is what makes the deletion STAY deleted.
  *
  * Two layers, because each catches what the other cannot:
  *

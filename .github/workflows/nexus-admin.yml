@@ -8,8 +8,6 @@
 #   transfer-team    hand a team to a new lead (scripts/transfer-team.cjs)
 #   mark-verified    confirm an account's address on the owner's word, when the
 #                    verification email never arrives (scripts/mark-verified.cjs)
-#   bridge-check     READ ONLY: counts how many accounts still rely on the legacy
-#                    email bridge, so it can be deleted (scripts/bridge-check.cjs)
 #   change-email     move one account to a new address, keeping the account
 #                    (scripts/change-email.cjs; needs the service account to hold
 #                    the Firebase Authentication Admin role)
@@ -29,7 +27,6 @@ on:
           - transfer-team
           - change-email
           - mark-verified
-          - bridge-check
       domain:
         description: 'register-domain: the email domain, e.g. kkh.com.sg'
         required: false
@@ -117,9 +114,6 @@ jobs:
               ;;
             mark-verified)
               node scripts/mark-verified.cjs --email "$NEW_EMAIL" $WRITE_FLAG
-              ;;
-            bridge-check)
-              node scripts/bridge-check.cjs
               ;;
             *)
               echo "Unknown task: $TASK"; exit 1
