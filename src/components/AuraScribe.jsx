@@ -15,7 +15,9 @@ import { SCRIBE_STATES, tapIntervalSeconds } from '../utils/auraScribe';
 
 const WRITE = 150;
 const FLIP = -30;
-const HOME = { x: 116, y: 74, r: WRITE };
+// At rest the pencil lies on the open page, leaning out over the right edge, so
+// the two read as one object at strip size. (Owner review of the in-app mockups.)
+const HOME = { x: 66, y: 108, r: 165 };
 
 const ROWS = [54, 66, 78, 90, 102, 114];
 const DRAFT = [50, 40, 46, 30, 44, 24];
@@ -229,9 +231,9 @@ export default function AuraScribe({ state = 'idle', ghost = false, proposal = '
  * The launcher: a small closed notebook with the pencil tucked in its strap.
  * Still. AURA is not working until it is opened, so nothing pings.
  */
-export function AuraScribeGlyph({ size = 30 }) {
+export function AuraScribeGlyph({ size = 38 }) {
     return (
-        <svg className="aura-scribe-glyph" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <svg className="aura-scribe-glyph" width={size} height={size} viewBox="4 1 26 30" aria-hidden="true" focusable="false">
             <rect x="7" y="5" width="17" height="22" rx="3" fill="#fffdfa" />
             <rect x="7" y="5" width="3.5" height="22" rx="1.5" fill="#c9c2f5" />
             {[11, 15, 19].map((y) => <path key={y} d={`M13 ${y}h8`} stroke="#c9c2f5" strokeWidth="1.2" strokeLinecap="round" />)}

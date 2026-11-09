@@ -24,6 +24,9 @@
   flex: none;
 }
 
+/* In the panel: compact, so it does not eat the transcript on a phone. */
+.aura-scribe-strip .aura-scribe { width: 96px; height: 61px; }
+
 .dark .aura-scribe {
   --paper: #23212e;
   --rule: #34313f;

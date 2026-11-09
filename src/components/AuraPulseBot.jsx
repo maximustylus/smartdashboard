@@ -1567,7 +1567,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                         {view === 'CHAT' && chatSize !== 'minimized' && (
                             <div className="shrink-0 p-4 bg-white border-t border-slate-100">
                                 {scribeOn && (
-                                    <div className="flex items-center gap-3 mb-2" data-testid="aura-scribe-strip">
+                                    <div className="aura-scribe-strip flex items-center gap-1 -mt-2 mb-1.5" data-testid="aura-scribe-strip">
                                         <AuraScribe
                                             state={scribeState}
                                             ghost={isAnonymous}
@@ -1576,7 +1576,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                                             draftLength={inputLength}
                                         />
                                         {/* The drawing carries the same sentence as its label; this copy is for sighted readers. */}
-                                        <p className="text-[10px] font-bold text-slate-400 leading-snug" aria-hidden="true">
+                                        <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 leading-snug" aria-hidden="true">
                                             {SCRIBE_STATES[scribeState]}
                                         </p>
                                     </div>
