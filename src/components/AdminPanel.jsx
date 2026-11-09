@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { nexusConfirm } from './nexusDialog';
 import { db } from '../firebase';
 import { 
   updateDoc, doc, arrayUnion, arrayRemove, getDoc, setDoc, writeBatch, getDocs, collection 
@@ -322,7 +323,7 @@ const saveLoads = async () => {
 
     // --- HANDLER: DELETE ---
     const handleDelete = async (staffId, item) => {
-        if(!window.confirm(`Delete "${item.title}"?`)) return;
+        if (!(await nexusConfirm(`Delete "${item.title}"?`, { confirmLabel: 'Delete', danger: true }))) return;
         if (isDemo) {
             setMessage('🗑️ (Sandbox) Item deleted');
             return;
@@ -369,7 +370,7 @@ const saveLoads = async () => {
             setMessage(`✅ (Sandbox) Moved to ${newOwnerName}`);
             return;
         }
-        if (!window.confirm(`Move "${item.title}" to ${newOwnerName}?`)) return;
+        if (!(await nexusConfirm(`Move "${item.title}" to ${newOwnerName}?`, { confirmLabel: 'Move' }))) return;
         setLoading(true);
         try {
             if (!teamId) throw new Error("No team selected");

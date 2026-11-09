@@ -24,6 +24,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { nexusPrompt } from './nexusDialog';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { ShieldCheck, Check, X, Loader2, Inbox, AlertCircle, RefreshCw, Building2 } from 'lucide-react';
 
@@ -197,13 +198,14 @@ const LeadRequestsPanel = () => {
                             <button
                                 type="button"
                                 disabled={busyUid === request.id}
-                                onClick={() => {
-                                    // `window.prompt` rather than an inline form, deliberately: this
+                                onClick={async () => {
+                                    // A one-line prompt rather than an inline form, deliberately: this
                                     // queue is cleared roughly 28 times and then rarely, and a
                                     // per-row expanding textarea is state and layout nobody
                                     // benefits from at that frequency. Cancel returns null and is
                                     // treated as "changed my mind", not as an empty reason.
-                                    const reason = window.prompt('Why is this being declined? The person sees this.');
+                                    // NEXUS's own prompt since v2.20.0, not the browser's.
+                                    const reason = await nexusPrompt('Why is this being declined? The person sees this.', { confirmLabel: 'Decline' });
                                     if (reason !== null) decide(request.id, false, reason);
                                 }}
                                 className="flex-1 min-h-[44px] px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-black uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"

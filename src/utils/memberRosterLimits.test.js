@@ -584,8 +584,12 @@ describe('firestore.rules puts these two fields on the LEAD\'s list only', () =>
         const list = allowlistAfter('allow update: if isLead(teamId)');
         expect(list).toMatch(/'shortName'/);
         expect(list).toMatch(/'onlyTasks'/);
-        // The guard really is the members one, not the team document's.
-        expect(list).toMatch(/'rostered'/);
+        // The guard really is the members one, not the team document's. This read
+        // `'rostered'` until v2.18.0 moved `role` and `rostered` to the
+        // `setMemberRole` Cloud Function; `fte` is on the members list and not on
+        // the team document's, so it fingerprints the same block.
+        expect(list).toMatch(/'fte'/);
+        expect(list).not.toMatch(/'rostered'/);
     });
 
     /**

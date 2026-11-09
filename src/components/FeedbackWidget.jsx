@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { nexusAlert } from './nexusDialog';
 import { db } from '../firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { MessageSquare, X, Send, Bug, Lightbulb } from 'lucide-react';
@@ -44,7 +45,7 @@ const FeedbackWidget = ({ user }) => {
             }, 2000);
         } catch (error) {
             console.error("Feedback failed to send:", error);
-            alert("Could not send feedback. Check console.");
+            nexusAlert("Your feedback could not be sent. Check your connection and try again.");
         } finally {
             setIsSubmitting(false);
         }

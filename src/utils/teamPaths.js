@@ -279,6 +279,13 @@ const under = (teamId, collection, ...rest) => [
 export const membersPath = (teamId) => under(teamId, TEAM_COLLECTIONS.members);
 export const memberPath = (teamId, uid) => under(teamId, TEAM_COLLECTIONS.members, assertUid(uid));
 
+/**
+ * Who made whom a lead, staff or viewer — one immutable record per change, written
+ * by the `setMemberRole` Cloud Function and readable by the team's leads only.
+ */
+export const ROLE_CHANGES = 'roleChanges';
+export const roleChangesPath = (teamId) => [...teamPath(teamId), ROLE_CHANGES];
+
 /** The duty roster for one year — was the single global `system_data/roster_2026`. */
 export const rostersPath = (teamId) => under(teamId, TEAM_COLLECTIONS.rosters);
 export const rosterPath = (teamId, year) => under(teamId, TEAM_COLLECTIONS.rosters, assertYear(year));

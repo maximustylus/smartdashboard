@@ -2293,3 +2293,91 @@ exports.removeMember = onCall({ cors: true }, async (request) => {
     logger.info('[TEAMS] ' + context.callerUid + ' removed ' + targetUid + ' from ' + context.teamId);
     return { success: true, alreadyGone: false };
 });
+
+/**
+ * ==============================================================================
+ * setMemberRole — staff, lead or viewer, decided on the server (v2.18.0)
+ * ==============================================================================
+ *
+ * The Team panel's role picker calls this. `firestore.rules` no longer lets any
+ * client write `role` or `rostered`, because the one rule that matters — a team
+ * never reaches zero leads — needs a count, and a rule cannot count.
+ *
+ * ⚠️ A TRANSACTION, NOT A READ THEN A WRITE. Two leads demoting each other at the
+ *    same moment would each read "two leads", each pass, and leave none. Inside a
+ *    transaction the lead query is part of the read set: the second commit sees the
+ *    first one's write and retries against the new count, where it is refused.
+ *
+ * Refusals come back as `{ success: false, message }` on a 200, like `removeMember`,
+ * because each is a sentence a lead needs to read.
+ */
+exports.setMemberRole = onCall({ cors: true }, async (request) => {
+    var db = getFirestore();
+    var context = await readTeamContext(db, request);
+
+    var targetUid = request.data && request.data.uid;
+    if (typeof targetUid !== 'string' || targetUid.trim() === '') {
+        throw new HttpsError('invalid-argument', 'Which member?');
+    }
+    var nextRole = request.data && request.data.role;
+    var nextRostered = request.data && request.data.rostered;
+
+    var memberRef = db.doc('teams/' + context.teamId + '/members/' + targetUid);
+    var callerRef = db.doc('teams/' + context.teamId + '/members/' + context.callerUid);
+    var leadsQuery = db.collection('teams/' + context.teamId + '/members').where('role', '==', 'lead');
+
+    var outcome = await db.runTransaction(async function (tx) {
+        // Re-read the caller INSIDE the transaction: a lead demoted a moment ago by a
+        // colleague must not be able to finish a change they no longer have the right
+        // to make. `readTeamContext` read it outside, which is fine for the 403 but
+        // not for this.
+        var reads = await Promise.all([tx.get(callerRef), tx.get(memberRef), tx.get(leadsQuery)]);
+        var callerSnap = reads[0];
+        var targetSnap = reads[1];
+        var leadCount = reads[2].size;
+
+        var decision = teamMembership.assertRoleChangeable({
+            teamId: context.teamId,
+            team: context.team,
+            callerUid: context.callerUid,
+            callerMembership: callerSnap.exists ? callerSnap.data() : null,
+            targetUid: targetUid,
+            targetMembership: targetSnap.exists ? targetSnap.data() : null,
+            leadCount: leadCount,
+            nextRole: nextRole,
+            nextRostered: nextRostered,
+        });
+
+        if (!decision.ok) return { success: false, reason: decision.reason, message: decision.message };
+        if (decision.noChange) return { success: true, noChange: true, message: decision.message };
+
+        var callerData = callerSnap.data() || {};
+        var targetData = targetSnap.data() || {};
+        var writes = teamMembership.buildRoleChangeWrites({
+            teamId: context.teamId,
+            targetUid: targetUid,
+            decision: decision,
+            byUid: context.callerUid,
+            byName: callerData.displayName || context.callerEmail || '',
+            targetName: targetData.displayName || '',
+        });
+
+        tx.update(db.doc(writes.member.path.join('/')), writes.member.data);
+        var logRef = db.collection(writes.log.collection.join('/')).doc();
+        tx.set(logRef, Object.assign({}, writes.log.data, { at: FieldValue.serverTimestamp() }));
+
+        return {
+            success: true,
+            noChange: false,
+            role: decision.toRole,
+            rostered: decision.toRostered,
+            fromRole: decision.fromRole,
+        };
+    });
+
+    if (outcome.success && !outcome.noChange) {
+        logger.info('[TEAMS] ' + context.callerUid + ' set ' + targetUid + ' in ' + context.teamId
+            + ' to ' + outcome.role + (outcome.rostered ? '' : ' (not rostered)'));
+    }
+    return outcome;
+});

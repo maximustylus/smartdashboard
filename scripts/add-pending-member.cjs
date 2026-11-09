@@ -109,7 +109,7 @@ const pendingIdFor = (email) => PENDING_PREFIX + email.replace(/[^a-z0-9]+/gi, '
 const main = async () => {
     const credential = describeCredentialFile(process.env.GOOGLE_APPLICATION_CREDENTIALS);
     if (!credential.ok) {
-        console.error(`\n✗ ${credential.reason}\n`);
+        console.error(`\n✗ ${credential.problem || credential.reason}\n`);
         process.exit(1);
     }
 

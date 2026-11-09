@@ -47,7 +47,7 @@ const SCREENS = Object.freeze({
         icon: MailCheck,
         tone: 'amber',
         title: 'Confirm your email',
-        body: 'We sent a verification link to your work address. Click it, then sign in again. '
+        body: 'We sent a verification link to your email address. Click it, then sign in again. '
             + 'NEXUS holds clinical rosters, so an unconfirmed address never reaches team data.',
         next: 'You move next — check your inbox, including junk.',
     },

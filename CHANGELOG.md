@@ -54,6 +54,213 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.20.0] - 2026-10-14
+
+Every pop-up now reads as NEXUS's own.
+
+### Changed
+
+- **The browser's pop-ups are gone.** NEXUS used `window.alert`, `window.confirm`
+  and `window.prompt` in nineteen places. The browser draws those boxes, titles them
+  with the site's address ("smartdashboard.web.app says"), and nobody can retitle
+  them; the owner asked for them to say NEXUS. They are replaced by one in-app box,
+  `src/components/nexusDialog.jsx` (`nexusAlert`, `nexusConfirm`, `nexusPrompt`),
+  titled **NEXUS says**, in the app's style. It is keyboard-operable: focus starts on
+  the main button or the field, Escape cancels and Enter accepts. Calls queue one at a
+  time, and no provider is needed.
+- **The Admin refusal explains itself.** It read "Admins Only Access". It now says the
+  Admin panel is for a team's leads and to ask the team's lead if you need it. The
+  rule behind it is unchanged.
+- Confirms that delete or move something now name the action on the button
+  (*Delete*, *Move*, *Clear*, *Decline*) instead of a bare OK.
+- The feedback widget's failure said "Check console", which is not something a
+  clinician can do. It now says to check the connection and try again.
+
+### Evidence
+
+- `src/components/nexusDialog.test.jsx`: alert, confirm, prompt, focus, Escape and
+  Enter, queueing, plus a scan of `src/` that fails if `alert(`, `confirm(` or
+  `prompt(` comes back anywhere in the app.
+- Checked in a browser on the production build: sharing a Feeds post in the sandbox
+  shows "NEXUS SAYS · Post link copied to clipboard." with one OK button, and OK closes it.
+- Full gate on the combined tree (with v2.19.1): lint 0, **4631 tests across 141 files**, build 0.
+
+## [2.19.1] - 2026-10-14
+
+### Fixed
+
+- **"Confirm your email" flashed for a split second and vanished.** Signing in with
+  an unconfirmed address sent the link, signed the person OUT and threw an error —
+  but the app had already routed the signed-in person to the confirm screen, so they
+  saw it for an instant and landed back on a login form whose message was lost in the
+  remount. Reported by the owner with a screenshot. The account now stays signed in
+  and the confirm screen stays put; `accessStateFor` keeps an unconfirmed account away
+  from team data either way. A failed send no longer stops sign-in.
+- The confirm screen said the link went to "your work address". Since v2.19.0 an
+  account can have a personal address, so it now says "your email address".
+
+### Added
+
+- **`mark-verified` on the NEXUS Admin button** (`scripts/mark-verified.cjs`). The
+  owner moved their account to an iCloud address and the verification email never
+  arrived, in the inbox or junk. This confirms an address on the owner's word,
+  changing that one flag and nothing else. Previews unless "apply" is ticked; the
+  address prints masked.
+
+## [2.19.0] - 2026-10-14
+
+An account can move to a new email address and keep everything. Built for the NEXUS
+owner, who is leaving KKH and keeping NEXUS: their account was on `kkh.com.sg`, a
+mailbox that is about to close.
+
+### Added
+
+- **`change-email` on the NEXUS Admin button** (`scripts/change-email.cjs`, decision
+  in `scripts/emailChange.cjs`). Keeps the account's uid, so its teams, roles,
+  roster history and approver right all stay. Writes the new address to Firebase
+  Auth, `users/{uid}` and each team membership. The new address is left
+  **unverified**: the next sign-in sends a link to it, so ownership is proved rather
+  than asserted. Refuses when the new address already belongs to another account.
+  Needs the deploy service account to hold the *Firebase Authentication Admin* role;
+  if it does not, the preview says so and changes nothing.
+- **An approver keeps the right through the change.** `config/superAdmins` matched
+  approvers by verified email only, so a changed address would silently have lost
+  it. The task swaps the address and adds the account's uid to `uids`, the durable
+  list, so approval no longer depends on any address.
+- `scripts/logMask.cjs`: the masking helper both admin scripts now share.
+
+### Changed
+
+- **The institution check on the sign-in screen applies to registration only.** It
+  decides who may create an account; it was never a security boundary (rules and
+  membership are). Run at every sign-in, it would have locked out an existing,
+  already-vetted account whose address had moved off an institutional domain,
+  which is exactly what `change-email` produces. New accounts are still refused
+  outside the registered domains.
+
+### Evidence
+
+- `scripts/emailChange.test.mjs` (14): the plan, the approver swap and uid pin, every
+  refusal, refusals that name no address, masked console output (checked by planting
+  an unmasked address, which the test caught), Auth-before-Firestore, and the
+  workflow masking both addresses outside any `env:` block.
+- `src/utils/accessPolicy.test.js`: the gate applies to `REGISTER` and nothing else,
+  and the sign-in screen consults it.
+
+## [2.18.1] - 2026-10-14
+
+### Fixed
+
+- **The NEXUS Admin workflow's log would have published staff names and addresses.**
+  This repository is public, so every Actions log is too. As shipped in v2.18.0 the
+  `transfer-team` task passed the new lead's address through a step's `env:` block,
+  which GitHub prints at the top of the log, and the script printed each affected
+  member's name and, when an address did not match, every member's name and address.
+  Found after merge and before anybody ran it. Now the inputs are read inside the step
+  from the event file and the address is masked with `::add-mask::` before anything
+  prints; the script shows an address as its first letter and domain and a name as
+  initials; and a mismatch reports only how many members the team has. The
+  `register-domain` task printed only the domain and is unchanged.
+
+### Evidence
+
+- `functions/teamMembership.test.js` asserts the mismatch message contains no
+  member's name or address; `scripts/transfer-team.test.mjs` asserts the script logs
+  only masked values and the workflow never puts the address in an `env:` block.
+
+## [2.18.0] - 2026-10-14
+
+A lead can change a colleague's role from the Team panel: staff, lead or viewer.
+
+Until now a role was chosen once, at invitation. The panel's own refusals told a lead
+to "promote somebody else to lead first", and there was no control to do it. Worse,
+`firestore.rules` let a lead write `role` directly with no check on what that left
+behind: one write could demote a team's last lead and leave a team nobody can
+administer, repairable only by hand in the Firebase console.
+
+### Added
+
+- **A role picker in each member's editor** (Admin → Professionals → Team, the pencil
+  on a member). The same three cards the invite form uses, with the *Include in the
+  roster* switch beside them; a viewer is never rostered and the switch goes away.
+  A choice that is not allowed is greyed out with the reason under the cards.
+- **`setMemberRole`, a Cloud Function that makes the change.** It runs in a transaction
+  that re-reads the caller and counts the team's leads, so two leads demoting each
+  other at the same moment cannot both succeed. It refuses, with a sentence, to demote
+  the team's last lead or the lead the team was created for. A lead may step down
+  themselves while another lead remains; the panel asks for a second press first,
+  because the panel closes to them as soon as it saves.
+- **A role-change log**, `teams/{teamId}/roleChanges`: who changed whose role, from
+  what to what, on a server clock, immutable. The newest ten are listed under the
+  member list, for the team's leads only.
+- **A "NEXUS Admin" button in GitHub Actions** (`.github/workflows/nexus-admin.yml`)
+  for the two changes nothing inside NEXUS may make, run with the deploy pipeline's
+  service account so the owner needs no key file:
+  - **register-domain** adds an email domain to `config/domains`, additively. The
+    live project had none, so the Team panel said "Setup outstanding" and every
+    "Add to team" was refused, including colleagues on `kkh.com.sg`.
+  - **transfer-team** hands a team to a new lead (`scripts/transfer-team.cjs`): the
+    founding lead (`teams/{id}.leadUid`) moves to them, they are made a lead if they
+    were not, and the outgoing lead becomes a lead, staff or viewer. One transaction,
+    each role change logged. Needed because the founding lead of Sport and Exercise
+    Medicine is handing over, and nothing could change `leadUid`.
+  Both preview by default; the change is made only when "apply" is ticked.
+
+### Changed
+
+- **`firestore.rules`: no client may write `role` or `rostered`.** Both left the lead's
+  update allowlist; the function is now the only path. A lead still edits profession,
+  grade, short name and duties directly, as before.
+- When a save changes both a member's details and their role, the details are written
+  first and the role last, so a lead stepping down does not lose the right to finish
+  their own save halfway through. If the role is refused, the message says the other
+  changes were saved.
+
+### Evidence
+
+- `functions/teamMembership.test.js` — 18 new tests: every refusal, self step-down,
+  unknown lead counts read as one, the founding lead, viewer never rostered, and a
+  check that the rules no longer list `role` or `rostered` for a lead.
+- `src/utils/roleChanges.test.js` — the panel's copy of the rule run against the
+  server's on 72 cases, plus the log wording.
+- `src/components/TeamMembersPanel.test.jsx` — 16 new tests: the picker, the disabled
+  choices, the two-press step-down, write order, server refusals, the sandbox, and the
+  log listener opened for leads only.
+- `scripts/firestore-rules-verify.mjs` — the check that a lead *can* write a role is
+  replaced by four checks that a lead cannot write `role` or `rostered` directly (and
+  still can write duties and short name), plus five on the log. Run 2026-10-14 under
+  the Firestore emulator: **207 passed, 0 failed**.
+- `src/utils/memberRosterLimits.test.js` used `'rostered'` to prove it was reading the
+  members allowlist; it now fingerprints on `'fte'` and asserts `'rostered'` is gone.
+- `assertTeamTransfer` — 8 tests in `functions/teamMembership.test.js`;
+  `scripts/transfer-team.test.mjs` — 10 tests pinning the dry-run default, the single
+  transaction, the log, and the workflow's preview-unless-applied, additive-only,
+  no-approval-rights and key-removal properties.
+
+### Fixed
+
+- The admin scripts printed "✗ undefined" for a missing or broken credential: they
+  read `credential.reason`, and the helper reports `problem`. They now print the
+  helper's sentence.
+
+### Known at release
+
+- Nobody is notified when their role changes; they find out from the app. A
+  notification would need the same channel coverage requests still lack (`Q3`).
+- The founding lead cannot be demoted from the app at all. Transferring a team stays a
+  task for the NEXUS owner, as removing them already was.
+
+## [2.17.1] - 2026-10-11
+
+### Changed
+
+- The Health Fiesta event window closes at 14:30 on 11 October, when the stand
+  closed, rather than at midnight: the gate and the short assessment are off and
+  the portal is back to the full assessment. The north poster for sectors 70 to
+  76 and the event records stay. `.github/workflows/event-export.yml` pulls an
+  event's figures as a workflow artifact and into the job log, so no laptop or
+  key file is needed.
+
 ## [2.17.0] - 2026-10-10
 
 The community portal's event release, for Health Fiesta 2026 at Bukit Canberra on

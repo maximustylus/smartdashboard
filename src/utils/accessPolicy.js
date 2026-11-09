@@ -121,6 +121,19 @@ export const isAllowedEmail = (email, domains) => {
     return list.some((entry) => normaliseDomain(entry) === domain);
 };
 
+/**
+ * Does the institution gate apply to this sign-in screen? REGISTRATION ONLY (v2.19.0).
+ *
+ * The gate decides who may CREATE an account, and it was never a security boundary —
+ * it runs in the browser, and `firestore.rules` plus membership are what protect
+ * data. It used to run on sign-in as well, which locked out an EXISTING, already
+ * vetted account whose address had moved off an institutional domain: the NEXUS
+ * owner, keeping their account after leaving KKH, could not sign in with a personal
+ * address that the server had changed for them. An account that exists has passed
+ * this gate once, when it was made; asking again at every sign-in adds nothing.
+ */
+export const domainGateAppliesTo = (authView) => authView === 'REGISTER';
+
 /** The sentence shown to someone the gate refused. Names the fix, not just the no. */
 export const domainRefusalMessage = (email, domains) => {
     const domain = emailDomain(email);

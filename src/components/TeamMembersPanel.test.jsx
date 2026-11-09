@@ -64,14 +64,34 @@ vi.mock('../hooks/useDomainAllowlist', () => ({
 const docPath = (_db, ...segments) => segments.join('/');
 let getDocImpl = () => Promise.resolve({ exists: () => false, data: () => ({}) });
 const getDocSpy = vi.fn((path) => getDocImpl(path));
-const updateDocSpy = vi.fn(() => Promise.resolve());
+const updateDocSpy = vi.fn(() => { callOrder.push('updateDoc'); return Promise.resolve(); });
 const setDocSpy = vi.fn(() => Promise.resolve());
 
+/**
+ * v2.18.0: the panel also LISTENS to `teams/{id}/roleChanges` for a lead. The query
+ * is routed by its collection path; `roleChangeDocs` is what it delivers, and
+ * `roleChangeListens` counts the subscriptions so a non-lead can be shown to open none.
+ */
+let roleChangeDocs = [];
+let roleChangeListens = 0;
+let roleChangeListener = null;
 vi.mock('firebase/firestore', () => ({
     doc: (...args) => docPath(...args),
     getDoc: (path) => getDocSpy(path),
     updateDoc: (path, payload) => updateDocSpy(path, payload),
     setDoc: (path, payload, options) => setDocSpy(path, payload, options),
+    collection: (_db, ...segments) => ({ path: segments.join('/') }),
+    query: (ref) => ({ path: ref.path, isQuery: true }),
+    orderBy: () => ({}),
+    limit: () => ({}),
+    onSnapshot: (target, onNext, onError) => {
+        if (target && /\/roleChanges$/.test(target.path)) {
+            roleChangeListens += 1;
+            roleChangeListener = { onNext, onError };
+            onNext({ docs: roleChangeDocs.map((d) => ({ id: d.id, data: () => d.data })) });
+        }
+        return () => {};
+    },
 }));
 
 /**
@@ -82,13 +102,18 @@ vi.mock('firebase/firestore', () => ({
  */
 const invited = vi.fn();
 const removed = vi.fn();
+const roleSet = vi.fn();
+/** Every write and call in order — the role call must come AFTER the membership write. */
+const callOrder = [];
 let lastRegion;
 
 vi.mock('firebase/functions', () => ({
     getFunctions: vi.fn((_app, region) => { lastRegion = region; return {}; }),
-    httpsCallable: vi.fn((_functions, name) => (payload) => (
-        name === 'inviteMember' ? invited(payload) : removed(payload)
-    )),
+    httpsCallable: vi.fn((_functions, name) => (payload) => {
+        if (name === 'inviteMember') return invited(payload);
+        if (name === 'setMemberRole') { callOrder.push('setMemberRole'); return roleSet(payload); }
+        return removed(payload);
+    }),
 }));
 
 let demoMode = false;
@@ -134,6 +159,11 @@ beforeEach(() => {
     invited.mockReset().mockReturnValue(ok({ alreadyMember: false, uid: 'newUid' }));
     removed.mockReset().mockReturnValue(ok({ alreadyGone: false }));
     lastRegion = undefined;
+    roleSet.mockReset().mockReturnValue(ok({ noChange: false }));
+    callOrder.length = 0;
+    roleChangeDocs = [];
+    roleChangeListens = 0;
+    roleChangeListener = null;
     getDocSpy.mockClear();
     updateDocSpy.mockClear();
     setDocSpy.mockClear();
@@ -473,7 +503,7 @@ const memberDocOf = (uid) => `teams/${TEAM_ID}/members/${uid}`;
 
 const openEditorFor = async (name) => {
     await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: new RegExp(`edit profession, grade and roster limits for ${name}`, 'i') }));
+        fireEvent.click(screen.getByRole('button', { name: new RegExp(`edit role, profession, grade and roster limits for ${name}`, 'i') }));
     });
 };
 
@@ -489,12 +519,12 @@ const save = async () => {
 describe('4. a lead sets profession and grade for a member', () => {
     it('offers an editor per member to a lead, and none at all to a non-lead', async () => {
         render(<TeamMembersPanel />);
-        expect(screen.getAllByRole('button', { name: /edit profession, grade and roster limits/i })).toHaveLength(2);
+        expect(screen.getAllByRole('button', { name: /edit role, profession, grade and roster limits/i })).toHaveLength(2);
 
         cleanup();
         team = asTeam({ isLead: false });
         render(<TeamMembersPanel />);
-        expect(screen.queryByRole('button', { name: /edit profession, grade and roster limits/i })).toBeNull();
+        expect(screen.queryByRole('button', { name: /edit role, profession, grade and roster limits/i })).toBeNull();
     });
 
     /**
@@ -764,5 +794,183 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
         render(<TeamMembersPanel />);
         await openEditorFor('Brandon');
         expect(screen.getByText(/limit, not an addition/i)).toBeTruthy();
+    });
+});
+
+
+// ── 6. A LEAD CHANGES SOMEBODY'S ROLE (v2.18.0) ──────────────────────────────
+//
+// Staff, lead or viewer, from the same editor. The change goes to `setMemberRole`,
+// never to `updateDoc`: the rules no longer let a client write `role` or `rostered`,
+// because only the server can count leads. The owner's decisions are pinned here:
+// all three roles; server-checked; a lead may step down if another lead remains,
+// with a second press; and a log the team's leads can read.
+
+const SECOND_LEAD = { uid: 'secondLead0000000000000000dd', displayName: 'Nisa', role: 'lead' };
+
+const chooseRole = (label, name) =>
+    fireEvent.click(screen.getByLabelText(new RegExp(`^${label} — ${name}$`)));
+
+const saveButton = () => screen.getByRole('button', { name: /^save/i });
+
+describe('6. a lead changes somebody\'s role', () => {
+    it('promotes staff to lead through setMemberRole, never through a direct write', async () => {
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        chooseRole('Lead', 'Brandon');
+        await save();
+
+        expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'lead', rostered: true });
+        expect(updateDocSpy).not.toHaveBeenCalled();
+        expect(lastRegion).toBe('us-central1');
+        expect(screen.getByRole('status').textContent).toMatch(/Brandon is now a lead\./);
+    });
+
+    it('makes somebody a viewer, takes the roster switch away, and sends rostered false', async () => {
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        expect(screen.getByLabelText('Include Brandon in the roster')).toBeTruthy();
+        chooseRole('Viewer', 'Brandon');
+        expect(screen.queryByLabelText('Include Brandon in the roster')).toBeNull();
+        await save();
+        expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'viewer', rostered: false });
+    });
+
+    it('changes the roster flag alone, keeping the role', async () => {
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        fireEvent.click(screen.getByLabelText('Include Brandon in the roster'));
+        await save();
+        expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'staff', rostered: false });
+        expect(screen.getByRole('status').textContent).toMatch(/Brandon is now staff, not in the roster\./);
+    });
+
+    it('calls nothing when the role and roster flag are unchanged', async () => {
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        await save();
+        expect(roleSet).not.toHaveBeenCalled();
+    });
+
+    it('will not offer to demote the only lead, and says why', async () => {
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nur');
+        expect(screen.getByLabelText('Staff — Nur').disabled).toBe(true);
+        expect(screen.getByLabelText('Viewer — Nur').disabled).toBe(true);
+        expect(screen.getByLabelText('Lead — Nur').disabled).toBe(false);
+        expect(screen.getAllByText(/created for|only lead/i).length).toBeGreaterThan(0);
+    });
+
+    it('will not offer to demote the lead the team was created for, even with two leads', async () => {
+        team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF] });
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nur');
+        expect(screen.getByLabelText('Staff — Nur').disabled).toBe(true);
+        // Said twice on purpose: beside the remove button, and under the role cards.
+        expect(screen.getAllByText(/the lead the team was created for/i).length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('lets another lead be demoted once a second lead exists', async () => {
+        team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF] });
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nisa');
+        expect(screen.getByLabelText('Staff — Nisa').disabled).toBe(false);
+        chooseRole('Staff', 'Nisa');
+        await save();
+        expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: SECOND_LEAD.uid, role: 'staff', rostered: true });
+    });
+
+    it('asks a lead stepping down THEMSELVES to press Save a second time', async () => {
+        team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF], membership: { uid: SECOND_LEAD.uid, role: 'lead' } });
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nisa');
+        chooseRole('Staff', 'Nisa');
+        await save();
+
+        // First press: a warning, and nothing sent.
+        expect(roleSet).not.toHaveBeenCalled();
+        expect(screen.getByRole('alert').textContent).toMatch(/about to step down from lead/i);
+        expect(saveButton().textContent).toMatch(/step down/i);
+
+        // Second press: sent.
+        await act(async () => { fireEvent.click(saveButton()); });
+        expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: SECOND_LEAD.uid, role: 'staff', rostered: true });
+        expect(screen.getByRole('status').textContent).toMatch(/You are now staff in this team/);
+    });
+
+    it('drops the pending step-down if the lead picks a different role first', async () => {
+        team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF], membership: { uid: SECOND_LEAD.uid, role: 'lead' } });
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nisa');
+        chooseRole('Staff', 'Nisa');
+        await save();
+        expect(screen.queryByText(/about to step down/i)).toBeTruthy();
+        chooseRole('Lead', 'Nisa');
+        expect(screen.queryByText(/about to step down/i)).toBeNull();
+    });
+
+    it('shows a server refusal as a sentence and leaves the editor open', async () => {
+        roleSet.mockReturnValue(refused('That is the team\'s only lead. Make somebody else a lead first.', 'last-lead'));
+        team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF] });
+        render(<TeamMembersPanel />);
+        await openEditorFor('Nisa');
+        chooseRole('Staff', 'Nisa');
+        await save();
+        expect(screen.getByRole('alert').textContent).toMatch(/only lead\. Make somebody else a lead first/);
+        expect(saveButton()).toBeTruthy();
+    });
+
+    it('writes the other changes FIRST and the role LAST, and says which half failed', async () => {
+        roleSet.mockReturnValue(refused('No.', 'last-lead'));
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        chooseProfession(STAFF.uid, 'physiotherapist');
+        chooseRole('Lead', 'Brandon');
+        await save();
+        expect(callOrder).toEqual(['updateDoc', 'setMemberRole']);
+        expect(screen.getByRole('alert').textContent).toMatch(/^Their other changes were saved, but the role was not\./);
+    });
+
+    it('sends nothing in the sandbox', async () => {
+        demoMode = true;
+        render(<TeamMembersPanel />);
+        await openEditorFor('Brandon');
+        chooseRole('Lead', 'Brandon');
+        await save();
+        expect(roleSet).not.toHaveBeenCalled();
+    });
+});
+
+describe('6b. the role-change log', () => {
+    it('lists recent changes for a lead, newest first, as sentences', () => {
+        roleChangeDocs = [
+            { id: 'r2', data: { targetName: 'Brandon', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true, byName: 'Nur', at: { toDate: () => new Date('2026-10-14T09:00:00+08:00') } } },
+            { id: 'r1', data: { targetName: 'Jo', fromRole: 'staff', toRole: 'viewer', fromRostered: true, toRostered: false, byName: 'Nur', at: null } },
+        ];
+        render(<TeamMembersPanel />);
+        const log = screen.getByRole('region', { name: 'Role changes' });
+        const items = log.querySelectorAll('[data-role-change]');
+        expect(items).toHaveLength(2);
+        expect(items[0].textContent).toMatch(/^Brandon changed from staff to lead \(changed by Nur\)\./);
+        expect(items[1].textContent).toMatch(/^Jo changed from staff to viewer \(changed by Nur\)\./);
+    });
+
+    it('is not shown, and not even listened for, by a non-lead', () => {
+        team = asTeam({ isLead: false });
+        render(<TeamMembersPanel />);
+        expect(roleChangeListens).toBe(0);
+        expect(screen.queryByRole('region', { name: 'Role changes' })).toBeNull();
+    });
+
+    it('opens no listener in the sandbox', () => {
+        demoMode = true;
+        render(<TeamMembersPanel />);
+        expect(roleChangeListens).toBe(0);
+    });
+
+    it('says so when the log cannot be read, rather than showing nothing', async () => {
+        render(<TeamMembersPanel />);
+        await act(async () => { roleChangeListener.onError({ code: 'permission-denied' }); });
+        expect(screen.getByRole('region', { name: 'Role changes' }).textContent).toMatch(/could not be read/i);
     });
 });

@@ -38,7 +38,9 @@ export const EVENT = Object.freeze({
     // window wider than the stand costs nothing and a narrower one risks the gate
     // switching off while residents are still queueing.
     start: '2026-10-11T00:00:00+08:00',
-    end: '2026-10-11T23:59:59+08:00',
+    // Closed at the time the stand closed. It was the whole day until the owner
+    // asked for business as usual the same afternoon (2026-10-11).
+    end: '2026-10-11T14:30:00+08:00',
 });
 
 export const isEventWindow = (now = new Date()) =>

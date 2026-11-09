@@ -88,6 +88,14 @@ const TEAM_DATA = [
 ];
 
 const alerts = [];
+// v2.20.0: SmartAnalysis tells the lead through NEXUS's own dialog, not
+// `window.alert`. Captured at the module boundary, same array as before, so every
+// assertion below reads exactly as it did.
+vi.mock('./nexusDialog', () => ({
+    nexusAlert: (message) => { alerts.push(String(message)); return Promise.resolve(); },
+    nexusConfirm: () => Promise.resolve(true),
+    nexusPrompt: () => Promise.resolve(null),
+}));
 
 const renderPanel = () => render(
     <SmartAnalysis teamData={TEAM_DATA} staffLoads={{}} onClose={() => {}} />,
@@ -112,7 +120,6 @@ beforeEach(() => {
     vi.useFakeTimers();
     setDoc.mockClear();
     alerts.length = 0;
-    vi.spyOn(window, 'alert').mockImplementation((message) => { alerts.push(String(message)); });
     demoMode = true;
     activeTeamId = 'kkh-sport-exercise-medicine';
     activeIsLead = true;
