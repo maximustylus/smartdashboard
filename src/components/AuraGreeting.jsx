@@ -1,11 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { BrainCircuit, Sparkles, X } from 'lucide-react';
+import { AuraScribeGlyph } from './AuraScribe';
+import { isScribeEnabled } from '../utils/auraScribe';
+
+const scribeFlag = () => {
+  let storage;
+  try { storage = window.localStorage; } catch { storage = undefined; }
+  return isScribeEnabled({ search: window.location.search, storage, env: import.meta.env });
+};
 
 const AuraGreeting = ({ openAuraChat, dailyPatientLoad = 120 }) => {
   const [showBubble, setShowBubble] = useState(false);
   const [isExiting, setIsExiting] = useState(false); // 🌟 NEW: Controls the macOS minimize animation
   const [phase, setPhase] = useState('quote'); 
   const [currentQuote, setCurrentQuote] = useState('');
+  const [scribeOn] = useState(scribeFlag);
 
   const getDailySmartQuote = () => {
     const now = new Date();
@@ -121,10 +130,20 @@ const AuraGreeting = ({ openAuraChat, dailyPatientLoad = 120 }) => {
       {/* THE GLOWING AURA BUTTON */}
       <button 
         onClick={showBubble ? handleOpenAura : openAuraChat} // If bubble is open, suck it in first. Otherwise just open.
-        className="pointer-events-auto relative flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-full shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-110 transition-all duration-300"
+        aria-label={scribeOn ? 'Open AURA' : undefined}
+        className={scribeOn
+          ? 'pointer-events-auto relative flex items-center justify-center w-14 h-14 bg-[#5843de] rounded-full shadow-lg shadow-[#5843de]/30 hover:shadow-[#5843de]/50 hover:scale-110 transition-all duration-300'
+          : 'pointer-events-auto relative flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-indigo-600 to-purple-600 rounded-full shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-110 transition-all duration-300'}
       >
-        <span className="absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-30 animate-ping"></span>
-        <BrainCircuit className="text-white w-7 h-7" /> 
+        {scribeOn ? (
+          // The animated AURA's launcher: a closed notebook, still. No ping.
+          <AuraScribeGlyph />
+        ) : (
+          <>
+            <span className="absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-30 animate-ping"></span>
+            <BrainCircuit className="text-white w-7 h-7" />
+          </>
+        )}
       </button>
 
     </div>

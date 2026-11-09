@@ -58,6 +58,10 @@ import { sanitizeWellbeingLog, PHASE_BANDS } from '../utils/wellbeingLog';
 import { reworkNote, withReworkNote } from '../utils/reworkNote';
 import { legacyPulseKeys, pulseTimestamp } from '../utils/pulseKeys';
 import responseParser from '../../functions/responseParser.cjs';
+import AuraScribe from './AuraScribe';
+import {
+    deriveScribeState, isScribeEnabled, coverTint, SCRIBE_STATES, TAP_STILL_MS, REST_AFTER_MS,
+} from '../utils/auraScribe';
 
 // ─── CLOUD FUNCTION LINK ──────────────────────────────────────────────────────
 const functions = getFunctions(undefined, 'us-central1');
@@ -140,6 +144,45 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
     const [isOnline,         setIsOnline]         = useState(navigator.onLine);
     const [liveMemory,       setLiveMemory]       = useState(null);
     const [isListening,      setIsListening]      = useState(false);
+
+    /*
+     * The animated AURA (`docs/AURA-ANIMATED-BRIEF.md`). Off unless the flag is
+     * on: `?scribe=1` for this browser, or `VITE_AURA_SCRIBE=on` at build. The
+     * state is DERIVED from what the panel shows (`deriveScribeState`), so the
+     * only things tracked here are the ones the screen cannot show: keystroke
+     * rhythm (never the words), the time since anything happened, and a
+     * dismissed check-in.
+     */
+    const [scribeOn] = useState(() => {
+        let storage;
+        try { storage = window.localStorage; } catch { storage = undefined; }
+        return isScribeEnabled({ search: window.location.search, storage, env: import.meta.env });
+    });
+    const [scribeEvent, setScribeEvent] = useState(null);
+    const [, setScribeClock] = useState(0);
+    const keystrokeAtRef = useRef(0);
+    const typedSinceStillRef = useRef(0);
+    const activityAtRef = useRef(Date.now());
+    const activitySigRef = useRef('');
+    const stillTimerRef = useRef(null);
+    const bumpScribe = useCallback(() => setScribeClock((n) => n + 1), []);
+    const noteKeystroke = useCallback(() => {
+        const now = Date.now();
+        if (now - keystrokeAtRef.current >= TAP_STILL_MS) typedSinceStillRef.current = 0;
+        typedSinceStillRef.current += 1;
+        keystrokeAtRef.current = now;
+        activityAtRef.current = now;
+        // Re-render once the person goes quiet, so the pencil goes still.
+        clearTimeout(stillTimerRef.current);
+        stillTimerRef.current = setTimeout(bumpScribe, TAP_STILL_MS + 50);
+    }, [bumpScribe]);
+    useEffect(() => () => clearTimeout(stillTimerRef.current), []);
+    // A dismissed check-in is rubbed out once, then the page is clean again.
+    useEffect(() => {
+        if (!scribeEvent) return undefined;
+        const t = setTimeout(() => setScribeEvent(null), 2200);
+        return () => clearTimeout(t);
+    }, [scribeEvent]);
 
     const messages = auraHistory;
     const setMessages = setAuraHistory;
@@ -1124,6 +1167,31 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
 
     const isAnonymous = selectedPersona?.id === 'anon';
     const inputLength = input.length;
+
+    // Anything the panel shows changing counts as activity. Read in render so the
+    // state that render derives is never a stale `rest`.
+    const activitySig = `${view}|${loading}|${Boolean(pendingLog)}|${messages.length}|${scribeEvent}`;
+    if (scribeOn && activitySigRef.current !== activitySig) {
+        activitySigRef.current = activitySig;
+        activityAtRef.current = Date.now();
+    }
+    const scribeNow = Date.now();
+    const scribeState = scribeOn ? deriveScribeState({
+        view, loading, pendingLog, messages,
+        typing: { typedSinceStill: typedSinceStillRef.current, msSinceKeystroke: scribeNow - keystrokeAtRef.current },
+        msSinceActivity: scribeNow - activityAtRef.current,
+        event: scribeEvent,
+    }) : 'idle';
+    const lastBotTurn = [...messages].reverse().find((m) => m && m.role === 'bot' && !m.isGreeting);
+    const scribeProposal = pendingLog
+        ? `${pendingLog.energy}%`
+        : String(lastBotTurn?.db_workload?.target_value ?? '').slice(0, 8);
+    // Re-render once the quiet has lasted long enough for the pencil to lie down.
+    useEffect(() => {
+        if (!scribeOn || !isOpen) return undefined;
+        const t = setTimeout(bumpScribe, REST_AFTER_MS + 50);
+        return () => clearTimeout(t);
+    }, [scribeOn, isOpen, activitySig, bumpScribe]);
     const isNearLimit = inputLength > MAX_INPUT * 0.8;
 
     return (
@@ -1468,7 +1536,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                                                         </div>
                                                     )}
                                                     <div className="flex gap-2">
-                                                        <button onClick={() => setPendingLog(null)} className="flex-1 py-2.5 text-xs font-black text-slate-500 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5">
+                                                        <button onClick={() => { setPendingLog(null); if (scribeOn) setScribeEvent('refuse'); }} className="flex-1 py-2.5 text-xs font-black text-slate-500 rounded-xl border border-slate-200 hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5">
                                                             <X size={12} /> Dismiss
                                                         </button>
                                                         <button onClick={confirmLog} disabled={loading} className={`flex-[2] py-2.5 text-white text-xs font-black rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 ${isAnonymous ? 'bg-purple-600' : 'bg-indigo-600'}`}>
@@ -1498,6 +1566,21 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
 
                         {view === 'CHAT' && chatSize !== 'minimized' && (
                             <div className="shrink-0 p-4 bg-white border-t border-slate-100">
+                                {scribeOn && (
+                                    <div className="flex items-center gap-3 mb-2" data-testid="aura-scribe-strip">
+                                        <AuraScribe
+                                            state={scribeState}
+                                            ghost={isAnonymous}
+                                            proposal={scribeProposal}
+                                            tint={coverTint(scribeState, pendingLog?.phase)}
+                                            draftLength={inputLength}
+                                        />
+                                        {/* The drawing carries the same sentence as its label; this copy is for sighted readers. */}
+                                        <p className="text-[10px] font-bold text-slate-400 leading-snug" aria-hidden="true">
+                                            {SCRIBE_STATES[scribeState]}
+                                        </p>
+                                    </div>
+                                )}
                                 {isNearLimit && <p className={`text-[9px] font-bold text-right mb-1 ${inputLength >= MAX_INPUT ? 'text-red-500' : 'text-amber-500'}`}>{inputLength} / {MAX_INPUT}</p>}
                                 
                                 <div className={`flex items-end gap-2 bg-slate-50 rounded-3xl pl-5 pr-3 py-2 border transition-all ${
@@ -1509,6 +1592,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                                         ref={inputRef} 
                                         value={input}
                                         onChange={e => {
+                                            if (scribeOn) noteKeystroke();
                                             setInput(e.target.value.slice(0, MAX_INPUT));
                                             e.target.style.height = 'auto';
                                             e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';

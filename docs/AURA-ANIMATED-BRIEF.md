@@ -173,23 +173,48 @@ voxel / pixel material
 
 ---
 
-## 8 · Open decisions for the owner
+## 8 · Decisions (owner, 2026-11-09)
 
-1. **Phase mirror:** yes, no, or check-in only?
-2. **Does the pencil write the check-in down on screen** (honest: in pencil, after you finish
-   speaking) **or only its replies?** Lean: honest.
-3. **Pastel palette or Motus's gradient as a family mark?** Lean: pastel; the resemblance is the
-   voxels.
-4. **Launcher silhouette:** notebook-with-pencil-in-strap. Agree?
-5. **Tap tempo:** 4 s, 5 s or 7 s at rest. The prototype makes this switchable so it is felt, not read.
+| # | Question | Decision |
+|---|---|---|
+| a | Which hand? | **Right.** The tip points to 8 o'clock and the body leans up to 2 o'clock. (The 4 o'clock pose in the first prototype read as left-handed.) |
+| b | Tap tempo at rest | **4.5 s**, easing to 7 s by 400 characters. |
+| c | Does the pencil write the check-in on screen? | **Yes**, in pencil, after the person finishes. Only their confirmation inks it. |
+| d | Phase mirror | **Yes, during the check-in moment only.** The cover tints toward the phase while the check-in card is up, then returns to brand. Never on the launcher. |
+| e | Launcher | **Yes:** a small closed notebook with the pencil in its strap. Still, with no ping. |
+| f | Palette | **Full brand colour**, #5843de (sampled from `src/assets/nexus-logo.png`), on the pencil and the cover. Not pastel. |
 
 ---
 
-## 9 · Next step
+## 9 · v1, as built (branch `aura`, behind a flag)
 
-A prototype canvas with every state in §4 switchable, the tap tempo curve adjustable, and
-reduced-motion toggled, so the owner judges the strikethrough and the eraser rather than a
-description of them. Then Blender.
+**Turning it on.** It is off by default. Add `?scribe=1` to the app URL to turn it on for that browser; it is remembered. `?scribe=0` turns it off again. `VITE_AURA_SCRIBE=on` at build time turns it on for everyone who has not opted out.
+
+**Where it lives.**
+
+| File | Job |
+|---|---|
+| `src/utils/auraScribe.js` | Decides the state. Pure. Reads only what the panel already shows. |
+| `src/components/AuraScribe.jsx` + `.css` | Draws a state. SVG and CSS, no new dependency. Also exports the launcher glyph. |
+| `src/components/AuraPulseBot.jsx` | A strip above the composer. It tracks keystroke rhythm (never the text), the time since activity, and a dismissed check-in. |
+| `src/components/AuraGreeting.jsx` | Swaps the launcher for the still notebook. |
+
+**Why derived, not evented.** The state is worked out from what is on screen: the last turn, the loading flag, the check-in card, the draft length. The pencil therefore cannot ink a write the panel does not show as saved. The one event the screen cannot show is a dismissed check-in, which becomes `refuse` for 2.2 s.
+
+**Wired in v1:** idle, typing (the tap), thinking, listen, drafting, research (the "?" margin notes), propose (workload card and check-in card), approve (inked only on a real ✅, never a sandbox one), refuse (the check-in Dismiss), rework (the AU33 note), snap (a failed call), rest (30 s quiet; never over a pending proposal), Ghost Protocol (unbound sheet), the phase tint (check-in only), and reduced motion (no travel; the tap becomes a breath on the tip).
+
+**Not wired in v1, on purpose:**
+
+- **The injection strike.** The panel has no reliable on-screen signal that an injection was caught. Drawing one from a guess would be a gesture that can lie.
+- **The assumptions dog-ear.** Same reason: assumptions are not a structured field yet.
+- **Persona tints.** It is brand colour everywhere (decision f). The persona already shows in the header.
+- **Blender.** v1 is SVG. §7 still stands for a richer v2.
+
+**Accessibility.** The drawing is `role="img"`, and its label is the sentence in `SCRIBE_STATES`, for example "AURA pencilled this in. Nothing is saved until you confirm." A visible caption repeats it for sighted readers, hidden from screen readers so they don't hear it twice.
+
+**Tests.** `src/utils/auraScribe.test.js` covers the decisions, the tap curve and the flag. `src/components/AuraScribe.test.jsx` covers the drawing: labels, ink only on approve, and tap timing. `src/components/AuraPulseBot.scribe.test.jsx` covers the wiring through the mounted panel: off by default; on with the flag; typing, then thinking, then drafting; and snap on a failed call.
+
+**Before shipping beyond the flag:** the owner tries it on a phone and a desktop, in light and dark, with reduced motion on. A check on whether the strip crowds the composer on small screens is also outstanding.
 
 ---
 
