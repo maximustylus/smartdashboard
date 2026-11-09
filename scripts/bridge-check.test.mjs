@@ -62,6 +62,38 @@ describe('summariseBridge', () => {
         expect(s.safeToDelete).toBe(false);
     });
 
+    describe('the admin grant', () => {
+        const adminDigests = [row('a@x.sg')];
+        const base = { salt: SALT, digests, adminDigests };
+
+        it('a bridge admin who is a lead of a team loses nothing', () => {
+            const s = summariseBridge({ ...base, accounts: [{ email: 'a@x.sg', teamIds: ['t1'], isLead: true }] });
+            expect(s).toMatchObject({ admins: 1, adminsUncovered: 0, safeToDelete: true });
+        });
+
+        it('nor does one whose own users document says admin', () => {
+            const s = summariseBridge({ ...base, accounts: [{ email: 'a@x.sg', teamIds: ['t1'], docRole: 'admin' }] });
+            expect(s).toMatchObject({ admins: 1, adminsUncovered: 0, safeToDelete: true });
+        });
+
+        it('an admin ONLY through the bridge blocks deletion, even with a team', () => {
+            const s = summariseBridge({ ...base, accounts: [{ email: 'a@x.sg', teamIds: ['t1'], isLead: false, docRole: 'staff' }] });
+            expect(s).toMatchObject({ admins: 1, adminsUncovered: 1, withoutTeam: 0, safeToDelete: false });
+        });
+
+        it('a non-admin row is not counted as an admin', () => {
+            const s = summariseBridge({ ...base, accounts: [{ email: 'b@x.sg', teamIds: ['t1'] }] });
+            expect(s).toMatchObject({ admins: 0, adminsUncovered: 0, safeToDelete: true });
+        });
+
+        it('reads the admin rows out of the real bridge source', () => {
+            const { digests: all, adminDigests: real } = readBridge(bridgeSource);
+            expect(real.length).toBeGreaterThan(0);
+            expect(real.length).toBeLessThan(all.length);
+            expect(real.every((d) => all.includes(d))).toBe(true);
+        });
+    });
+
     it('an unreadable bridge is never "safe"', () => {
         expect(summariseBridge({ salt: null, digests, accounts: [] }).safeToDelete).toBe(false);
         expect(summariseBridge({ salt: SALT, digests: [], accounts: [] }).safeToDelete).toBe(false);
@@ -91,7 +123,7 @@ describe('bridge-check.cjs cannot write and names nobody', () => {
         }
         expect(calls.length).toBeGreaterThan(5);
         for (const call of calls) {
-            expect(call).not.toMatch(/\.email|\.uid|displayName|digest|accounts/);
+            expect(call).not.toMatch(/\.email|\.uid|displayName|digest|accounts|teamId/);
         }
     });
 

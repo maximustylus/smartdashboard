@@ -53,12 +53,21 @@ const main = async () => {
         for (const user of page.users) {
             if (!user.email || !bridge.salt || !wanted.has(digestOf(bridge.salt, user.email))) continue;
             const snap = await db.doc(`users/${user.uid}`).get();
-            accounts.push({ email: user.email, teamIds: snap.exists ? snap.data().teamIds : [] });
+            const data = snap.exists ? snap.data() : {};
+            const teamIds = Array.isArray(data.teamIds) ? data.teamIds.filter((id) => typeof id === 'string' && id !== '') : [];
+            let isLead = false;
+            for (const teamId of teamIds) {
+                const member = await db.doc(`teams/${teamId}/members/${user.uid}`).get();
+                if (member.exists && member.data().role === 'lead') isLead = true;
+            }
+            accounts.push({ email: user.email, teamIds, isLead, docRole: data.role });
         }
         pageToken = page.pageToken;
     } while (pageToken);
 
-    const summary = summariseBridge({ salt: bridge.salt, digests: bridge.digests, accounts });
+    const summary = summariseBridge({
+        salt: bridge.salt, digests: bridge.digests, adminDigests: bridge.adminDigests, accounts,
+    });
     if (!summary.ok) {
         console.error('✗ Could not read the bridge table out of src/utils/legacyBridge.js.\n');
         process.exit(1);
@@ -69,11 +78,21 @@ const main = async () => {
     console.log(`    of those, in at least one team     : ${summary.withTeam}`);
     console.log(`    of those, in NO team               : ${summary.withoutTeam}`);
     console.log(`  with no account at that address      : ${summary.noAccount}`);
+    console.log(`Accounts the bridge makes an admin     : ${summary.admins}`);
+    console.log(`  admin ONLY because of the bridge     : ${summary.adminsUncovered}`);
     console.log('');
-    console.log(summary.safeToDelete
-        ? '✓ Nobody is relying on the bridge. It can be deleted.'
-        : `✗ ${summary.withoutTeam} account(s) get into NEXUS only through the bridge. `
-          + 'Deleting it sends them to the access gate until a lead adds them to a team.');
+    if (summary.safeToDelete) {
+        console.log('✓ Nobody is relying on the bridge. It can be deleted.');
+    } else {
+        if (summary.withoutTeam > 0) {
+            console.log(`✗ ${summary.withoutTeam} account(s) get into NEXUS only through the bridge. `
+                + 'Deleting it sends them to the access gate until a lead adds them to a team.');
+        }
+        if (summary.adminsUncovered > 0) {
+            console.log(`✗ ${summary.adminsUncovered} account(s) are an admin only through the bridge. `
+                + 'Deleting it closes the admin panel to them until they are made a lead of their team.');
+        }
+    }
     console.log('');
 };
 
