@@ -16,9 +16,13 @@ const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, Timestamp } = require('firebase-admin/firestore');
 const { describeCredentialFile } = require('./credential.cjs');
 
-const day = process.argv[2];
-if (!/^\d{4}-\d{2}-\d{2}$/.test(day || '')) { console.error('Usage: node scripts/day-export.cjs YYYY-MM-DD'); process.exit(2); }
-const start = new Date(`${day}T00:00:00+08:00`), end = new Date(`${day}T23:59:59.999+08:00`);
+// One day, a range (`2026-09-01..2026-09-30`), or `all`. Singapore time throughout.
+const arg = process.argv[2] || '';
+const m = arg.match(/^(\d{4}-\d{2}-\d{2})(?:\.\.(\d{4}-\d{2}-\d{2}))?$/);
+if (!m && arg !== 'all') { console.error('Usage: node scripts/day-export.cjs YYYY-MM-DD | YYYY-MM-DD..YYYY-MM-DD | all'); process.exit(2); }
+const day = arg === 'all' ? 'all' : m[2] ? `${m[1]}..${m[2]}` : m[1];
+const start = arg === 'all' ? new Date('2020-01-01T00:00:00+08:00') : new Date(`${m[1]}T00:00:00+08:00`);
+const end = arg === 'all' ? new Date('2100-01-01T00:00:00+08:00') : new Date(`${m[2] || m[1]}T23:59:59.999+08:00`);
 
 const COLS = ['createdAt', 'kind', 'action', 'sessionId', 'language', 'postalSector', 'score', 'ctaTier',
     'pavsScore', 'pavsDays', 'pavsMinutes', 'strengthDays', 'symptomFlag', 'medFlag', 'psychoFlag',
@@ -31,7 +35,9 @@ const cell = (v) => { if (v === undefined || v === null) return ''; const s = ty
 const flatten = (d) => {
     const f = d.payload || d.flags || {};
     const fs_ = f.functionalStorable || {}, p = f.perception || {};
-    const kind = d.event === 'aura_triage_complete_v2' ? 'chat' : d.action === 'conventional_form_v4' ? 'form' : 'action';
+    const kind = /^aura_triage_complete/.test(d.event || '') ? 'chat'
+        : /^conventional_form/.test(d.action || '') ? 'form'
+        : d.action ? 'action' : 'other';
     return {
         createdAt: d.createdAt, kind, action: kind === 'action' ? d.action : '', sessionId: d.sessionId || '',
         language: d.language || '', postalSector: d.postalSector, score: kind === 'chat' ? d.computedRisk : d.score, ctaTier: d.ctaTier,
@@ -60,5 +66,14 @@ const flatten = (d) => {
     fs.writeFileSync(file, [COLS.join(','), ...rows.map((r) => COLS.map((c) => cell(r[c])).join(','))].join('\n') + '\n');
     const by = (k) => rows.filter((r) => r.kind === k);
     console.log(`\n  ${rows.length} records → ${file}`);
-    console.log(`  Completed: ${by('chat').length} chat, ${by('form').length} form · action rows: ${by('action').length}`);
+    console.log(`  Completed: ${by('chat').length} chat, ${by('form').length} form · action rows: ${by('action').length} · other: ${by('other').length}`);
+    // Completed screenings by month and the busiest days, Singapore time.
+    const sgDate = (t) => { const d = t?.toDate ? t.toDate() : new Date(t); return new Date(d.getTime() + 8 * 3600e3).toISOString(); };
+    const done = rows.filter((r) => r.kind === 'chat' || r.kind === 'form');
+    const months = {}, days = {};
+    done.forEach((r) => { const iso = sgDate(r.createdAt); const mo = iso.slice(0, 7), dy = iso.slice(0, 10); months[mo] ??= { chat: 0, form: 0 }; months[mo][r.kind] += 1; days[dy] = (days[dy] || 0) + 1; });
+    console.log('\n  Completed screenings by month');
+    Object.keys(months).sort().forEach((k) => console.log(`    ${k}  ${String(months[k].chat + months[k].form).padStart(5)}   (chat ${months[k].chat}, form ${months[k].form})`));
+    console.log('\n  Busiest days');
+    Object.entries(days).sort((a, b) => b[1] - a[1]).slice(0, 12).forEach(([k, v]) => console.log(`    ${k}  ${String(v).padStart(5)}`));
 })().catch((e) => { console.error(e.message || e); process.exit(1); });
