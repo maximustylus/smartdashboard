@@ -47,7 +47,9 @@ import { MONTHS } from './utils';
 import AccessGate from './components/AccessGate';
 import LeadRequestsPanel from './components/LeadRequestsPanel';
 import { useTeam } from './context/TeamContext';
-import { accessStateFor, canEnterApp, buildLeadRequest } from './utils/accessPolicy';
+import { accessStateFor, canEnterApp, buildLeadRequest, ACCESS_UNVERIFIED } from './utils/accessPolicy';
+import OwnerInsights from './components/OwnerInsights';
+import { OWNER_INSIGHTS_PATH, isOwnerLandingEnabled } from './utils/ownerInsightsView';
 import {
     leadRequestPath,
     userPath,
@@ -622,8 +624,16 @@ export default function App() {
    */
   const isApprovalQueue = pathname === APPROVALS_PATH;
 
-  if (user && !isDemo && !isApprovalQueue && !canEnterApp(accessState)) {
-    return (
+  /**
+   * OWNER INSIGHTS (v2.21.0) is exempt on the same terms and for the same reason:
+   * the person who runs NEXUS need not belong to a team, and `getOwnerInsights`
+   * refuses everybody who is not a super-admin. The ROUTE is open; the permission
+   * is the server's.
+   */
+  const isOwnerInsights = pathname === OWNER_INSIGHTS_PATH;
+
+  if (user && !isDemo && !isApprovalQueue && !isOwnerInsights && !canEnterApp(accessState)) {
+    const gate = (
       <AccessGate
         state={accessState}
         email={authFacts.email}
@@ -657,6 +667,23 @@ export default function App() {
         }}
       />
     );
+
+    /**
+     * WHERE A TEAMLESS OWNER LANDS. Behind a flag (`?insights=1`, or
+     * `VITE_OWNER_INSIGHTS=on` at build): a signed-in person with no team is shown
+     * Insights INSTEAD of the holding screen — if, and only if, the server agrees
+     * they are a super-admin. Anybody else gets the holding screen exactly as
+     * before; `OwnerInsights` renders `fallback` the moment the call is refused.
+     * An unconfirmed address never gets this far: confirming it comes first.
+     */
+    const ownerLanding = accessState !== ACCESS_UNVERIFIED && isOwnerLandingEnabled({
+      search: typeof window !== 'undefined' ? window.location.search : '',
+      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      env: import.meta.env,
+    });
+    return ownerLanding
+      ? <OwnerInsights fallback={gate} onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} />
+      : gate;
   }
 
   const renderDashboardView = () => (
@@ -917,6 +944,19 @@ export default function App() {
           convenience and the rule is the control.
         */}
         <Route path={INSIGHTS_PATH} element={user ? <CommunityInsightsPanel /> : <WelcomeScreen />} />
+
+        {/*
+          Owner Insights: the platform in counts, for a super-admin. By URL like the
+          two above. `getOwnerInsights` refuses anybody who is not an approver and
+          returns no person's name or wellbeing, so the route is convenience and the
+          callable is the control.
+        */}
+        <Route
+          path={OWNER_INSIGHTS_PATH}
+          element={user
+            ? <OwnerInsights onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} />
+            : <WelcomeScreen />}
+        />
 
         <Route path="*" element={<NotFound />} />
 

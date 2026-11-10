@@ -30,8 +30,18 @@ describe('the access gate has no bypass list', () => {
         }
     });
 
-    it('the gate is decided by access state alone, with the approval queue its one exemption', () => {
-        expect(app).toMatch(/if \(user && !isDemo && !isApprovalQueue && !canEnterApp\(accessState\)\) \{/);
+    it('the gate is decided by access state alone, with two server-guarded routes exempt', () => {
+        expect(app).toMatch(/if \(user && !isDemo && !isApprovalQueue && !isOwnerInsights && !canEnterApp\(accessState\)\) \{/);
+    });
+
+    it('both exempt routes are exact paths, not prefixes', () => {
+        expect(app).toMatch(/const isApprovalQueue = pathname === APPROVALS_PATH;/);
+        expect(app).toMatch(/const isOwnerInsights = pathname === OWNER_INSIGHTS_PATH;/);
+    });
+
+    it('the owner landing is flagged, never offered to an unconfirmed address, and falls back to the gate', () => {
+        expect(app).toMatch(/const ownerLanding = accessState !== ACCESS_UNVERIFIED && isOwnerLandingEnabled\(/);
+        expect(app).toMatch(/<OwnerInsights fallback=\{gate\}/);
     });
 
     it('admin access is the demo, a lead, or the person\'s own users document', () => {

@@ -54,6 +54,68 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.21.0] - 2026-11-10
+
+Owner Insights: the platform in counts, for the person who runs it.
+
+### Added
+
+- **`/admin/insights` — is NEXUS working, and where should the owner look next?** Four
+  tiles (teams, people, approval rate, screenings), one wide bar of where lead requests
+  stand with chips into the approval queue, and a table of teams: people, leads,
+  whether this year's roster exists, when the team was created. A period control
+  (all time, 90 days, 30 days), and a note that says what the period does and does not
+  change. The layout and the honesty rules follow the Insights pattern handed over from
+  SMART START (v1.0): every number shows its base, a rate with nothing decided is a
+  dash and never 0%, every chart has a sentence a screen reader can read instead.
+
+- **`getOwnerInsights`, the only handler in NEXUS that reads across teams.** That sits
+  beside the property `SECURITY.md` rates highest, so three rules are enforced on the
+  server rather than trusted to a page (`functions/ownerInsights.cjs`):
+
+  1. **Counts only.** No display name, address or uid of any person leaves the server.
+     Member documents are reduced to team, uid and role in the handler before the
+     summary sees them. A team is named by its department and institution.
+  2. **No wellbeing.** Pulse, wellbeing logs, workload and roster content are not read
+     at all. The roster is asked only whether it exists; screenings are counted by
+     aggregation, never by reading a record.
+  3. **Super-admins only, and logged.** `requireSuperAdmin` runs before any read, and
+     each successful call writes the caller's uid and a server time to
+     `owner_insights_access`, a path the rules match nothing at, so no client can read
+     or write it.
+
+- **A teamless owner can land on Insights at sign-in — behind a flag, off by default.**
+  `?insights=1` turns it on for one browser; the repository variable
+  `VITE_OWNER_INSIGHTS=on` turns it on for everyone. When on, a signed-in person with
+  no team is shown Insights instead of the holding screen if, and only if, the server
+  agrees they are an approver. Anybody else sees the holding screen exactly as before.
+  An unconfirmed address is never offered it.
+
+### Changed
+
+- The access gate now exempts two exact routes, the approval queue and Owner Insights.
+  Both are exempt as routes only; every call either page makes is refused by the server
+  unless the caller is an approver.
+
+### Verification
+
+- `ownerInsights.test.js` (30): members with names and addresses go in, and none
+  survive into the output; a person in two teams counts once; the approval rate counts
+  only decided requests; the period never changes the people count or the teams table.
+  `ownerInsights.wiring.test.js` (9) pins the handler's order from source.
+  `ownerInsightsView.test.js` and `OwnerInsights.test.jsx` (34 with the gate test): a refused call
+  shows the holding screen and nothing of the page.
+- Not verified in a browser against production: that needs a super-admin sign-in. The
+  flag is off, so nothing changes for anybody until it is tried with `?insights=1`.
+
+### Known limitations
+
+- No "active in the last 30 days" figure. Nothing in NEXUS records a reliable last-seen
+  time for a person, and an estimate would be a number the page could not stand behind.
+- No pulse or wellbeing participation, by decision. It is the most sensitive figure and
+  the one an owner needs least; if it is ever added it needs a minimum group size
+  enforced on the server.
+
 ## [2.20.1] - 2026-11-10
 
 Team membership is now the only way into NEXUS.

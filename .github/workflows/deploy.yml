@@ -31,6 +31,9 @@ jobs:
         run: npm run build
         env:
           VITE_APPCHECK_SITE_KEY: '${{ vars.VITE_APPCHECK_SITE_KEY }}'
+          # Owner Insights landing for a super-admin with no team. Unset = off;
+          # set the repository variable to `on` to make it the default.
+          VITE_OWNER_INSIGHTS: '${{ vars.VITE_OWNER_INSIGHTS }}'
 
       - name: Test Frontend
         run: npm test
