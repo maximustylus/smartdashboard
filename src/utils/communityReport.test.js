@@ -4,8 +4,8 @@
  */
 import { describe, it, expect } from 'vitest';
 import {
-    DOMAIN_LABELS, monthLabel, dayLabel, reportScopes, buildCommunityReport, communityReportCsv,
-    communityReportFilename,
+    DOMAIN_LABELS, monthLabel, dayLabel, dateLabel, reportScopes, dayOptions, buildCommunityReport,
+    communityReportCsv, communityReportFilename,
 } from './communityReport.js';
 
 const rollup = (over = {}) => ({
@@ -143,5 +143,86 @@ describe('the CSV', () => {
     it('names the file after what it covers', () => {
         expect(communityReportFilename(buildCommunityReport(rollup()))).toBe('nexus-community-report-all-time.csv');
         expect(communityReportFilename(buildCommunityReport(rollup(), { scope: '2026-10' }))).toBe('nexus-community-report-october-2026.csv');
+    });
+});
+
+describe('with the permanent monthly record', () => {
+    const dom = { foodInsecurity: 9, fallsRisk: 0, caregiverStrain: '<5' };
+    const history = {
+        '2026-09': {
+            month: '2026-09', respondents: 90, chat: 30, form: 60, domains: dom,
+            days: {
+                '2026-09-26': { respondents: 80, chat: 25, form: 55, domains: dom },
+                '2026-09-27': { respondents: 10, chat: 5, form: 5, domains: null },
+            },
+        },
+        '2026-10': { month: '2026-10', respondents: 30, chat: 20, form: 10, domains: dom, days: { '2026-10-11': { respondents: 30, chat: 20, form: 10, domains: dom } } },
+    };
+    const withHistory = (over = {}) => rollup({ history, ...over });
+
+    it('months come from the record, and a month can be narrowed to a day', () => {
+        expect(reportScopes(withHistory()).map((s) => s.key)).toEqual(['all', '2026-10', '2026-09']);
+        expect(dayOptions(withHistory(), '2026-09')).toEqual([
+            { key: '2026-09-26', label: '26 September 2026 (80)' },
+            { key: '2026-09-27', label: '27 September 2026 (10)' },
+        ]);
+        expect(dayOptions(withHistory(), 'all')).toEqual([]);
+        expect(dayOptions(rollup(), '2026-09')).toEqual([]);
+        expect(dateLabel('2026-09-26')).toBe('26 September 2026');
+    });
+
+    it('a month report has the pathway split and its days', () => {
+        const report = buildCommunityReport(withHistory(), { scope: '2026-09' });
+        expect(report.respondents).toBe(90);
+        expect(report.pathwayRows).toEqual([
+            { key: 'chat', label: 'Chat with AURA', value: 30, share: '33%' },
+            { key: 'form', label: 'Form', value: 60, share: '67%' },
+        ]);
+        expect(report.dayRows).toEqual([
+            { key: '2026-09-26', label: '26 September 2026', respondents: 80, chat: 25, form: 55 },
+            { key: '2026-09-27', label: '27 September 2026', respondents: 10, chat: 5, form: 5 },
+        ]);
+    });
+
+    it('a day report is that day; a withheld breakdown stays withheld and says why', () => {
+        const big = buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-09-26' });
+        expect(big).toMatchObject({ scopeLabel: '26 September 2026', day: '2026-09-26', respondents: 80 });
+        expect(big.domainRows.find((r) => r.key === 'caregiverStrain')).toMatchObject({ value: '<5', share: '' });
+        expect(big.dayRows).toEqual([]);
+
+        const small = buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-09-27' });
+        expect(small.respondents).toBe(10);
+        expect(small.domainRows).toEqual([]);
+        expect(small.pathwayRows.map((r) => r.value)).toEqual([5, 5]);
+        expect(small.notes.join(' ')).toMatch(/withheld for this day/);
+    });
+
+    it('a day that is not in the month is ignored rather than invented', () => {
+        expect(buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-01-01' }).day).toBe('');
+    });
+
+    it('all time adds the pathway split and the busiest days', () => {
+        const report = buildCommunityReport(withHistory());
+        expect(report.respondents).toBe(120);
+        expect(report.pathwayRows.map((r) => r.value)).toEqual([50, 70]);
+        expect(report.busiestRows.map((r) => [r.label, r.respondents])).toEqual([
+            ['26 September 2026', 80], ['11 October 2026', 30], ['27 September 2026', 10],
+        ]);
+    });
+
+    it('ONCE RECORDS HAVE EXPIRED the total still counts them, and the report says what the breakdown covers', () => {
+        // 120 were counted over time; only 30 rows remain.
+        const report = buildCommunityReport(withHistory({ national: { respondents: 30, domains: { foodInsecurity: 6, fallsRisk: 0, caregiverStrain: 0 } } }));
+        expect(report.respondents).toBe(120);
+        expect(report.domainRows[0]).toMatchObject({ value: 6, share: '20%' }); // of the 30 still held
+        expect(report.notes.join(' ')).toMatch(/90 of these screenings are older than 24 months.*describe the 30 still held/);
+    });
+
+    it('the CSV carries the new sections', () => {
+        const lines = communityReportCsv(buildCommunityReport(withHistory(), { scope: '2026-09' })).split('\n');
+        expect(lines).toContain('How people took part,Chat with AURA,30,33%');
+        expect(lines).toContain('Day,26 September 2026,80,');
+        expect(communityReportFilename(buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-09-26' })))
+            .toBe('nexus-community-report-26-september-2026.csv');
     });
 });

@@ -329,4 +329,118 @@ const buildInsights = (records, regionFor) => {
     };
 };
 
-module.exports = { MIN_CELL, MIN_COUNT, BAND, DOMAINS, periodOf, flagsOf, isAssessment, buildInsights };
+/* ============================================================================
+ * THE PERMANENT RECORD — a month's counts, kept after its records expire (v2.23.0)
+ * ============================================================================
+ *
+ * `community_assessments` rows are deleted 24 months after they are written
+ * (`./retention.cjs`), and the rollup above is rebuilt nightly from whatever rows
+ * remain. So without this, the day a row expires its month's history goes with it.
+ *
+ * This builds one document per month, counts only, and `keepFullerMonth` makes the
+ * write one-way: once a month has been saved, a later run that sees FEWER
+ * respondents for it (because rows have expired) leaves the saved document alone.
+ * The promise to the public is kept: what expires is the record. What stays is a
+ * count nobody can be found in.
+ *
+ * ⚠️ DAYS ARE WHERE DISCLOSURE BY SUBTRACTION LIVES. A month of 33 people made of
+ *    one day of 30 and one of 3: publish the month's breakdown and the big day's,
+ *    and the small day's is one subtraction away. So a day's breakdown is published
+ *    only when the day itself has `MIN_CELL` people AND the people left in the
+ *    month outside the published days number zero or at least `MIN_CELL`. If that
+ *    remainder is 1 to 9, NO day in the month gets a breakdown. How many people
+ *    came on a day, and by which pathway, is always published: it locates nobody.
+ */
+const SG_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+const createdMillis = (record) => {
+    const raw = record && record.createdAt;
+    let created = null;
+    if (raw && typeof raw.toDate === 'function') created = raw.toDate();
+    else if (raw instanceof Date) created = raw;
+    else if (typeof raw === 'number') created = new Date(raw);
+    return created && !Number.isNaN(created.getTime()) ? created.getTime() : null;
+};
+
+/** `YYYY-MM-DD` in Singapore, where every screening so far has happened. */
+const dayOf = (record) => {
+    const ms = createdMillis(record);
+    return ms === null ? null : new Date(ms + SG_OFFSET_MS).toISOString().slice(0, 10);
+};
+
+/** The form stores `flags`; the chat stores `payload`. */
+const pathwayOf = (record) => (
+    record && record.flags && typeof record.flags === 'object' && !Array.isArray(record.flags) ? 'form' : 'chat'
+);
+
+const emptyCount = () => ({ ...emptyTally(), chat: 0, form: 0 });
+const countInto = (bucket, record) => {
+    tallyInto(bucket, flagsOf(record));
+    bucket[pathwayOf(record)] += 1;
+};
+
+/**
+ * @param {Array<object>} records  raw `community_assessments` documents
+ * @returns {Object<string, object>} month key → the month's permanent document
+ */
+const buildHistory = (records) => {
+    const months = new Map();
+    (records || []).filter(isAssessment).forEach((record) => {
+        const day = dayOf(record);
+        if (!day) return; // an undated record belongs to no month
+        const month = day.slice(0, 7);
+        if (!months.has(month)) months.set(month, { total: emptyCount(), days: new Map() });
+        const entry = months.get(month);
+        countInto(entry.total, record);
+        if (!entry.days.has(day)) entry.days.set(day, emptyCount());
+        countInto(entry.days.get(day), record);
+    });
+
+    const out = {};
+    [...months.keys()].sort().forEach((month) => {
+        const { total, days } = months.get(month);
+        const monthPublished = total.respondents >= MIN_CELL;
+        const bigDays = [...days.values()].filter((d) => d.respondents >= MIN_CELL);
+        const remainder = total.respondents - bigDays.reduce((sum, d) => sum + d.respondents, 0);
+        // See the warning above: a remainder of 1..9 is a small group by subtraction.
+        const daysPublishable = monthPublished && (remainder === 0 || remainder >= MIN_CELL);
+
+        const dayDocs = {};
+        [...days.keys()].sort().forEach((day) => {
+            const d = days.get(day);
+            dayDocs[day] = {
+                respondents: d.respondents,
+                chat: d.chat,
+                form: d.form,
+                domains: daysPublishable && d.respondents >= MIN_CELL ? bandCounts(d.domains) : null,
+            };
+        });
+
+        out[month] = {
+            month,
+            respondents: total.respondents,
+            chat: total.chat,
+            form: total.form,
+            domains: monthPublished ? bandCounts(total.domains) : null,
+            days: dayDocs,
+            minCell: MIN_CELL,
+            minCount: MIN_COUNT,
+            band: BAND,
+        };
+    });
+    return out;
+};
+
+/**
+ * Which document to keep for a month: the one already saved, or tonight's.
+ * Tonight's wins unless it has FEWER respondents, which only happens once rows
+ * have expired (or been removed) and means the saved one is the fuller record.
+ */
+const keepFullerMonth = (saved, fresh) => (
+    saved && Number(saved.respondents) > Number(fresh.respondents) ? saved : fresh
+);
+
+module.exports = {
+    MIN_CELL, MIN_COUNT, BAND, DOMAINS, periodOf, flagsOf, isAssessment, buildInsights,
+    dayOf, pathwayOf, buildHistory, keepFullerMonth,
+};

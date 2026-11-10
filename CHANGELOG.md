@@ -54,6 +54,66 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.23.0] - 2026-11-10
+
+Community figures that are not lost when records expire, and reports without a public log.
+
+### Added
+
+- **A permanent monthly record of community counts.** Screening records are deleted 24
+  months after they are written, and the rollup was rebuilt nightly from whatever
+  remained, so a month's history would have gone with its rows (the first in April
+  2028). The nightly job now also writes one counts-only document per month to
+  `community_insights/{YYYY-MM}`: completed screenings, chat and form, what people
+  reported, and each day's counts. The write is one-way: a saved month is never
+  replaced by a smaller one (`keepFullerMonth`), so the count stays after the rows go.
+  The promise to the public is unchanged. What expires is the record; what stays is a
+  count nobody can be found in.
+
+- **Month, day and event reports in Owner Insights.** The Community tab's report can be
+  narrowed to a month and then to one day of it, which is how an event is reported. It
+  adds how people took part (chat or form), a by-day table and the busiest days. When
+  rows have expired, the all-time total still counts them and the report says which
+  figures describe only the rows still held.
+
+### Security
+
+- **Row-level community data was printed into public workflow logs.** The Event Export
+  workflow on the `community` branch printed its CSV into the run log and uploaded it
+  as an artifact: one row per screening with postal sector, age band, gender, ethnicity
+  and housing type together. This repository is public, so the logs were public. Three
+  runs were affected (11 October, 13 October and 9 November 2026; 124, 54 and 286
+  rows). Their logs were deleted on 2026-11-10. The workflow now removes the CSV before
+  anything is uploaded and prints only the summary; a test pins that.
+- **A day's breakdown cannot be recovered by subtraction.** A day's "what people
+  reported" is published only when the day has at least ten people and the rest of its
+  month, outside the published days, is zero or at least ten. Otherwise no day in that
+  month gets a breakdown. How many came on a day is always shown.
+
+### Changed
+
+- `scripts/day-export.cjs` and the date form of the Event Export input arrive from the
+  `community` branch. The script still writes a row-level CSV when run with a key on a
+  machine you control; the workflow no longer keeps one.
+
+### Verification
+
+- `insightsHistory.test.js`: the subtraction case (30 on one day and 3 on another gives
+  neither day a breakdown), the one-way write, and the workflow keeping no rows.
+  `communityReport.test.js` and `OwnerInsights.test.jsx` cover the month and day reports
+  and the expired-rows total.
+- The monthly record appears after the first nightly run following deploy (03:50
+  Singapore time). Until then the Community tab reports as it did in v2.22.0.
+
+### Known limitations
+
+- The artifacts of two of the affected runs still exist on GitHub until they expire
+  (12 November and 9 December 2026) and can be downloaded by anybody signed in to
+  GitHub. Deleting them is the owner's decision.
+- The same subtraction risk exists between the all-time breakdown and the months in
+  the older rollup (`periods`), which this release does not change.
+- An event is reported as its day. There is no separate per-event report here.
+
 ## [2.22.0] - 2026-11-10
 
 Owner Insights, widened: the owner's whole view of NEXUS, still without opening anybody's data.

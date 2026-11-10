@@ -176,6 +176,25 @@ describe('the community tab', () => {
         expect(report.textContent).toMatch(/A single month has no area tables/);
     });
 
+    it('with the monthly record, a month can be narrowed to one day or event', async () => {
+        callable.mockResolvedValue({ data: payload() });
+        const dom = { foodInsecurity: 9, fallsRisk: 0 };
+        const history = { '2026-10': { respondents: 41, chat: 29, form: 12, domains: dom, days: { '2026-10-11': { respondents: 41, chat: 29, form: 12, domains: dom } } } };
+        await open({ loadRollup: () => Promise.resolve({ ...rollup(), history }) }, 'Community');
+        await screen.findByTestId('community-report');
+        expect(screen.queryByLabelText('Day or event')).toBeNull();
+        fireEvent.change(screen.getByLabelText('Report covers'), { target: { value: '2026-10' } });
+        expect(screen.getByTestId('community-report').textContent).toMatch(/By dayDayPeopleChatForm11 October 2026412912/);
+        fireEvent.change(screen.getByLabelText('Day or event'), { target: { value: '2026-10-11' } });
+        const report = screen.getByTestId('community-report');
+        expect(report.textContent).toMatch(/NEXUS Community report11 October 2026/);
+        expect(report.textContent).toMatch(/Chat with AURA2971%/);
+        // Going back to all time clears the day.
+        fireEvent.change(screen.getByLabelText('Report covers'), { target: { value: 'all' } });
+        expect(screen.queryByLabelText('Day or event')).toBeNull();
+        expect(screen.getByTestId('community-report').textContent).toMatch(/Busiest daysDayPeople11 October 202641/);
+    });
+
     it('offers a CSV and a print, and no rollup yet is not an error', async () => {
         callable.mockResolvedValue({ data: payload() });
         await open({ loadRollup: () => Promise.resolve(null) }, 'Community');

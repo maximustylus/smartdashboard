@@ -33,16 +33,25 @@ import {
     pipelineSegments, isEmpty, signupBars, signupLabel, shortDayTime,
 } from '../utils/ownerInsightsView';
 import {
-    buildCommunityReport, communityReportCsv, communityReportFilename, reportScopes,
+    buildCommunityReport, communityReportCsv, communityReportFilename, reportScopes, dayOptions,
 } from '../utils/communityReport';
 
 const call = (name) => httpsCallable(getFunctions(undefined, 'us-central1'), name);
 
-/** The nightly rollup. Loaded only when the Community tab is opened. */
+/**
+ * The nightly rollup and the permanent monthly record beside it, from the one
+ * collection that holds counts only. Loaded when the Community tab is opened.
+ */
 const readRollup = async () => {
-    const [{ doc, getDoc }, { db }] = await Promise.all([import('firebase/firestore'), import('../firebase')]);
-    const snap = await getDoc(doc(db, 'community_insights', 'latest'));
-    return snap.exists() ? snap.data() : null;
+    const [{ collection, getDocs }, { db }] = await Promise.all([import('firebase/firestore'), import('../firebase')]);
+    const snap = await getDocs(collection(db, 'community_insights'));
+    let latest = null;
+    const history = {};
+    snap.forEach((docSnap) => {
+        if (docSnap.id === 'latest') latest = docSnap.data();
+        else if (/^\d{4}-\d{2}$/.test(docSnap.id)) history[docSnap.id] = docSnap.data();
+    });
+    return latest ? { ...latest, history } : null;
 };
 
 const saveFile = (name, text) => {
@@ -263,6 +272,7 @@ const Community = ({ loadRollup }) => {
     // 'loading' | 'ready' | 'empty' | 'error'
     const [state, setState] = useState({ status: 'loading', rollup: null });
     const [scope, setScope] = useState('all');
+    const [day, setDay] = useState('');
 
     useEffect(() => {
         let live = true;
@@ -272,7 +282,8 @@ const Community = ({ loadRollup }) => {
         return () => { live = false; };
     }, [loadRollup]);
 
-    const report = useMemo(() => buildCommunityReport(state.rollup, { scope }), [state.rollup, scope]);
+    const report = useMemo(() => buildCommunityReport(state.rollup, { scope, day }), [state.rollup, scope, day]);
+    const days = useMemo(() => dayOptions(state.rollup, scope), [state.rollup, scope]);
 
     if (state.status === 'loading') {
         return <div className={`${card} p-8 text-sm text-slate-500 dark:text-slate-400`} role="status">Loading the community figures…</div>;
@@ -294,16 +305,31 @@ const Community = ({ loadRollup }) => {
     return (
         <>
             <div className={`${card} p-4 flex flex-wrap items-end justify-between gap-3 print:hidden`}>
-                <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
-                    <span className="block mb-1">Report covers</span>
-                    <select
-                        value={scope}
-                        onChange={(event) => setScope(event.target.value)}
-                        className="min-h-[44px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold"
-                    >
-                        {reportScopes(state.rollup).map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
-                    </select>
-                </label>
+                <div className="flex flex-wrap gap-3">
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                        <span className="block mb-1">Report covers</span>
+                        <select
+                            value={scope}
+                            onChange={(event) => { setScope(event.target.value); setDay(''); }}
+                            className="min-h-[44px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold"
+                        >
+                            {reportScopes(state.rollup).map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+                        </select>
+                    </label>
+                    {days.length > 0 && (
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                            <span className="block mb-1">Day or event</span>
+                            <select
+                                value={day}
+                                onChange={(event) => setDay(event.target.value)}
+                                className="min-h-[44px] px-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold"
+                            >
+                                <option value="">Whole month</option>
+                                {days.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+                            </select>
+                        </label>
+                    )}
+                </div>
                 <div className="flex flex-wrap gap-2">
                     <button type="button" onClick={() => window.print()} className={`${button} border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200`}>
                         <Printer size={16} aria-hidden="true" /> Print or save as PDF
@@ -324,10 +350,17 @@ const Community = ({ loadRollup }) => {
                     <div className="text-4xl font-black tabular-nums mt-1">{report.respondents}</div>
                 </div>
                 <ReportTable
+                    title="How people took part"
+                    head={['Pathway', 'People', 'Share']}
+                    rows={report.pathwayRows.map((row) => [row.label, row.value, row.share || '–'])}
+                />
+                <ReportTable
                     title="What people reported"
                     head={['Need', 'People', 'Share']}
                     rows={report.domainRows.map((row) => [row.label, row.value, row.share || '–'])}
                 />
+                <ReportTable title="By day" head={['Day', 'People', 'Chat', 'Form']} rows={report.dayRows.map((row) => [row.label, row.respondents, row.chat, row.form])} />
+                <ReportTable title="Busiest days" head={['Day', 'People']} rows={report.busiestRows.map((row) => [row.label, row.respondents])} />
                 <ReportTable title="By region" head={['Region', 'People']} rows={report.regionRows.map((row) => [row.label, row.respondents])} />
                 <ReportTable title="By month" head={['Month', 'People']} rows={report.monthRows.map((row) => [row.label, row.respondents])} />
                 <ReportTable title="By postal sector" head={['Sector', 'People']} rows={report.sectorRows.map((row) => [row.label, row.respondents])} />

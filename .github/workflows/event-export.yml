@@ -1,15 +1,14 @@
-# Pulls one event's `event_records` as a CSV and a summary, using the deploy
-# pipeline's service account, so nobody needs a laptop or a key file to get an
-# event's figures. Run from the Actions tab (or the API) with the event id; the
-# output is a workflow artifact. The rows hold no answers and nothing
-# identifying: see `src/utils/telemetry.js` `recordEventTelemetry`.
+# Prints one event's (or one day's) SUMMARY, using the deploy pipeline's service
+# account, so nobody needs a laptop or a key file to get an event's figures. Run
+# from the Actions tab (or the API) with the event id; the output is the summary
+# as a workflow artifact. No row-level file is kept: see the warning below.
 name: Event Export
 
 on:
   workflow_dispatch:
     inputs:
       eventId:
-        description: 'Event id, e.g. health-fiesta-2026'
+        description: 'Event id (e.g. health-fiesta-2026), or a date YYYY-MM-DD for the assessments of that day'
         required: true
         default: 'health-fiesta-2026'
 
@@ -34,15 +33,28 @@ jobs:
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           mkdir -p out && cd out
-          NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
-            node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          # A date in place of an event id exports that day's completed
+          # assessments instead (scripts/day-export.cjs). One input, so the
+          # dispatch validates against any branch's copy of this file.
+          if [[ "$EVENT_ID" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.\.[0-9]{4}-[0-9]{2}-[0-9]{2})?$ || "$EVENT_ID" == "all" ]]; then
+            DAY="$EVENT_ID"
+
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/day-export.cjs "$DAY" | tee summary.txt
+          else
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          fi
           rm -f "$KEY"
-          # The CSV in the log as well as the artifact, between markers, so it
-          # can be read through the API from anywhere that cannot reach the
-          # artifact store. De-identified rows only; nothing in it is an answer.
-          echo "===CSV-BEGIN==="
-          cat event-*.csv
-          echo "===CSV-END==="
+          # ⚠️ NO ROWS LEAVE THIS JOB. This repository is public, so its logs are
+          #    public and its artifacts can be downloaded by anybody signed in to
+          #    GitHub. Until 2026-11-10 the CSV was printed here and uploaded: one
+          #    row per screening with sector, age band, gender, ethnicity and
+          #    housing together, which on a quiet day describes one person. The
+          #    summary (counts) is what is kept. For a row-level file, run the
+          #    script on a machine you control with a key; for figures, use the
+          #    Community tab of Owner Insights, which withholds small groups.
+          rm -f ./*.csv
       - uses: actions/upload-artifact@v4
         with:
           name: event-${{ github.event.inputs.eventId }}
