@@ -1739,7 +1739,29 @@ exports.buildCommunityInsights = onSchedule({
         truncated,
     });
 
+    // THE PERMANENT RECORD (v2.23.0): one counts-only document per month, at
+    // `community_insights/{YYYY-MM}`, so a month's figures outlive its rows, which
+    // expire at 24 months. One-way: `keepFullerMonth` never replaces a saved month
+    // with a smaller one. See `./insights.cjs` for what a month may hold.
+    const history = insightsLib.buildHistory(records);
+    const monthKeys = Object.keys(history);
+    let monthsWritten = 0;
+    if (monthKeys.length > 0) {
+        const monthRefs = monthKeys.map((key) => db.doc(`community_insights/${key}`));
+        const saved = await db.getAll(...monthRefs);
+        const batch = db.batch();
+        saved.forEach((monthSnap, i) => {
+            const fresh = history[monthKeys[i]];
+            if (insightsLib.keepFullerMonth(monthSnap.exists ? monthSnap.data() : null, fresh) !== fresh) return;
+            batch.set(monthRefs[i], { ...fresh, savedAt: new Date().toISOString() });
+            monthsWritten += 1;
+        });
+        if (monthsWritten > 0) await batch.commit();
+    }
+
     logger.info('[INSIGHTS] rollup written', {
+        months: monthKeys.length,
+        monthsWritten,
         recordsRead: snap.size,
         truncated,
         publishedSectors: Object.keys(insights.sectors).length,

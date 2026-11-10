@@ -1,8 +1,7 @@
-# Pulls one event's `event_records` as a CSV and a summary, using the deploy
-# pipeline's service account, so nobody needs a laptop or a key file to get an
-# event's figures. Run from the Actions tab (or the API) with the event id; the
-# output is a workflow artifact. The rows hold no answers and nothing
-# identifying: see `src/utils/telemetry.js` `recordEventTelemetry`.
+# Prints one event's (or one day's) SUMMARY, using the deploy pipeline's service
+# account, so nobody needs a laptop or a key file to get an event's figures. Run
+# from the Actions tab (or the API) with the event id; the output is the summary
+# as a workflow artifact. No row-level file is kept: see the warning below.
 name: Event Export
 
 on:
@@ -47,12 +46,15 @@ jobs:
               node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
           fi
           rm -f "$KEY"
-          # The CSV in the log as well as the artifact, between markers, so it
-          # can be read through the API from anywhere that cannot reach the
-          # artifact store. De-identified rows only; nothing in it is an answer.
-          echo "===CSV-BEGIN==="
-          if [ "$(cat *.csv | wc -l)" -le 600 ]; then cat *.csv; else echo "(csv larger than 600 lines; see the artifact)"; fi
-          echo "===CSV-END==="
+          # ⚠️ NO ROWS LEAVE THIS JOB. This repository is public, so its logs are
+          #    public and its artifacts can be downloaded by anybody signed in to
+          #    GitHub. Until 2026-11-10 the CSV was printed here and uploaded: one
+          #    row per screening with sector, age band, gender, ethnicity and
+          #    housing together, which on a quiet day describes one person. The
+          #    summary (counts) is what is kept. For a row-level file, run the
+          #    script on a machine you control with a key; for figures, use the
+          #    Community tab of Owner Insights, which withholds small groups.
+          rm -f ./*.csv
       - uses: actions/upload-artifact@v4
         with:
           name: event-${{ github.event.inputs.eventId }}
