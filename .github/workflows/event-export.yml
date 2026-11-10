@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       eventId:
-        description: 'Event id, e.g. health-fiesta-2026'
+        description: 'Event id (e.g. health-fiesta-2026), or a date YYYY-MM-DD for the assessments of that day'
         required: true
         default: 'health-fiesta-2026'
 
@@ -34,14 +34,24 @@ jobs:
           KEY="$RUNNER_TEMP/sa.json"
           printf '%s' "$GCP_SA_KEY" > "$KEY"
           mkdir -p out && cd out
-          NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
-            node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          # A date in place of an event id exports that day's completed
+          # assessments instead (scripts/day-export.cjs). One input, so the
+          # dispatch validates against any branch's copy of this file.
+          if [[ "$EVENT_ID" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}(\.\.[0-9]{4}-[0-9]{2}-[0-9]{2})?$ || "$EVENT_ID" == "all" ]]; then
+            DAY="$EVENT_ID"
+
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/day-export.cjs "$DAY" | tee summary.txt
+          else
+            NODE_PATH=../functions/node_modules GOOGLE_APPLICATION_CREDENTIALS="$KEY" \
+              node ../scripts/event-export.cjs "$EVENT_ID" | tee summary.txt
+          fi
           rm -f "$KEY"
           # The CSV in the log as well as the artifact, between markers, so it
           # can be read through the API from anywhere that cannot reach the
           # artifact store. De-identified rows only; nothing in it is an answer.
           echo "===CSV-BEGIN==="
-          cat event-*.csv
+          if [ "$(cat *.csv | wc -l)" -le 600 ]; then cat *.csv; else echo "(csv larger than 600 lines; see the artifact)"; fi
           echo "===CSV-END==="
       - uses: actions/upload-artifact@v4
         with:
