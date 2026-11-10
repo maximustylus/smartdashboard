@@ -1,7 +1,7 @@
 'use strict';
 /**
  * ==============================================================================
- * OWNER INSIGHTS — the platform in counts, for the person who runs it (v2.21.0)
+ * OWNER INSIGHTS — the platform in counts, for the person who runs it (v2.22.0)
  * ==============================================================================
  *
  * The NEXUS owner belongs to no team's data and should not have to join one to see
@@ -19,6 +19,9 @@
  *         with names and addresses and asserts none survive into the output.
  *      2. NO WELLBEING. Pulse, wellbeing logs and workload are not read at all.
  *         An owner does not need them and they are the most sensitive data here.
+ *         What a team has MADE (rosters, swaps, posts, reports) is counted by the
+ *         database and never opened: `ACTIVITY` below is the whole list of what
+ *         may be counted, and the handler may only `.count()` those paths.
  *      3. THE CALLER IS A SUPER-ADMIN, checked by the handler before any read, and
  *         every successful call is logged.
  *
@@ -29,6 +32,28 @@
 const PERIODS = Object.freeze(['all', '90', '30']);
 const REQUEST_STATUSES = Object.freeze(['pending', 'approved', 'declined']);
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * WHAT A TEAM HAS MADE — the only team subcollections the handler may touch, and
+ * it may only COUNT them (`.count()`, an aggregation: no document is loaded).
+ * `{year}` is the current year. Wellbeing, pulse, loads, workload, grades and
+ * notifications are absent ON PURPOSE and a test pins that they stay absent.
+ */
+const ACTIVITY = Object.freeze([
+    { key: 'rosters', path: 'rosters', label: 'Rosters' },
+    { key: 'rosterEdits', path: 'rosters/{year}/changes', label: 'Roster edits' },
+    { key: 'swaps', path: 'swaps', label: 'Swaps' },
+    { key: 'feedPosts', path: 'feed', label: 'Feed posts' },
+    { key: 'reports', path: 'reports', label: 'Reports' },
+    { key: 'projects', path: 'projects', label: 'Project years' },
+    { key: 'attendance', path: 'attendance', label: 'Attendance years' },
+]);
+const ACTIVITY_KEYS = Object.freeze(ACTIVITY.map((a) => a.key));
+
+/** How many months the sign-up series shows, ending with the current one. */
+const SIGNUP_MONTHS = 12;
+/** How many recent visits the access log returns. */
+const VISIT_LIMIT = 10;
 
 const normalisePeriod = (value) => (PERIODS.includes(String(value)) ? String(value) : 'all');
 
@@ -60,6 +85,21 @@ const inPeriod = (ms, start) => (start === null ? true : ms !== null && ms >= st
 const text = (value) => (typeof value === 'string' ? value.trim() : '');
 const count = (value) => (Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.floor(Number(value)) : 0);
 
+/** `YYYY-MM` in Singapore time, which is where every team so far works. */
+const monthKey = (ms) => new Date(ms + 8 * 60 * 60 * 1000).toISOString().slice(0, 7);
+
+/** The last `n` month keys ending at `nowMs`, oldest first. */
+const lastMonths = (nowMs, n) => {
+    const d = new Date(nowMs + 8 * 60 * 60 * 1000);
+    const out = [];
+    for (let i = n - 1; i >= 0; i -= 1) {
+        out.push(new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() - i, 1)).toISOString().slice(0, 7));
+    }
+    return out;
+};
+
+const emptyActivity = () => Object.fromEntries(ACTIVITY_KEYS.map((k) => [k, 0]));
+
 /** A placeholder member (`scripts/add-pending-member.cjs`): rostered, cannot sign in. */
 const isPending = (member) => typeof member.uid === 'string' && member.uid.startsWith('pending-');
 
@@ -69,7 +109,13 @@ const isPending = (member) => typeof member.uid === 'string' && member.uid.start
  * @param {Array<{teamId, uid, role}>} facts.members   every membership document
  * @param {Array<{status, requestedAt}>} facts.leadRequests
  * @param {Array<string>} facts.teamsWithRoster        team ids with a roster for `year`
- * @param {{total:number, inPeriod:number}} facts.screenings
+ * @param {Array<{createdAt, activeAt, verified, uid}>} [facts.accounts]  one per sign-in account
+ * @param {boolean} [facts.accountsTruncated]          the account read hit its cap
+ * @param {Object<string, Object<string, number>>} [facts.activity]  team id → counts by `ACTIVITY` key
+ * @param {{respondents:number, generatedAt:string, truncated:boolean}|null} [facts.community]
+ *        from the nightly rollup, which counts completed screenings only
+ * @param {Array<{at, self:boolean}>} [facts.visits]   recent reads of this page, newest first
+ * @param {number} [facts.visitsTotal]
  * @param {string} facts.period  'all' | '90' | '30'
  * @param {number} facts.nowMs
  * @param {number|string} facts.year
@@ -106,6 +152,9 @@ const summariseOwnerInsights = (facts = {}) => {
     const teamRows = teams.map((team) => {
         const row = perTeam.get(team.id);
         const created = toMillis(team.createdAt);
+        const made = (facts.activity && facts.activity[team.id]) || {};
+        const activity = emptyActivity();
+        for (const key of ACTIVITY_KEYS) activity[key] = count(made[key]);
         return {
             // Department and institution: what a team IS. Not a person.
             name: text(team.name) || text(team.department) || 'Unnamed team',
@@ -114,11 +163,50 @@ const summariseOwnerInsights = (facts = {}) => {
             leads: row.leads,
             pendingMembers: row.pending,
             hasRoster: withRoster.has(team.id),
+            // Counts of what the team has made. Never the things themselves.
+            activity,
             createdOn: created === null ? null : new Date(created).toISOString().slice(0, 10),
         };
     }).sort((a, b) => b.members - a.members || a.name.localeCompare(b.name));
 
-    const screenings = facts.screenings || {};
+    // ── Accounts: everybody who has signed up, in a team or not ────────────────
+    const accounts = (Array.isArray(facts.accounts) ? facts.accounts : []).filter(Boolean);
+    const months = lastMonths(nowMs, SIGNUP_MONTHS);
+    const byMonth = new Map(months.map((m) => [m, 0]));
+    const activeFrom = nowMs - 30 * DAY_MS;
+    let verified = 0, newInPeriod = 0, active30 = 0, undated = 0, inTeams = 0;
+    for (const account of accounts) {
+        const createdMs = toMillis(account.createdAt);
+        const activeMs = toMillis(account.activeAt);
+        if (account.verified === true) verified += 1;
+        if (createdMs === null) undated += 1;
+        else if (byMonth.has(monthKey(createdMs))) byMonth.set(monthKey(createdMs), byMonth.get(monthKey(createdMs)) + 1);
+        if (inPeriod(createdMs, start)) newInPeriod += 1;
+        if (activeMs !== null && activeMs >= activeFrom) active30 += 1;
+        // The uid is used HERE to ask "is this account in a team" and goes no further.
+        if (people.has(account.uid)) inTeams += 1;
+    }
+
+    const activityTotals = emptyActivity();
+    for (const row of teamRows) for (const key of ACTIVITY_KEYS) activityTotals[key] += row.activity[key];
+
+    // ── Community: completed screenings, from the nightly rollup ───────────────
+    // The rollup separates a completed screening from a tap or a download, which a
+    // raw count of the collection cannot (v2.21.0 counted both and overstated it).
+    const community = facts.community && Number.isFinite(Number(facts.community.respondents))
+        ? {
+            respondents: count(facts.community.respondents),
+            asOf: text(facts.community.generatedAt) || null,
+            truncated: facts.community.truncated === true,
+        }
+        : null;
+
+    const visits = (Array.isArray(facts.visits) ? facts.visits : [])
+        .map((v) => ({ at: toMillis(v && v.at), self: !!(v && v.self) }))
+        .filter((v) => v.at !== null)
+        .slice(0, VISIT_LIMIT)
+        // "You" or "another approver". Never who.
+        .map((v) => ({ at: new Date(v.at).toISOString(), self: v.self }));
 
     return {
         period,
@@ -144,17 +232,35 @@ const summariseOwnerInsights = (facts = {}) => {
                 decided,
                 approvalRate: decided > 0 ? Math.round((pipeline.approved / decided) * 100) : null,
             },
+            accounts: {
+                value: accounts.length,
+                verified,
+                inTeams,
+                withoutTeam: accounts.length - inTeams,
+                newInPeriod,
+                active30,
+                truncated: facts.accountsTruncated === true,
+            },
+            // `value` is null when there is no rollup yet: a dash, never a zero.
             screenings: {
-                value: period === 'all' ? count(screenings.total) : count(screenings.inPeriod),
-                total: count(screenings.total),
+                value: community ? community.respondents : null,
+                asOf: community ? community.asOf : null,
+                truncated: community ? community.truncated : false,
             },
         },
         pipeline: { ...pipeline, total: requests.length },
+        signups: {
+            months: months.map((key) => ({ key, count: byMonth.get(key) })),
+            undated,
+        },
+        activity: { columns: ACTIVITY.map(({ key, label }) => ({ key, label })), totals: activityTotals },
         teamRows,
+        access: { visits, total: count(facts.visitsTotal) },
     };
 };
 
 module.exports = {
-    PERIODS, REQUEST_STATUSES, DAY_MS,
+    PERIODS, REQUEST_STATUSES, DAY_MS, ACTIVITY, ACTIVITY_KEYS, SIGNUP_MONTHS, VISIT_LIMIT,
+    monthKey, lastMonths,
     normalisePeriod, toMillis, periodStart, inPeriod, summariseOwnerInsights,
 };

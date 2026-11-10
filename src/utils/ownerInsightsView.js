@@ -22,16 +22,60 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 
 /** What the period changes, said under the tiles. Empty for all time. */
 export const periodNote = (period) => (period === 'all' ? '' : (
-    `Counting lead requests, new teams and screenings from the last ${period} days. `
-    + 'People, teams and the teams table always show everything.'
+    `Counting sign-ups, lead requests and new teams from the last ${period} days. `
+    + 'Everything else always shows everything.'
 ));
 
-/** The four tiles: label, value, unit and one line of context that carries the base. */
+/** The page's four parts. One is shown at a time. */
+export const TABS = Object.freeze([
+    { key: 'overview', label: 'Overview' },
+    { key: 'teams', label: 'Teams' },
+    { key: 'community', label: 'Community' },
+    { key: 'access', label: 'Access' },
+]);
+
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const shortMonth = (key) => SHORT_MONTHS[Number(String(key).slice(5, 7)) - 1] || String(key);
+
+/** `2026-11-10T03:50:00Z` → `10 Nov 2026`, Singapore time. Empty when unusable. */
+export const shortDay = (iso) => {
+    const ms = Date.parse(iso || '');
+    if (!Number.isFinite(ms)) return '';
+    const d = new Date(ms + 8 * 60 * 60 * 1000);
+    return `${d.getUTCDate()} ${SHORT_MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+};
+
+/** `10 Nov 2026, 11:50`, Singapore time. */
+export const shortDayTime = (iso) => {
+    const ms = Date.parse(iso || '');
+    if (!Number.isFinite(ms)) return '';
+    const d = new Date(ms + 8 * 60 * 60 * 1000);
+    return `${shortDay(iso)}, ${String(d.getUTCHours()).padStart(2, '0')}:${String(d.getUTCMinutes()).padStart(2, '0')}`;
+};
+
+/** The tiles: label, value, unit and one line of context that carries the base. */
 export const tilesFor = (data) => {
     const t = data?.tiles;
     if (!t) return [];
     const windowed = data.period !== 'all';
-    return [
+    const tiles = [];
+    if (t.accounts) {
+        tiles.push({
+            key: 'accounts',
+            label: 'Sign-ups',
+            value: `${t.accounts.value}${t.accounts.truncated ? '+' : ''}`,
+            context: windowed
+                ? `${t.accounts.newInPeriod} new in the last ${data.period} days`
+                : `${t.accounts.verified} with a confirmed email, ${t.accounts.withoutTeam} not in a team`,
+        });
+        tiles.push({
+            key: 'active',
+            label: 'Active',
+            value: String(t.accounts.active30),
+            context: `of ${t.accounts.value} used NEXUS in the last 30 days`,
+        });
+    }
+    tiles.push(
         {
             key: 'teams',
             label: 'Teams',
@@ -42,7 +86,7 @@ export const tilesFor = (data) => {
         },
         {
             key: 'people',
-            label: 'People',
+            label: 'In a team',
             value: String(t.people.value),
             context: `${plural(t.people.leads, 'lead', 'leads')} across ${plural(t.people.teams, 'team', 'teams')}`
                 + (t.people.pendingMembers > 0 ? `, ${t.people.pendingMembers} not yet registered` : ''),
@@ -59,13 +103,58 @@ export const tilesFor = (data) => {
         {
             key: 'screenings',
             label: 'Screenings',
-            value: String(t.screenings.value),
-            context: windowed
-                ? `of ${t.screenings.total} all time`
-                : 'completed on the public portal',
+            // No rollup yet is a dash. It is not zero: nothing has been counted.
+            value: t.screenings.value === null || t.screenings.value === undefined ? '–' : String(t.screenings.value),
+            context: t.screenings.value === null || t.screenings.value === undefined
+                ? 'No community rollup yet'
+                : `completed on the public portal${t.screenings.asOf ? `, as of ${shortDay(t.screenings.asOf)}` : ''}`,
         },
-    ];
+    );
+    return tiles;
 };
+
+/** The sign-up chart: one bar per month, heights relative to the tallest. */
+export const signupBars = (signups) => {
+    const months = signups?.months || [];
+    const max = Math.max(0, ...months.map((m) => m.count));
+    return months.map((m) => ({
+        key: m.key,
+        label: shortMonth(m.key),
+        count: m.count,
+        height: max === 0 ? 0 : Math.round((m.count / max) * 100),
+    }));
+};
+
+/** The sign-up chart, as a sentence. Only months with somebody in them are named. */
+export const signupLabel = (signups) => {
+    const months = signups?.months || [];
+    const total = months.reduce((sum, m) => sum + m.count, 0);
+    if (total === 0) return `Sign-ups by month: none in the last ${months.length} months.`;
+    const named = months.filter((m) => m.count > 0).map((m) => `${shortMonth(m.key)} ${m.key.slice(0, 4)} ${m.count}`);
+    return `Sign-ups by month, last ${months.length} months, ${total} in all: ${named.join(', ')}.`;
+};
+
+/**
+ * WHAT THE OWNER MAY AND MAY NOT OPEN, said on the page. These are the rules the
+ * server enforces (`functions/ownerInsights.cjs`); they are written here once so
+ * the page cannot drift into promising something else.
+ */
+export const ACCESS_RULES = Object.freeze({
+    counted: [
+        'How many accounts, teams and people there are, and when they arrived.',
+        'How many rosters, roster edits, swaps, feed posts and reports each team has made.',
+        'How many community screenings were completed, with small groups withheld.',
+    ],
+    neverOpened: [
+        'A roster, a swap, a post or a report. They are counted by the database and never loaded.',
+        'Pulse, wellbeing and workload. They are not counted and not read.',
+        'Anybody\'s name, email address or account id.',
+    ],
+    byRequest: [
+        'A team\'s lead asks, and adds you to their team from the Team panel. The team can see you are there, and the lead can remove you.',
+        'A legal or safety duty requires it. That is done outside this page, in writing, with the team\'s lead told unless the law forbids it.',
+    ],
+});
 
 export const PIPELINE_GROUPS = Object.freeze([
     { key: 'pending', label: 'Waiting', tone: 'amber' },
@@ -87,9 +176,10 @@ export const pipelineSegments = (pipeline) => {
         .map((g) => ({ ...g, count: pipeline[g.key], width: (pipeline[g.key] / pipeline.total) * 100 }));
 };
 
-/** Nothing to show at all: no teams and no requests. One empty state, no empty charts. */
+/** Nothing to show at all: no accounts, no teams, no requests, no screenings. One empty state, no empty charts. */
 export const isEmpty = (data) => !data?.tiles
-    || (data.tiles.teams.value === 0 && data.pipeline.total === 0 && data.tiles.screenings.total === 0);
+    || (data.tiles.teams.value === 0 && data.pipeline.total === 0 && !data.tiles.screenings.value
+        && (data.tiles.accounts?.value ?? 0) === 0);
 
 /**
  * THE LANDING FLAG. Off unless turned on, for one browser by `?insights=1`

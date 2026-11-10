@@ -3,6 +3,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Users, ShieldAlert, MapPin, TrendingUp, EyeOff } from 'lucide-react';
 import { POSTAL_SECTORS, REGION_LABEL } from '../utils/singapore/postalSectors';
+// One label map, shared with the report the owner can generate from the same rollup.
+import { DOMAIN_LABELS } from '../utils/communityReport';
 
 /**
  * ==============================================================================
@@ -34,20 +36,6 @@ import { POSTAL_SECTORS, REGION_LABEL } from '../utils/singapore/postalSectors';
  * data rather than the gaps in provision. The withheld people are still counted in
  * their region and nationally, and the screen says that too.
  */
-
-const DOMAIN_LABELS = {
-  exertionalSymptoms: 'Chest pain or dizziness on exertion',
-  chronicCondition: 'Ongoing health condition',
-  belowActivityTarget: 'Below 150 min/week',
-  psychologicalDistress: 'Psychological distress',
-  caregiverStrain: 'Unpaid caregiving strain',
-  socialIsolation: 'Limited social support',
-  financialBarrier: 'Cost or distance a barrier',
-  foodInsecurity: 'Food insecurity',
-  housingRisk: '1–2 room HDB',
-  fallsRisk: 'Fall in past 12 months (60+)',
-  notEnrolledHealthierSg: 'Not enrolled with Healthier SG',
-};
 
 const Stat = ({ icon: Icon, label, value, tone = 'slate' }) => (
   <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4">

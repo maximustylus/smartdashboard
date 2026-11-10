@@ -1832,7 +1832,7 @@ exports.listLeadRequests = onCall({ cors: true }, async (request) => {
 
 
 /**
- * ── OWNER INSIGHTS (v2.21.0) ─────────────────────────────────────────────────
+ * ── OWNER INSIGHTS (v2.21.0, widened in v2.22.0) ─────────────────────────────
  *
  * The platform in counts, for a super-admin. THE ONLY HANDLER THAT READS ACROSS
  * TEAMS, so read `./ownerInsights.cjs` before changing it: what may leave the
@@ -1846,8 +1846,49 @@ exports.listLeadRequests = onCall({ cors: true }, async (request) => {
  *   - Member documents are read in full by the Admin SDK and reduced to
  *     `{ teamId, uid, role }` here, before the pure function sees them, so a name
  *     or address cannot reach the response even by a later mistake in it.
+ *   - Sign-in accounts are reduced the same way, to three dates-and-flags and the
+ *     uid the summary needs to ask "is this account in a team". No address.
+ *   - WHAT A TEAM HAS MADE IS COUNTED, NEVER OPENED. `countTeamActivity` is the
+ *     only code that touches a team's rosters, swaps, feed or reports, it takes its
+ *     paths from `ownerInsights.ACTIVITY`, and it can only `.count()` them.
+ *   - Screenings come from the nightly rollup document, which holds counts only.
+ *     `community_assessments` itself is not read here at all.
  */
 var ownerInsights = require('./ownerInsights.cjs');
+
+/** One team's activity, as counts. An aggregation query loads no document. */
+async function countTeamActivity(db, teamId, year) {
+    var counts = await Promise.all(ownerInsights.ACTIVITY.map(function (item) {
+        var path = 'teams/' + teamId + '/' + item.path.replace('{year}', year);
+        return db.collection(path).count().get();
+    }));
+    var out = {};
+    ownerInsights.ACTIVITY.forEach(function (item, index) { out[item.key] = counts[index].data().count; });
+    return out;
+}
+
+/** Every sign-in account, as `{ uid, createdAt, activeAt, verified }`. Capped. */
+async function listAccountFacts() {
+    var PAGE = 1000, MAX_PAGES = 10;
+    var accounts = [], token, pages = 0;
+    do {
+        var page = await getAuth().listUsers(PAGE, token);
+        page.users.forEach(function (record) {
+            var meta = record.metadata || {};
+            accounts.push({
+                uid: record.uid,
+                createdAt: meta.creationTime || null,
+                // The last time the app refreshed its session, which is closer to
+                // "last used" than the last time a password was typed.
+                activeAt: meta.lastRefreshTime || meta.lastSignInTime || null,
+                verified: record.emailVerified === true,
+            });
+        });
+        token = page.pageToken;
+        pages += 1;
+    } while (token && pages < MAX_PAGES);
+    return { accounts: accounts, truncated: !!token };
+}
 
 exports.getOwnerInsights = onCall({ cors: true }, async (request) => {
     var db = getFirestore();
@@ -1856,19 +1897,15 @@ exports.getOwnerInsights = onCall({ cors: true }, async (request) => {
     var period = ownerInsights.normalisePeriod(request.data && request.data.period);
     var nowMs = Date.now();
     var year = String(new Date(nowMs + 8 * 60 * 60 * 1000).getUTCFullYear()); // Asia/Singapore
-    var start = ownerInsights.periodStart(period, nowMs);
-
-    var screeningsAll = db.collection('community_assessments').count().get();
-    var screeningsInPeriod = start === null
-        ? screeningsAll
-        : db.collection('community_assessments').where('createdAt', '>=', new Date(start)).count().get();
 
     var results = await Promise.all([
         db.collection('teams').get(),
         db.collectionGroup('members').get(),
         db.collection('lead_requests').limit(2000).get(),
-        screeningsAll,
-        screeningsInPeriod,
+        db.doc('community_insights/latest').get(),
+        listAccountFacts(),
+        db.collection('owner_insights_access').orderBy('at', 'desc').limit(ownerInsights.VISIT_LIMIT).get(),
+        db.collection('owner_insights_access').count().get(),
     ]);
 
     var teams = [];
@@ -1894,6 +1931,18 @@ exports.getOwnerInsights = onCall({ cors: true }, async (request) => {
         leadRequests.push({ status: data.status, requestedAt: data.requestedAt });
     });
 
+    // The rollup is counts only by construction (`./insights.cjs`); three fields of it.
+    var rollup = results[3].exists ? (results[3].data() || {}) : null;
+    var community = rollup && rollup.national
+        ? { respondents: rollup.national.respondents, generatedAt: rollup.generatedAt, truncated: rollup.truncated === true }
+        : null;
+
+    var visits = [];
+    results[5].forEach(function (docSnap) {
+        var data = docSnap.data() || {};
+        visits.push({ at: data.at, self: data.uid === caller.uid });
+    });
+
     var rosterSnaps = teams.length === 0 ? [] : await db.getAll.apply(db, teams.map(function (team) {
         return db.doc('teams/' + team.id + '/rosters/' + year);
     }));
@@ -1902,12 +1951,23 @@ exports.getOwnerInsights = onCall({ cors: true }, async (request) => {
         if (snap.exists) teamsWithRoster.push(teams[index].id);
     });
 
+    var activityCounts = await Promise.all(teams.map(function (team) {
+        return countTeamActivity(db, team.id, year);
+    }));
+    var activity = {};
+    teams.forEach(function (team, index) { activity[team.id] = activityCounts[index]; });
+
     var summary = ownerInsights.summariseOwnerInsights({
         teams: teams,
         members: members,
         leadRequests: leadRequests,
         teamsWithRoster: teamsWithRoster,
-        screenings: { total: results[3].data().count, inPeriod: results[4].data().count },
+        accounts: results[4].accounts,
+        accountsTruncated: results[4].truncated,
+        activity: activity,
+        community: community,
+        visits: visits,
+        visitsTotal: results[6].data().count,
         period: period,
         nowMs: nowMs,
         year: year,
