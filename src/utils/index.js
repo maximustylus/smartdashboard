@@ -19,8 +19,12 @@ export const MONTHS = [
 //
 // Three people — Evelyn, Ashik and Mini — were removed from the directory before
 // it was deleted, as a REVOCATION the owner decided and `scripts/team-one-manifest.cjs`
-// records with the full reasoning. That history matters and stays; the bridge in
-// `legacyBridge.js` recognises only the seven who remained.
+// records with the full reasoning. That history matters and stays.
+//
+// ⚠️ THE BRIDGE DESCRIBED BELOW IS ALSO GONE (v2.20.1). `legacyBridge.js` was
+//    deleted once a read-only production check counted nobody relying on it. The
+//    headstone is kept as written; where it says a field "went to" the bridge,
+//    read: the person's own `users/{uid}` document and team membership.
 /**
  * ==============================================================================
  * `TEAM_DIRECTORY` IS GONE, AND THIS COMMENT IS ITS HEADSTONE — `AN14`

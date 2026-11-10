@@ -54,6 +54,52 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.20.1] - 2026-11-10
+
+Team membership is now the only way into NEXUS.
+
+### Removed
+
+- **The legacy email bridge (`src/utils/legacyBridge.js`).** Seven recognised email
+  addresses, held as salted digests, were waved past the access gate whether or not
+  they belonged to a team, and two of them were granted the admin door on the strength
+  of the address alone. It was a bridge for the August 2026 migration, and its own
+  header named the trigger for deleting it: every legacy member holds `teamIds`. That
+  had been true for weeks; nothing could check it in production without a key file on a
+  laptop, so it stayed.
+
+  It was checked first, not assumed. A read-only `bridge-check` task was added to the
+  NEXUS Admin workflow (counts only, no address, uid or digest in the public log) and
+  run against production on 2026-11-10:
+
+  | | |
+  |---|---|
+  | Addresses the bridge recognised | 7 |
+  | with a sign-in account | 3, all in at least one team |
+  | with no account at that address | 4 |
+  | accounts it made an admin | 1, and already an admin without it |
+
+  Nobody entered through it and nobody was an admin only because of it. So it is gone:
+  the gate bypass in `App.jsx`, the admin disjunct, the pulse-board clause in
+  `WellbeingView`, the sign-in profile spread in `WelcomeScreen`, the SHA-256 module
+  that existed only to feed it, and the digest-regeneration script. The `bridge-check`
+  task and its 20 tests are removed with it, since they read a file that no longer
+  exists; the run above is the record.
+
+### Changed
+
+- **A signed-in person with no team now always meets the access gate**, whoever they
+  are. Before this, a recognised address with no team entered an app shell with no team
+  behind it and saw empty views. The approval queue stays exempt from the gate, as it
+  has been since v2.0.0, so a super-admin with no team can still reach it.
+
+### Notes
+
+- `package-lock.json` said `2.14.0` against a `2.20.0` `package.json`. Aligned.
+- The residual "membership oracle" the bridge's own threat model declared (anybody who
+  guessed an address could confirm it was one of seven) is closed by deletion. No list
+  of people, hashed or otherwise, ships in the bundle.
+
 ## [2.20.0] - 2026-10-14
 
 Every pop-up now reads as NEXUS's own.

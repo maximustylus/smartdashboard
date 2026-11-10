@@ -18,7 +18,6 @@ import {
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useNexus } from '../context/NexusContext';
-import { checkAccess } from '../utils/legacyBridge';
 import { useDomainAllowlist } from '../hooks/useDomainAllowlist';
 import {
     isAllowedEmail,
@@ -154,8 +153,7 @@ const WelcomeScreen = (props) => {
             // GATE 2 IS GONE ON PURPOSE. It used to be `checkAccess(email)` — a
             // ten-person hardcoded list, which is what made NEXUS a one-team product.
             // Who you are is now decided AFTER sign-in, by whether a membership
-            // document exists for you; `checkAccess` survives below only as a lookup
-            // for the migrated team, and step 5 of the rebuild deletes it.
+            // document exists for you. (`checkAccess` itself was deleted in v2.20.1.)
 
             if (authView === 'LOGIN') {
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -186,20 +184,15 @@ const WelcomeScreen = (props) => {
                 // A known face keeps their bridge role and title; anyone else is
                 // handed the authenticated user and routed by their access state.
                 //
-                // `AN14`: the bridge profile no longer carries a name or an email —
-                // those came out of the bundle — so the base object is built for
-                // EVERYONE from the person's own credential and the profile is
-                // spread over it. Same outcome for a legacy member as before
-                // (role/title from the bridge, their own identity), with nothing
-                // shipped to make it so.
-                const knownProfile = checkAccess(email);
+                // The object is built for EVERYONE from the person's own
+                // credential. (Until v2.20.1 a legacy bridge profile was spread
+                // over it for seven recognised addresses; that bridge is deleted.)
                 if (onAuthSuccess) onAuthSuccess({
                     id: userCredential.user.uid,
                     uid: userCredential.user.uid,
                     name: userCredential.user.displayName || email.split('@')[0],
                     email: email.toLowerCase(),
                     role: 'staff',
-                    ...(knownProfile || {}),
                 });
 
             } else {
