@@ -1830,6 +1830,99 @@ exports.listLeadRequests = onCall({ cors: true }, async (request) => {
     return { requests: requests, status: status };
 });
 
+
+/**
+ * ── OWNER INSIGHTS (v2.21.0) ─────────────────────────────────────────────────
+ *
+ * The platform in counts, for a super-admin. THE ONLY HANDLER THAT READS ACROSS
+ * TEAMS, so read `./ownerInsights.cjs` before changing it: what may leave the
+ * server is decided there (counts, team and institution names, nothing about any
+ * person, nothing from wellbeing), and tested there.
+ *
+ *   - `requireSuperAdmin` runs BEFORE any read.
+ *   - Every successful call is logged to `owner_insights_access` with the caller's
+ *     uid and a server clock. `firestore.rules` matches nothing at that path, so no
+ *     client can read or write it; it exists to answer "who looked, and when".
+ *   - Member documents are read in full by the Admin SDK and reduced to
+ *     `{ teamId, uid, role }` here, before the pure function sees them, so a name
+ *     or address cannot reach the response even by a later mistake in it.
+ */
+var ownerInsights = require('./ownerInsights.cjs');
+
+exports.getOwnerInsights = onCall({ cors: true }, async (request) => {
+    var db = getFirestore();
+    var caller = await requireSuperAdmin(db, request);
+
+    var period = ownerInsights.normalisePeriod(request.data && request.data.period);
+    var nowMs = Date.now();
+    var year = String(new Date(nowMs + 8 * 60 * 60 * 1000).getUTCFullYear()); // Asia/Singapore
+    var start = ownerInsights.periodStart(period, nowMs);
+
+    var screeningsAll = db.collection('community_assessments').count().get();
+    var screeningsInPeriod = start === null
+        ? screeningsAll
+        : db.collection('community_assessments').where('createdAt', '>=', new Date(start)).count().get();
+
+    var results = await Promise.all([
+        db.collection('teams').get(),
+        db.collectionGroup('members').get(),
+        db.collection('lead_requests').limit(2000).get(),
+        screeningsAll,
+        screeningsInPeriod,
+    ]);
+
+    var teams = [];
+    results[0].forEach(function (docSnap) {
+        var data = docSnap.data() || {};
+        teams.push({
+            id: docSnap.id, name: data.name, department: data.department,
+            institution: data.institution, createdAt: data.createdAt,
+        });
+    });
+
+    var members = [];
+    results[1].forEach(function (docSnap) {
+        var team = docSnap.ref.parent.parent;
+        // Only `teams/{id}/members/{uid}`: a `members` collection anywhere else is not ours.
+        if (!team || team.parent.id !== 'teams') return;
+        members.push({ teamId: team.id, uid: docSnap.id, role: (docSnap.data() || {}).role });
+    });
+
+    var leadRequests = [];
+    results[2].forEach(function (docSnap) {
+        var data = docSnap.data() || {};
+        leadRequests.push({ status: data.status, requestedAt: data.requestedAt });
+    });
+
+    var rosterSnaps = teams.length === 0 ? [] : await db.getAll.apply(db, teams.map(function (team) {
+        return db.doc('teams/' + team.id + '/rosters/' + year);
+    }));
+    var teamsWithRoster = [];
+    rosterSnaps.forEach(function (snap, index) {
+        if (snap.exists) teamsWithRoster.push(teams[index].id);
+    });
+
+    var summary = ownerInsights.summariseOwnerInsights({
+        teams: teams,
+        members: members,
+        leadRequests: leadRequests,
+        teamsWithRoster: teamsWithRoster,
+        screenings: { total: results[3].data().count, inPeriod: results[4].data().count },
+        period: period,
+        nowMs: nowMs,
+        year: year,
+    });
+
+    await db.collection('owner_insights_access').add({
+        uid: caller.uid,
+        period: period,
+        at: FieldValue.serverTimestamp(),
+    });
+    logger.info('[OWNER] insights read by ' + caller.uid + ' (' + period + ')');
+
+    return summary;
+});
+
 /**
  * APPROVE — the only path that creates a team.
  *
