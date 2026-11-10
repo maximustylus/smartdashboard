@@ -54,6 +54,78 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.22.0] - 2026-11-10
+
+Owner Insights, widened: the owner's whole view of NEXUS, still without opening anybody's data.
+
+### Added
+
+- **Sign-ups and activity.** Two new tiles: every account that has signed up (with how
+  many have a confirmed email and how many are in no team), and how many used NEXUS in
+  the last 30 days. A twelve-month chart of accounts created each month, with a sentence
+  a screen reader can read instead. Accounts are read on the server and reduced to two
+  dates and a confirmed flag; no address or name is kept.
+
+- **What each team has made, as counts.** The Teams tab adds rosters, roster edits,
+  swaps, feed posts, reports, project years and attendance years per team, with a
+  totals row. Each figure is an aggregation: the database counts the items and loads
+  none of them, so no roster, swap, post or report is opened. The list of what may be
+  counted is fixed in `functions/ownerInsights.cjs` (`ACTIVITY`), and a test pins that
+  pulse, wellbeing, workload, grades, members and notifications are not on it.
+
+- **A community report the owner can generate.** The Community tab lays the nightly
+  rollup out as a report: completed screenings, what people reported with shares,
+  regions, months and postal sectors, and a "how to read this" section. It covers all
+  time or one published month, prints (or saves as PDF) without the page chrome, and
+  downloads as a CSV. It is made from `community_insights/latest` only, so the
+  disclosure control already applied there carries through: a withheld count is
+  written as withheld in the page, the print and the CSV, never as a number or a share.
+
+- **An Access tab that says what the owner may open.** What is counted, what is never
+  opened, and the only two ways into a team's own data: the team's lead asks and adds
+  the owner as a member, or a legal or safety duty requires it and it is done outside
+  the page, in writing. Below it, the last ten visits to Insights as a time and "You"
+  or "Another approver", and the total.
+
+- **The NEXUS shell.** The same header card and pill navigation as the rest of the app,
+  four tabs (Overview, Teams, Community, Access), and the light and dark toggle, which
+  follows the same saved preference as everywhere else.
+
+### Fixed
+
+- **The Screenings tile overstated completed screenings.** v2.21.0 counted every
+  document in `community_assessments`, which also holds a row for each download, share,
+  print and resource tap. The tile now reads the completed-screening count from the
+  nightly rollup, which separates the two, and says the day it was counted. With no
+  rollup yet it shows a dash, not a zero. `getOwnerInsights` no longer touches
+  `community_assessments` at all.
+
+### Changed
+
+- The period control now also windows sign-ups. Screenings are no longer windowed,
+  because the rollup holds no day-level counts; the note under the tiles says so.
+- **Corrected, 2026-11-10:** v2.21.0's known limitation said nothing records a reliable
+  last-seen time for a person. Firebase Authentication records when each account last
+  refreshed its session, and the Active tile uses that. ~~No "active in the last 30
+  days" figure.~~
+
+### Verification
+
+- 121 tests across the six Insights files. New: `communityReport.test.js` (a withheld
+  count stays withheld in the report and the CSV); the wiring test now pins that team
+  activity is only ever counted, that an account is reduced before the summary sees it,
+  and that a visit leaves the server as a time and "was it you".
+- Not verified in a browser against production before release: it needs a super-admin
+  sign-in.
+
+### Known limitations
+
+- Team activity is all-time (roster edits: this year). Not every item carries a date the
+  server can window on, so the period control does not change the Teams tab.
+- The report prints through the browser. On an iPhone that is Share, then Print.
+- No way to open a team's data from this page exists, by decision. The two routes on the
+  Access tab are procedures, not buttons.
+
 ## [2.21.0] - 2026-11-10
 
 Owner Insights: the platform in counts, for the person who runs it.

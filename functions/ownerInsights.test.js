@@ -9,7 +9,8 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const {
-    PERIODS, DAY_MS, normalisePeriod, toMillis, inPeriod, periodStart, summariseOwnerInsights,
+    PERIODS, DAY_MS, ACTIVITY, ACTIVITY_KEYS, SIGNUP_MONTHS, VISIT_LIMIT, monthKey, lastMonths,
+    normalisePeriod, toMillis, inPeriod, periodStart, summariseOwnerInsights,
 } = require('./ownerInsights.cjs');
 
 const NOW = Date.parse('2026-11-10T04:00:00Z');
@@ -42,14 +43,27 @@ const facts = (over = {}) => ({
         { status: 'weird', requestedAt: daysAgo(1) }, // not a status
     ],
     teamsWithRoster: ['kkh-sem'],
-    screenings: { total: 412, inPeriod: 37 },
+    accounts: [
+        { uid: 'u-ann', createdAt: daysAgo(80), activeAt: daysAgo(1), verified: true, email: 'ann.lee@kkh.com.sg' },
+        { uid: 'u-ben', createdAt: daysAgo(40), activeAt: daysAgo(35), verified: true },
+        { uid: 'u-dev', createdAt: daysAgo(10), activeAt: daysAgo(2), verified: true },
+        { uid: 'u-fay', createdAt: daysAgo(3), activeAt: daysAgo(3), verified: false, email: 'fay@nuh.com.sg' }, // no team
+        { uid: 'u-old', verified: true },                                                                       // undated
+    ],
+    activity: {
+        'kkh-sem': { rosters: 1, rosterEdits: 4, swaps: 7, feedPosts: 12, reports: 1, projects: 1, attendance: 1, pulse: 99 },
+        'sgh-rt': { rosters: 1, swaps: 2 },
+    },
+    community: { respondents: 286, generatedAt: '2026-11-09T19:50:00.000Z', truncated: false },
+    visits: [{ at: daysAgo(1), self: true, uid: 'u-ann' }, { at: ts(daysAgo(2)), self: false, uid: 'u-dev' }, { self: true }],
+    visitsTotal: 14,
     ...over,
 });
 
 describe('what may leave the server', () => {
     it('contains no name, address or uid of any person, anywhere in the output', () => {
         const out = JSON.stringify(summariseOwnerInsights(facts()));
-        for (const secret of ['Ann', 'Lee', 'Ben', 'Cara', 'Dev', 'Raj', 'Eve', 'Ghost', '@', 'u-ann', 'u-ben', 'u-dev', 'pending-']) {
+        for (const secret of ['Ann', 'Lee', 'Ben', 'Cara', 'Dev', 'Raj', 'Eve', 'Ghost', '@', 'u-ann', 'u-ben', 'u-dev', 'u-fay', 'u-old', 'fay', 'pending-']) {
             expect(out, secret).not.toContain(secret);
         }
     });
@@ -57,7 +71,7 @@ describe('what may leave the server', () => {
     it('team rows carry exactly the allowed keys', () => {
         for (const row of summariseOwnerInsights(facts()).teamRows) {
             expect(Object.keys(row).sort()).toEqual(
-                ['createdOn', 'hasRoster', 'institution', 'leads', 'members', 'name', 'pendingMembers'],
+                ['activity', 'createdOn', 'hasRoster', 'institution', 'leads', 'members', 'name', 'pendingMembers'],
             );
         }
     });
@@ -125,7 +139,7 @@ describe('the period filter', () => {
         const out = summariseOwnerInsights(facts({ period: '30' }));
         expect(out.pipeline).toEqual({ pending: 1, approved: 1, declined: 0, total: 2 });
         expect(out.tiles.teams.newInPeriod).toBe(1);
-        expect(out.tiles.screenings).toEqual({ value: 37, total: 412 });
+        expect(out.tiles.accounts.newInPeriod).toBe(2); // dev and fay; the undated account is not claimed
     });
 
     it('does NOT change the people count or the teams table', () => {
@@ -134,6 +148,9 @@ describe('the period filter', () => {
         expect(month.tiles.people).toEqual(all.tiles.people);
         expect(month.tiles.teams.value).toBe(all.tiles.teams.value);
         expect(month.teamRows).toEqual(all.teamRows);
+        expect(month.signups).toEqual(all.signups);
+        expect(month.tiles.screenings).toEqual(all.tiles.screenings);
+        expect(month.tiles.accounts.value).toBe(all.tiles.accounts.value);
     });
 
     it('all time counts undated items', () => {
@@ -158,15 +175,105 @@ describe('bad input never throws and never invents', () => {
         const out = summariseOwnerInsights();
         expect(out.tiles.teams.value).toBe(0);
         expect(out.tiles.people.value).toBe(0);
-        expect(out.tiles.screenings).toEqual({ value: 0, total: 0 });
+        expect(out.tiles.screenings).toEqual({ value: null, asOf: null, truncated: false });
+        expect(out.tiles.accounts.value).toBe(0);
+        expect(out.access).toEqual({ visits: [], total: 0 });
         expect(out.teamRows).toEqual([]);
     });
 
-    it.each([[undefined], [NaN], [-4], ['many']])('a screening count of %j is 0', (total) => {
-        expect(summariseOwnerInsights(facts({ screenings: { total } })).tiles.screenings.total).toBe(0);
+    it.each([[undefined], [NaN], ['many'], [null]])('a rollup with respondents %j is no rollup: a dash, not a zero', (respondents) => {
+        const community = respondents === null ? null : { respondents };
+        expect(summariseOwnerInsights(facts({ community })).tiles.screenings.value).toBeNull();
     });
 
     it.each([[undefined, null], ['not a date', null], [NaN, null], [{}, null]])('toMillis(%j) is null', (v, expected) => {
         expect(toMillis(v)).toBe(expected);
+    });
+});
+
+describe('accounts: everybody who has signed up', () => {
+    const out = summariseOwnerInsights(facts());
+
+    it('counts accounts, confirmed addresses, and who is in a team', () => {
+        expect(out.tiles.accounts).toEqual({
+            value: 5, verified: 4, inTeams: 3, withoutTeam: 2, newInPeriod: 5, active30: 3, truncated: false,
+        });
+    });
+
+    it('active means used in the last 30 days, and an account never seen is not active', () => {
+        const later = summariseOwnerInsights(facts({ nowMs: NOW + 40 * DAY_MS }));
+        expect(later.tiles.accounts.active30).toBe(0);
+    });
+
+    it('gives twelve months, oldest first, ending this month, zeros included', () => {
+        expect(out.signups.months).toHaveLength(SIGNUP_MONTHS);
+        expect(out.signups.months.map((m) => m.key)).toEqual(lastMonths(NOW, SIGNUP_MONTHS));
+        expect(out.signups.months[SIGNUP_MONTHS - 1].key).toBe(monthKey(NOW));
+        expect(out.signups.months.reduce((sum, m) => sum + m.count, 0)).toBe(4);
+        expect(out.signups.undated).toBe(1);
+    });
+
+    it('says when the account read was cut short', () => {
+        expect(summariseOwnerInsights(facts({ accountsTruncated: true })).tiles.accounts.truncated).toBe(true);
+    });
+
+    it('months are Singapore months', () => {
+        expect(monthKey(Date.parse('2026-10-31T17:00:00Z'))).toBe('2026-11');
+        expect(lastMonths(Date.parse('2026-01-15T00:00:00Z'), 3)).toEqual(['2025-11', '2025-12', '2026-01']);
+    });
+});
+
+describe('what a team has made: counted, from a fixed list', () => {
+    const out = summariseOwnerInsights(facts());
+    const row = (name) => out.teamRows.find((t) => t.name === name);
+
+    it('carries every listed count and nothing that is not on the list', () => {
+        expect(row('Sport and Exercise Medicine').activity).toEqual({
+            rosters: 1, rosterEdits: 4, swaps: 7, feedPosts: 12, reports: 1, projects: 1, attendance: 1,
+        });
+        expect(JSON.stringify(out)).not.toContain('99');
+    });
+
+    it('a team with no counts reads as zeros, not blanks', () => {
+        expect(row('Audiology').activity).toEqual(Object.fromEntries(ACTIVITY_KEYS.map((k) => [k, 0])));
+        expect(row('Respiratory Therapy').activity).toMatchObject({ rosters: 1, swaps: 2, feedPosts: 0 });
+    });
+
+    it('totals are the sum of the rows, and the columns are named', () => {
+        expect(out.activity.totals).toMatchObject({ rosters: 2, swaps: 9, feedPosts: 12, rosterEdits: 4 });
+        expect(out.activity.columns.map((c) => c.key)).toEqual(ACTIVITY_KEYS);
+    });
+
+    it('THE LIST HOLDS NO WELLBEING, PULSE, WORKLOAD, GRADE, MEMBER OR NOTIFICATION PATH', () => {
+        for (const item of ACTIVITY) {
+            expect(item.path, item.key).not.toMatch(/pulse|wellbeing|workload|loads|grades|members|notifications|settings|comments/i);
+        }
+        expect(ACTIVITY.map((a) => a.path)).toEqual(
+            ['rosters', 'rosters/{year}/changes', 'swaps', 'feed', 'reports', 'projects', 'attendance'],
+        );
+    });
+});
+
+describe('screenings come from the rollup', () => {
+    it('reports completed screenings and the day they were counted', () => {
+        expect(summariseOwnerInsights(facts()).tiles.screenings)
+            .toEqual({ value: 286, asOf: '2026-11-09T19:50:00.000Z', truncated: false });
+    });
+});
+
+describe('the access log', () => {
+    const out = summariseOwnerInsights(facts());
+
+    it('says you or another approver, with a time, and never who', () => {
+        expect(out.access.total).toBe(14);
+        expect(out.access.visits).toEqual([
+            { at: daysAgo(1), self: true },
+            { at: daysAgo(2), self: false },
+        ]);
+    });
+
+    it('returns no more than the limit', () => {
+        const many = Array.from({ length: 40 }, (_, i) => ({ at: daysAgo(i), self: true }));
+        expect(summariseOwnerInsights(facts({ visits: many })).access.visits).toHaveLength(VISIT_LIMIT);
     });
 });

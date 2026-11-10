@@ -682,7 +682,7 @@ export default function App() {
       env: import.meta.env,
     });
     return ownerLanding
-      ? <OwnerInsights fallback={gate} onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} />
+      ? <OwnerInsights fallback={gate} onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} isDark={isDark} onToggleTheme={toggleTheme} />
       : gate;
   }
 
@@ -954,7 +954,7 @@ export default function App() {
         <Route
           path={OWNER_INSIGHTS_PATH}
           element={user
-            ? <OwnerInsights onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} />
+            ? <OwnerInsights onSignOut={() => signOut(auth)} approvalsPath={APPROVALS_PATH} isDark={isDark} onToggleTheme={toggleTheme} />
             : <WelcomeScreen />}
         />
 
