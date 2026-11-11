@@ -395,7 +395,7 @@ function parseJsonResponse(rawText, requiredFields) {
 /**
  * WHERE THIS DEPLOYMENT RUNS, said to AURA. A setting, not a constant: the code is
  * public and names no institution. `NEXUS_INSTITUTION` is written into
- * `functions/.env` at deploy from a repository variable; unset, AURA is told only
+ * `functions/.env` at deploy from a repository secret; unset, AURA is told only
  * that it works in a healthcare institution.
  */
 var AURA_INSTITUTION = String(process.env.NEXUS_INSTITUTION || '').trim().slice(0, 80) || 'a healthcare institution';

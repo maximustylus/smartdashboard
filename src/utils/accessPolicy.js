@@ -80,7 +80,7 @@ export const normaliseDomain = (value) => {
 /**
  * The fallback list for THIS build. The code is public and names no institution, so
  * the real domains arrive as a build setting: `VITE_DEFAULT_DOMAINS`, comma
- * separated, from a repository variable. Unset or unusable, the fallback is the two
+ * separated, from a repository secret. Unset or unusable, the fallback is the two
  * invented domains above, which admit nobody real. That is the fail-closed side: a
  * build that was never told its institutions refuses rather than guesses.
  */

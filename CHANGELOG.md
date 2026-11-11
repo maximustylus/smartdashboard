@@ -54,6 +54,23 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.24.1] - 2026-11-12
+
+The institution settings are secrets, so the public deploy log cannot print them.
+
+### Security
+
+- **v2.24.0 printed the two settings it introduced into a public log.** They were read
+  from repository variables, and GitHub prints a variable's value in the step's
+  environment. The deploy run of v2.24.0 showed the institution's name and sign-in
+  domains on two lines. `deploy.yml` now reads `VITE_DEFAULT_DOMAINS` and
+  `NEXUS_INSTITUTION` from repository secrets, which are masked in logs.
+
+### Verification
+
+- The v2.24.0 deploy log was searched for the institution and showed the two lines.
+  The first deploy of this release is to be searched the same way.
+
 ## [2.24.0] - 2026-11-11
 
 The institution is a deployment setting. The code names none.
@@ -64,7 +81,8 @@ The institution is a deployment setting. The code names none.
   comments and documents named the institution it was first built in, and its sign-in
   domains, in 70 files. They now use an invented institution and `.example` domains.
 - **Two deployment settings carry what the code no longer says**, both read from
-  repository variables at deploy:
+  repository variables at deploy *(corrected 2026-11-12: secrets from v2.24.1, because
+  a variable's value is printed in the public deploy log)*:
   - `VITE_DEFAULT_DOMAINS`: the fallback sign-in domains, comma separated, used only
     when `config/domains` cannot be read before sign-in. Unset, the fallback is two
     invented domains that admit nobody (`defaultDomainsFrom`). The server never used
