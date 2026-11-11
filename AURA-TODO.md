@@ -137,7 +137,7 @@ privacy model built three days ago, and it is a `const`.
 1. Delete STAFF_PROFILES from SmartAnalysis.jsx.
 2. Source profiles from `members` (useTeam) and grades from `useTeamGrades` —
    lead-only, already exists, already tested.
-3. Pass `team.name` instead of the hardcoded "SSMC@KKH CEP Team".
+3. Pass `team.name` instead of the hardcoded "SSMC@Northside CEP Team".
 ```
 
 ⚠️ **The acceptance test is the built bundle, not the source:**
@@ -333,7 +333,7 @@ the alternative is pretending the first version was the version that shipped.
 | `WELL_WELL_PROMPT` (5) and `HUGE_GRANT_PROMPT` (2) **use em dashes directly beneath a preamble banning them**, and `HUGE_GRANT_PROMPT` bans them itself. | low | Punctuation fixed in both. The persona edit is the single recorded exception to *"the persona text is unchanged, word for word"* and is documented at the top of `functions/personas.cjs`. |
 
 ~~⚠️ **`AN14` is still open and is not mine tonight.** Six colleagues' full names and real
-`@kkh.com.sg` addresses ship in the public bundle from `src/utils/index.js`. The grade half of
+`@northside.example` addresses ship in the public bundle from `src/utils/index.js`. The grade half of
 `AN1` holds — a proximity scan of `dist/` finds no real name near a grade token — but the
 ledger's headline *"**LIVE** right now: 0 grades"* reads as more reassuring than the emails
 warrant.~~ *True on 2026-08-23; `AN14` closed the next day (the row near the top of this
@@ -489,5 +489,5 @@ Each changes how urgent something is, and none can be answered from source:
 1. **How often does anybody type instead of tapping in the chat?** Decides whether `AC1`
    and `AC2` are theoretical or routine. `community_assessments` holds it.
 2. **Has `generateSmartAnalysis` ever been called by anything but the app?** `AN4` is the
-   one finding somebody outside SingHealth could already have used.
+   one finding somebody outside Unity Health could already have used.
 3. **Has MODE 3 ever written a zero?** `AU2` could be daily or never.

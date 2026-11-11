@@ -62,12 +62,12 @@ vi.mock('../context/TeamContext', () => ({ useTeam: () => teamContext }));
 
 import ProfileView from './ProfileView';
 
-const USER = { uid: 'uid-alif-000000000000000000', name: 'Muhammad Alif Bin Abu Bakar', email: 'a@kkh.com.sg' };
-const TEAM_ID = 'kkh-sport-exercise-medicine';
+const USER = { uid: 'uid-alif-000000000000000000', name: 'Muhammad Alif Bin Abu Bakar', email: 'a@northside.example' };
+const TEAM_ID = 'northside-sport-exercise-medicine';
 
 const withTeam = (over = {}) => ({
     teamId: TEAM_ID,
-    team: { name: 'Sport & Exercise Medicine', institution: 'KKH' },
+    team: { name: 'Sport & Exercise Medicine', institution: 'Northside' },
     // ⚠️ NO `grade` HERE. It is not a membership field any more — it is
     //    `teams/{id}/grades/{uid}`, its own document under its own rule, because a
     //    rule cannot grant `get` on a document while withholding one of its fields.

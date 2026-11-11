@@ -57,7 +57,7 @@ const slugTeamId = (institution, department) => {
         .replace(/^-+|-+$/g, '');
 
     // BOTH PARTS REQUIRED. An id built from the department alone carries no
-    // institution, so Physiotherapy at KKH and at SGH would collide — the exact
+    // institution, so Physiotherapy at Northside and at SGH would collide — the exact
     // thing the team id exists to prevent.
     const parts = [slug(institution), slug(department)];
     if (parts.some((part) => part === '')) return null;
@@ -153,8 +153,8 @@ const asText = (value, fallback = '', max = MAX_FIELD_CHARS) => {
  *
  *    That matters because of how ids are derived. The hyphen joining institution to
  *    department is the same character used inside each half, so the boundary is not
- *    recoverable: `KKH` + `Respiratory Therapy` and `KKH Respiratory` + `Therapy`
- *    both slug to `kkh-respiratory-therapy`. Measured over 529 realistic pairs, that
+ *    recoverable: `Northside` + `Respiratory Therapy` and `Northside Respiratory` + `Therapy`
+ *    both slug to `northside-respiratory-therapy`. Measured over 529 realistic pairs, that
  *    shape is the only collision — but it means "this id is taken" has two very
  *    different causes:
  *

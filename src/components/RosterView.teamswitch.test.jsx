@@ -35,7 +35,7 @@ import { render, screen, cleanup, waitFor } from '@testing-library/react';
 
 const ctx = vi.hoisted(() => ({ isDemo: false }));
 /** Which team is active, and what its roster document contains. */
-const team = vi.hoisted(() => ({ id: 'kkh-physiotherapy', rosters: {} }));
+const team = vi.hoisted(() => ({ id: 'northside-physiotherapy', rosters: {} }));
 
 vi.mock('../firebase', () => ({
     db: { __mock: 'db' }, auth: { __mock: 'auth' }, storage: {}, messaging: {},
@@ -75,8 +75,8 @@ vi.mock('../context/NexusContext', () => ({
 }));
 
 const MEMBERS_BY_TEAM = {
-    'kkh-physiotherapy': [{ uid: 'uid-bradley', displayName: 'Bradley' }, { uid: 'uid-yu', displayName: 'Yu Xuan' }],
-    'kkh-occupational-therapy': [{ uid: 'uid-nadia', displayName: 'Nadia' }],
+    'northside-physiotherapy': [{ uid: 'uid-bradley', displayName: 'Bradley' }, { uid: 'uid-yu', displayName: 'Yu Xuan' }],
+    'northside-occupational-therapy': [{ uid: 'uid-nadia', displayName: 'Nadia' }],
 };
 // Stable references per team — a fresh array each call re-runs the effect forever.
 const ROSTERED = Object.fromEntries(Object.entries(MEMBERS_BY_TEAM).map(([k, v]) => [k, v]));
@@ -101,12 +101,12 @@ const PHYSIO_ROSTER = {
         staff: 'Lead: Bradley, Co: Yu Xuan', category: 'EFT' }],
 };
 
-const USER = { uid: 'uid-bradley', name: 'Bradley', role: 'lead', email: 'b@kkh.com.sg' };
+const USER = { uid: 'uid-bradley', name: 'Bradley', role: 'lead', email: 'b@northside.example' };
 
 beforeEach(() => {
     ctx.isDemo = false;
-    team.id = 'kkh-physiotherapy';
-    team.rosters = { 'kkh-physiotherapy': PHYSIO_ROSTER };
+    team.id = 'northside-physiotherapy';
+    team.rosters = { 'northside-physiotherapy': PHYSIO_ROSTER };
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
@@ -118,7 +118,7 @@ describe('⚠️ switching to a team with no roster yet', () => {
 
         // The switch: same component, different team, and that team has no roster
         // document — which is the state of EVERY newly approved team.
-        team.id = 'kkh-occupational-therapy';
+        team.id = 'northside-occupational-therapy';
         view.rerender(<RosterView user={USER} />);
 
         await waitFor(() => {
@@ -130,13 +130,13 @@ describe('⚠️ switching to a team with no roster yet', () => {
     });
 
     it('shows the new team\'s roster when it does have one', async () => {
-        team.rosters['kkh-occupational-therapy'] = {
+        team.rosters['northside-occupational-therapy'] = {
             [DATE_KEY]: [{ task: 'OT Clinic', week: 1, lead: 'Nadia', coLead: '', staff: 'Lead: Nadia', category: 'EFT' }],
         };
         const view = render(<RosterView user={USER} />);
         await waitFor(() => expect(screen.getAllByText(/Bradley/).length).toBeGreaterThan(0));
 
-        team.id = 'kkh-occupational-therapy';
+        team.id = 'northside-occupational-therapy';
         view.rerender(<RosterView user={USER} />);
 
         await waitFor(() => expect(screen.getAllByText(/Nadia/).length).toBeGreaterThan(0));

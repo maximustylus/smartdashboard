@@ -45,7 +45,7 @@ vi.mock('../firebase', () => ({ db: {}, auth: {}, storage: {} }));
 const domainState = vi.hoisted(() => ({ configured: true, loaded: true }));
 vi.mock('../hooks/useDomainAllowlist', () => ({
     useDomainAllowlist: () => ({
-        domains: ['kkh.com.sg'],
+        domains: ['northside.example'],
         loaded: domainState.loaded,
         configured: domainState.configured,
     }),
@@ -119,7 +119,7 @@ vi.mock('firebase/functions', () => ({
 let demoMode = false;
 vi.mock('../context/NexusContext', () => ({ useNexus: () => ({ isDemo: demoMode }) }));
 
-const TEAM_ID = 'kkh-respiratory-therapy';
+const TEAM_ID = 'northside-respiratory-therapy';
 const OWNER = { uid: 'leadUid0000000000000000000aa', displayName: 'Nur', role: 'lead' };
 const STAFF = { uid: 'staffUid000000000000000000cc', displayName: 'Bradley', role: 'staff' };
 
@@ -132,7 +132,7 @@ import TeamMembersPanel from './TeamMembersPanel';
 
 const asTeam = (over = {}) => ({
     teamId: TEAM_ID,
-    team: { name: 'Respiratory Therapy', institution: 'KKH', leadUid: OWNER.uid },
+    team: { name: 'Respiratory Therapy', institution: 'Northside', leadUid: OWNER.uid },
     members: [OWNER, STAFF],
     isLead: true,
     ...over,
@@ -183,7 +183,7 @@ afterEach(() => cleanup());
  * because a gate that opens when its configuration is missing is not a gate. But
  * nothing said so, so the first a lead knew was a refusal naming their own
  * hospital, which reads as "your institution is not welcome". Reported from the
- * field on 2026-08-31, by the owner, on `kkh.com.sg`.
+ * field on 2026-08-31, by the owner, on `northside.example`.
  */
 describe('the domain allowlist is not configured yet', () => {
     beforeEach(() => {
@@ -219,7 +219,7 @@ describe('the domain allowlist is not configured yet', () => {
         render(<TeamMembersPanel />);
         expect(screen.getByRole('note')).toBeTruthy();
 
-        fill({ email: 'bradley@kkh.com.sg' });
+        fill({ email: 'bradley@northside.example' });
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /add to team/i }));
         });
@@ -254,13 +254,13 @@ describe('the domain allowlist is not configured yet', () => {
 describe('adding a colleague', () => {
     it('sends the team, the address and the role the lead chose', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: ' Bradley@KKH.com.sg ', name: 'Bradley' });
+        fill({ email: ' Bradley@NORTHSIDE.example ', name: 'Bradley' });
         await submit();
 
         expect(invited).toHaveBeenCalledTimes(1);
         expect(invited.mock.calls[0][0]).toMatchObject({
             teamId: TEAM_ID,
-            email: 'Bradley@KKH.com.sg',   // trimmed here, lower-cased on the server
+            email: 'Bradley@NORTHSIDE.example',   // trimmed here, lower-cased on the server
             displayName: 'Bradley',
             role: 'staff',
             rostered: true,
@@ -269,7 +269,7 @@ describe('adding a colleague', () => {
 
     it('pins the functions region, like every other call site', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg' });
+        fill({ email: 'a@northside.example' });
         await submit();
         expect(lastRegion).toBe('us-central1');
     });
@@ -283,7 +283,7 @@ describe('adding a colleague', () => {
 
     it('clears the form after a success, so the next colleague starts clean', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg', name: 'Ada' });
+        fill({ email: 'a@northside.example', name: 'Ada' });
         await submit();
         expect(screen.getByPlaceholderText(/colleague@/i).value).toBe('');
         expect(screen.getByPlaceholderText(/how the roster/i).value).toBe('');
@@ -296,9 +296,9 @@ describe('adding a colleague', () => {
      *    them and the lead would sit waiting for a colleague who was never added.
      */
     it('shows a server refusal as a sentence instead of reporting success', async () => {
-        invited.mockReturnValue(refused('There is no NEXUS account for a@kkh.com.sg yet. Ask them to register first.'));
+        invited.mockReturnValue(refused('There is no NEXUS account for a@northside.example yet. Ask them to register first.'));
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg' });
+        fill({ email: 'a@northside.example' });
         await submit();
 
         expect(screen.getByRole('alert').textContent).toMatch(/register first/i);
@@ -316,7 +316,7 @@ describe('adding a colleague', () => {
     it('reports a thrown error too, rather than hanging on the spinner', async () => {
         invited.mockReturnValue(Promise.reject(new Error('internal')));
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg' });
+        fill({ email: 'a@northside.example' });
         await submit();
         expect(screen.getByRole('alert').textContent).toContain('internal');
         expect(screen.getByRole('button', { name: /add to team/i }).disabled).toBe(false);
@@ -325,7 +325,7 @@ describe('adding a colleague', () => {
     it('treats "already a member" as the success it is', async () => {
         invited.mockReturnValue(ok({ alreadyMember: true, message: 'Bradley is already in this team. Nothing was changed.' }));
         render(<TeamMembersPanel />);
-        fill({ email: 'bradley@kkh.com.sg' });
+        fill({ email: 'bradley@northside.example' });
         await submit();
         expect(screen.getByRole('status').textContent).toMatch(/already in this team/i);
         expect(screen.queryByRole('alert')).toBeNull();
@@ -337,7 +337,7 @@ describe('adding a colleague', () => {
 describe('role and rostered', () => {
     it('sends the chosen role', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg' });
+        fill({ email: 'a@northside.example' });
         fireEvent.click(screen.getByRole('radio', { name: /lead/i }));
         await submit();
         expect(invited.mock.calls[0][0].role).toBe('lead');
@@ -350,7 +350,7 @@ describe('role and rostered', () => {
      */
     it('lets a lead be added without clinical duties', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: 'nora@kkh.com.sg' });
+        fill({ email: 'nora@northside.example' });
         fireEvent.click(screen.getByRole('radio', { name: /lead/i }));
         fireEvent.click(screen.getByRole('checkbox'));
         await submit();
@@ -395,7 +395,7 @@ describe('removing somebody', () => {
     it('offers no remove button for the only lead', () => {
         const deputy = { uid: 'deputy000000000000000000000d', displayName: 'Deputy', role: 'lead' };
         team = asTeam({
-            team: { name: 'RT', institution: 'KKH', leadUid: 'somebody-else' },
+            team: { name: 'RT', institution: 'Northside', leadUid: 'somebody-else' },
             members: [deputy, STAFF],
         });
         render(<TeamMembersPanel />);
@@ -406,7 +406,7 @@ describe('removing somebody', () => {
     it('does offer it once a second lead exists', () => {
         const deputy = { uid: 'deputy000000000000000000000d', displayName: 'Deputy', role: 'lead' };
         team = asTeam({
-            team: { name: 'RT', institution: 'KKH', leadUid: 'somebody-else' },
+            team: { name: 'RT', institution: 'Northside', leadUid: 'somebody-else' },
             members: [OWNER, deputy, STAFF],
         });
         render(<TeamMembersPanel />);
@@ -454,7 +454,7 @@ describe('the sandbox', () => {
     it('refuses to add anybody, and says the sandbox is why', async () => {
         demoMode = true;
         render(<TeamMembersPanel />);
-        fill({ email: 'a@kkh.com.sg' });
+        fill({ email: 'a@northside.example' });
         await submit();
         expect(invited).not.toHaveBeenCalled();
         expect(screen.getByRole('alert').textContent).toMatch(/sandbox/i);

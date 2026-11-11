@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
     DEFAULT_ALLOWED_DOMAINS,
+    defaultDomainsFrom,
     domainGateAppliesTo,
     normaliseDomain,
     emailDomain,
@@ -40,9 +41,9 @@ import {
 
 describe('accessPolicy — domain normalisation', () => {
     it('accepts what people actually type', () => {
-        expect(normaliseDomain('kkh.com.sg')).toBe('kkh.com.sg');
-        expect(normaliseDomain('  @KKH.com.sg  ')).toBe('kkh.com.sg');
-        expect(normaliseDomain('kkh.com.sg.')).toBe('kkh.com.sg');
+        expect(normaliseDomain('northside.example')).toBe('northside.example');
+        expect(normaliseDomain('  @NORTHSIDE.example  ')).toBe('northside.example');
+        expect(normaliseDomain('northside.example.')).toBe('northside.example');
         expect(normaliseDomain('nuh-cluster.edu.sg')).toBe('nuh-cluster.edu.sg');
     });
 
@@ -54,10 +55,10 @@ describe('accessPolicy — domain normalisation', () => {
     it('refuses wildcards, paths and anything without a dot', () => {
         expect(normaliseDomain('*')).toBeNull();
         expect(normaliseDomain('*.com.sg')).toBeNull();
-        expect(normaliseDomain('kkh.com.sg/evil')).toBeNull();
+        expect(normaliseDomain('northside.example/evil')).toBeNull();
         expect(normaliseDomain('localhost')).toBeNull();
         expect(normaliseDomain('')).toBeNull();
-        expect(normaliseDomain('-kkh.com.sg')).toBeNull();
+        expect(normaliseDomain('-northside.example')).toBeNull();
         expect(normaliseDomain('a@b.com')).toBeNull();
         expect(normaliseDomain(null)).toBeNull();
         expect(normaliseDomain(42)).toBeNull();
@@ -66,27 +67,27 @@ describe('accessPolicy — domain normalisation', () => {
 
 describe('accessPolicy — reading the domain out of an address', () => {
     it('lowercases and takes the half after the one @', () => {
-        expect(emailDomain('Elaine.Goh.MH@kkh.com.sg')).toBe('kkh.com.sg');
-        expect(emailDomain('  barry.lim.k.g.@singhealth.com.sg ')).toBe('singhealth.com.sg');
+        expect(emailDomain('Elaine.Goh.MH@northside.example')).toBe('northside.example');
+        expect(emailDomain('  barry.lim.k.g.@unityhealth.example ')).toBe('unityhealth.example');
     });
 
     it('refuses addresses with no @, two @, or an empty local part', () => {
-        expect(emailDomain('kkh.com.sg')).toBeNull();
-        expect(emailDomain('a@b@kkh.com.sg')).toBeNull();
-        expect(emailDomain('@kkh.com.sg')).toBeNull();
+        expect(emailDomain('northside.example')).toBeNull();
+        expect(emailDomain('a@b@northside.example')).toBeNull();
+        expect(emailDomain('@northside.example')).toBeNull();
         expect(emailDomain(undefined)).toBeNull();
     });
 });
 
 describe('accessPolicy — the allowlist document', () => {
     it('reads a well-formed document, deduplicated and sorted', () => {
-        expect(parseDomainAllowlist({ allowed: ['SGH.com.sg', '@kkh.com.sg', 'kkh.com.sg'] }))
-            .toEqual(['kkh.com.sg', 'sgh.com.sg']);
+        expect(parseDomainAllowlist({ allowed: ['SGH.com.sg', '@northside.example', 'northside.example'] }))
+            .toEqual(['northside.example', 'sgh.com.sg']);
     });
 
     it('drops individual bad entries rather than rejecting the whole list', () => {
-        expect(parseDomainAllowlist({ allowed: ['kkh.com.sg', '*', 'nonsense', 42] }))
-            .toEqual(['kkh.com.sg']);
+        expect(parseDomainAllowlist({ allowed: ['northside.example', '*', 'nonsense', 42] }))
+            .toEqual(['northside.example']);
     });
 
     /**
@@ -99,7 +100,7 @@ describe('accessPolicy — the allowlist document', () => {
         expect(parseDomainAllowlist(undefined)).toBeNull();
         expect(parseDomainAllowlist({})).toBeNull();
         expect(parseDomainAllowlist({ allowed: [] })).toBeNull();
-        expect(parseDomainAllowlist({ allowed: 'kkh.com.sg' })).toBeNull();
+        expect(parseDomainAllowlist({ allowed: 'northside.example' })).toBeNull();
         expect(parseDomainAllowlist({ allowed: ['*', 'nope'] })).toBeNull();
     });
 });
@@ -107,37 +108,37 @@ describe('accessPolicy — the allowlist document', () => {
 describe('accessPolicy — the gate itself', () => {
     /**
      * THE TWO PEOPLE THE OLD GATE LOCKED OUT. `WelcomeScreen.jsx:109` demanded
-     * `@kkh.com.sg`; Barry and Arjun have been in `TEAM_DIRECTORY` the whole time
-     * on `@singhealth.com.sg` and could never sign in. This assertion is the fix.
+     * `@northside.example`; Barry and Arjun have been in `TEAM_DIRECTORY` the whole time
+     * on `@unityhealth.example` and could never sign in. This assertion is the fix.
      */
-    it('admits the singhealth.com.sg addresses the old gate refused', () => {
-        expect(isAllowedEmail('barry.lim.k.g.@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
-        expect(isAllowedEmail('mohammad.arjun.zainal@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
-        expect(isAllowedEmail('muhammad.alif@kkh.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
+    it('admits the unityhealth.example addresses the old gate refused', () => {
+        expect(isAllowedEmail('barry.lim.k.g.@unityhealth.example', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
+        expect(isAllowedEmail('mohammad.arjun.zainal@unityhealth.example', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
+        expect(isAllowedEmail('muhammad.alif@northside.example', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
     });
 
     /**
      * THE SUFFIX ATTACK. The obvious implementation is `email.endsWith('@' + domain)`
-     * or worse `email.includes(domain)`. Both admit `…@kkh.com.sg.attacker.example`,
+     * or worse `email.includes(domain)`. Both admit `…@northside.example.attacker.example`,
      * a domain anybody can register. Exact match after the @ is the only safe form.
      */
     it('is an exact domain match, not a suffix match', () => {
-        expect(isAllowedEmail('person@kkh.com.sg.attacker.example', ['kkh.com.sg'])).toBe(false);
-        expect(isAllowedEmail('person@notkkh.com.sg', ['kkh.com.sg'])).toBe(false);
-        expect(isAllowedEmail('person@mail.kkh.com.sg', ['kkh.com.sg'])).toBe(false);
-        expect(isAllowedEmail('person@gmail.com', ['kkh.com.sg'])).toBe(false);
+        expect(isAllowedEmail('person@northside.example.attacker.example', ['northside.example'])).toBe(false);
+        expect(isAllowedEmail('person@notnorthside.example', ['northside.example'])).toBe(false);
+        expect(isAllowedEmail('person@mail.northside.example', ['northside.example'])).toBe(false);
+        expect(isAllowedEmail('person@gmail.com', ['northside.example'])).toBe(false);
     });
 
     it('falls back to the defaults when handed an empty or missing list', () => {
-        expect(isAllowedEmail('a@kkh.com.sg', [])).toBe(true);
-        expect(isAllowedEmail('a@kkh.com.sg', null)).toBe(true);
+        expect(isAllowedEmail('a@northside.example', [])).toBe(true);
+        expect(isAllowedEmail('a@northside.example', null)).toBe(true);
         expect(isAllowedEmail('a@gmail.com', null)).toBe(false);
     });
 
     it('names the domain and the fix in the refusal, and never leaks a password', () => {
-        const message = domainRefusalMessage('roster.master@nuh.edu.sg', ['kkh.com.sg', 'sgh.com.sg']);
+        const message = domainRefusalMessage('roster.master@nuh.edu.sg', ['northside.example', 'sgh.com.sg']);
         expect(message).toContain('nuh.edu.sg');
-        expect(message).toContain('kkh.com.sg, sgh.com.sg');
+        expect(message).toContain('northside.example, sgh.com.sg');
         expect(message).toContain('service lead');
     });
 });
@@ -165,7 +166,7 @@ describe('accessPolicy — who may declare themselves a lead', () => {
 describe('accessPolicy — validating a declaration', () => {
     const VALID = {
         role: ROLE_LEAD,
-        institution: 'KKH',
+        institution: 'Northside',
         department: 'Respiratory Therapy',
         profession: 'respiratory-therapist',
     };
@@ -205,22 +206,22 @@ describe('accessPolicy — the request document', () => {
     it('pins status to pending in code, so a client cannot approve itself', () => {
         const request = buildLeadRequest({
             uid: 'aB3xYz9QwErTyUiOpAsDfGhJkLzX',
-            email: '  Lead.RT@KKH.com.sg ',
+            email: '  Lead.RT@NORTHSIDE.example ',
             displayName: '  Nur  ',
             role: ROLE_LEAD,
-            institution: ' KKH ',
+            institution: ' Northside ',
             department: 'Respiratory Therapy',
             profession: 'respiratory-therapist',
             status: 'approved',           // ← ignored on purpose
         });
         expect(request.status).toBe('pending');
-        expect(request.email).toBe('lead.rt@kkh.com.sg');
+        expect(request.email).toBe('lead.rt@northside.example');
         expect(request.displayName).toBe('Nur');
-        expect(request.proposedTeamId).toBe('kkh-respiratory-therapy');
+        expect(request.proposedTeamId).toBe('northside-respiratory-therapy');
     });
 
     it('carries no field the approver would not want to see', () => {
-        const request = buildLeadRequest({ uid: 'u', email: 'a@kkh.com.sg', role: ROLE_LEAD });
+        const request = buildLeadRequest({ uid: 'u', email: 'a@northside.example', role: ROLE_LEAD });
         expect(Object.keys(request).sort()).toEqual([
             'department', 'displayName', 'email', 'institution',
             'profession', 'proposedTeamId', 'role', 'status', 'uid',
@@ -230,12 +231,12 @@ describe('accessPolicy — the request document', () => {
 
 describe('accessPolicy — where a signed-in person lands', () => {
     it('sends an unverified account nowhere near team data, membership or not', () => {
-        expect(accessStateFor({ emailVerified: false, teamIds: ['kkh-sport-exercise-medicine'] }))
+        expect(accessStateFor({ emailVerified: false, teamIds: ['northside-sport-exercise-medicine'] }))
             .toBe(ACCESS_UNVERIFIED);
     });
 
     it('lets a member into the app', () => {
-        expect(accessStateFor({ emailVerified: true, teamIds: ['kkh-sport-exercise-medicine'] }))
+        expect(accessStateFor({ emailVerified: true, teamIds: ['northside-sport-exercise-medicine'] }))
             .toBe(ACCESS_ACTIVE);
         expect(canEnterApp(ACCESS_ACTIVE)).toBe(true);
     });
@@ -249,7 +250,7 @@ describe('accessPolicy — where a signed-in person lands', () => {
     it('keeps a working member working while their SECOND team is being approved', () => {
         expect(accessStateFor({
             emailVerified: true,
-            teamIds: ['kkh-sport-exercise-medicine'],
+            teamIds: ['northside-sport-exercise-medicine'],
             leadRequest: { status: 'pending' },
         })).toBe(ACCESS_ACTIVE);
     });
@@ -275,7 +276,7 @@ describe('accessPolicy — where a signed-in person lands', () => {
     it('ignores junk in teamIds rather than treating it as membership', () => {
         expect(accessStateFor({ emailVerified: true, teamIds: ['', null, undefined] }))
             .toBe(ACCESS_AWAITING_INVITE);
-        expect(accessStateFor({ emailVerified: true, teamIds: 'kkh-sport-exercise-medicine' }))
+        expect(accessStateFor({ emailVerified: true, teamIds: 'northside-sport-exercise-medicine' }))
             .toBe(ACCESS_AWAITING_INVITE);
     });
 
@@ -299,5 +300,20 @@ describe('the institution gate applies to registration only (v2.19.0)', () => {
     it('WelcomeScreen consults it before refusing an address', () => {
         const source = readFileSync(resolve(process.cwd(), 'src/components/WelcomeScreen.jsx'), 'utf8');
         expect(source).toMatch(/if \(domainGateAppliesTo\(authView\) && !isAllowedEmail\(email, domains\)\)/);
+    });
+});
+
+describe('the fallback domains are a build setting, and the code names no institution', () => {
+    it('unset, the fallback is two invented domains that admit nobody real', () => {
+        expect(defaultDomainsFrom('')).toEqual(['northside.example', 'unityhealth.example']);
+        expect(defaultDomainsFrom(undefined)).toEqual(DEFAULT_ALLOWED_DOMAINS);
+    });
+
+    it('set, it is exactly what the build was told, cleaned', () => {
+        expect(defaultDomainsFrom(' @Hospital.example , clinic.example.,, ')).toEqual(['clinic.example', 'hospital.example']);
+    });
+
+    it('a wildcard or junk is not a domain, and never widens the list', () => {
+        expect(defaultDomainsFrom('*, *.example, not a domain')).toEqual(['northside.example', 'unityhealth.example']);
     });
 });

@@ -794,7 +794,7 @@ export default function App() {
             * ⚠️ THIS PANEL RENDERED `TEAM_DIRECTORY` — THE SIXTH HARDCODED COPY OF ONE
             *    DEPARTMENT, AND THE LAST ONE STANDING.
             *
-            *    It listed ten people from Sport & Exercise Medicine at KKH, in live
+            *    It listed ten people from Sport & Exercise Medicine at Northside, in live
             *    mode, for EVERY team. A respiratory therapy lead at SGH opened their
             *    dashboard to somebody else's colleagues.
             *

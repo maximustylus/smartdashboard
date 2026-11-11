@@ -71,7 +71,7 @@ vi.mock('../context/NexusContext', () => ({
     NexusProvider: ({ children }) => children,
 }));
 
-const TEAM_ID = 'kkh-sport-exercise-medicine';
+const TEAM_ID = 'northside-sport-exercise-medicine';
 const TEAM_MEMBERS = [
     { uid: 'uid-bradley', displayName: 'Bradley' },
     { uid: 'uid-darshan', displayName: 'Darshan' },

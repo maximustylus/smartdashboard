@@ -2236,8 +2236,8 @@ describe('demo mode: the picker is a profession and a shape', () => {
                 // and SUGGESTION ("should everyone with this job title be pointed here").
                 // Attribution is still mandatory — it moved to `sourceProfession` plus
                 // `sourceScope`, both asserted here. Suggestion is now a choice, and
-                // respiratory declines it because one KKH team is not every respiratory
-                // therapist in SingHealth.
+                // respiratory declines it because one Northside team is not every respiratory
+                // therapist in Unity Health.
                 expect(entry.sourceProfessionId === null || typeof entry.sourceProfessionId === 'string').toBe(true);
 
                 // SCOPE IS MANDATORY, AND IT IS WHAT REPLACED THE PROFESSION-WIDE CLAIM.
@@ -2478,7 +2478,7 @@ describe('demo mode: the picker is a profession and a shape', () => {
         // is the correction. Their lead described their week on 2026-08-17, so the sixth
         // shape is real and attributed — but respiratory therapists work across every
         // institution in the cluster and rotate differently, so pointing all of them at
-        // one KKH team's structure would be the twelve arrangements' over-claim wearing an
+        // one Northside team's structure would be the twelve arrangements' over-claim wearing an
         // interview as cover. Attributed, reachable, NOT suggested.
         expect(shapeOf('shape-graded-floor-rotation').sourceProfession).toBe('Respiratory Therapist');
         expect(suggestedShapeFor('respiratory-therapist')).toBeNull();

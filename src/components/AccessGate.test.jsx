@@ -94,8 +94,8 @@ describe('AccessGate — the controls', () => {
     });
 
     it('shows which account is signed in, because the usual cause is the wrong one', () => {
-        render(<AccessGate state={ACCESS_AWAITING_INVITE} email="lead.rt@kkh.com.sg" />);
-        expect(screen.getByText(/lead\.rt@kkh\.com\.sg/)).toBeTruthy();
+        render(<AccessGate state={ACCESS_AWAITING_INVITE} email="lead.rt@northside.example" />);
+        expect(screen.getByText(/lead\.rt@northside\.example/)).toBeTruthy();
     });
 
     /**
@@ -189,14 +189,14 @@ describe('⚠️ declaring as a lead after registering', () => {
         render(<AccessGate state={ACCESS_AWAITING_INVITE} onDeclareLead={onDeclareLead} />);
         fireEvent.click(screen.getByRole('button', { name: /i run a department/i }));
 
-        fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'KKH' } });
+        fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'Northside' } });
         fireEvent.change(screen.getByLabelText('Department or service'), { target: { value: 'Respiratory Therapy' } });
         fireEvent.change(screen.getByLabelText('Profession'), { target: { value: PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
         fireEvent.click(screen.getByRole('button', { name: /send request/i }));
 
         await waitFor(() => expect(onDeclareLead).toHaveBeenCalledTimes(1));
         expect(onDeclareLead.mock.calls[0][0]).toMatchObject({
-            institution: 'KKH', department: 'Respiratory Therapy',
+            institution: 'Northside', department: 'Respiratory Therapy',
         });
         await waitFor(() => expect(screen.getByText(/administrator reviews it/i)).toBeTruthy());
     });
@@ -210,7 +210,7 @@ describe('⚠️ declaring as a lead after registering', () => {
         const onDeclareLead = vi.fn().mockRejectedValue(new Error('Missing or insufficient permissions.'));
         render(<AccessGate state={ACCESS_AWAITING_INVITE} onDeclareLead={onDeclareLead} />);
         fireEvent.click(screen.getByRole('button', { name: /i run a department/i }));
-        fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'KKH' } });
+        fireEvent.change(screen.getByLabelText('Institution'), { target: { value: 'Northside' } });
         fireEvent.change(screen.getByLabelText('Department or service'), { target: { value: 'Physiotherapy' } });
         fireEvent.change(screen.getByLabelText('Profession'), { target: { value: PROFESSION_OPTIONS.flatMap(e => (e.kind === 'group' ? e.options : [e]))[0].id } });
         fireEvent.click(screen.getByRole('button', { name: /send request/i }));

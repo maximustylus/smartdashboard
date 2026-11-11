@@ -46,7 +46,7 @@ const raw = readFileSync(resolve(here, 'index.js'), 'utf8');
  *    HAPPENING AGAIN, IN THE SUITE WRITTEN TO STOP IT.
  *
  *    Three assertions here are of the form *"the old broken thing is gone"*:
- *    `Project HUGE`, `'CONTEXT/OVERRIDE: ' + prompt`, `KKH/SingHealth`. This
+ *    `Project HUGE`, `'CONTEXT/OVERRIDE: ' + prompt`, `Northside/Unity Health`. This
  *    project's convention is that a correction QUOTES what it replaced rather than
  *    deleting it — so the moment the fixes were documented, three tests failed
  *    against the explanations of the very fixes they were checking.
@@ -201,11 +201,11 @@ describe('AN5 — the requested output fits maxOutputTokens', () => {
 describe('the prompts do not hardcode one department or institution', () => {
     /**
      * `AN3` fixed the team NAME in the payload. The analysis system prompt still
-     * opened *"…for KKH/SingHealth"* — correct for team #1 and wrong for every other
+     * opened *"…for Northside/Unity Health"* — correct for team #1 and wrong for every other
      * department the multi-team rebuild exists to serve.
      */
     it('the analysis prompt names no institution', () => {
-        expect(ANALYSIS_PROMPT).not.toMatch(/KKH|SingHealth|SSMC/i);
+        expect(ANALYSIS_PROMPT).not.toMatch(/Northside|Unity Health|SSMC/i);
     });
 
     it('the analysis prompt takes the department from the request instead', () => {

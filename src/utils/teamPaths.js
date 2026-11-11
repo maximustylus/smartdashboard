@@ -5,7 +5,7 @@
  *
  * NEXUS was built for one ten-person team, with every collection at the root of
  * the database and the team itself hardcoded in three separate files. Serving 28
- * allied health professions across several SingHealth institutions means a team
+ * allied health professions across several Unity Health institutions means a team
  * becomes a THING with an id, and every document it owns lives beneath it.
  *
  * ⚠️ THE RULE THIS MODULE EXISTS TO ENFORCE: NOTHING ELSE IN THE APP MAY COMPOSE
@@ -218,7 +218,7 @@ const assertYear = (value) => {
  * Derive a stable team id from what a lead types at registration.
  *
  * INSTITUTION FIRST, because that is the coarser fact and it makes the ids sort
- * usefully in the console: `kkh-respiratory-therapy` beside `kkh-physiotherapy`,
+ * usefully in the console: `northside-respiratory-therapy` beside `northside-physiotherapy`,
  * not scattered by department name. It also makes the collision case obvious to a
  * human reading the list — two institutions with a Physiotherapy department
  * produce two clearly different ids rather than one shared one.
@@ -227,8 +227,8 @@ const assertYear = (value) => {
  * lead typing an empty department should see a form error, not a crash.
  *
  * ⚠️ BOTH PARTS ARE REQUIRED, and the first draft of this function did not enforce
- *    it — it used `.filter(Boolean).join('-')`, so `teamIdFrom('KKH', '')` returned
- *    `'kkh'` and, far worse, `teamIdFrom('', 'Physiotherapy')` returned
+ *    it — it used `.filter(Boolean).join('-')`, so `teamIdFrom('Northside', '')` returned
+ *    `'northside'` and, far worse, `teamIdFrom('', 'Physiotherapy')` returned
  *    `'physiotherapy'`: a team id with NO INSTITUTION IN IT, which defeats the one
  *    property this module exists to guarantee — that the same department at two
  *    hospitals never collides. Found by the drift test in

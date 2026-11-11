@@ -34,6 +34,7 @@ jobs:
           # Owner Insights landing for a super-admin with no team. Unset = off;
           # set the repository variable to `on` to make it the default.
           VITE_OWNER_INSIGHTS: '${{ vars.VITE_OWNER_INSIGHTS }}'
+          VITE_DEFAULT_DOMAINS: '${{ vars.VITE_DEFAULT_DOMAINS }}'
 
       - name: Test Frontend
         run: npm test
@@ -86,10 +87,12 @@ jobs:
           : > .env
           if [ -n "${ENFORCE_APP_CHECK}" ]; then echo "ENFORCE_APP_CHECK=${ENFORCE_APP_CHECK}" >> .env; fi
           if [ -n "${RATE_LIMIT_SALT}" ]; then echo "RATE_LIMIT_SALT=${RATE_LIMIT_SALT}" >> .env; fi
+          if [ -n "${NEXUS_INSTITUTION}" ]; then echo "NEXUS_INSTITUTION=${NEXUS_INSTITUTION}" >> .env; fi
           echo "functions/.env written with $(wc -l < .env) variable(s)"
         env:
           ENFORCE_APP_CHECK: '${{ vars.ENFORCE_APP_CHECK }}'
           RATE_LIMIT_SALT: '${{ secrets.RATE_LIMIT_SALT }}'
+          NEXUS_INSTITUTION: '${{ vars.NEXUS_INSTITUTION }}'
 
       - name: Deploy Backend (Functions) and Firestore Rules
         uses: w9jds/firebase-action@master

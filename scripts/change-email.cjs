@@ -9,7 +9,7 @@
  *
  *   npm i --no-save firebase-admin
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json node scripts/change-email.cjs \
- *     --from old@kkh.com.sg --to new@example.com          # preview
+ *     --from old@northside.example --to new@example.com          # preview
  *   …the same command with --write                       # apply
  *
  * Keeps the account (its uid), so teams, roles and history stay. Writes the new

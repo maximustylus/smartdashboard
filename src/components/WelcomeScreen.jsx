@@ -134,8 +134,8 @@ const WelcomeScreen = (props) => {
 
         try {
             // ── GATE 1: THE INSTITUTION ──────────────────────────────────────────
-            // Was `endsWith('@kkh.com.sg')`, which permanently locked out the two
-            // colleagues in the directory holding `@singhealth.com.sg` addresses.
+            // Was `endsWith('@northside.example')`, which permanently locked out the two
+            // colleagues in the directory holding `@unityhealth.example` addresses.
             // Now an exact match against an allowlist held as DATA, so onboarding an
             // institution is a Firestore edit rather than a code deploy.
             //
@@ -497,7 +497,7 @@ const WelcomeScreen = (props) => {
                                                             <div>
                                                                 <input
                                                                     type="text"
-                                                                    placeholder="Institution — e.g. KKH"
+                                                                    placeholder="Institution — your hospital or organisation"
                                                                     aria-label="Institution"
                                                                     className="w-full bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-slate-700 shadow-sm rounded-xl py-4 px-4 text-xs font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                                                     value={institution}

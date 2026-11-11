@@ -1049,7 +1049,7 @@ const DEMO_ARRANGEMENT_MARVEL = Object.freeze({
  * ⚠️ WHY `sourceScope` EXISTS, AND IT IS THE CORRECTION OF A REAL OVER-CLAIM. Every shape
  * here came from ONE TEAM AT ONE INSTITUTION. The picker was telling a reader "this is the
  * shape your own profession described to us" — so a respiratory therapist at any other
- * SingHealth institution was told their profession had described a structure that one KKH
+ * Unity Health institution was told their profession had described a structure that one Northside
  * team described, and there are 27 other allied health professions with the same exposure.
  * A profession is not a team. Scope is DATA rather than a sentence for one reason: when a
  * second team from the same profession describes something different, `teams: 2,
@@ -1374,7 +1374,7 @@ const OWNER_SUGGESTED_SHAPES = Object.freeze({
  * ⚠️ `respiratory-therapist` IS ON THIS LIST FOR A DIFFERENT REASON FROM THE OTHER FOUR,
  * AND THE DIFFERENCE IS THE POINT. The other four have no shape. Respiratory HAS one —
  * they described their week on 2026-08-17 and it is the sixth shape — and it is
- * deliberately not paired, because one KKH team is not the profession. RTs work across
+ * deliberately not paired, because one Northside team is not the profession. RTs work across
  * every institution in the cluster and their rotations differ, so pointing all of them at
  * one team's structure would be the same over-claim the twelve arrangements made, wearing
  * an interview as cover. The shape stays reachable by what it DOES, one tap away in the

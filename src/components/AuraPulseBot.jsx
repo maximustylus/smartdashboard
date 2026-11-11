@@ -400,7 +400,7 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                 // true of Firestore and false of this.
                 //
                 // Answering locally also unblocks the `request.auth` check on
-                // `chatWithAura` — whose system prompt names KKH/SingHealth and
+                // `chatWithAura` — whose system prompt names Northside/Unity Health and
                 // prints the internal Firestore schema. It could not be added while
                 // unauthenticated demo visitors were the function's callers.
                 //

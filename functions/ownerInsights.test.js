@@ -22,14 +22,14 @@ const facts = (over = {}) => ({
     nowMs: NOW,
     year: 2026,
     teams: [
-        { id: 'kkh-sem', name: 'Sport and Exercise Medicine', institution: 'KKH', createdAt: daysAgo(80) },
+        { id: 'northside-sem', name: 'Sport and Exercise Medicine', institution: 'Northside', createdAt: daysAgo(80) },
         { id: 'sgh-rt', name: 'Respiratory Therapy', institution: 'SGH', createdAt: ts(daysAgo(10)) },
-        { id: 'kkh-aud', name: 'Audiology', institution: 'KKH' },
+        { id: 'northside-aud', name: 'Audiology', institution: 'Northside' },
     ],
     members: [
-        { teamId: 'kkh-sem', uid: 'u-ann', role: 'lead', displayName: 'Ann Lee', email: 'ann.lee@kkh.com.sg' },
-        { teamId: 'kkh-sem', uid: 'u-ben', role: 'staff', displayName: 'Ben Ong', email: 'ben.ong@kkh.com.sg' },
-        { teamId: 'kkh-sem', uid: 'pending-cara-lim', role: 'staff', displayName: 'Cara Lim' },
+        { teamId: 'northside-sem', uid: 'u-ann', role: 'lead', displayName: 'Ann Lee', email: 'ann.lee@northside.example' },
+        { teamId: 'northside-sem', uid: 'u-ben', role: 'staff', displayName: 'Ben Ong', email: 'ben.ong@northside.example' },
+        { teamId: 'northside-sem', uid: 'pending-cara-lim', role: 'staff', displayName: 'Cara Lim' },
         { teamId: 'sgh-rt', uid: 'u-dev', role: 'lead', displayName: 'Dev Raj', email: 'dev.raj@sgh.com.sg' },
         { teamId: 'sgh-rt', uid: 'u-ann', role: 'viewer', displayName: 'Ann Lee' },
         { teamId: 'deleted-team', uid: 'u-ghost', role: 'lead', displayName: 'Ghost' },
@@ -42,16 +42,16 @@ const facts = (over = {}) => ({
         { status: 'approved' },                       // undated
         { status: 'weird', requestedAt: daysAgo(1) }, // not a status
     ],
-    teamsWithRoster: ['kkh-sem'],
+    teamsWithRoster: ['northside-sem'],
     accounts: [
-        { uid: 'u-ann', createdAt: daysAgo(80), activeAt: daysAgo(1), verified: true, email: 'ann.lee@kkh.com.sg' },
+        { uid: 'u-ann', createdAt: daysAgo(80), activeAt: daysAgo(1), verified: true, email: 'ann.lee@northside.example' },
         { uid: 'u-ben', createdAt: daysAgo(40), activeAt: daysAgo(35), verified: true },
         { uid: 'u-dev', createdAt: daysAgo(10), activeAt: daysAgo(2), verified: true },
         { uid: 'u-fay', createdAt: daysAgo(3), activeAt: daysAgo(3), verified: false, email: 'fay@nuh.com.sg' }, // no team
         { uid: 'u-old', verified: true },                                                                       // undated
     ],
     activity: {
-        'kkh-sem': { rosters: 1, rosterEdits: 4, swaps: 7, feedPosts: 12, reports: 1, projects: 1, attendance: 1, pulse: 99 },
+        'northside-sem': { rosters: 1, rosterEdits: 4, swaps: 7, feedPosts: 12, reports: 1, projects: 1, attendance: 1, pulse: 99 },
         'sgh-rt': { rosters: 1, swaps: 2 },
     },
     community: { respondents: 286, generatedAt: '2026-11-09T19:50:00.000Z', truncated: false },

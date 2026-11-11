@@ -6,9 +6,10 @@ We take the security and data privacy of the NEXUS platform very seriously. Curr
 
 | Version | Support Status |
 | ------- | -------------- |
-| 2.23.x  | Supported (current — in production, multi-team) |
-| 2.22.x  | Supported (superseded — upgrade to 2.23.x) |
-| 2.21.x  | Supported (superseded — upgrade to 2.23.x) |
+| 2.24.x  | Supported (current — in production, multi-team) |
+| 2.23.x  | Supported (superseded — upgrade to 2.24.x) |
+| 2.22.x  | Supported (superseded — upgrade to 2.24.x) |
+| 2.21.x  | Supported (superseded — upgrade to 2.24.x) |
 | 2.20.x  | Supported (superseded — upgrade to 2.21.x) |
 | 2.19.x  | Supported (superseded — upgrade to 2.20.x) |
 | 2.18.x  | Supported (superseded — upgrade to 2.19.x) |
@@ -50,7 +51,7 @@ As of **v2.0.0** this application serves more than one department, so a vulnerab
 
 Please do not report security vulnerabilities through public GitHub issues or public discussion boards.
 
-If you discover a security vulnerability within NEXUS, please send a direct email to the Lead Developer, Muhammad Alif, at muhammad.alif@kkh.com.sg. 
+If you discover a security vulnerability within NEXUS, report it privately through this repository's **Security** tab (*Report a vulnerability*), which opens a private advisory visible only to the maintainer, Muhammad Alif.
 
 All security reports will be treated with the highest priority. You can expect an acknowledgement of your report within 24 hours, followed by a remediation timeline and an immediate hotfix deployment if the live environment is compromised.
 

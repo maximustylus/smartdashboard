@@ -17,7 +17,7 @@
  *
  *   # 2. FOR REAL — only after reading the dry run and checking the project.
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json \
- *     node scripts/bootstrap-config.cjs --write --super-admin you@kkh.com.sg
+ *     node scripts/bootstrap-config.cjs --write --super-admin you@northside.example
  *
  *   # Other institutions, later. ADDITIVE — never replaces the list.
  *   GOOGLE_APPLICATION_CREDENTIALS=… node scripts/bootstrap-config.cjs \
@@ -95,7 +95,7 @@ const valuesFor = (flag) => argv
  * been behaving as though existed. That is the least surprising outcome; the
  * alternative is a run that succeeds and changes nothing anyone can use.
  */
-const DEFAULT_DOMAINS = ['kkh.com.sg', 'singhealth.com.sg'];
+const DEFAULT_DOMAINS = ['northside.example', 'unityhealth.example'];
 
 /** A domain is `label.label…`. No `@`, no scheme, no wildcard — see accessPolicy. */
 const isDomain = (value) => /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/.test(value);
@@ -120,7 +120,7 @@ const main = async () => {
     const requested = valuesFor('--domain');
     const bad = requested.filter((value) => !isDomain(value));
     if (bad.length > 0) {
-        console.error(`✗ Not a domain: ${bad.join(', ')}. Pass a bare host, e.g. kkh.com.sg — no @, no https://, no *.\n`);
+        console.error(`✗ Not a domain: ${bad.join(', ')}. Pass a bare host, e.g. northside.example — no @, no https://, no *.\n`);
         process.exit(1);
     }
     const domains = requested.length > 0 ? requested : DEFAULT_DOMAINS;

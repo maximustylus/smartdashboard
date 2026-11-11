@@ -37,7 +37,7 @@ export const NexusProvider = ({ children }) => {
             displayName: authUser.displayName, // From Google Auth
             name: firestoreData.name || authUser.displayName, // From Firestore
             title: firestoreData.title || 'Staff', // e.g., Clinical Exercise Physiologist
-            department: firestoreData.department || 'KKH',
+            department: firestoreData.department || '',
             ...firestoreData
           });
         } catch (error) {

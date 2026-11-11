@@ -20,8 +20,8 @@ import {
     LAST_TEAM_KEY,
 } from './teamSelection';
 
-const A = 'kkh-sport-exercise-medicine';
-const B = 'kkh-respiratory-therapy';
+const A = 'northside-sport-exercise-medicine';
+const B = 'northside-respiratory-therapy';
 const OTHER = 'sgh-physiotherapy';
 
 // B SORTS BEFORE A — 'respiratory' < 'sport'. Named rather than left implicit
@@ -46,7 +46,7 @@ describe('normaliseTeamIds', () => {
     });
 
     it('returns an empty array for anything that is not one', () => {
-        [null, undefined, 'kkh-respiratory-therapy', {}, 0].forEach((value) => {
+        [null, undefined, 'northside-respiratory-therapy', {}, 0].forEach((value) => {
             expect(normaliseTeamIds(value)).toEqual([]);
         });
     });
@@ -70,7 +70,7 @@ describe('canActOn — the predicate anything that writes must consult', () => {
         expect(canActOn(null, [A, B])).toBe(false);
         expect(canActOn(A, [])).toBe(false);
         expect(canActOn(A, null)).toBe(false);
-        expect(canActOn(A, 'kkh-sport-exercise-medicine')).toBe(false);
+        expect(canActOn(A, 'northside-sport-exercise-medicine')).toBe(false);
     });
 });
 
@@ -143,8 +143,8 @@ describe('needsSwitcher', () => {
 
 describe('teamLabel', () => {
     it('reads department first, then institution', () => {
-        expect(teamLabel({ department: 'Respiratory Therapy', institution: 'KKH' }))
-            .toBe('Respiratory Therapy — KKH');
+        expect(teamLabel({ department: 'Respiratory Therapy', institution: 'Northside' }))
+            .toBe('Respiratory Therapy — Northside');
     });
 
     /**
@@ -154,7 +154,7 @@ describe('teamLabel', () => {
      */
     it('never renders empty while there is anything to show', () => {
         expect(teamLabel({ name: 'Sport & Exercise Medicine' })).toBe('Sport & Exercise Medicine');
-        expect(teamLabel({ institution: 'KKH' })).toBe('KKH');
+        expect(teamLabel({ institution: 'Northside' })).toBe('Northside');
         expect(teamLabel({ id: A })).toBe(A);
         expect(teamLabel({ department: '   ', id: A })).toBe(A);
     });
@@ -162,7 +162,7 @@ describe('teamLabel', () => {
     it('returns an empty string only when there is genuinely nothing', () => {
         expect(teamLabel({})).toBe('');
         expect(teamLabel(null)).toBe('');
-        expect(teamLabel('kkh')).toBe('');
+        expect(teamLabel('northside')).toBe('');
     });
 });
 

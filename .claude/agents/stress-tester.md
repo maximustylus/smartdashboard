@@ -35,7 +35,7 @@ Measured on 2026-08-18, at v1.16.0:
 - **The largest configuration anywhere was 20 staff × 4 tasks × 4 weeks**
   (`SCALING TABLE`, `rosterEngineV2.test.js`). The untested region started at 21
   people, for a tool aimed at 28 allied health professions across several
-  SingHealth institutions.
+  Unity Health institutions.
 - **No timing assertion existed anywhere.** Nothing had ever measured how long
   generation takes, and generation runs **synchronously in the browser** on the
   sandbox path (`RosterView.jsx`, inside the Draft click handler).

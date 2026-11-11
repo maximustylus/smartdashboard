@@ -28,13 +28,13 @@ on:
           - change-email
           - mark-verified
       domain:
-        description: 'register-domain: the email domain, e.g. kkh.com.sg'
+        description: 'register-domain: the email domain, e.g. northside.example'
         required: false
-        default: 'kkh.com.sg'
+        default: ''
       team:
         description: 'transfer-team: the team id'
         required: false
-        default: 'kkh-sport-exercise-medicine'
+        default: ''
       newLeadEmail:
         description: 'transfer-team: the new lead''s email (they must already be in the team)'
         required: false

@@ -166,7 +166,7 @@ const SCENARIOS = {
     },
     /*
       ⚠️ THE TWO CASES THIS SCRIPT MISSED, found by the 2026-09-24 stress test.
-         Every fixture above used sector 73. East sectors (SingHealth) print two
+         Every fixture above used sector 73. East sectors (Unity Health) print two
          resources with long descriptions and addresses, and this one clipped the
          QR code and Assessment ID off English page 1 by 47px. The second is the
          "wrong stopwatch" case (a one-minute count far below what the test

@@ -148,7 +148,7 @@ import { MOCK_TEAM_DATA, MOCK_STAFF_LOADS } from '../data/mockData';
 const NEWCOMER = {
     uid: 'uid-newcomer-0001',
     name: 'Waiting Clinician',
-    email: 'waiting@kkh.com.sg',
+    email: 'waiting@northside.example',
     role: 'staff',
     photoURL: null,
 };

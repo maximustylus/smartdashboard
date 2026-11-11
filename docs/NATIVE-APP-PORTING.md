@@ -74,7 +74,7 @@ no source change. This phase is a day, and it tells you what else breaks.
 
 ```bash
 npm install @capacitor/core @capacitor/cli @capacitor/ios @capacitor/android
-npx cap init "NEXUS" sg.kkh.nexus --web-dir dist     # bundle id: owner's decision, §8
+npx cap init "NEXUS" sg.northside.nexus --web-dir dist     # bundle id: owner's decision, §8
 npm run build
 npx cap add ios
 npx cap add android
@@ -331,7 +331,7 @@ minutes. The native shells are a second, slower channel with their own rules.
 |---|---|---|
 | 1 | **Store apps at all, or Play TWA plus iOS home-screen install?** iOS 16.4+ delivers web push to a home-screen PWA; a TWA is the live site in a Chrome container with no code change. Both keep push-to-main as the only deploy. | Whether NEXUS needs to be found by name in the App Store, or must run on MDM-managed devices that only allow store apps, is an institutional question |
 | 2 | **Whose developer accounts** — hospital, department, or personal | Ownership of the listing, the seller name shown to the public, and who can be locked out |
-| 3 | **Bundle identifier** (`sg.kkh.nexus` is a placeholder) | Permanent; tied to the accounts in 2 |
+| 3 | **Bundle identifier** (`sg.northside.nexus` is a placeholder) | Permanent; tied to the accounts in 2 |
 | 4 | **Account deletion path** — required by Apple, currently absent | Removing a clinician's auth user and membership is a data decision with a lead in the loop |
 | 5 | **Live updates** for `src/`-only changes, or accept review latency | Trade-off between speed of fixes and a third-party update service seeing the bundle |
 | 6 | **The privacy policy page** — content and where it lives | An outward-facing statement about clinical-adjacent data; the info card is the draft |

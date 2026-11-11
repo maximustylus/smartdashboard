@@ -37,13 +37,13 @@ const root = resolve(here, '..', '..');
 /** The addresses the directory shipped, reassembled so source greps miss them. */
 const at = (local, domain) => local + '@' + domain;
 const EMAILS = [
-    at('muhammad.alif', 'kkh.com.sg'),
-    at('nora.binte.aziz.nh', 'kkh.com.sg'),
-    at('barry.lim.k.g.', 'singhealth.com.sg'),
-    at('bradley.tan.gg', 'kkh.com.sg'),
-    at('lim.yu.xuan', 'kkh.com.sg'),
-    at('darshan.rao', 'kkh.com.sg'),
-    at('fayelynn.mohamad.farid', 'kkh.com.sg'),
+    at('muhammad.alif', 'northside.example'),
+    at('nora.binte.aziz.nh', 'northside.example'),
+    at('barry.lim.k.g.', 'unityhealth.example'),
+    at('bradley.tan.gg', 'northside.example'),
+    at('lim.yu.xuan', 'northside.example'),
+    at('darshan.rao', 'northside.example'),
+    at('fayelynn.mohamad.farid', 'northside.example'),
 ];
 
 /**

@@ -49,7 +49,7 @@ vi.mock('firebase/functions', () => ({
 let demoMode = true;
 vi.mock('../context/NexusContext', () => ({ useNexus: () => ({ isDemo: demoMode }) }));
 
-let activeTeamId = 'kkh-sport-exercise-medicine';
+let activeTeamId = 'northside-sport-exercise-medicine';
 /**
  * ⚠️ `isLead` AND `members` ARE NOW LOAD-BEARING, AND THIS MOCK DID NOT CARRY THEM.
  *
@@ -68,7 +68,7 @@ let activeIsLead = true;
 vi.mock('../context/TeamContext', () => ({
     useTeam: () => ({
         teamId: activeTeamId,
-        team: { name: 'Respiratory Therapy, KKH' },
+        team: { name: 'Respiratory Therapy, Northside' },
         members: [
             { uid: 'u1', displayName: 'A. Clinician', title: 'Physiotherapist', rostered: true },
             { uid: 'u2', displayName: 'B. Clinician', title: 'Physiotherapist', rostered: true },
@@ -121,7 +121,7 @@ beforeEach(() => {
     setDoc.mockClear();
     alerts.length = 0;
     demoMode = true;
-    activeTeamId = 'kkh-sport-exercise-medicine';
+    activeTeamId = 'northside-sport-exercise-medicine';
     activeIsLead = true;
     analysisSpy.mockClear();
 });
@@ -193,8 +193,8 @@ describe('SmartAnalysis — publishing from the sandbox', () => {
         await act(async () => { await vi.advanceTimersByTimeAsync(0); });
         expect(setDoc).toHaveBeenCalled();
         const paths = setDoc.mock.calls.map(([ref]) => ref.path);
-        expect(paths).toContain('teams/kkh-sport-exercise-medicine/reports/2026');
-        expect(paths).toContain('teams/kkh-sport-exercise-medicine/projects/2026/staff/uid-alif');
+        expect(paths).toContain('teams/northside-sport-exercise-medicine/reports/2026');
+        expect(paths).toContain('teams/northside-sport-exercise-medicine/projects/2026/staff/uid-alif');
         expect(alerts.join(' ')).toMatch(/SUCCESS/);
     });
 });
@@ -212,7 +212,7 @@ describe('AN2 — the analysis is generated over the TEAM\'s own people', () => 
      */
     it('sends the team\'s own members, and none of the old hardcoded names', async () => {
         demoMode = false;
-        activeTeamId = 'kkh-respiratory-therapy';
+        activeTeamId = 'northside-respiratory-therapy';
         renderPanel();
         await generate();
 
@@ -237,16 +237,16 @@ describe('AN2 — the analysis is generated over the TEAM\'s own people', () => 
         expect(JSON.stringify(analysisSpy.mock.calls[0][0])).not.toMatch(/\b(AH|JG)\d{1,2}\b/);
     });
 
-    /** `AN3` — the team name was the literal string "SSMC@KKH CEP Team", for everyone. */
+    /** `AN3` — the team name was the literal string "SSMC@Northside CEP Team", for everyone. */
     it('sends the real team name and the teamId the server authorises against', async () => {
         demoMode = false;
-        activeTeamId = 'kkh-respiratory-therapy';
+        activeTeamId = 'northside-respiratory-therapy';
         renderPanel();
         await generate();
 
         const payload = analysisSpy.mock.calls[0][0];
-        expect(payload.teamName).toBe('Respiratory Therapy, KKH');
-        expect(payload.teamId).toBe('kkh-respiratory-therapy');
+        expect(payload.teamName).toBe('Respiratory Therapy, Northside');
+        expect(payload.teamId).toBe('northside-respiratory-therapy');
         expect(payload.teamName).not.toMatch(/SSMC/);
     });
 });

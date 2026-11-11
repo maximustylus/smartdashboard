@@ -7,7 +7,7 @@
  * Moves ONE existing account to a new address, keeping its uid — so its teams,
  * roles, roster history and approver right all stay — and writes the new address
  * everywhere NEXUS stores a copy of it. Built for the owner keeping their account
- * after leaving KKH; general enough for anybody whose address changes.
+ * after leaving Northside; general enough for anybody whose address changes.
  *
  * `scripts/change-email.cjs` does the reading and writing; this decides. No
  * Firestore, no Auth, no clock, so every refusal is a unit test.

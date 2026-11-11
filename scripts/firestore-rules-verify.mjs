@@ -71,7 +71,7 @@ const env = await initializeTestEnvironment({
 // ── The cast ─────────────────────────────────────────────────────────────────
 // Two teams, deliberately the same PROFESSION at two institutions — the collision
 // the old global collections could not express at all.
-const TEAM_A = 'kkh-sport-exercise-medicine';
+const TEAM_A = 'northside-sport-exercise-medicine';
 const TEAM_B = 'sgh-physiotherapy';
 
 const ALIF = 'uid-alif';            // team A, lead, rostered
@@ -81,7 +81,7 @@ const YU = 'uid-yu-xuan';       // team A, staff
 const SGH_LEAD = 'uid-sgh-lead';    // team B, lead — the outsider in every A case
 const NOMAD = 'uid-nomad';          // signed in, verified, in NO team
 
-const as = (uid) => env.authenticatedContext(uid, { email: `${uid}@kkh.com.sg`, email_verified: true }).firestore();
+const as = (uid) => env.authenticatedContext(uid, { email: `${uid}@northside.example`, email_verified: true }).firestore();
 const anon = env.unauthenticatedContext().firestore();
 
 let pass = 0, fail = 0;
@@ -97,7 +97,7 @@ const seed = async () => {
         const raw = c.firestore();
         const member = (uid, role, rostered) => ({ displayName: uid, role, rostered, grade: '', fte: 1, skills: [], unavailable: [] });
 
-        await setDoc(doc(raw, `teams/${TEAM_A}`), { name: 'Sport & Exercise Medicine', institution: 'KKH', leadUid: ALIF });
+        await setDoc(doc(raw, `teams/${TEAM_A}`), { name: 'Sport & Exercise Medicine', institution: 'Northside', leadUid: ALIF });
         await setDoc(doc(raw, `teams/${TEAM_A}/members/${ALIF}`), member(ALIF, 'lead', true));
         await setDoc(doc(raw, `teams/${TEAM_A}/members/${NORA}`), member(NORA, 'lead', false));
         await setDoc(doc(raw, `teams/${TEAM_A}/members/${BRADLEY}`), member(BRADLEY, 'staff', true));
@@ -121,7 +121,7 @@ const seed = async () => {
 
         await setDoc(doc(raw, `users/${BRADLEY}`), { displayName: 'Bradley', teamIds: [TEAM_A] });
         await setDoc(doc(raw, `users/${NOMAD}`), { displayName: 'Nomad', teamIds: [] });
-        await setDoc(doc(raw, 'config/domains'), { allowed: ['kkh.com.sg', 'singhealth.com.sg'] });
+        await setDoc(doc(raw, 'config/domains'), { allowed: ['northside.example', 'unityhealth.example'] });
         await setDoc(doc(raw, 'config/superAdmins'), { uids: [ALIF] });
     });
 };
@@ -566,11 +566,11 @@ await check('nobody can widen the allowlist from a client',
 console.log('\n══ lead_requests: a claim, not a grant ══');
 await env.clearFirestore();
 const NEWLEAD = 'uid-newlead';
-const newLead = env.authenticatedContext(NEWLEAD, { email: `${NEWLEAD}@kkh.com.sg`, email_verified: false }).firestore();
+const newLead = env.authenticatedContext(NEWLEAD, { email: `${NEWLEAD}@northside.example`, email_verified: false }).firestore();
 const request = (over = {}) => ({
-    uid: NEWLEAD, email: `${NEWLEAD}@kkh.com.sg`, displayName: 'Nur', role: 'lead',
-    institution: 'KKH', department: 'Respiratory Therapy', profession: 'respiratory-therapist',
-    proposedTeamId: 'kkh-respiratory-therapy', status: 'pending',
+    uid: NEWLEAD, email: `${NEWLEAD}@northside.example`, displayName: 'Nur', role: 'lead',
+    institution: 'Northside', department: 'Respiratory Therapy', profession: 'respiratory-therapist',
+    proposedTeamId: 'northside-respiratory-therapy', status: 'pending',
     requestedAt: '2026-08-21T00:00:00.000Z', ...over,
 });
 
@@ -588,7 +588,7 @@ await check('CANNOT lodge a request under somebody ELSE\'S uid',
 await check('CANNOT approve itself by writing status: approved',
     assertFails(setDoc(doc(newLead, `lead_requests/${NEWLEAD}`), request({ status: 'approved' }))));
 await check('CANNOT claim an email other than the one on its token',
-    assertFails(setDoc(doc(newLead, `lead_requests/${NEWLEAD}`), request({ email: 'someone.else@kkh.com.sg' }))));
+    assertFails(setDoc(doc(newLead, `lead_requests/${NEWLEAD}`), request({ email: 'someone.else@northside.example' }))));
 await check('CANNOT declare a role outside lead/supervisor/administrator',
     assertFails(setDoc(doc(newLead, `lead_requests/${NEWLEAD}`), request({ role: 'superuser' }))));
 await check('a path-escaping proposedTeamId is refused by the slug pattern',
@@ -686,7 +686,7 @@ await check('the form CAN submit its completed assessment',
 await check('a PDF download CAN be recorded',
     assertSucceeds(put(actionRecord())));
 await check('a tap on a resource CAN be recorded (no tier)',
-    assertSucceeds(put(without(actionRecord({ action: 'click_singhealth_careline' }), 'ctaTier'))));
+    assertSucceeds(put(without(actionRecord({ action: 'click_unityhealth_careline' }), 'ctaTier'))));
 await check('an unknown postal sector is recorded as "--"',
     assertSucceeds(put(actionRecord({ postalSector: '--' }))));
 
