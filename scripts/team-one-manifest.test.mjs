@@ -50,12 +50,12 @@ describe('team #1 — the members', () => {
     it('is the seven the owner named, and not the original ten', () => {
         expect(MEMBERS).toHaveLength(7);
         expect(MEMBERS.map((m) => m.displayName).sort()).toEqual(
-            ['Alif', 'Benny', 'Brandon', 'Derlinder', 'Fadzlynn', 'Nisa', 'Ying Xian'],
+            ['Alif', 'Barry', 'Bradley', 'Darshan', 'Fayelynn', 'Nora', 'Yu Xuan'],
         );
     });
 
     /**
-     * BENNY STAYS. "Remove the viewers" would have been the tidier-sounding rule and
+     * BARRY STAYS. "Remove the viewers" would have been the tidier-sounding rule and
      * is not what was asked for — he was kept deliberately when the other three
      * stakeholders were dropped. Asserted so a later tidy-up cannot quietly apply the
      * rule that was never given.
@@ -66,12 +66,12 @@ describe('team #1 — the members', () => {
      * where they sit in the hierarchy. Asserted because it reads oddly enough that a
      * later reader might "fix" it.
      */
-    it('keeps Benny — Head of Service — as a viewer who holds no duties', () => {
-        const benny = MEMBERS.find((m) => m.displayName === 'Benny');
-        expect(benny).toBeTruthy();
-        expect(benny.role).toBe('viewer');
-        expect(benny.rostered).toBe(false);
-        expect(benny.title).toBe('Head of Service');
+    it('keeps Barry — Head of Service — as a viewer who holds no duties', () => {
+        const barry = MEMBERS.find((m) => m.displayName === 'Barry');
+        expect(barry).toBeTruthy();
+        expect(barry.role).toBe('viewer');
+        expect(barry.rostered).toBe(false);
+        expect(barry.title).toBe('Head of Service');
     });
 
     it('gives everybody one of the three real roles, and an explicit rostered flag', () => {
@@ -87,7 +87,7 @@ describe('team #1 — the members', () => {
      * ⚠️ TWO COUNTEREXAMPLES IN ONE TEAM, and together they are why `role` and
      *    `rostered` cannot be one field.
      *
-     *    NISA IS THE ROSTER MASTER: she builds the roster every week, so she must be
+     *    NORA IS THE ROSTER MASTER: she builds the roster every week, so she must be
      *    a `lead` to configure and generate — and carries no clinical load, so she
      *    must not be in the pool the generator draws from, or it hands her duties she
      *    does not do.
@@ -95,13 +95,13 @@ describe('team #1 — the members', () => {
      *    ALIF IS A LEAD WHO PRACTISES: he configures the roster AND holds duties in
      *    it.
      *
-     *    `role !== 'viewer'` puts Nisa in the pool. `role === 'staff'` drops Alif out
+     *    `role !== 'viewer'` puts Nora in the pool. `role === 'staff'` drops Alif out
      *    of his own rota. Every single-field rule gets one of them wrong.
      */
     it('separates what you may DO from whether you hold duties, in both directions', () => {
-        const nisa = MEMBERS.find((m) => m.displayName === 'Nisa');
-        expect(nisa.role).toBe('lead');       // builds the roster
-        expect(nisa.rostered).toBe(false);    // is not in it
+        const nora = MEMBERS.find((m) => m.displayName === 'Nora');
+        expect(nora.role).toBe('lead');       // builds the roster
+        expect(nora.rostered).toBe(false);    // is not in it
 
         const alif = MEMBERS.find((m) => m.displayName === 'Alif');
         expect(alif.role).toBe('lead');       // also builds the roster
@@ -110,7 +110,7 @@ describe('team #1 — the members', () => {
 
     /**
      * ⚠️ THE STAFF POOL IS FIVE, NOT THE FOUR `LIVE_ROSTER_DEFAULTS.staff` HARDCODES.
-     *    That constant lists ['Brandon','Ying Xian','Derlinder','Fadzlynn'] and had
+     *    That constant lists ['Bradley','Yu Xuan','Darshan','Fayelynn'] and had
      *    simply gone stale — the service lead practises and was never added to it.
      *    Nobody edits an array when a department changes, which is the whole reason
      *    the member list replaces it.
@@ -122,7 +122,7 @@ describe('team #1 — the members', () => {
      */
     it('puts all five practising clinicians in the staff pool', () => {
         expect(MEMBERS.filter((m) => m.rostered).map((m) => m.displayName).sort())
-            .toEqual(['Alif', 'Brandon', 'Derlinder', 'Fadzlynn', 'Ying Xian']);
+            .toEqual(['Alif', 'Bradley', 'Darshan', 'Fayelynn', 'Yu Xuan']);
     });
 
     /**
@@ -145,7 +145,7 @@ describe('team #1 — the members', () => {
 
 describe('team #1 — the exclusions', () => {
     it('names the three the owner removed', () => {
-        expect(EXCLUDED.map((p) => p.displayName).sort()).toEqual(['Ashik', 'Evelyn', 'Mini']);
+        expect(EXCLUDED.map((p) => p.displayName).sort()).toEqual(['Arjun', 'Elaine', 'Mira']);
     });
 
     /**

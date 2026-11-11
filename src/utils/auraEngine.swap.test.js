@@ -13,8 +13,8 @@
  * What is being fixed here, by id:
  *
  *   A1  (POSTMORTEM)  accepting a swap did not change the roster: the mutator
- *                     compared the display string `"Lead: Brandon, Co: Ying Xian"`
- *                     to the bare name `"Brandon"`, matched nothing, wrote
+ *                     compared the display string `"Lead: Bradley, Co: Yu Xuan"`
+ *                     to the bare name `"Bradley"`, matched nothing, wrote
  *                     byte-identical data, and reported success.
  *   A2  (POSTMORTEM)  a corrected match would still have written the wrong thing:
  *                     `lead`/`coLead` untouched, display string destroyed.
@@ -58,8 +58,8 @@ import {
 
 /** A shift in the MODERN shape — what `generateRoster` has written since 6 May. */
 const modernShift = (overrides = {}) => {
-    const lead = overrides.lead ?? 'Brandon';
-    const coLead = overrides.coLead ?? 'Ying Xian';
+    const lead = overrides.lead ?? 'Bradley';
+    const coLead = overrides.coLead ?? 'Yu Xuan';
     return {
         task: 'EFT',
         lead,
@@ -80,7 +80,7 @@ const modernShift = (overrides = {}) => {
  */
 const legacyShift = (overrides = {}) => ({
     task: 'EFT',
-    staff: 'Brandon',
+    staff: 'Bradley',
     category: 'CORE',
     ...overrides,
 });
@@ -89,8 +89,8 @@ const DATE = '2026-02-02';
 
 const swapRequest = (overrides = {}) => ({
     docId: 'swap_1',
-    requestedBy: 'Brandon',
-    targetStaff: 'Derlinder',
+    requestedBy: 'Bradley',
+    targetStaff: 'Darshan',
     originalShiftDate: DATE,
     originalTask: 'EFT',
     swapRole: SHIFT_ROLE_LEAD,
@@ -107,22 +107,22 @@ describe('buildShiftStaffLabel — the one definition of the display string', ()
     it('formats a two-person shift as `Lead: X, Co: Y`', () => {
         // The ICS export interpolates this straight into a VEVENT SUMMARY, so
         // the format is a contract, not a cosmetic choice.
-        expect(buildShiftStaffLabel('Brandon', 'Ying Xian')).toBe('Lead: Brandon, Co: Ying Xian');
+        expect(buildShiftStaffLabel('Bradley', 'Yu Xuan')).toBe('Lead: Bradley, Co: Yu Xuan');
     });
 
     it('omits the co-lead clause entirely when there is no co-lead', () => {
         // A legacy shift has exactly one person. `Lead: X, Co: undefined` would
         // be exported to every clinician's calendar.
-        expect(buildShiftStaffLabel('Brandon', null)).toBe('Lead: Brandon');
-        expect(buildShiftStaffLabel('Brandon', undefined)).toBe('Lead: Brandon');
-        expect(buildShiftStaffLabel('Brandon', '   ')).toBe('Lead: Brandon');
+        expect(buildShiftStaffLabel('Bradley', null)).toBe('Lead: Bradley');
+        expect(buildShiftStaffLabel('Bradley', undefined)).toBe('Lead: Bradley');
+        expect(buildShiftStaffLabel('Bradley', '   ')).toBe('Lead: Bradley');
     });
 
     it('is the same string `generateRoster` writes for every shift it produces', () => {
         // Guards the refactor that pointed the generator at this builder: if the
         // two ever diverge, this fails rather than the ICS export drifting.
         const roster = generateRoster({
-            staff: ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'],
+            staff: ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'],
             tasks: [
             'Physical Activity Counseling',
             'Exercise Test',
@@ -150,15 +150,15 @@ describe('buildShiftStaffLabel — the one definition of the display string', ()
 describe('readShiftIdentities — shape tolerance', () => {
     it('reads lead and coLead from a modern shift', () => {
         expect(readShiftIdentities(modernShift())).toEqual({
-            lead: 'Brandon',
-            coLead: 'Ying Xian',
+            lead: 'Bradley',
+            coLead: 'Yu Xuan',
             legacy: false,
         });
     });
 
     it('reads a legacy bare `staff` as the lead, and flags the shape', () => {
         expect(readShiftIdentities(legacyShift())).toEqual({
-            lead: 'Brandon',
+            lead: 'Bradley',
             coLead: null,
             legacy: true,
         });
@@ -168,7 +168,7 @@ describe('readShiftIdentities — shape tolerance', () => {
         // A `staff` of "Lead: A, Co: B" with no lead/coLead fields should not
         // exist. If it does, re-deriving names from the label is exactly the
         // move that produced this whole defect class — so it reads as unknown.
-        const malformed = { task: 'EFT', staff: 'Lead: Brandon, Co: Ying Xian' };
+        const malformed = { task: 'EFT', staff: 'Lead: Bradley, Co: Yu Xuan' };
         expect(readShiftIdentities(malformed)).toEqual({ lead: null, coLead: null, legacy: false });
     });
 
@@ -186,26 +186,26 @@ describe('readShiftIdentities — shape tolerance', () => {
 // ─── Which role does a person hold? (root cause A3) ──────────────────────────
 describe('shiftRoleOf — the role lookup RosterView uses to record `swapRole`', () => {
     it('identifies the lead', () => {
-        expect(shiftRoleOf(modernShift(), 'Brandon')).toBe(SHIFT_ROLE_LEAD);
+        expect(shiftRoleOf(modernShift(), 'Bradley')).toBe(SHIFT_ROLE_LEAD);
     });
 
     it('identifies the co-lead', () => {
-        expect(shiftRoleOf(modernShift(), 'Ying Xian')).toBe(SHIFT_ROLE_CO_LEAD);
+        expect(shiftRoleOf(modernShift(), 'Yu Xuan')).toBe(SHIFT_ROLE_CO_LEAD);
     });
 
     it('returns null for somebody not on the shift', () => {
-        expect(shiftRoleOf(modernShift(), 'Derlinder')).toBeNull();
+        expect(shiftRoleOf(modernShift(), 'Darshan')).toBeNull();
     });
 
     it('returns lead for the single person on a legacy shift', () => {
-        expect(shiftRoleOf(legacyShift(), 'Brandon')).toBe(SHIFT_ROLE_LEAD);
+        expect(shiftRoleOf(legacyShift(), 'Bradley')).toBe(SHIFT_ROLE_LEAD);
     });
 
     it('does not match a name that is merely a substring of a person on the shift', () => {
-        // A4: "Lynn" is not "Fadzlynn".
-        const shift = modernShift({ lead: 'Fadzlynn', coLead: 'Derlinder' });
+        // A4: "Lynn" is not "Fayelynn".
+        const shift = modernShift({ lead: 'Fayelynn', coLead: 'Darshan' });
         expect(shiftRoleOf(shift, 'Lynn')).toBeNull();
-        expect(shiftRoleOf(shift, 'Fadzlynn')).toBe(SHIFT_ROLE_LEAD);
+        expect(shiftRoleOf(shift, 'Fayelynn')).toBe(SHIFT_ROLE_LEAD);
     });
 
     it('returns null for a blank or missing name rather than matching an empty field', () => {
@@ -218,29 +218,29 @@ describe('shiftRoleOf — the role lookup RosterView uses to record `swapRole`',
 // ─── Mechanical substitution ─────────────────────────────────────────────────
 describe('applyShiftSubstitution — mechanical substitution, one role only', () => {
     it('substitutes the LEAD and leaves the co-lead untouched', () => {
-        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Derlinder');
+        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Darshan');
 
-        expect(next.lead).toBe('Derlinder');
-        expect(next.coLead).toBe('Ying Xian'); // no promotion, no third party moved
-        expect(next.staff).toBe('Lead: Derlinder, Co: Ying Xian');
+        expect(next.lead).toBe('Darshan');
+        expect(next.coLead).toBe('Yu Xuan'); // no promotion, no third party moved
+        expect(next.staff).toBe('Lead: Darshan, Co: Yu Xuan');
     });
 
     it('substitutes the CO-LEAD and leaves the lead untouched', () => {
-        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_CO_LEAD, 'Derlinder');
+        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_CO_LEAD, 'Darshan');
 
-        expect(next.lead).toBe('Brandon');
-        expect(next.coLead).toBe('Derlinder');
-        expect(next.staff).toBe('Lead: Brandon, Co: Derlinder');
+        expect(next.lead).toBe('Bradley');
+        expect(next.coLead).toBe('Darshan');
+        expect(next.staff).toBe('Lead: Bradley, Co: Darshan');
     });
 
     it('rebuilds the display string in the `Lead: X, Co: Y` format the ICS export needs', () => {
-        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Fadzlynn');
+        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Fayelynn');
         expect(next.staff).toBe(buildShiftStaffLabel(next.lead, next.coLead));
         expect(next.staff).toMatch(/^Lead: .+, Co: .+$/);
     });
 
     it('preserves every field it does not own', () => {
-        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Derlinder');
+        const next = applyShiftSubstitution(modernShift(), SHIFT_ROLE_LEAD, 'Darshan');
         expect(next.task).toBe('EFT');
         expect(next.category).toBe('CORE');
         expect(next.week).toBe(1);
@@ -248,16 +248,16 @@ describe('applyShiftSubstitution — mechanical substitution, one role only', ()
 
     it('does not mutate the shift it was given', () => {
         const original = modernShift();
-        applyShiftSubstitution(original, SHIFT_ROLE_LEAD, 'Derlinder');
-        expect(original.lead).toBe('Brandon');
-        expect(original.staff).toBe('Lead: Brandon, Co: Ying Xian');
+        applyShiftSubstitution(original, SHIFT_ROLE_LEAD, 'Darshan');
+        expect(original.lead).toBe('Bradley');
+        expect(original.staff).toBe('Lead: Bradley, Co: Yu Xuan');
     });
 
     it('upgrades a LEGACY shift to the modern shape on write', () => {
-        const next = applyShiftSubstitution(legacyShift(), SHIFT_ROLE_LEAD, 'Derlinder');
+        const next = applyShiftSubstitution(legacyShift(), SHIFT_ROLE_LEAD, 'Darshan');
 
-        expect(next.lead).toBe('Derlinder');
-        expect(next.staff).toBe('Lead: Derlinder');
+        expect(next.lead).toBe('Darshan');
+        expect(next.staff).toBe('Lead: Darshan');
         // No co-lead is invented: nobody assigned a second person to this shift.
         expect('coLead' in next).toBe(false);
         // And it now reads as modern, so the same document is never treated as
@@ -267,7 +267,7 @@ describe('applyShiftSubstitution — mechanical substitution, one role only', ()
 
     it('returns the shift unchanged for a nonsense role or empty incoming name', () => {
         const shift = modernShift();
-        expect(applyShiftSubstitution(shift, 'admin', 'Derlinder')).toBe(shift);
+        expect(applyShiftSubstitution(shift, 'admin', 'Darshan')).toBe(shift);
         expect(applyShiftSubstitution(shift, SHIFT_ROLE_LEAD, '  ')).toBe(shift);
         expect(applyShiftSubstitution(shift, SHIFT_ROLE_LEAD, undefined)).toBe(shift);
     });
@@ -276,39 +276,39 @@ describe('applyShiftSubstitution — mechanical substitution, one role only', ()
 // ─── The candidate dropdown (A4) ─────────────────────────────────────────────
 describe('filterSwapCandidates — identity comparison, not substring', () => {
     it('removes exactly the two people already on the shift', () => {
-        const pool = ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'];
-        expect(filterSwapCandidates(pool, modernShift())).toEqual(['Derlinder', 'Fadzlynn']);
+        const pool = ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'];
+        expect(filterSwapCandidates(pool, modernShift())).toEqual(['Darshan', 'Fayelynn']);
     });
 
     it('does NOT drop a colleague whose name is a substring of a name on the shift', () => {
         // The regression this function exists for: `!staff.includes('Lynn')` was
-        // false for "Lead: Fadzlynn, Co: Derlinder", so Lynn vanished from the
+        // false for "Lead: Fayelynn, Co: Darshan", so Lynn vanished from the
         // dropdown and could never be asked to cover.
-        const pool = ['Lynn', 'Fadzlynn', 'Derlinder', 'Brandon'];
-        const shift = modernShift({ lead: 'Fadzlynn', coLead: 'Derlinder' });
+        const pool = ['Lynn', 'Fayelynn', 'Darshan', 'Bradley'];
+        const shift = modernShift({ lead: 'Fayelynn', coLead: 'Darshan' });
 
         const candidates = filterSwapCandidates(pool, shift);
 
         expect(candidates).toContain('Lynn');
-        expect(candidates).not.toContain('Fadzlynn');
-        expect(candidates).not.toContain('Derlinder');
-        expect(candidates).toEqual(['Lynn', 'Brandon']);
+        expect(candidates).not.toContain('Fayelynn');
+        expect(candidates).not.toContain('Darshan');
+        expect(candidates).toEqual(['Lynn', 'Bradley']);
     });
 
     it('is not fooled by the words "Lead" or "Co" appearing in the label', () => {
-        const pool = ['Lead', 'Co', 'Derlinder'];
-        expect(filterSwapCandidates(pool, modernShift())).toEqual(['Lead', 'Co', 'Derlinder']);
+        const pool = ['Lead', 'Co', 'Darshan'];
+        expect(filterSwapCandidates(pool, modernShift())).toEqual(['Lead', 'Co', 'Darshan']);
     });
 
     it('removes the single person on a legacy shift', () => {
-        const pool = ['Brandon', 'Derlinder'];
-        expect(filterSwapCandidates(pool, legacyShift())).toEqual(['Derlinder']);
+        const pool = ['Bradley', 'Darshan'];
+        expect(filterSwapCandidates(pool, legacyShift())).toEqual(['Darshan']);
     });
 
     it('drops blank pool entries and tolerates a missing pool or shift', () => {
-        expect(filterSwapCandidates(['Brandon', '', '  ', 'Derlinder'], modernShift())).toEqual(['Derlinder']);
+        expect(filterSwapCandidates(['Bradley', '', '  ', 'Darshan'], modernShift())).toEqual(['Darshan']);
         expect(filterSwapCandidates(null, modernShift())).toEqual([]);
-        expect(filterSwapCandidates(['Brandon'], null)).toEqual(['Brandon']);
+        expect(filterSwapCandidates(['Bradley'], null)).toEqual(['Bradley']);
     });
 });
 
@@ -328,20 +328,20 @@ describe('filterSwapCandidates — identity comparison, not substring', () => {
 describe('assignableShiftRoles — the duties a shift actually has somebody in', () => {
     it('lists both duties of a modern two-person shift, lead first', () => {
         expect(assignableShiftRoles(modernShift())).toEqual([
-            { role: SHIFT_ROLE_LEAD, holder: 'Brandon' },
-            { role: SHIFT_ROLE_CO_LEAD, holder: 'Ying Xian' },
+            { role: SHIFT_ROLE_LEAD, holder: 'Bradley' },
+            { role: SHIFT_ROLE_CO_LEAD, holder: 'Yu Xuan' },
         ]);
     });
 
     it('lists only the lead of a legacy single-holder shift', () => {
         expect(assignableShiftRoles(legacyShift())).toEqual([
-            { role: SHIFT_ROLE_LEAD, holder: 'Brandon' },
+            { role: SHIFT_ROLE_LEAD, holder: 'Bradley' },
         ]);
     });
 
     it('lists only the lead when a modern shift was written with no co-lead', () => {
         expect(assignableShiftRoles(modernShift({ coLead: null }))).toEqual([
-            { role: SHIFT_ROLE_LEAD, holder: 'Brandon' },
+            { role: SHIFT_ROLE_LEAD, holder: 'Bradley' },
         ]);
     });
 
@@ -349,17 +349,17 @@ describe('assignableShiftRoles — the duties a shift actually has somebody in',
         // Including the malformed display-string-only shape: an empty list is the
         // signal that there is nobody to arrange cover FOR, not a licence to
         // parse names back out of the label.
-        expect(assignableShiftRoles({ task: 'EFT', staff: 'Lead: Brandon, Co: Ying Xian' })).toEqual([]);
+        expect(assignableShiftRoles({ task: 'EFT', staff: 'Lead: Bradley, Co: Yu Xuan' })).toEqual([]);
         expect(assignableShiftRoles(null)).toEqual([]);
     });
 });
 
 describe('resolveSwapSubject — the acting user HOLDS the shift (unchanged behaviour)', () => {
     it('records a LEAD swapping their own duty', () => {
-        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Brandon' });
+        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Bradley' });
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Brandon');
+        expect(subject.requestedBy).toBe('Bradley');
         expect(subject.swapRole).toBe(SHIFT_ROLE_LEAD);
         expect(subject.initiatedBy).toBeNull();
         expect(subject.holdsShift).toBe(true);
@@ -367,20 +367,20 @@ describe('resolveSwapSubject — the acting user HOLDS the shift (unchanged beha
     });
 
     it('records a CO-LEAD swapping their own duty', () => {
-        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Ying Xian' });
+        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Yu Xuan' });
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Ying Xian');
+        expect(subject.requestedBy).toBe('Yu Xuan');
         expect(subject.swapRole).toBe(SHIFT_ROLE_CO_LEAD);
         expect(subject.initiatedBy).toBeNull();
         expect(subject.holdsShift).toBe(true);
     });
 
     it('records the single holder of a LEGACY shift as the lead', () => {
-        const subject = resolveSwapSubject({ shift: legacyShift(), actingUser: 'Brandon' });
+        const subject = resolveSwapSubject({ shift: legacyShift(), actingUser: 'Bradley' });
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Brandon');
+        expect(subject.requestedBy).toBe('Bradley');
         expect(subject.swapRole).toBe(SHIFT_ROLE_LEAD);
     });
 
@@ -390,19 +390,19 @@ describe('resolveSwapSubject — the acting user HOLDS the shift (unchanged beha
         // duty while the modal said "your shift".
         const subject = resolveSwapSubject({
             shift: modernShift(),
-            actingUser: 'Brandon',
+            actingUser: 'Bradley',
             isAdmin: true,
             chosenRole: SHIFT_ROLE_CO_LEAD,
         });
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Brandon');
+        expect(subject.requestedBy).toBe('Bradley');
         expect(subject.swapRole).toBe(SHIFT_ROLE_LEAD);
         expect(subject.initiatedBy).toBeNull();
     });
 
     it('does not match a name that is merely a substring of a holder (A4)', () => {
-        const shift = modernShift({ lead: 'Fadzlynn', coLead: 'Derlinder' });
+        const shift = modernShift({ lead: 'Fayelynn', coLead: 'Darshan' });
         expect(resolveSwapSubject({ shift, actingUser: 'Lynn' }).ok).toBe(false);
     });
 });
@@ -416,7 +416,7 @@ describe('resolveSwapSubject — an ADMIN on a TWO-ROLE shift picks the duty', (
 
         expect(subject.ok).toBe(true);
         // The clinician holding the duty, NOT the admin. This is the whole fix.
-        expect(subject.requestedBy).toBe('Brandon');
+        expect(subject.requestedBy).toBe('Bradley');
         expect(subject.swapRole).toBe(SHIFT_ROLE_LEAD);
         expect(subject.initiatedBy).toBe('Alif');
         expect(subject.onBehalf).toBe(true);
@@ -428,7 +428,7 @@ describe('resolveSwapSubject — an ADMIN on a TWO-ROLE shift picks the duty', (
         const subject = asAdmin(SHIFT_ROLE_CO_LEAD);
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Ying Xian');
+        expect(subject.requestedBy).toBe('Yu Xuan');
         expect(subject.swapRole).toBe(SHIFT_ROLE_CO_LEAD);
         expect(subject.initiatedBy).toBe('Alif');
         expect(subject.onBehalf).toBe(true);
@@ -441,8 +441,8 @@ describe('resolveSwapSubject — an ADMIN on a TWO-ROLE shift picks the duty', (
         expect(subject.requestedBy).toBeNull();
         expect(subject.swapRole).toBeNull();
         expect(subject.reason).toMatch(/choose whose duty/i);
-        expect(subject.reason).toContain('Brandon');
-        expect(subject.reason).toContain('Ying Xian');
+        expect(subject.reason).toContain('Bradley');
+        expect(subject.reason).toContain('Yu Xuan');
         // The UI needs the list precisely on this refusal, in order to offer it.
         expect(subject.assignableRoles).toHaveLength(2);
     });
@@ -466,15 +466,15 @@ describe('resolveSwapSubject — an ADMIN on a LEGACY single-holder shift', () =
         const subject = resolveSwapSubject({ shift: legacyShift(), actingUser: 'Alif', isAdmin: true });
 
         expect(subject.ok).toBe(true);
-        expect(subject.requestedBy).toBe('Brandon');
+        expect(subject.requestedBy).toBe('Bradley');
         expect(subject.swapRole).toBe(SHIFT_ROLE_LEAD);
         expect(subject.initiatedBy).toBe('Alif');
         expect(subject.autoSelected).toBe(true);
-        expect(subject.assignableRoles).toEqual([{ role: SHIFT_ROLE_LEAD, holder: 'Brandon' }]);
+        expect(subject.assignableRoles).toEqual([{ role: SHIFT_ROLE_LEAD, holder: 'Bradley' }]);
     });
 
     it('refuses a shift that does not record who is on it', () => {
-        const unreadable = { task: 'EFT', staff: 'Lead: Brandon, Co: Ying Xian' };
+        const unreadable = { task: 'EFT', staff: 'Lead: Bradley, Co: Yu Xuan' };
         const subject = resolveSwapSubject({ shift: unreadable, actingUser: 'Alif', isAdmin: true });
 
         expect(subject.ok).toBe(false);
@@ -485,7 +485,7 @@ describe('resolveSwapSubject — an ADMIN on a LEGACY single-holder shift', () =
 describe('resolveSwapSubject — refusals', () => {
     it('refuses a non-holder who is not an admin', () => {
         // `handleShiftClick` already gates this; the refusal is the second latch.
-        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Derlinder' });
+        const subject = resolveSwapSubject({ shift: modernShift(), actingUser: 'Darshan' });
 
         expect(subject.ok).toBe(false);
         expect(subject.requestedBy).toBeNull();
@@ -496,7 +496,7 @@ describe('resolveSwapSubject — refusals', () => {
     });
 
     it('refuses a non-holder non-admin even on a legacy shift', () => {
-        expect(resolveSwapSubject({ shift: legacyShift(), actingUser: 'Derlinder' }).ok).toBe(false);
+        expect(resolveSwapSubject({ shift: legacyShift(), actingUser: 'Darshan' }).ok).toBe(false);
     });
 
     it('refuses when the acting user has no resolvable name', () => {
@@ -512,7 +512,7 @@ describe('resolveSwapSubject — refusals', () => {
         const refusals = [
             resolveSwapSubject(),
             resolveSwapSubject({ shift: null, actingUser: 'Alif', isAdmin: true }),
-            resolveSwapSubject({ shift: modernShift(), actingUser: 'Derlinder' }),
+            resolveSwapSubject({ shift: modernShift(), actingUser: 'Darshan' }),
             resolveSwapSubject({ shift: modernShift(), actingUser: 'Alif', isAdmin: true }),
         ];
 
@@ -559,18 +559,18 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
             actingUser: 'Alif',
             isAdmin: true,
             chosenRole: SHIFT_ROLE_LEAD,
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
         expect(plan.role).toBe(subject.swapRole);
-        expect(plan.shifts[0].lead).toBe('Derlinder');
-        expect(plan.shifts[0].coLead).toBe('Ying Xian'); // nobody else moved
-        expect(plan.shifts[0].staff).toBe('Lead: Derlinder, Co: Ying Xian');
+        expect(plan.shifts[0].lead).toBe('Darshan');
+        expect(plan.shifts[0].coLead).toBe('Yu Xuan'); // nobody else moved
+        expect(plan.shifts[0].staff).toBe('Lead: Darshan, Co: Yu Xuan');
 
         // And the read-back that success is conditional on agrees.
         const after = applyPlan(roster, plan);
-        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Derlinder', role: plan.role })).toBe(true);
+        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Darshan', role: plan.role })).toBe(true);
     });
 
     it('applies an admin-brokered CO-LEAD handover end to end', () => {
@@ -579,16 +579,16 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
             actingUser: 'Alif',
             isAdmin: true,
             chosenRole: SHIFT_ROLE_CO_LEAD,
-            coveringStaff: 'Fadzlynn',
+            coveringStaff: 'Fayelynn',
         });
 
         expect(plan.ok).toBe(true);
         expect(plan.role).toBe(SHIFT_ROLE_CO_LEAD);
-        expect(plan.shifts[0].lead).toBe('Brandon');
-        expect(plan.shifts[0].coLead).toBe('Fadzlynn');
+        expect(plan.shifts[0].lead).toBe('Bradley');
+        expect(plan.shifts[0].coLead).toBe('Fayelynn');
 
         const after = applyPlan(roster, plan);
-        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Fadzlynn', role: plan.role })).toBe(true);
+        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Fayelynn', role: plan.role })).toBe(true);
     });
 
     it('applies an admin-brokered handover on a LEGACY shift end to end', () => {
@@ -596,7 +596,7 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
             shift: legacyShift(),
             actingUser: 'Alif',
             isAdmin: true,
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
@@ -604,16 +604,16 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
         expect(plan.shifts[0]).toEqual({
             task: 'EFT',
             category: 'CORE',
-            lead: 'Derlinder',
-            staff: 'Lead: Derlinder',
+            lead: 'Darshan',
+            staff: 'Lead: Darshan',
         });
     });
 
     it('still applies a self-request, from a lead and from a co-lead', () => {
         const asLead = requestThenAccept({
             shift: modernShift(),
-            actingUser: 'Brandon',
-            coveringStaff: 'Derlinder',
+            actingUser: 'Bradley',
+            coveringStaff: 'Darshan',
         });
         expect(asLead.plan.ok).toBe(true);
         expect(asLead.plan.role).toBe(SHIFT_ROLE_LEAD);
@@ -622,8 +622,8 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
 
         const asCoLead = requestThenAccept({
             shift: modernShift(),
-            actingUser: 'Ying Xian',
-            coveringStaff: 'Derlinder',
+            actingUser: 'Yu Xuan',
+            coveringStaff: 'Darshan',
         });
         expect(asCoLead.plan.ok).toBe(true);
         expect(asCoLead.plan.role).toBe(SHIFT_ROLE_CO_LEAD);
@@ -635,7 +635,7 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
         const plan = planSwapApplication({
             roster: { [DATE]: [modernShift()] },
             swap: swapRequest({ requestedBy: 'Alif', swapRole: null }),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(false);
@@ -647,17 +647,17 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
         // that is `requestedBy`'s job — so a plan is identical with and without it.
         const shift = modernShift();
         const base = {
-            requestedBy: 'Brandon',
+            requestedBy: 'Bradley',
             originalShiftDate: DATE,
             originalTask: 'EFT',
             swapRole: SHIFT_ROLE_LEAD,
         };
 
-        const withOut = planSwapApplication({ roster: { [DATE]: [shift] }, swap: base, coveringStaff: 'Derlinder' });
+        const withOut = planSwapApplication({ roster: { [DATE]: [shift] }, swap: base, coveringStaff: 'Darshan' });
         const withIn = planSwapApplication({
             roster: { [DATE]: [shift] },
             swap: { ...base, initiatedBy: 'Alif' },
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(withIn.ok).toBe(true);
@@ -670,7 +670,7 @@ describe('resolveSwapSubject → planSwapApplication — the two sides cannot dr
         // admin could pick the very clinician they are arranging cover for and be
         // refused at acceptance time ("already holds that shift").
         const shift = modernShift();
-        const pool = ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'];
+        const pool = ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'];
         const candidates = filterSwapCandidates(pool, shift);
 
         [SHIFT_ROLE_LEAD, SHIFT_ROLE_CO_LEAD].forEach((role) => {
@@ -685,7 +685,7 @@ describe('planSwapApplication — LEAD substitution (the modern shape)', () => {
     const roster = () => ({
         [DATE]: [
             modernShift(),
-            modernShift({ task: 'NC', lead: 'Derlinder', coLead: 'Fadzlynn' }),
+            modernShift({ task: 'NC', lead: 'Darshan', coLead: 'Fayelynn' }),
         ],
         '2026-02-03': [modernShift()],
     });
@@ -694,7 +694,7 @@ describe('planSwapApplication — LEAD substitution (the modern shape)', () => {
         const plan = planSwapApplication({
             roster: roster(),
             swap: swapRequest(),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
@@ -708,15 +708,15 @@ describe('planSwapApplication — LEAD substitution (the modern shape)', () => {
         const plan = planSwapApplication({
             roster: before,
             swap: swapRequest(),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.shifts).toHaveLength(2);
         expect(plan.shifts[0]).toEqual({
             task: 'EFT',
-            lead: 'Derlinder',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Derlinder, Co: Ying Xian',
+            lead: 'Darshan',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Darshan, Co: Yu Xuan',
             category: 'CORE',
             week: 1,
         });
@@ -726,15 +726,15 @@ describe('planSwapApplication — LEAD substitution (the modern shape)', () => {
 
     it('does not mutate the roster it was handed', () => {
         const before = roster();
-        planSwapApplication({ roster: before, swap: swapRequest(), coveringStaff: 'Derlinder' });
+        planSwapApplication({ roster: before, swap: swapRequest(), coveringStaff: 'Darshan' });
 
-        expect(before[DATE][0].lead).toBe('Brandon');
-        expect(before[DATE][0].staff).toBe('Lead: Brandon, Co: Ying Xian');
+        expect(before[DATE][0].lead).toBe('Bradley');
+        expect(before[DATE][0].staff).toBe('Lead: Bradley, Co: Yu Xuan');
     });
 
     it('leaves other dates alone', () => {
         const before = roster();
-        const plan = planSwapApplication({ roster: before, swap: swapRequest(), coveringStaff: 'Derlinder' });
+        const plan = planSwapApplication({ roster: before, swap: swapRequest(), coveringStaff: 'Darshan' });
         const after = applyPlan(before, plan);
 
         expect(after['2026-02-03']).toBe(before['2026-02-03']);
@@ -746,25 +746,25 @@ describe('planSwapApplication — CO-LEAD substitution', () => {
         const roster = { [DATE]: [modernShift()] };
         const plan = planSwapApplication({
             roster,
-            swap: swapRequest({ requestedBy: 'Ying Xian', swapRole: SHIFT_ROLE_CO_LEAD }),
-            coveringStaff: 'Derlinder',
+            swap: swapRequest({ requestedBy: 'Yu Xuan', swapRole: SHIFT_ROLE_CO_LEAD }),
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
         expect(plan.role).toBe(SHIFT_ROLE_CO_LEAD);
-        expect(plan.shifts[0].lead).toBe('Brandon');
-        expect(plan.shifts[0].coLead).toBe('Derlinder');
-        expect(plan.shifts[0].staff).toBe('Lead: Brandon, Co: Derlinder');
+        expect(plan.shifts[0].lead).toBe('Bradley');
+        expect(plan.shifts[0].coLead).toBe('Darshan');
+        expect(plan.shifts[0].staff).toBe('Lead: Bradley, Co: Darshan');
     });
 
     it('refuses when the covering colleague is already the lead of that shift', () => {
         // One person cannot hold both duties; the old mutator would have
-        // happily written Brandon into both slots.
+        // happily written Bradley into both slots.
         const roster = { [DATE]: [modernShift()] };
         const plan = planSwapApplication({
             roster,
-            swap: swapRequest({ requestedBy: 'Ying Xian', swapRole: SHIFT_ROLE_CO_LEAD }),
-            coveringStaff: 'Brandon',
+            swap: swapRequest({ requestedBy: 'Yu Xuan', swapRole: SHIFT_ROLE_CO_LEAD }),
+            coveringStaff: 'Bradley',
         });
 
         expect(plan.ok).toBe(false);
@@ -779,7 +779,7 @@ describe('planSwapApplication — LEGACY shape (pre-6-May documents)', () => {
         const plan = planSwapApplication({
             roster,
             swap: swapRequest(),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
@@ -788,13 +788,13 @@ describe('planSwapApplication — LEGACY shape (pre-6-May documents)', () => {
 
     it('upgrades the shift to the modern shape on write', () => {
         const roster = { [DATE]: [legacyShift()] };
-        const plan = planSwapApplication({ roster, swap: swapRequest(), coveringStaff: 'Derlinder' });
+        const plan = planSwapApplication({ roster, swap: swapRequest(), coveringStaff: 'Darshan' });
 
         expect(plan.shifts[0]).toEqual({
             task: 'EFT',
             category: 'CORE',
-            lead: 'Derlinder',
-            staff: 'Lead: Derlinder',
+            lead: 'Darshan',
+            staff: 'Lead: Darshan',
         });
     });
 
@@ -805,12 +805,12 @@ describe('planSwapApplication — LEGACY shape (pre-6-May documents)', () => {
         const plan = planSwapApplication({
             roster,
             swap: swapRequest({ swapRole: SHIFT_ROLE_CO_LEAD }),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
         expect(plan.role).toBe(SHIFT_ROLE_LEAD);
-        expect(plan.shifts[0].lead).toBe('Derlinder');
+        expect(plan.shifts[0].lead).toBe('Darshan');
     });
 
     it('applies a request that predates the `swapRole` field at all', () => {
@@ -818,7 +818,7 @@ describe('planSwapApplication — LEGACY shape (pre-6-May documents)', () => {
         const plan = planSwapApplication({
             roster,
             swap: swapRequest({ swapRole: undefined }),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(true);
@@ -836,12 +836,12 @@ describe('planSwapApplication — a no-match is a REFUSAL, never a silent no-op'
     const cases = [
         [
             'the display string is compared to a bare name (the original A1 bug)',
-            { roster: { [DATE]: [modernShift()] }, swap: swapRequest({ requestedBy: 'Lead: Brandon, Co: Ying Xian' }) },
+            { roster: { [DATE]: [modernShift()] }, swap: swapRequest({ requestedBy: 'Lead: Bradley, Co: Yu Xuan' }) },
             /no longer on the EFT shift|has no EFT shift/i,
         ],
         [
             'the requester is not on that shift at all',
-            { roster: { [DATE]: [modernShift()] }, swap: swapRequest({ requestedBy: 'Fadzlynn' }) },
+            { roster: { [DATE]: [modernShift()] }, swap: swapRequest({ requestedBy: 'Fayelynn' }) },
             /no longer on the EFT shift/i,
         ],
         [
@@ -861,12 +861,12 @@ describe('planSwapApplication — a no-match is a REFUSAL, never a silent no-op'
         ],
         [
             'the day is stored as something other than an array',
-            { roster: { [DATE]: 'EFT: Brandon' }, swap: swapRequest() },
+            { roster: { [DATE]: 'EFT: Bradley' }, swap: swapRequest() },
             /no shifts stored on/i,
         ],
         [
             'the requester and the coverer are the same person',
-            { roster: { [DATE]: [modernShift()] }, swap: swapRequest(), coveringStaff: 'Brandon' },
+            { roster: { [DATE]: [modernShift()] }, swap: swapRequest(), coveringStaff: 'Bradley' },
             /already holds that shift/i,
         ],
         [
@@ -883,7 +883,7 @@ describe('planSwapApplication — a no-match is a REFUSAL, never a silent no-op'
 
     cases.forEach(([label, args, expectedReason]) => {
         it(`refuses, with a reason, when ${label}`, () => {
-            const plan = planSwapApplication({ coveringStaff: 'Derlinder', ...args });
+            const plan = planSwapApplication({ coveringStaff: 'Darshan', ...args });
 
             expect(plan.ok).toBe(false);
             expect(plan.shifts).toBeNull();
@@ -895,14 +895,14 @@ describe('planSwapApplication — a no-match is a REFUSAL, never a silent no-op'
     });
 
     it('refuses rather than guessing when the requester now holds the OTHER role', () => {
-        // The roster was regenerated between request and acceptance and Brandon
+        // The roster was regenerated between request and acceptance and Bradley
         // is now the co-lead. Substituting anyway would move a duty nobody
         // agreed to.
-        const roster = { [DATE]: [modernShift({ lead: 'Fadzlynn', coLead: 'Brandon' })] };
+        const roster = { [DATE]: [modernShift({ lead: 'Fayelynn', coLead: 'Bradley' })] };
         const plan = planSwapApplication({
             roster,
             swap: swapRequest({ swapRole: SHIFT_ROLE_LEAD }),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(false);
@@ -917,7 +917,7 @@ describe('planSwapApplication — a no-match is a REFUSAL, never a silent no-op'
         const plan = planSwapApplication({
             roster: { [DATE]: day },
             swap: swapRequest({ requestedBy: 'Nobody' }),
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
         });
 
         expect(plan.ok).toBe(false);
@@ -932,25 +932,25 @@ describe('findAppliedSwapShift — the read-back that success is conditional on'
 
     it('finds the substituted shift in a roster that really was written', () => {
         const before = { [DATE]: [modernShift()] };
-        const plan = planSwapApplication({ roster: before, swap, coveringStaff: 'Derlinder' });
+        const plan = planSwapApplication({ roster: before, swap, coveringStaff: 'Darshan' });
         const after = applyPlan(before, plan);
 
         const observed = findAppliedSwapShift({
             roster: after,
             swap,
-            coveringStaff: 'Derlinder',
+            coveringStaff: 'Darshan',
             role: plan.role,
         });
 
         expect(observed).not.toBeNull();
-        expect(observed.staff).toBe('Lead: Derlinder, Co: Ying Xian');
-        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Derlinder', role: plan.role })).toBe(true);
+        expect(observed.staff).toBe('Lead: Darshan, Co: Yu Xuan');
+        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Darshan', role: plan.role })).toBe(true);
     });
 
     it('returns null when the write never landed (the roster is unchanged)', () => {
         const unchanged = { [DATE]: [modernShift()] };
         expect(
-            verifySwapApplied({ roster: unchanged, swap, coveringStaff: 'Derlinder', role: SHIFT_ROLE_LEAD }),
+            verifySwapApplied({ roster: unchanged, swap, coveringStaff: 'Darshan', role: SHIFT_ROLE_LEAD }),
         ).toBe(false);
     });
 
@@ -959,34 +959,34 @@ describe('findAppliedSwapShift — the read-back that success is conditional on'
         // stale `staff` label still shows the old person in the calendar and in
         // every exported calendar invite.
         const stale = {
-            [DATE]: [{ ...modernShift(), lead: 'Derlinder', staff: 'Lead: Brandon, Co: Ying Xian' }],
+            [DATE]: [{ ...modernShift(), lead: 'Darshan', staff: 'Lead: Bradley, Co: Yu Xuan' }],
         };
         expect(
-            verifySwapApplied({ roster: stale, swap, coveringStaff: 'Derlinder', role: SHIFT_ROLE_LEAD }),
+            verifySwapApplied({ roster: stale, swap, coveringStaff: 'Darshan', role: SHIFT_ROLE_LEAD }),
         ).toBe(false);
     });
 
     it('returns null when the substitution landed on the wrong role', () => {
         const wrongRole = {
-            [DATE]: [modernShift({ lead: 'Brandon', coLead: 'Derlinder' })],
+            [DATE]: [modernShift({ lead: 'Bradley', coLead: 'Darshan' })],
         };
         expect(
-            verifySwapApplied({ roster: wrongRole, swap, coveringStaff: 'Derlinder', role: SHIFT_ROLE_LEAD }),
+            verifySwapApplied({ roster: wrongRole, swap, coveringStaff: 'Darshan', role: SHIFT_ROLE_LEAD }),
         ).toBe(false);
     });
 
     it('confirms an upgraded legacy shift', () => {
         const before = { [DATE]: [legacyShift()] };
-        const plan = planSwapApplication({ roster: before, swap, coveringStaff: 'Derlinder' });
+        const plan = planSwapApplication({ roster: before, swap, coveringStaff: 'Darshan' });
         const after = applyPlan(before, plan);
 
-        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Derlinder', role: plan.role })).toBe(true);
+        expect(verifySwapApplied({ roster: after, swap, coveringStaff: 'Darshan', role: plan.role })).toBe(true);
     });
 
     it('returns null for a missing roster, day, or role', () => {
-        expect(verifySwapApplied({ roster: null, swap, coveringStaff: 'Derlinder', role: SHIFT_ROLE_LEAD })).toBe(false);
-        expect(verifySwapApplied({ roster: {}, swap, coveringStaff: 'Derlinder', role: SHIFT_ROLE_LEAD })).toBe(false);
-        expect(verifySwapApplied({ roster: { [DATE]: [modernShift()] }, swap, coveringStaff: 'Derlinder', role: 'boss' })).toBe(false);
+        expect(verifySwapApplied({ roster: null, swap, coveringStaff: 'Darshan', role: SHIFT_ROLE_LEAD })).toBe(false);
+        expect(verifySwapApplied({ roster: {}, swap, coveringStaff: 'Darshan', role: SHIFT_ROLE_LEAD })).toBe(false);
+        expect(verifySwapApplied({ roster: { [DATE]: [modernShift()] }, swap, coveringStaff: 'Darshan', role: 'boss' })).toBe(false);
         expect(verifySwapApplied()).toBe(false);
     });
 });
@@ -994,7 +994,7 @@ describe('findAppliedSwapShift — the read-back that success is conditional on'
 // ─── End-to-end, on pure data ────────────────────────────────────────────────
 describe('plan → write → verify, on a roster produced by the real generator', () => {
     const config = {
-        staff: ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'],
+        staff: ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'],
         tasks: [
             'Physical Activity Counseling',
             'Exercise Test',
@@ -1057,7 +1057,7 @@ describe('resetMessagesPreservingAlerts — a queued coverage request survives a
         mode: ROSTER_ALERT_MODE,
         swapData: { docId, ...swapRequest({ docId }) },
     });
-    const greeting = { role: 'bot', text: 'Hi Brandon. AURA here.', isGreeting: true, mode: 'NEUTRAL' };
+    const greeting = { role: 'bot', text: 'Hi Bradley. AURA here.', isGreeting: true, mode: 'NEUTRAL' };
 
     it('keeps an unanswered alert when the history is replaced by a greeting', () => {
         // The M5 failure: picking a persona called setMessages([greeting]) and

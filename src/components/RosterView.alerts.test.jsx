@@ -87,10 +87,10 @@ vi.mock('../context/NexusContext', () => ({
 // DOES, and `TeamContext.test.jsx` owns how a team is resolved.
 const TEAM_ID = 'kkh-sport-exercise-medicine';
 const TEAM_MEMBERS = [
-    { uid: 'uid-brandon', displayName: 'Brandon' },
-    { uid: 'uid-derlinder', displayName: 'Derlinder' },
-    { uid: 'uid-fadzlynn', displayName: 'Fadzlynn' },
-    { uid: 'uid-ying-xian', displayName: 'Ying Xian' },
+    { uid: 'uid-bradley', displayName: 'Bradley' },
+    { uid: 'uid-darshan', displayName: 'Darshan' },
+    { uid: 'uid-fayelynn', displayName: 'Fayelynn' },
+    { uid: 'uid-yu-xuan', displayName: 'Yu Xuan' },
 ];
 // WHO HOLDS DUTIES, which is not the same question as `role` — a roster master
 // configures the roster and is not in it. All four here are clinicians, matching the
@@ -124,21 +124,21 @@ import RosterView, { buildSwapRequestSignature } from './RosterView';
 const today = new Date();
 const LIVE_DATE_KEY = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-15`;
 
-// Live pool is LIVE_ROSTER_DEFAULTS: Brandon, Ying Xian, Derlinder, Fadzlynn.
+// Live pool is LIVE_ROSTER_DEFAULTS: Bradley, Yu Xuan, Darshan, Fayelynn.
 const LIVE_ROSTER = {
     [LIVE_DATE_KEY]: [
         {
             task: 'EFT',
             week: 1,
-            lead: 'Brandon',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Brandon, Co: Ying Xian',
+            lead: 'Bradley',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Bradley, Co: Yu Xuan',
             category: 'EFT',
         },
     ],
 };
 
-const BRANDON = { uid: 'uid-brandon', name: 'Brandon', role: 'staff', email: 'brandon@example.org' };
+const BRADLEY = { uid: 'uid-bradley', name: 'Bradley', role: 'staff', email: 'bradley@example.org' };
 const VISITOR = { name: 'Visiting Therapist', role: 'staff', email: 'visitor@example.org' };
 
 let alertSpy;
@@ -201,8 +201,8 @@ const chooseColleague = (name) => {
 
 /**
  * RELABELLED (one-tap cover): the submit button said "Submit Request" / "Arrange
- * Cover" and now names the colleague — "Ask Derlinder to cover", or "Arrange cover
- * with Derlinder" on the admin on-behalf path. Same button, same handler, same
+ * Cover" and now names the colleague — "Ask Darshan to cover", or "Arrange cover
+ * with Darshan" on the admin on-behalf path. Same button, same handler, same
  * `addDoc`; only the words changed, so this helper matches the new wording. Every
  * assertion below is unmodified.
  */
@@ -211,7 +211,7 @@ const submitSwap = () => fireEvent.click(screen.getByRole('button', { name: /ask
 // ─── 1. buildSwapRequestSignature — THE M12 GUARD, AS A PURE FUNCTION ─────────
 
 describe('buildSwapRequestSignature (M12)', () => {
-    const base = { originalShiftDate: '2026-09-07', originalTask: 'EFT', targetStaff: 'Derlinder' };
+    const base = { originalShiftDate: '2026-09-07', originalTask: 'EFT', targetStaff: 'Darshan' };
 
     it('is stable: the same triple always produces the same signature', () => {
         expect(buildSwapRequestSignature(base)).toBe(buildSwapRequestSignature({ ...base }));
@@ -231,7 +231,7 @@ describe('buildSwapRequestSignature (M12)', () => {
             buildSwapRequestSignature(base),
             buildSwapRequestSignature({ ...base, originalShiftDate: '2026-09-08' }),
             buildSwapRequestSignature({ ...base, originalTask: 'NC' }),
-            buildSwapRequestSignature({ ...base, targetStaff: 'Fadzlynn' }),
+            buildSwapRequestSignature({ ...base, targetStaff: 'Fayelynn' }),
         ]);
         expect(signatures.size).toBe(4);
     });
@@ -248,7 +248,7 @@ describe('buildSwapRequestSignature (M12)', () => {
     });
 
     it('normalises surrounding whitespace, and tolerates missing fields', () => {
-        expect(buildSwapRequestSignature({ ...base, targetStaff: '  Derlinder ' })).toBe(
+        expect(buildSwapRequestSignature({ ...base, targetStaff: '  Darshan ' })).toBe(
             buildSwapRequestSignature(base),
         );
         expect(buildSwapRequestSignature({})).toBe(buildSwapRequestSignature(undefined));
@@ -373,7 +373,7 @@ describe('live mode raises no native dialog (P8.3)', () => {
         // not express this: `settingsSaved` was `true` both when a write succeeded
         // and when there was nothing to write.
         vi.useFakeTimers();
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         const generateOnce = async () => {
             openConfigure();
@@ -408,7 +408,7 @@ describe('live mode raises no native dialog (P8.3)', () => {
 
     it('confirms a successful generation in a banner that clears itself', async () => {
         vi.useFakeTimers();
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openConfigure();
         fireEvent.click(screen.getByRole('button', { name: /generate roster/i }));
@@ -461,7 +461,7 @@ describe('live mode raises no native dialog (P8.3)', () => {
 
     it('reports a write failure in a banner and keeps the wizard open', async () => {
         setDoc.mockRejectedValueOnce(Object.assign(new Error('nope'), { code: 'permission-denied' }));
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openConfigure();
         fireEvent.click(screen.getByRole('button', { name: /generate roster/i }));
@@ -481,9 +481,9 @@ describe('live mode raises no native dialog (P8.3)', () => {
         store.addDocImpl = () =>
             Promise.reject(Object.assign(new Error('offline'), { code: 'unavailable' }));
 
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
 
         await waitFor(() => expect(screen.getByText(/could not send the request/i)).toBeTruthy());
@@ -504,23 +504,23 @@ describe('duplicate swap requests are refused (M12)', () => {
     });
 
     it('writes the first request and refuses an identical second one', async () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
 
         await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(1));
-        await waitFor(() => expect(screen.getByText(/swap request sent to Derlinder/i)).toBeTruthy());
+        await waitFor(() => expect(screen.getByText(/swap request sent to Darshan/i)).toBeTruthy());
 
         // Exactly the same shift, exactly the same colleague, a second time.
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
 
         await waitFor(() =>
             expect(
-                screen.getByText(/you already sent this request — Derlinder has not responded yet/i),
+                screen.getByText(/you already sent this request — Darshan has not responded yet/i),
             ).toBeTruthy(),
         );
         // The point of the whole finding: still ONE PENDING document.
@@ -529,19 +529,19 @@ describe('duplicate swap requests are refused (M12)', () => {
     });
 
     it('still allows a different colleague for the same shift', async () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
         await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(1));
 
         openSwapModalFor('EFT');
-        chooseColleague('Fadzlynn');
+        chooseColleague('Fayelynn');
         submitSwap();
 
         await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(2));
-        expect(addDoc.mock.calls[1][1].targetStaff).toBe('Fadzlynn');
+        expect(addDoc.mock.calls[1][1].targetStaff).toBe('Fayelynn');
         expectNoNativeDialogs();
     });
 
@@ -551,10 +551,10 @@ describe('duplicate swap requests are refused (M12)', () => {
             .mockRejectedValueOnce(Object.assign(new Error('offline'), { code: 'unavailable' }))
             .mockResolvedValueOnce({ id: 'second-try' });
 
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
         await waitFor(() => expect(screen.getByText(/could not send the request/i)).toBeTruthy());
 
@@ -562,15 +562,15 @@ describe('duplicate swap requests are refused (M12)', () => {
         submitSwap();
         await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(2));
         expect(screen.queryByText(/you already sent this request/i)).toBeNull();
-        await waitFor(() => expect(screen.getByText(/swap request sent to Derlinder/i)).toBeTruthy());
+        await waitFor(() => expect(screen.getByText(/swap request sent to Darshan/i)).toBeTruthy());
         expectNoNativeDialogs();
     });
 
     it('does not change the swap document, beyond the routing uid', async () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openSwapModalFor('EFT');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         submitSwap();
 
         await waitFor(() => expect(addDoc).toHaveBeenCalledTimes(1));
@@ -578,14 +578,14 @@ describe('duplicate swap requests are refused (M12)', () => {
         // The A3/M11 contract, unchanged by P8.3: the person swapped out, the
         // duty being handed over, and no `initiatedBy` on a self-request.
         expect(written).toEqual({
-            requestedBy: 'Brandon',
-            targetStaff: 'Derlinder',
+            requestedBy: 'Bradley',
+            targetStaff: 'Darshan',
             // THE ONE ADDITION. `targetStaff` stays because the roster mutator
             // matches the day arrays on the NAME; `targetUid` is what the
             // recipient's listener queries, so a rename can no longer stop a
             // request from arriving. Written from the same pick, so they cannot
             // disagree with each other.
-            targetUid: 'uid-derlinder',
+            targetUid: 'uid-darshan',
             originalShiftDate: LIVE_DATE_KEY,
             originalTask: 'EFT',
             swapRole: 'lead',

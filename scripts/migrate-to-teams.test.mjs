@@ -49,13 +49,13 @@ const TEAM = TEAM_ONE.teamId;
 const seedLegacy = () => {
     const seed = {
         'system_data/roster_2026': { '2026-08-15': [{ task: 'EFT', lead: 'Alif' }] },
-        'system_data/daily_pulse': { Alif: { mood: 4 }, Anisah: { mood: 3 } },
+        'system_data/daily_pulse': { Alif: { mood: 4 }, Norah: { mood: 3 } },
         'system_data/monthly_attendance': { 2026: { Alif: 20 }, notes: 'not a year' },
         'system_data/reports_2026': { summary: 'y' },
         'wellbeing_history/_anonymous_logs': { logs: [{ mood: 2 }] },
-        'shift_swaps/s1': { targetStaff: 'Ying Xian', requester: 'Alif', status: 'PENDING' },
+        'shift_swaps/s1': { targetStaff: 'Yu Xuan', requester: 'Alif', status: 'PENDING' },
         'feed_posts/p1': { author: 'Alif', body: 'hello' },
-        'feed_posts/p1/comments/c1': { author: 'Anisah', body: 'hi' },
+        'feed_posts/p1/comments/c1': { author: 'Norah', body: 'hi' },
         'notifications/n1': { recipient: 'Alif', text: 'x' },
         'monthly_workload/2026-08': { Alif: 12 },
         'staff_loads/alif': { load: 3 },
@@ -327,8 +327,8 @@ describe('⚠️ a re-run must not undo what people have changed since — T2', 
  * TWO SOURCE DOCUMENTS, ONE DESTINATION — T17
  * ==============================================================================
  *
- * The old app slugged one person's name several ways, so `cep_team/ying_xian` and
- * `cep_team/ying xian` are separate documents that both resolve to the same uid.
+ * The old app slugged one person's name several ways, so `cep_team/yu_xuan` and
+ * `cep_team/yu xuan` are separate documents that both resolve to the same uid.
  * That is exactly what the uid matching is FOR, and it is also the one case where
  * it loses data: only one of them can occupy the destination.
  *
@@ -348,19 +348,19 @@ describe('⚠️ a re-run must not undo what people have changed since — T2', 
  * ==============================================================================
  */
 describe('⚠️ two legacy documents for one person — T17', () => {
-    /** Both slugs resolve to Ying Xian, who is `uid-` whatever the manifest says. */
+    /** Both slugs resolve to Yu Xuan, who is `uid-` whatever the manifest says. */
     const twoSlugs = () => {
-        const yx = MEMBERS.findIndex((m) => m.displayName === 'Ying Xian');
+        const yx = MEMBERS.findIndex((m) => m.displayName === 'Yu Xuan');
         const seed = seedLegacy();
-        seed['cep_team/ying_xian'] = { name: 'Ying Xian', projects: ['kept-project'], onlyInFirst: true };
-        seed['cep_team/ying xian'] = { name: 'Ying Xian', projects: ['discarded-project'], onlyInSecond: true };
+        seed['cep_team/yu_xuan'] = { name: 'Yu Xuan', projects: ['kept-project'], onlyInFirst: true };
+        seed['cep_team/yu xuan'] = { name: 'Yu Xuan', projects: ['discarded-project'], onlyInSecond: true };
         return { seed, uid: `uid-${yx}` };
     };
 
     it('copies exactly one of them and says which', async () => {
         const { seed } = twoSlugs();
         const { output } = await run(new FakeFirestore(seed), []);
-        expect(output).toMatch(/BOTH belong to Ying Xian/);
+        expect(output).toMatch(/BOTH belong to Yu Xuan/);
         expect(output).toMatch(/NOT copied/);
     });
 
@@ -376,7 +376,7 @@ describe('⚠️ two legacy documents for one person — T17', () => {
         await run(store, ['--write']);
 
         const landed = store.docs.get(`teams/${TEAM}/projects/2026/staff/${uid}`);
-        expect(landed, 'nothing was written for Ying Xian at all').toBeTruthy();
+        expect(landed, 'nothing was written for Yu Xuan at all').toBeTruthy();
         expect(landed.onlyInFirst, 'the first document was not the one kept').toBe(true);
         expect(landed.onlyInSecond,
             'the second document was MERGED in — the warning says it is discarded, so one of them is lying')
@@ -387,8 +387,8 @@ describe('⚠️ two legacy documents for one person — T17', () => {
         const { seed } = twoSlugs();
         const store = new FakeFirestore(seed);
         await run(store, ['--write']);
-        expect(store.docs.get('cep_team/ying_xian').onlyInFirst).toBe(true);
-        expect(store.docs.get('cep_team/ying xian').onlyInSecond).toBe(true);
+        expect(store.docs.get('cep_team/yu_xuan').onlyInFirst).toBe(true);
+        expect(store.docs.get('cep_team/yu xuan').onlyInSecond).toBe(true);
     });
 
     /**

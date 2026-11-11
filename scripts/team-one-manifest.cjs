@@ -18,7 +18,7 @@
  *
  * The first answer was "all ten directory members, keeping their current roles" —
  * that preserved today's access exactly and changed nothing at cutover. The owner
- * then narrowed it: **Ashik, Mini and Evelyn are not in team #1.**
+ * then narrowed it: **Arjun, Mira and Elaine are not in team #1.**
  *
  * ⚠️ THAT IS A REVOCATION, NOT A FILTER, AND IT SHOULD BE READ AS ONE. Those three
  *    can still sign in — the domain allowlist admits `@kkh.com.sg` and
@@ -28,7 +28,7 @@
  *    working, this is why, and a lead can invite them back in seconds without a
  *    deploy.
  *
- * Benny is NOT in that list and stays — he is the **Head of Service**, and was kept
+ * Barry is NOT in that list and stays — he is the **Head of Service**, and was kept
  * deliberately when the other three stakeholders were dropped. Stated explicitly
  * because "remove the viewers" would have been the tidier-sounding rule, is not what
  * was asked for, and would have removed the person the service reports to.
@@ -50,7 +50,7 @@
  *    to look like one thing, so `role` was used for both and the clinical-load table
  *    excluded people with `role !== 'viewer'`.
  *
- *    NISA IS THE COUNTEREXAMPLE. She is the department's administrator AND its
+ *    NORA IS THE COUNTEREXAMPLE. She is the department's administrator AND its
  *    ROSTER MASTER — she builds the roster every week — so she must be able to
  *    configure and generate, which makes her a `lead`. She carries no clinical load,
  *    so she must not appear in the staff pool the generator draws from, or the
@@ -91,7 +91,7 @@ const TEAM_ONE = Object.freeze({
  * IN. Seven people.
  *
  * `legacyId` is the old directory id and the old Firestore document key
- * (`wellbeing_history/fadzlynn`, `staff_loads/brandon`). The migration needs it to
+ * (`wellbeing_history/fayelynn`, `staff_loads/bradley`). The migration needs it to
  * find each person's existing records; nothing reads it afterwards.
  */
 const MEMBERS = Object.freeze([
@@ -102,7 +102,7 @@ const MEMBERS = Object.freeze([
      *
      * ⚠️ THIS CORRECTS A HARDCODED LIST THAT WAS OUT OF DATE. I first set this
      *    `false` on the evidence of `LIVE_ROSTER_DEFAULTS.staff` in `auraEngine.js`,
-     *    which lists ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'] and does not
+     *    which lists ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'] and does not
      *    include him. The owner corrected it: that constant was simply stale, which
      *    is precisely the failure a hardcoded team produces — nobody edits the array
      *    when the department changes, and the array quietly stops describing it.
@@ -115,7 +115,7 @@ const MEMBERS = Object.freeze([
     { legacyId: 'alif',       displayName: 'Alif',       email: 'muhammad.alif@kkh.com.sg',              role: 'lead',   rostered: true,  title: 'Lead and Sr. CEP (JG14)' },
     // ROSTER MASTER. Builds the roster every week, so `lead`; carries no clinical
     // load, so `rostered: false`. The pair of facts this model exists to separate.
-    { legacyId: 'nisa',       displayName: 'Nisa',       email: 'siti.nur.anisah.nh@kkh.com.sg',         role: 'lead',   rostered: false, title: 'Administrator & Roster Master' },
+    { legacyId: 'nora',       displayName: 'Nora',       email: 'nora.binte.aziz.nh@kkh.com.sg',         role: 'lead',   rostered: false, title: 'Administrator & Roster Master' },
     /**
      * HEAD OF SERVICE. `viewer` and `rostered: false` — he reads the roster, holds no
      * duties in it, and does not configure it.
@@ -127,11 +127,11 @@ const MEMBERS = Object.freeze([
      *    of Service reads it. If he should also be able to configure or invite, that
      *    is `role: 'lead'` and one edit; it has not been asked for.
      */
-    { legacyId: 'benny',      displayName: 'Benny',      email: 'benny.loo.k.g.@singhealth.com.sg',      role: 'viewer', rostered: false, title: 'Head of Service' },
-    { legacyId: 'brandon',    displayName: 'Brandon',    email: 'brandon.feng.gg@kkh.com.sg',            role: 'staff',  rostered: true,  title: 'CEP (JG11)' },
-    { legacyId: 'ying_xian',  displayName: 'Ying Xian',  email: 'lim.ying.xian@kkh.com.sg',              role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
-    { legacyId: 'derlinder',  displayName: 'Derlinder',  email: 'derlinder.kaur@kkh.com.sg',             role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
-    { legacyId: 'fadzlynn',   displayName: 'Fadzlynn',   email: 'fadzlynn.mohamad.fadzully@kkh.com.sg',  role: 'staff',  rostered: true,  title: 'CEP (JG13)' },
+    { legacyId: 'barry',      displayName: 'Barry',      email: 'barry.lim.k.g.@singhealth.com.sg',      role: 'viewer', rostered: false, title: 'Head of Service' },
+    { legacyId: 'bradley',    displayName: 'Bradley',    email: 'bradley.tan.gg@kkh.com.sg',            role: 'staff',  rostered: true,  title: 'CEP (JG11)' },
+    { legacyId: 'yu_xuan',  displayName: 'Yu Xuan',  email: 'lim.yu.xuan@kkh.com.sg',              role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
+    { legacyId: 'darshan',  displayName: 'Darshan',  email: 'darshan.rao@kkh.com.sg',             role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
+    { legacyId: 'fayelynn',   displayName: 'Fayelynn',   email: 'fayelynn.mohamad.farid@kkh.com.sg',  role: 'staff',  rostered: true,  title: 'CEP (JG13)' },
 ]);
 
 /**
@@ -147,9 +147,9 @@ const MEMBERS = Object.freeze([
  * invited back, their history is still there to attach.
  */
 const EXCLUDED = Object.freeze([
-    { legacyId: 'evelyn', displayName: 'Evelyn', email: 'Evelyn.Ong.MH@kkh.com.sg',              was: 'Asst. Director (Medicine)' },
-    { legacyId: 'ashik',  displayName: 'Ashik',  email: 'mohammad.ashik.zainuddin@singhealth.com.sg', was: 'Sr. Consultant (Ortho)' },
-    { legacyId: 'mini',   displayName: 'Mini',   email: 'Mini.Abraham@kkh.com.sg',               was: 'Nurse Clinician' },
+    { legacyId: 'elaine', displayName: 'Elaine', email: 'Elaine.Goh.MH@kkh.com.sg',              was: 'Asst. Director (Medicine)' },
+    { legacyId: 'arjun',  displayName: 'Arjun',  email: 'mohammad.arjun.zainal@singhealth.com.sg', was: 'Sr. Consultant (Ortho)' },
+    { legacyId: 'mira',   displayName: 'Mira',   email: 'Mira.Joseph@kkh.com.sg',               was: 'Nurse Clinician' },
 ]);
 
 /**

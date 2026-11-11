@@ -26,10 +26,10 @@ describe('normalise — collapsing three slug conventions onto one key', () => {
      * loads are found and her wellbeing history is not.
      */
     it('maps every slug the app ever produced for one person to the same key', () => {
-        const keys = ['ying_xian', 'yingxian', 'ying-xian', 'Ying Xian', 'YING XIAN', 'ying xian']
+        const keys = ['yu_xuan', 'yuxuan', 'yu-xuan', 'Yu Xuan', 'YU XUAN', 'yu xuan']
             .map(normalise);
         expect(new Set(keys).size).toBe(1);
-        expect(keys[0]).toBe('yingxian');
+        expect(keys[0]).toBe('yuxuan');
     });
 
     it('is stable for junk rather than throwing', () => {
@@ -43,8 +43,8 @@ describe('normalise — collapsing three slug conventions onto one key', () => {
 describe('buildLegacyIndex', () => {
     it('finds a member by their legacy id AND by their display name', () => {
         const index = buildLegacyIndex(withUids);
-        expect(index.get('yingxian').displayName).toBe('Ying Xian');
-        expect(index.get('brandon').displayName).toBe('Brandon');
+        expect(index.get('yuxuan').displayName).toBe('Yu Xuan');
+        expect(index.get('bradley').displayName).toBe('Bradley');
     });
 
     /**
@@ -64,9 +64,9 @@ describe('buildLegacyIndex', () => {
     });
 
     it('does not throw when one member claims the same key twice', () => {
-        // `legacyId: 'brandon'` and `displayName: 'Brandon'` normalise identically.
+        // `legacyId: 'bradley'` and `displayName: 'Bradley'` normalise identically.
         // That is one person claiming their own key, not a collision.
-        expect(() => buildLegacyIndex([{ legacyId: 'brandon', displayName: 'Brandon', uid: 'u' }]))
+        expect(() => buildLegacyIndex([{ legacyId: 'bradley', displayName: 'Bradley', uid: 'u' }]))
             .not.toThrow();
     });
 
@@ -80,25 +80,25 @@ describe('classifyLegacyDoc — three outcomes, all of which must be handled', (
     const index = buildLegacyIndex(withUids);
 
     it('places a document belonging to a member', () => {
-        expect(classifyLegacyDoc('brandon', index, EXCLUDED))
-            .toEqual({ kind: 'member', member: expect.objectContaining({ displayName: 'Brandon' }) });
+        expect(classifyLegacyDoc('bradley', index, EXCLUDED))
+            .toEqual({ kind: 'member', member: expect.objectContaining({ displayName: 'Bradley' }) });
         // The other two slug forms land on the same person.
-        expect(classifyLegacyDoc('ying_xian', index, EXCLUDED).member.displayName).toBe('Ying Xian');
-        expect(classifyLegacyDoc('yingxian', index, EXCLUDED).member.displayName).toBe('Ying Xian');
+        expect(classifyLegacyDoc('yu_xuan', index, EXCLUDED).member.displayName).toBe('Yu Xuan');
+        expect(classifyLegacyDoc('yuxuan', index, EXCLUDED).member.displayName).toBe('Yu Xuan');
     });
 
     /**
      * ⚠️ EXCLUDED IS NOT AN ERROR, and separating it from `unknown` is the whole
-     *    reason this returns a kind. Evelyn, Ashik and Mini were deliberately left
+     *    reason this returns a kind. Elaine, Arjun and Mira were deliberately left
      *    out of team #1; their documents SHOULD not be copied. Reporting that as a
      *    failure would train a reader to ignore the warnings, and the warnings are
      *    where a genuinely lost record would appear.
      */
     it('separates a deliberately excluded person from an unrecognised one', () => {
-        expect(classifyLegacyDoc('evelyn', index, EXCLUDED).kind).toBe('excluded');
-        expect(classifyLegacyDoc('mini', index, EXCLUDED).kind).toBe('excluded');
-        expect(classifyLegacyDoc('ashik', index, EXCLUDED).kind).toBe('excluded');
-        expect(classifyLegacyDoc('evelyn', index, EXCLUDED).person.displayName).toBe('Evelyn');
+        expect(classifyLegacyDoc('elaine', index, EXCLUDED).kind).toBe('excluded');
+        expect(classifyLegacyDoc('mira', index, EXCLUDED).kind).toBe('excluded');
+        expect(classifyLegacyDoc('arjun', index, EXCLUDED).kind).toBe('excluded');
+        expect(classifyLegacyDoc('elaine', index, EXCLUDED).person.displayName).toBe('Elaine');
     });
 
     /**
@@ -113,7 +113,7 @@ describe('classifyLegacyDoc — three outcomes, all of which must be handled', (
     });
 
     it('works with no exclusion list at all', () => {
-        expect(classifyLegacyDoc('evelyn', index, undefined)).toEqual({ kind: 'unknown' });
+        expect(classifyLegacyDoc('elaine', index, undefined)).toEqual({ kind: 'unknown' });
     });
 });
 
@@ -153,14 +153,14 @@ describe('the unresolved kind — in the team, but not registered yet', () => {
      *    clinical records. The owner's first real dry run printed that six times,
      *    for two people who are in his team.
      */
-    const resolvedOnly = withUids.filter((m) => m.legacyId !== 'brandon');
-    const waiting = [MEMBERS.find((m) => m.legacyId === 'brandon')];
+    const resolvedOnly = withUids.filter((m) => m.legacyId !== 'bradley');
+    const waiting = [MEMBERS.find((m) => m.legacyId === 'bradley')];
     const index = buildLegacyIndex(resolvedOnly);
 
     it('separates a member awaiting registration from an unrecognised id', () => {
-        const verdict = classifyLegacyDoc('brandon', index, EXCLUDED, waiting);
+        const verdict = classifyLegacyDoc('bradley', index, EXCLUDED, waiting);
         expect(verdict.kind).toBe('unresolved');
-        expect(verdict.member.displayName).toBe('Brandon');
+        expect(verdict.member.displayName).toBe('Bradley');
     });
 
     it('still reports a genuinely unknown id as unknown', () => {
@@ -169,7 +169,7 @@ describe('the unresolved kind — in the team, but not registered yet', () => {
     });
 
     it('matches on the display name as well as the legacy id', () => {
-        expect(classifyLegacyDoc('Brandon', index, EXCLUDED, waiting).kind).toBe('unresolved');
+        expect(classifyLegacyDoc('Bradley', index, EXCLUDED, waiting).kind).toBe('unresolved');
     });
 
     /**
@@ -178,12 +178,12 @@ describe('the unresolved kind — in the team, but not registered yet', () => {
      * registration, which would read as an invitation to chase them.
      */
     it('prefers "excluded" over "unresolved" when a person is in both lists', () => {
-        const evelyn = EXCLUDED.find((p) => p.legacyId === 'evelyn');
-        expect(classifyLegacyDoc('evelyn', index, EXCLUDED, [evelyn]).kind).toBe('excluded');
+        const elaine = EXCLUDED.find((p) => p.legacyId === 'elaine');
+        expect(classifyLegacyDoc('elaine', index, EXCLUDED, [elaine]).kind).toBe('excluded');
     });
 
     it('is unchanged when no unresolved list is passed at all', () => {
-        expect(classifyLegacyDoc('brandon', index, EXCLUDED)).toEqual({ kind: 'unknown' });
-        expect(classifyLegacyDoc('brandon', index, EXCLUDED, [])).toEqual({ kind: 'unknown' });
+        expect(classifyLegacyDoc('bradley', index, EXCLUDED)).toEqual({ kind: 'unknown' });
+        expect(classifyLegacyDoc('bradley', index, EXCLUDED, [])).toEqual({ kind: 'unknown' });
     });
 });

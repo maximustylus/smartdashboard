@@ -156,10 +156,10 @@ const departmentConfig = (overrides = {}) => ({
     startDate: '2026-02-02',
     weeks: 4,
     staff: [
-        { name: 'Brandon', fte: 1.0, skills: ['CPET', 'SPIRO'] },
-        { name: 'Derlinder', fte: 1.0, skills: ['SPIRO'] },
-        { name: 'Fadzlynn', fte: 0.6, skills: ['CPET'], unavailable: ['2026-02-10'] },
-        { name: 'Ying Xian', fte: 1.0, skills: [] },
+        { name: 'Bradley', fte: 1.0, skills: ['CPET', 'SPIRO'] },
+        { name: 'Darshan', fte: 1.0, skills: ['SPIRO'] },
+        { name: 'Fayelynn', fte: 0.6, skills: ['CPET'], unavailable: ['2026-02-10'] },
+        { name: 'Yu Xuan', fte: 1.0, skills: [] },
     ],
     tasks: [
         { name: 'EFT', requiresSkill: 'CPET', days: [1, 2, 3, 4, 5], leads: 1, coLeads: 1 },
@@ -499,7 +499,7 @@ describe('generateRosterV2 — output contract', () => {
 
     it('reports load for every staff member, including anyone who drew nothing', () => {
         const { load } = generateRosterV2(departmentConfig());
-        expect(Object.keys(load).sort()).toEqual(['Brandon', 'Derlinder', 'Fadzlynn', 'Ying Xian']);
+        expect(Object.keys(load).sort()).toEqual(['Bradley', 'Darshan', 'Fayelynn', 'Yu Xuan']);
 
         for (const entry of Object.values(load)) {
             expect(Number.isInteger(entry.duties)).toBe(true);
@@ -906,7 +906,7 @@ describe('generateRosterV2 — fixes the old engine’s measured failures', () =
 describe('generateRosterV2 — competency', () => {
     it('only ever staffs a skill-gated task with people who hold the skill', () => {
         const { roster } = generateRosterV2(departmentConfig());
-        const holders = new Set(['Brandon', 'Fadzlynn']); // the CPET holders
+        const holders = new Set(['Bradley', 'Fayelynn']); // the CPET holders
 
         const eftShifts = flatten(roster).filter(({ shift }) => shift.task === 'EFT');
         expect(eftShifts.length).toBeGreaterThan(0);
@@ -972,9 +972,9 @@ describe('generateRosterV2 — competency', () => {
         const { roster } = generateRosterV2(departmentConfig());
         const ipt = flatten(roster).filter(({ shift }) => shift.task === 'IPT+SKG');
         const names = new Set(ipt.flatMap(({ shift }) => peopleOn(shift)));
-        // Ying Xian holds no skills at all, so her presence proves the filter
+        // Yu Xuan holds no skills at all, so her presence proves the filter
         // is not being applied where it should not be.
-        expect(names.has('Ying Xian')).toBe(true);
+        expect(names.has('Yu Xuan')).toBe(true);
     });
 });
 
@@ -986,10 +986,10 @@ describe('generateRosterV2 — leave and unavailability', () => {
     it('never assigns anybody on a date in their unavailable list', () => {
         const config = departmentConfig({
             staff: [
-                { name: 'Brandon', skills: ['CPET'], unavailable: ['2026-02-02', '2026-02-03', '2026-02-04'] },
-                { name: 'Derlinder', unavailable: ['2026-02-09', '2026-02-10'] },
-                { name: 'Fadzlynn', fte: 0.6, skills: ['CPET'], unavailable: ['2026-02-10'] },
-                { name: 'Ying Xian', unavailable: [] },
+                { name: 'Bradley', skills: ['CPET'], unavailable: ['2026-02-02', '2026-02-03', '2026-02-04'] },
+                { name: 'Darshan', unavailable: ['2026-02-09', '2026-02-10'] },
+                { name: 'Fayelynn', fte: 0.6, skills: ['CPET'], unavailable: ['2026-02-10'] },
+                { name: 'Yu Xuan', unavailable: [] },
             ],
         });
 
@@ -1983,7 +1983,7 @@ describe('SCALING TABLE — generateRoster (V1) vs generateRosterV2', () => {
 describe('generateRoster (V1) is unaffected by V2', () => {
     it('still produces its documented output after V2 has run', () => {
         const config = {
-            staff: ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'],
+            staff: ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'],
             tasks: [
             'Physical Activity Counseling',
             'Exercise Test',

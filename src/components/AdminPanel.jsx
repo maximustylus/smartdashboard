@@ -52,7 +52,7 @@ const AdminPanel = ({ teamData, staffLoads, user }) => {
 
     /**
      * WHO CARRIES A CLINICAL LOAD — a FIFTH hardcoded copy of the team, now gone.
-     * This was `!['Ashik', 'Benny', 'Evelyn', 'Mini', 'Nisa'].includes(name)`: five
+     * This was `!['Arjun', 'Barry', 'Elaine', 'Mira', 'Nora'].includes(name)`: five
      * named colleagues excluded by string so the remainder would be the clinical
      * exercise physiologists. Onboarding anybody meant editing that array, and a
      * department that is not Sport & Exercise Medicine would have had five arbitrary

@@ -51,9 +51,9 @@ const oneShiftRoster = (overrides = {}) => ({
     '2026-02-02': [
         {
             task: 'EFT',
-            lead: 'Brandon',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Brandon, Co: Ying Xian',
+            lead: 'Bradley',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Bradley, Co: Yu Xuan',
             category: 'CORE',
             week: 1,
             ...overrides,
@@ -105,8 +105,8 @@ describe('buildICS — RFC 5545 correctness (audit M6)', () => {
         const ics = buildICS(oneShiftRoster(), { now: NOW });
 
         // The regression itself: this exact line used to ship unescaped.
-        expect(ics).not.toContain('SUMMARY:[EFT] Lead: Brandon, Co: Ying Xian');
-        expect(ics).toContain('SUMMARY:[EFT] Lead: Brandon\\, Co: Ying Xian');
+        expect(ics).not.toContain('SUMMARY:[EFT] Lead: Bradley, Co: Yu Xuan');
+        expect(ics).toContain('SUMMARY:[EFT] Lead: Bradley\\, Co: Yu Xuan');
     });
 
     it('escapes semicolons, backslashes and newlines in TEXT properties', () => {
@@ -189,7 +189,7 @@ describe('buildICS — RFC 5545 correctness (audit M6)', () => {
         const ics = buildICS(
             oneShiftRoster({
                 task: 'Extended Multidisciplinary Follow-up Telehealth Clinic Review Session',
-                staff: 'Lead: Bartholomew Fitzgerald-Montgomery, Co: Ying Xian Wong-Abdullah',
+                staff: 'Lead: Bartholomew Fitzgerald-Montgomery, Co: Yu Xuan Wong-Abdullah',
             }),
             { now: NOW },
         );
@@ -206,7 +206,7 @@ describe('buildICS — RFC 5545 correctness (audit M6)', () => {
         const unfolded = ics.replace(/\r\n /g, '');
         expect(unfolded).toContain(
             'SUMMARY:[Extended Multidisciplinary Follow-up Telehealth Clinic Review Session] ' +
-                'Lead: Bartholomew Fitzgerald-Montgomery\\, Co: Ying Xian Wong-Abdullah',
+                'Lead: Bartholomew Fitzgerald-Montgomery\\, Co: Yu Xuan Wong-Abdullah',
         );
     });
 
@@ -327,14 +327,14 @@ describe('buildCSV — quoting and formula injection (audit M10, M7)', () => {
         const csv = buildCSV(oneShiftRoster({ task: 'Clinic, Ortho' }));
         const row = csvRows(csv)[1];
 
-        expect(row).toBe('2026-02-02,1,"Clinic, Ortho",CORE,Brandon,Ying Xian,Brandon; Ying Xian');
+        expect(row).toBe('2026-02-02,1,"Clinic, Ortho",CORE,Bradley,Yu Xuan,Bradley; Yu Xuan');
         expect(row.split(',')).toHaveLength(8); // naive split still over-counts — hence the quotes
     });
 
     it('doubles internal double quotes', () => {
         const csv = buildCSV(oneShiftRoster({ task: 'The "Big" Clinic' }));
         expect(csvRows(csv)[1]).toBe(
-            '2026-02-02,1,"The ""Big"" Clinic",CORE,Brandon,Ying Xian,Brandon; Ying Xian',
+            '2026-02-02,1,"The ""Big"" Clinic",CORE,Bradley,Yu Xuan,Bradley; Yu Xuan',
         );
     });
 
@@ -345,7 +345,7 @@ describe('buildCSV — quoting and formula injection (audit M10, M7)', () => {
 
     it('neutralises a task name that Excel would evaluate as a formula', () => {
         expect(csvRows(buildCSV(oneShiftRoster({ task: '=SUM(A1)' })))[1]).toBe(
-            "2026-02-02,1,'=SUM(A1),CORE,Brandon,Ying Xian,Brandon; Ying Xian",
+            "2026-02-02,1,'=SUM(A1),CORE,Bradley,Yu Xuan,Bradley; Yu Xuan",
         );
     });
 
@@ -361,13 +361,13 @@ describe('buildCSV — quoting and formula injection (audit M10, M7)', () => {
     it('guards a formula BEFORE quoting, so the apostrophe stays inside the quotes', () => {
         const csv = buildCSV(oneShiftRoster({ task: '=HYPERLINK("http://x","OK")' }));
         expect(csvRows(csv)[1]).toBe(
-            '2026-02-02,1,"\'=HYPERLINK(""http://x"",""OK"")",CORE,Brandon,Ying Xian,Brandon; Ying Xian',
+            '2026-02-02,1,"\'=HYPERLINK(""http://x"",""OK"")",CORE,Bradley,Yu Xuan,Bradley; Yu Xuan',
         );
     });
 
     it('leaves an ordinary field untouched', () => {
         expect(csvRows(buildCSV(oneShiftRoster()))[1]).toBe(
-            '2026-02-02,1,EFT,CORE,Brandon,Ying Xian,Brandon; Ying Xian',
+            '2026-02-02,1,EFT,CORE,Bradley,Yu Xuan,Bradley; Yu Xuan',
         );
     });
 
@@ -431,7 +431,7 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
         // The compatibility half of the feature. If this moves, every roster
         // already imported into somebody's Outlook is re-imported as new events.
         expect(summaries(buildICS(oneShiftRoster(), { now: NOW }))).toEqual([
-            'SUMMARY:[EFT] Lead: Brandon\\, Co: Ying Xian',
+            'SUMMARY:[EFT] Lead: Bradley\\, Co: Yu Xuan',
         ]);
     });
 
@@ -449,11 +449,11 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
         // `lead`/`coLead`/`assignees`. A live document whose display string was
         // hand-corrected must keep exporting the hand-corrected string.
         const ics = buildICS(
-            oneShiftRoster({ staff: 'Lead: Brandon (acting), Co: Ying Xian' }),
+            oneShiftRoster({ staff: 'Lead: Bradley (acting), Co: Yu Xuan' }),
             { now: NOW },
         );
         expect(summaries(ics)).toEqual([
-            'SUMMARY:[EFT] Lead: Brandon (acting)\\, Co: Ying Xian',
+            'SUMMARY:[EFT] Lead: Bradley (acting)\\, Co: Yu Xuan',
         ]);
     });
 
@@ -483,19 +483,19 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
             {
                 '2026-02-02': [{
                     task: 'EFT',
-                    lead: 'Wong, Ying Xian',
+                    lead: 'Wong, Yu Xuan',
                     coLead: 'Bob',
-                    staff: 'Lead: Wong, Ying Xian, Co: Bob',
+                    staff: 'Lead: Wong, Yu Xuan, Co: Bob',
                     category: 'CORE',
                     week: 1,
-                    assignees: ['Wong, Ying Xian', 'Bob', 'Tan, Cal'],
+                    assignees: ['Wong, Yu Xuan', 'Bob', 'Tan, Cal'],
                 }],
             },
             { now: NOW },
         );
 
         expect(summaries(ics)).toEqual([
-            'SUMMARY:[EFT] Lead: Wong\\, Ying Xian\\, Co: Bob\\, Also: Tan\\, Cal',
+            'SUMMARY:[EFT] Lead: Wong\\, Yu Xuan\\, Co: Bob\\, Also: Tan\\, Cal',
         ]);
         // Measured rather than eyeballed: strip the escaped commas and none may
         // remain anywhere in the line.
@@ -572,11 +572,11 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
         const ics = buildICS(
             trioRoster({
                 lead: 'Bartholomew Fitzgerald-Montgomery',
-                coLead: 'Ying Xian Wong-Abdullah',
-                staff: 'Lead: Bartholomew Fitzgerald-Montgomery, Co: Ying Xian Wong-Abdullah',
+                coLead: 'Yu Xuan Wong-Abdullah',
+                staff: 'Lead: Bartholomew Fitzgerald-Montgomery, Co: Yu Xuan Wong-Abdullah',
                 assignees: [
                     'Bartholomew Fitzgerald-Montgomery',
-                    'Ying Xian Wong-Abdullah',
+                    'Yu Xuan Wong-Abdullah',
                     'Ravindranath Balasubramaniam',
                 ],
             }),
@@ -586,7 +586,7 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
         expect(lines(ics).every((line) => Array.from(line).length <= 75)).toBe(true);
         expect(summaries(ics)).toEqual([
             'SUMMARY:[Weekend witnessing] Lead: Bartholomew Fitzgerald-Montgomery\\, ' +
-                'Co: Ying Xian Wong-Abdullah\\, Also: Ravindranath Balasubramaniam',
+                'Co: Yu Xuan Wong-Abdullah\\, Also: Ravindranath Balasubramaniam',
         ]);
     });
 });
@@ -594,15 +594,15 @@ describe('buildICS — three or more assignees (multi-slot shifts)', () => {
 describe('buildCSV — the Assignees column (multi-slot shifts)', () => {
     it('a two-person row is unchanged apart from the appended cell', () => {
         const row = csvRows(buildCSV(oneShiftRoster()))[1];
-        const wasBefore = '2026-02-02,1,EFT,CORE,Brandon,Ying Xian';
+        const wasBefore = '2026-02-02,1,EFT,CORE,Bradley,Yu Xuan';
 
         expect(row.startsWith(`${wasBefore},`)).toBe(true);
-        expect(row.slice(wasBefore.length + 1)).toBe('Brandon; Ying Xian');
+        expect(row.slice(wasBefore.length + 1)).toBe('Bradley; Yu Xuan');
     });
 
     it('every row of a real roster keeps its first six fields and gains one', () => {
         const roster = generateRoster({
-            staff: ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'],
+            staff: ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'],
             tasks: ['EFT', 'IPT+SKG'],
             startDate: '2026-02-02',
             weeks: 2,
@@ -655,22 +655,22 @@ describe('buildCSV — the Assignees column (multi-slot shifts)', () => {
         const csv = buildCSV({
             '2026-02-02': [{
                 task: 'EFT',
-                lead: 'Wong, Ying Xian',
+                lead: 'Wong, Yu Xuan',
                 coLead: 'Bob',
                 category: 'CORE',
                 week: 1,
-                assignees: ['Wong, Ying Xian', 'Bob', 'Tan, Cal'],
+                assignees: ['Wong, Yu Xuan', 'Bob', 'Tan, Cal'],
             }],
         });
 
         const row = csvRows(csv)[1];
         expect(row).toBe(
-            '2026-02-02,1,EFT,CORE,"Wong, Ying Xian",Bob,"Wong, Ying Xian; Bob; Tan, Cal"',
+            '2026-02-02,1,EFT,CORE,"Wong, Yu Xuan",Bob,"Wong, Yu Xuan; Bob; Tan, Cal"',
         );
 
         const fields = parseCSVRow(row);
         expect(fields).toHaveLength(7);
-        expect(fields[6].split('; ')).toEqual(['Wong, Ying Xian', 'Bob', 'Tan, Cal']);
+        expect(fields[6].split('; ')).toEqual(['Wong, Yu Xuan', 'Bob', 'Tan, Cal']);
     });
 
     it('leaves the Assignees cell unquoted when it needs no quoting', () => {
@@ -708,7 +708,7 @@ describe('buildCSV — the Assignees column (multi-slot shifts)', () => {
         // Pre-6-May documents held identity in `staff`. Identity is never parsed
         // back out of a display string, so the new column inherits the empty Lead
         // cell rather than guessing — pinned so the decision is visible.
-        const csv = buildCSV({ '2026-02-17': [{ task: 'EFT', staff: 'Brandon', category: 'CORE', week: 1 }] });
+        const csv = buildCSV({ '2026-02-17': [{ task: 'EFT', staff: 'Bradley', category: 'CORE', week: 1 }] });
         expect(csvRows(csv)[1]).toBe('2026-02-17,1,EFT,CORE,,,');
     });
 
@@ -732,7 +732,7 @@ describe('buildCSV — the Assignees column (multi-slot shifts)', () => {
 
 describe('both builders against a real generateRoster roster', () => {
     const config = {
-        staff: ['Brandon', 'Ying Xian', 'Steve', 'Ann'],
+        staff: ['Bradley', 'Yu Xuan', 'Steve', 'Ann'],
         tasks: ['EFT', 'Clinic', 'Admin'],
         startDate: '2026-02-02',
         weeks: 4,

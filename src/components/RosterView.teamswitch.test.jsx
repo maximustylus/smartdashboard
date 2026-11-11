@@ -75,7 +75,7 @@ vi.mock('../context/NexusContext', () => ({
 }));
 
 const MEMBERS_BY_TEAM = {
-    'kkh-physiotherapy': [{ uid: 'uid-brandon', displayName: 'Brandon' }, { uid: 'uid-ying', displayName: 'Ying Xian' }],
+    'kkh-physiotherapy': [{ uid: 'uid-bradley', displayName: 'Bradley' }, { uid: 'uid-yu', displayName: 'Yu Xuan' }],
     'kkh-occupational-therapy': [{ uid: 'uid-nadia', displayName: 'Nadia' }],
 };
 // Stable references per team — a fresh array each call re-runs the effect forever.
@@ -97,11 +97,11 @@ import RosterView from './RosterView';
 const today = new Date();
 const DATE_KEY = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-15`;
 const PHYSIO_ROSTER = {
-    [DATE_KEY]: [{ task: 'EFT', week: 1, lead: 'Brandon', coLead: 'Ying Xian',
-        staff: 'Lead: Brandon, Co: Ying Xian', category: 'EFT' }],
+    [DATE_KEY]: [{ task: 'EFT', week: 1, lead: 'Bradley', coLead: 'Yu Xuan',
+        staff: 'Lead: Bradley, Co: Yu Xuan', category: 'EFT' }],
 };
 
-const USER = { uid: 'uid-brandon', name: 'Brandon', role: 'lead', email: 'b@kkh.com.sg' };
+const USER = { uid: 'uid-bradley', name: 'Bradley', role: 'lead', email: 'b@kkh.com.sg' };
 
 beforeEach(() => {
     ctx.isDemo = false;
@@ -114,7 +114,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe('⚠️ switching to a team with no roster yet', () => {
     it('does not leave the previous team\'s shifts on the calendar', async () => {
         const view = render(<RosterView user={USER} />);
-        await waitFor(() => expect(screen.getAllByText(/Brandon/).length).toBeGreaterThan(0));
+        await waitFor(() => expect(screen.getAllByText(/Bradley/).length).toBeGreaterThan(0));
 
         // The switch: same component, different team, and that team has no roster
         // document — which is the state of EVERY newly approved team.
@@ -123,7 +123,7 @@ describe('⚠️ switching to a team with no roster yet', () => {
 
         await waitFor(() => {
             expect(
-                screen.queryAllByText(/Brandon/).length,
+                screen.queryAllByText(/Bradley/).length,
                 "Physiotherapy's roster is still rendered under Occupational Therapy",
             ).toBe(0);
         });
@@ -134,12 +134,12 @@ describe('⚠️ switching to a team with no roster yet', () => {
             [DATE_KEY]: [{ task: 'OT Clinic', week: 1, lead: 'Nadia', coLead: '', staff: 'Lead: Nadia', category: 'EFT' }],
         };
         const view = render(<RosterView user={USER} />);
-        await waitFor(() => expect(screen.getAllByText(/Brandon/).length).toBeGreaterThan(0));
+        await waitFor(() => expect(screen.getAllByText(/Bradley/).length).toBeGreaterThan(0));
 
         team.id = 'kkh-occupational-therapy';
         view.rerender(<RosterView user={USER} />);
 
         await waitFor(() => expect(screen.getAllByText(/Nadia/).length).toBeGreaterThan(0));
-        expect(screen.queryAllByText(/Brandon/).length).toBe(0);
+        expect(screen.queryAllByText(/Bradley/).length).toBe(0);
     });
 });

@@ -15,7 +15,7 @@
  *
  * The runtime guard is `assertUid`, and it CANNOT close this. Its job is to catch
  * the old habit of keying a document by display name, and it does that by refusing
- * whitespace — so it catches `"Ying Xian"` and waves `"Sarah"` straight through.
+ * whitespace — so it catches `"Yu Xuan"` and waves `"Sarah"` straight through.
  *
  * The obvious tightening is a length floor, since Firebase uids are 28 characters.
  * It was measured and rejected: a uid is drawn from 62 alphanumerics, so the chance

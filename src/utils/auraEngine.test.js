@@ -47,7 +47,7 @@ import {
 // `startDate` is the value RosterView.jsx actually ships as its default.
 // 1 February 2026 is a SUNDAY — that fact is the whole of Block B1. P4 snaps it
 // forward to Monday 2 February 2026, which is `EFFECTIVE_START` below.
-const STAFF = ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'];
+const STAFF = ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'];
 const TASKS = ['EFT', 'GXT', 'ECHO', 'HOLTER'];
 const SHIPPED_DEFAULT_START = '2026-02-01';
 const EFFECTIVE_START = '2026-02-02';
@@ -572,7 +572,7 @@ describe('generateRoster is byte-compatible for a Monday start (ROSTER_TODO.md P
      * `TZ=Asia/Singapore` and `TZ=America/New_York`, which produced byte-
      * identical output. They are not re-derived from the new source.
      */
-    const LIVE_STAFF = ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'];
+    const LIVE_STAFF = ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'];
     // ⚠️ THE OLD ACRONYMS ON PURPOSE, AND THEY MUST STAY. This block pins the
     // PRE-P4 engine's output verbatim, to prove the date fix changed nothing. It is a
     // historical record, so its fixture is the task list that engine actually ran with.
@@ -602,10 +602,10 @@ describe('generateRoster is byte-compatible for a Monday start (ROSTER_TODO.md P
     it('produces the pre-P4 shift list for the first day, field for field', () => {
         // Recorded output of the OLD engine for 2026-02-02.
         expect(generateRoster(mondayConfig())['2026-02-02']).toEqual([
-            { task: 'EFT', lead: 'Brandon', coLead: 'Ying Xian', staff: 'Lead: Brandon, Co: Ying Xian', category: 'CORE', week: 1 },
-            { task: 'IPT+SKG', lead: 'Ying Xian', coLead: 'Derlinder', staff: 'Lead: Ying Xian, Co: Derlinder', category: 'CORE', week: 1 },
-            { task: 'NC', lead: 'Derlinder', coLead: 'Fadzlynn', staff: 'Lead: Derlinder, Co: Fadzlynn', category: 'CORE', week: 1 },
-            { task: 'FSG+WI', lead: 'Fadzlynn', coLead: 'Brandon', staff: 'Lead: Fadzlynn, Co: Brandon', category: 'CORE', week: 1 },
+            { task: 'EFT', lead: 'Bradley', coLead: 'Yu Xuan', staff: 'Lead: Bradley, Co: Yu Xuan', category: 'CORE', week: 1 },
+            { task: 'IPT+SKG', lead: 'Yu Xuan', coLead: 'Darshan', staff: 'Lead: Yu Xuan, Co: Darshan', category: 'CORE', week: 1 },
+            { task: 'NC', lead: 'Darshan', coLead: 'Fayelynn', staff: 'Lead: Darshan, Co: Fayelynn', category: 'CORE', week: 1 },
+            { task: 'FSG+WI', lead: 'Fayelynn', coLead: 'Bradley', staff: 'Lead: Fayelynn, Co: Bradley', category: 'CORE', week: 1 },
         ]);
     });
 
@@ -624,8 +624,8 @@ describe('generateRoster is byte-compatible for a Monday start (ROSTER_TODO.md P
         const thursday = roster['2026-02-05'];
         expect(thursday).toHaveLength(5);
         expect(thursday[4]).toEqual({
-            task: 'Video Consultation Individual', lead: 'Brandon', coLead: 'Ying Xian',
-            staff: 'Lead: Brandon, Co: Ying Xian', category: 'VC', week: 1,
+            task: 'Video Consultation Individual', lead: 'Bradley', coLead: 'Yu Xuan',
+            staff: 'Lead: Bradley, Co: Yu Xuan', category: 'VC', week: 1,
         });
     });
 
@@ -634,21 +634,21 @@ describe('generateRoster is byte-compatible for a Monday start (ROSTER_TODO.md P
 
         // The Saturday slot did NOT move — only its name changed.
         expect(roster['2026-02-07']).toEqual([{
-            task: 'Video Consultation Individual', lead: 'Brandon', coLead: 'Ying Xian',
-            staff: 'Lead: Brandon, Co: Ying Xian', category: 'VC', week: 1,
+            task: 'Video Consultation Individual', lead: 'Bradley', coLead: 'Yu Xuan',
+            staff: 'Lead: Bradley, Co: Yu Xuan', category: 'VC', week: 1,
         }]);
         expect(roster['2026-02-28']).toEqual([{
-            task: 'Video Consultation Individual', lead: 'Fadzlynn', coLead: 'Brandon',
-            staff: 'Lead: Fadzlynn, Co: Brandon', category: 'VC', week: 4,
+            task: 'Video Consultation Individual', lead: 'Fayelynn', coLead: 'Bradley',
+            staff: 'Lead: Fayelynn, Co: Bradley', category: 'VC', week: 4,
         }]);
     });
 
     it('keeps the week-4 rotation on its pre-P4 day', () => {
         expect(generateRoster(mondayConfig())['2026-02-23']).toEqual([
-            { task: 'EFT', lead: 'Fadzlynn', coLead: 'Brandon', staff: 'Lead: Fadzlynn, Co: Brandon', category: 'CORE', week: 4 },
-            { task: 'IPT+SKG', lead: 'Brandon', coLead: 'Ying Xian', staff: 'Lead: Brandon, Co: Ying Xian', category: 'CORE', week: 4 },
-            { task: 'NC', lead: 'Ying Xian', coLead: 'Derlinder', staff: 'Lead: Ying Xian, Co: Derlinder', category: 'CORE', week: 4 },
-            { task: 'FSG+WI', lead: 'Derlinder', coLead: 'Fadzlynn', staff: 'Lead: Derlinder, Co: Fadzlynn', category: 'CORE', week: 4 },
+            { task: 'EFT', lead: 'Fayelynn', coLead: 'Bradley', staff: 'Lead: Fayelynn, Co: Bradley', category: 'CORE', week: 4 },
+            { task: 'IPT+SKG', lead: 'Bradley', coLead: 'Yu Xuan', staff: 'Lead: Bradley, Co: Yu Xuan', category: 'CORE', week: 4 },
+            { task: 'NC', lead: 'Yu Xuan', coLead: 'Darshan', staff: 'Lead: Yu Xuan, Co: Darshan', category: 'CORE', week: 4 },
+            { task: 'FSG+WI', lead: 'Darshan', coLead: 'Fayelynn', staff: 'Lead: Darshan, Co: Fayelynn', category: 'CORE', week: 4 },
         ]);
     });
 

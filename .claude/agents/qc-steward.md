@@ -30,7 +30,7 @@ Every rule below was paid for by a defect that reached `main`:
 
 - **The swap mutator split-brain.** On 6 May 2026, four commits in 26 minutes
   changed the roster shift object so that `staff` went from holding an identity
-  (`"Brandon"`) to holding a *display string* (`"Lead: Brandon, Co: Ying Xian"`).
+  (`"Bradley"`) to holding a *display string* (`"Lead: Bradley, Co: Yu Xuan"`).
   The producer (`src/utils/auraEngine.js`) and one reader
   (`src/components/RosterView.jsx`) were both updated. The **third** consumer —
   the swap mutator at `src/components/AuraPulseBot.jsx:355`, which compares

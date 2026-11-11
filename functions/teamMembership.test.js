@@ -49,7 +49,7 @@ const DOMAINS = ['kkh.com.sg', 'singhealth.com.sg'];
 
 const invitee = (over = {}) => ({
     uid: 'newUid00000000000000000000bb',
-    email: 'brandon@kkh.com.sg',
+    email: 'bradley@kkh.com.sg',
     emailVerified: true,
     ...over,
 });
@@ -130,7 +130,7 @@ describe('the invitee has to be real, allowed and verified', () => {
         const verdict = invite({
             allowedDomains: [],
             callerEmail: 'lead@kkh.com.sg',
-            invitee: invitee({ email: 'brandon@kkh.com.sg' }),
+            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
         });
         expect(verdict.ok, verdict.message).toBe(true);
     });
@@ -150,7 +150,7 @@ describe('the invitee has to be real, allowed and verified', () => {
         expect(invite({
             allowedDomains: [],
             callerEmail: null,
-            invitee: invitee({ email: 'brandon@kkh.com.sg' }),
+            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
         }).reason).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
@@ -158,7 +158,7 @@ describe('the invitee has to be real, allowed and verified', () => {
         expect(invite({
             allowedDomains: [],
             callerEmail: 'lead@kkh.com.sg.attacker.example',
-            invitee: invitee({ email: 'brandon@kkh.com.sg' }),
+            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
         }).reason).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
@@ -239,7 +239,7 @@ describe('the invitee has to be real, allowed and verified', () => {
     });
 
     it('refuses a non-address', () => {
-        expect(invite({ invitee: invitee({ email: 'brandon' }) }).reason).toBe(INVITE_REASONS.BAD_EMAIL);
+        expect(invite({ invitee: invitee({ email: 'bradley' }) }).reason).toBe(INVITE_REASONS.BAD_EMAIL);
     });
 
     /**
@@ -300,10 +300,10 @@ describe('adding somebody who is already in the team', () => {
      * they wanted. Making this an error would train leads to ignore errors.
      */
     it('succeeds, changes nothing, and says so', () => {
-        const verdict = invite({ existingMembership: { displayName: 'Brandon', role: 'staff' } });
+        const verdict = invite({ existingMembership: { displayName: 'Bradley', role: 'staff' } });
         expect(verdict.ok).toBe(true);
         expect(verdict.alreadyMember).toBe(true);
-        expect(verdict.message).toContain('Brandon');
+        expect(verdict.message).toContain('Bradley');
         expect(verdict.message).toMatch(/nothing was changed/i);
     });
 
@@ -326,7 +326,7 @@ describe('buildInviteWrites', () => {
     const writes = (over = {}) => buildInviteWrites({
         teamId: TEAM,
         invitee: invitee(),
-        displayName: 'Brandon',
+        displayName: 'Bradley',
         role: 'staff',
         invitedBy: LEAD.uid,
         now: NOW,
@@ -349,12 +349,12 @@ describe('buildInviteWrites', () => {
     });
 
     it('lower-cases the stored address so two spellings are not two people', () => {
-        expect(writes({ invitee: invitee({ email: 'Brandon@KKH.com.sg' }) }).member.data.email)
-            .toBe('brandon@kkh.com.sg');
+        expect(writes({ invitee: invitee({ email: 'Bradley@KKH.com.sg' }) }).member.data.email)
+            .toBe('bradley@kkh.com.sg');
     });
 
     it('falls back to the address when no display name was given', () => {
-        expect(writes({ displayName: '' }).member.data.displayName).toBe('brandon@kkh.com.sg');
+        expect(writes({ displayName: '' }).member.data.displayName).toBe('bradley@kkh.com.sg');
     });
 
     /**
@@ -408,7 +408,7 @@ const remove = (over = {}) => assertRemovable({
     callerUid: LEAD.uid,
     callerMembership: LEAD,
     targetUid: 'staffUid000000000000000000cc',
-    targetMembership: { role: 'staff', displayName: 'Brandon' },
+    targetMembership: { role: 'staff', displayName: 'Bradley' },
     leadCount: 1,
     ...over,
 });
@@ -534,7 +534,7 @@ describe('the domain gate matches the client copy', () => {
      * guard in `teamApproval.test.js` caught a real divergence in `slugTeamId`.
      */
     const CASES = [
-        'brandon@kkh.com.sg', 'a@KKH.COM.SG', '  a@kkh.com.sg  ', 'a@kkh.com.sg.',
+        'bradley@kkh.com.sg', 'a@KKH.COM.SG', '  a@kkh.com.sg  ', 'a@kkh.com.sg.',
         'a@mail.kkh.com.sg', 'a@kkh.com.sg.attacker.example', 'a@b@kkh.com.sg',
         '@kkh.com.sg', 'a@', 'a@-kkh.com.sg', 'a@kkh-.com.sg', 'a@localhost', 'not-an-email', '',
     ];
@@ -605,7 +605,7 @@ describe('changing somebody\'s role', () => {
         team: { leadUid: 'uid-founder' },
         callerUid: 'uid-alif',
         callerMembership: { role: 'lead' },
-        targetUid: 'uid-brandon',
+        targetUid: 'uid-bradley',
         targetMembership: { role: 'staff', rostered: true },
         leadCount: 2,
         nextRole: 'lead',
@@ -705,11 +705,11 @@ describe('buildRoleChangeWrites', () => {
             teamId: 't1', team: {}, callerUid: 'a', callerMembership: { role: 'lead' },
             targetUid: 'b', targetMembership: { role: 'staff' }, leadCount: 1, nextRole: 'lead', nextRostered: true,
         });
-        const w = buildRoleChangeWrites({ teamId: 't1', targetUid: 'b', decision, byUid: 'a', byName: 'Alif', targetName: 'Brandon' });
+        const w = buildRoleChangeWrites({ teamId: 't1', targetUid: 'b', decision, byUid: 'a', byName: 'Alif', targetName: 'Bradley' });
         expect(w.member).toEqual({ path: ['teams', 't1', 'members', 'b'], data: { role: 'lead', rostered: true } });
         expect(w.log.collection).toEqual(['teams', 't1', 'roleChanges']);
         expect(w.log.data).toEqual({
-            targetUid: 'b', targetName: 'Brandon', fromRole: 'staff', toRole: 'lead',
+            targetUid: 'b', targetName: 'Bradley', fromRole: 'staff', toRole: 'lead',
             fromRostered: true, toRostered: true, byUid: 'a', byName: 'Alif',
         });
         expect('at' in w.log.data).toBe(false);
@@ -734,34 +734,34 @@ describe('firestore.rules no longer lets a client write role or rostered', () =>
 
 describe('handing a team to a new lead', () => {
     const ALIF = { uid: 'u-alif', email: 'muhammad.alif@kkh.com.sg', displayName: 'Alif', role: 'lead', rostered: true };
-    const LINDER = { uid: 'u-linder', email: 'Derlinder@KKH.com.sg', displayName: 'Derlinder', role: 'staff', rostered: true };
-    const NISA = { uid: 'u-nisa', email: 'nisa@kkh.com.sg', displayName: 'Nisa', role: 'lead', rostered: false };
+    const LINDER = { uid: 'u-linder', email: 'Darshan@KKH.com.sg', displayName: 'Darshan', role: 'staff', rostered: true };
+    const NORA = { uid: 'u-nora', email: 'nora@kkh.com.sg', displayName: 'Nora', role: 'lead', rostered: false };
     const team = { name: 'Sport & Exercise Medicine', leadUid: ALIF.uid };
-    const members = [ALIF, LINDER, NISA];
+    const members = [ALIF, LINDER, NORA];
 
     it('promotes a staff member to lead, takes the founding lead, and makes the old lead a viewer', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'derlinder@kkh.com.sg', previousLeadBecomes: 'viewer' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@kkh.com.sg', previousLeadBecomes: 'viewer' });
         expect(plan).toMatchObject({ ok: true, noChange: false, fromUid: ALIF.uid, toUid: LINDER.uid });
         expect(plan.roleChanges).toEqual([
-            { uid: LINDER.uid, name: 'Derlinder', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true },
+            { uid: LINDER.uid, name: 'Darshan', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true },
             { uid: ALIF.uid, name: 'Alif', fromRole: 'lead', toRole: 'viewer', fromRostered: true, toRostered: false },
         ]);
     });
 
     it('matches the address without caring about case or spaces', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: '  DERLINDER@kkh.com.sg ' });
+        const plan = assertTeamTransfer({ team, members, toEmail: '  DARSHAN@kkh.com.sg ' });
         expect(plan.toUid).toBe(LINDER.uid);
     });
 
     it('leaves the old lead a lead by default, and does not re-promote a lead', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg' });
         expect(plan.ok).toBe(true);
         expect(plan.roleChanges).toEqual([]);
-        expect(plan.toUid).toBe(NISA.uid);
+        expect(plan.toUid).toBe(NORA.uid);
     });
 
     it('keeps rostered as it was when the old lead becomes staff', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg', previousLeadBecomes: 'staff' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg', previousLeadBecomes: 'staff' });
         expect(plan.roleChanges).toEqual([
             { uid: ALIF.uid, name: 'Alif', fromRole: 'lead', toRole: 'staff', fromRostered: true, toRostered: true },
         ]);
@@ -784,14 +784,14 @@ describe('handing a team to a new lead', () => {
     });
 
     it('refuses a missing team and a role that does not exist', () => {
-        expect(assertTeamTransfer({ team: null, members, toEmail: 'nisa@kkh.com.sg' }).reason).toBe(TRANSFER_REASONS.NO_TEAM);
-        expect(assertTeamTransfer({ team, members, toEmail: 'nisa@kkh.com.sg', previousLeadBecomes: 'admin' }).reason)
+        expect(assertTeamTransfer({ team: null, members, toEmail: 'nora@kkh.com.sg' }).reason).toBe(TRANSFER_REASONS.NO_TEAM);
+        expect(assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg', previousLeadBecomes: 'admin' }).reason)
             .toBe(TRANSFER_REASONS.BAD_ROLE);
     });
 
     it('always leaves the new lead as a lead, so the team cannot end up with none', () => {
         for (const previousLeadBecomes of ['lead', 'staff', 'viewer']) {
-            const plan = assertTeamTransfer({ team, members, toEmail: 'derlinder@kkh.com.sg', previousLeadBecomes });
+            const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@kkh.com.sg', previousLeadBecomes });
             const newLeadChange = plan.roleChanges.find((c) => c.uid === LINDER.uid);
             expect(newLeadChange.toRole).toBe('lead');
         }

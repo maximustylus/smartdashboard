@@ -143,7 +143,7 @@ privacy model built three days ago, and it is a `const`.
 ⚠️ **The acceptance test is the built bundle, not the source:**
 
 ```bash
-npm run build && ! grep -qE 'Fadzlynn|Derlinder|Ying Xian|grade:"JG1' dist/assets/*.js && echo CLEAN
+npm run build && ! grep -qE 'Fayelynn|Darshan|Yu Xuan|grade:"JG1' dist/assets/*.js && echo CLEAN
 ```
 
 Closes a live disclosure **and** makes the feature do what it claims for every department

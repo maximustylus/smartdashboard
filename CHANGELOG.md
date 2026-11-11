@@ -54,6 +54,36 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.23.3] - 2026-11-11
+
+No colleague is named in this repository's files.
+
+### Security
+
+- **Real colleagues' first names and work email addresses were in a public
+  repository.** They were test fixtures, script examples, code comments, one example
+  string in the AURA prompt, and the list used for the v2.0.0 team migration. Nine
+  people were affected. Every occurrence in the tracked files is replaced with an
+  invented person, in 63 files. No shipped behaviour depended on a name: the app reads
+  people from Firestore.
+- Every person named in a fixture, example or comment from here on is invented. Older
+  entries in this file were written about real people and now read with the invented
+  names.
+
+### Verification
+
+- 4,803 tests in 149 files pass with the invented names; lint and build clean. A search
+  of the tracked files for each replaced name and address returns nothing.
+
+### Known limitations
+
+- **The commit history still holds the original names and addresses.** Replacing them
+  there is a separate step, not done by this release.
+- **The employer is still named** in the files, including the sign-in domains, and the
+  owner's own work address is still the security contact. Next step.
+- `scripts/team-one-manifest.cjs` now lists invented people. It was the input to a
+  migration that ran once; it is kept only so its tests still describe the script.
+
 ## [2.23.2] - 2026-11-11
 
 Regions and postal sectors can no longer be worked out by subtraction either.
@@ -1826,7 +1856,7 @@ Weekly rotation, actually applied to every duty.
 ### Fixed
 
 - **A twice-weekly duty stayed with the same person for four weeks running.** Reported
-  within the hour by the department that asked for rotation: *"why is Ying Xian leading
+  within the hour by the department that asked for rotation: *"why is Yu Xuan leading
   VC for 4 weeks? I specifically said tasks rotate weekly."* They were right.
 
   With five people and five duties, four of them daily, the same colleague was left over
@@ -1955,7 +1985,7 @@ enough to read in a calendar on a phone.
   they silently stop being rostered for it.
 
 - **`shortName` on a membership — the acronym the calendar and the `.ics` use.**
-  `[Exercise Test] Lead: Muhammad Alif, Co: Brandon Feng` spends most of an Outlook
+  `[Exercise Test] Lead: Muhammad Alif, Co: Bradley Tan` spends most of an Outlook
   event title on names, and on a phone the title is most of what you can see. A lead
   can now record up to eight characters per person, used in the roster calendar chips
   and in the VEVENT `SUMMARY`: `[Exercise Test] Lead: MA, Co: BF`.
@@ -2161,8 +2191,8 @@ not wait on a registration relay.
 npm i --no-save firebase-admin
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json \
   node scripts/add-pending-member.cjs --team <teamId> \
-    --person brandon.feng.gq@kkh.com.sg:Brandon:AH11 \
-    --person fadzlynn.mohamad.fadzully@kkh.com.sg:Fadzlynn:AH13
+    --person bradley.tan.gq@kkh.com.sg:Bradley:AH11 \
+    --person fayelynn.mohamad.farid@kkh.com.sg:Fayelynn:AH13
 ```
 
 Dry run first — it prints the project and every document it would write. Add `--write`
@@ -2209,7 +2239,7 @@ unchanged. Reported on the first member the owner tried to edit.
   sibling for a fact about the scale. Still derived from the `nonExempt` band, never four
   written-down strings.
 
-### Notes — Brandon still cannot be added, and that is correct
+### Notes — Bradley still cannot be added, and that is correct
 
 The refusal changed from the domain gate to `NO_ACCOUNT`, which is the v2.4.0 own-domain
 fix working: the address now clears the allowlist and stops at the next check. NEXUS
@@ -2510,8 +2540,8 @@ we rotate, not daily."*
 
 The **live V1 engine already does exactly that** — `rotate(staff, w)` picks a lead per
 task per WEEK and writes that one person across all five days
-(`auraEngine.js:129-135`). Measured after the rename: Ying Xian holds Exercise Test for
-all of week 1, Derlinder for all of week 2.
+(`auraEngine.js:129-135`). Measured after the rename: Yu Xuan holds Exercise Test for
+all of week 1, Darshan for all of week 2.
 
 **The sandbox shape does not.** V2 assigns per DAY, so a duty changes hands mid-week —
 measured before this note was written, `EFT` ran Atalanta / Penelope / Penelope /
@@ -2683,7 +2713,7 @@ no subject line mentions them.*
   hardcoded copy of that one department and the last one standing.
 
   ⚠️ **And it was not cosmetic.** The multi-team rewire re-keyed `activeStaffLoads`
-  by uid, while this panel still supplied a directory id (`'brandon'`, `'alif'`), so
+  by uid, while this panel still supplied a directory id (`'bradley'`, `'alif'`), so
   every lookup missed and fell back to `Array(12).fill(0)`. Twelve months of zero bars
   per clinician, rendered confidently, on the first screen anybody sees — nothing
   errored and nothing was empty, which is the failure mode that survives a demo. The
@@ -3909,7 +3939,7 @@ Measured by rendering the wizard and walking every element, before and after:
 - **The wizard is full-screen below `sm:`** with safe-area padding for notches and a
   **sticky footer**, so Draft and Cancel are reachable without scrolling.
 - **The month becomes a one-column list on a phone**, each row naming its own weekday.
-  Seven columns at 375px is 48px per day — "EFT / Lead: Fadzlynn, Co: Derlinder" does not
+  Seven columns at 375px is 48px per day — "EFT / Lead: Fayelynn, Co: Darshan" does not
   fit at any legible size, and shrinking further is the same unreadable grid in smaller
   type. Same shifts, same "not staffed" markers, same days.
 
@@ -4378,7 +4408,7 @@ behaviour that already shipped, hence a patch rather than a feature release.
 
 - **A1 (Critical) — accepting a shift swap did not change the roster.** The mutator compared
   `shift.staff` against `swapData.requestedBy`. Since the 6 May 2026 lead/co-lead refactor
-  `staff` holds a *display string* (`"Lead: Brandon, Co: Ying Xian"`) while `requestedBy` is a
+  `staff` holds a *display string* (`"Lead: Bradley, Co: Yu Xuan"`) while `requestedBy` is a
   bare name, so `.map()` matched nothing, `updateDoc` wrote byte-identical data, nothing threw,
   and AURA still reported *"I have updated the master roster."* The swap flow now:
   - records `swapRole` (`'lead' | 'coLead'`) at request time — the missing field that made the
@@ -4537,9 +4567,9 @@ is now accounted for at `1.6.0`.
   stored in that document changed from one-object-per-person to one-object-per-task:
 
   ```
-  before:  { staff: "Brandon", task: "EFT", category: "CORE", week: 1 }
-  after:   { task: "EFT", lead: "Brandon", coLead: "Ying Xian",
-             staff: "Lead: Brandon, Co: Ying Xian", category: "CORE", week: 1 }
+  before:  { staff: "Bradley", task: "EFT", category: "CORE", week: 1 }
+  after:   { task: "EFT", lead: "Bradley", coLead: "Yu Xuan",
+             staff: "Lead: Bradley, Co: Yu Xuan", category: "CORE", week: 1 }
   ```
 
   `lead` and `coLead` are additive, but **the meaning of `staff` changed** — it was an

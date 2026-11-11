@@ -621,8 +621,8 @@ export default function AuraPulseBot({ isOpen, onClose, onOpen: _onOpen, user })
                 await updateDoc(anonRef, { logs: arrayUnion(logData) });
             } else if (user?.uid) {
                 // ⚠️ `user.uid`, NOT `user.id`. `user.id` is the DIRECTORY id
-                // ('brandon'), and this block used to write the profile to
-                // `users/brandon` while `App.jsx` read it from `users/{uid}` — the
+                // ('bradley'), and this block used to write the profile to
+                // `users/bradley` while `App.jsx` read it from `users/{uid}` — the
                 // dual-keying the inventory found. Two documents for one person, one
                 // of them never read, and a profile edit that appeared to do nothing.
                 await setDoc(doc(db, ...wellbeingDocPath(teamId, user.uid)), { logs: arrayUnion(logData) }, { merge: true });

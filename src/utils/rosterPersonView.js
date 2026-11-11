@@ -16,7 +16,7 @@
  * THREE RULES, all load-bearing:
  *
  *   1. IDENTITY, NEVER SUBSTRING. Post-mortem A4: a `staff?.includes(name)` test
- *      matched "Lynn" inside "Fadzlynn" and silently removed a colleague from a
+ *      matched "Lynn" inside "Fayelynn" and silently removed a colleague from a
  *      dropdown. Every comparison here is `===` on a trimmed name, and the
  *      lead/co-lead pair is read through `auraEngine`'s own
  *      `readShiftIdentities` — imported, never reimplemented — so this view and

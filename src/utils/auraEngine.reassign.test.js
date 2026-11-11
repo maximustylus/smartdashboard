@@ -40,16 +40,16 @@ const DATE = '2026-03-09';
 
 const modernRoster = () => ({
     [DATE]: [
-        { task: 'EFT', week: 1, lead: 'Brandon', coLead: 'Ying Xian', staff: 'Lead: Brandon, Co: Ying Xian', category: 'EFT' },
-        { task: 'NC', week: 1, lead: 'Fadzlynn', coLead: 'Ying Xian', staff: 'Lead: Fadzlynn, Co: Ying Xian', category: 'CORE' },
+        { task: 'EFT', week: 1, lead: 'Bradley', coLead: 'Yu Xuan', staff: 'Lead: Bradley, Co: Yu Xuan', category: 'EFT' },
+        { task: 'NC', week: 1, lead: 'Fayelynn', coLead: 'Yu Xuan', staff: 'Lead: Fayelynn, Co: Yu Xuan', category: 'CORE' },
     ],
     '2026-03-10': [
-        { task: 'EFT', week: 1, lead: 'Derlinder', staff: 'Lead: Derlinder', category: 'EFT' },
+        { task: 'EFT', week: 1, lead: 'Darshan', staff: 'Lead: Darshan', category: 'EFT' },
     ],
 });
 
 const legacyRoster = () => ({
-    [DATE]: [{ task: 'EFT', week: 1, staff: 'Brandon', category: 'EFT' }],
+    [DATE]: [{ task: 'EFT', week: 1, staff: 'Bradley', category: 'EFT' }],
 });
 
 const reassign = (overrides = {}) => planShiftReassignment({
@@ -57,8 +57,8 @@ const reassign = (overrides = {}) => planShiftReassignment({
     dateKey: DATE,
     task: 'EFT',
     role: SHIFT_ROLE_LEAD,
-    from: 'Brandon',
-    to: 'Derlinder',
+    from: 'Bradley',
+    to: 'Darshan',
     ...overrides,
 });
 
@@ -66,9 +66,9 @@ const reassign = (overrides = {}) => planShiftReassignment({
 
 describe('planShiftReassignment — the same substitution an accepted swap makes', () => {
     const cases = [
-        ['lead of a two-person shift', { task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' }],
-        ['co-lead of a two-person shift', { task: 'EFT', role: SHIFT_ROLE_CO_LEAD, from: 'Ying Xian', to: 'Derlinder' }],
-        ['co-lead who is on two shifts that day (only the named task moves)', { task: 'NC', role: SHIFT_ROLE_CO_LEAD, from: 'Ying Xian', to: 'Brandon' }],
+        ['lead of a two-person shift', { task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' }],
+        ['co-lead of a two-person shift', { task: 'EFT', role: SHIFT_ROLE_CO_LEAD, from: 'Yu Xuan', to: 'Darshan' }],
+        ['co-lead who is on two shifts that day (only the named task moves)', { task: 'NC', role: SHIFT_ROLE_CO_LEAD, from: 'Yu Xuan', to: 'Bradley' }],
     ];
 
     it.each(cases)('%s: the new day array is byte-identical to the swap planner\'s', (_label, args) => {
@@ -87,23 +87,23 @@ describe('planShiftReassignment — the same substitution an accepted swap makes
     });
 
     it('a legacy bare-`staff` shift is upgraded on write, exactly as a swap upgrades it', () => {
-        const viaReassign = planShiftReassignment({ roster: legacyRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
+        const viaReassign = planShiftReassignment({ roster: legacyRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
         const viaSwap = planSwapApplication({
             roster: legacyRoster(),
-            swap: { originalShiftDate: DATE, originalTask: 'EFT', requestedBy: 'Brandon', swapRole: SHIFT_ROLE_LEAD },
-            coveringStaff: 'Derlinder',
+            swap: { originalShiftDate: DATE, originalTask: 'EFT', requestedBy: 'Bradley', swapRole: SHIFT_ROLE_LEAD },
+            coveringStaff: 'Darshan',
         });
 
         expect(viaReassign.shifts).toEqual(viaSwap.shifts);
-        expect(viaReassign.shifts[0]).toMatchObject({ lead: 'Derlinder', staff: 'Lead: Derlinder' });
+        expect(viaReassign.shifts[0]).toMatchObject({ lead: 'Darshan', staff: 'Lead: Darshan' });
         expect('coLead' in viaReassign.shifts[0]).toBe(false);
         // The log reads the bare name as it was, not a label invented for it.
-        expect(viaReassign.before).toBe('Brandon');
-        expect(viaReassign.after).toBe('Lead: Derlinder');
+        expect(viaReassign.before).toBe('Bradley');
+        expect(viaReassign.after).toBe('Lead: Darshan');
     });
 
     it('a legacy shift is reassignable even when the caller says coLead — there is only one duty on it', () => {
-        const plan = planShiftReassignment({ roster: legacyRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
+        const plan = planShiftReassignment({ roster: legacyRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
         expect(plan.ok).toBe(true);
         expect(plan.role).toBe(SHIFT_ROLE_LEAD);
     });
@@ -114,32 +114,32 @@ describe('planShiftReassignment — the same substitution an accepted swap makes
 describe('planShiftReassignment — the plan', () => {
     it('changes ONE shift on ONE day and nothing else', () => {
         const roster = modernRoster();
-        const plan = planShiftReassignment({ roster, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
+        const plan = planShiftReassignment({ roster, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
 
         expect(plan.ok).toBe(true);
         expect(plan.dateKey).toBe(DATE);
         expect(plan.index).toBe(0);
         expect(plan.shifts).toHaveLength(2);
         expect(plan.shifts[0]).toEqual({
-            task: 'EFT', week: 1, lead: 'Derlinder', coLead: 'Ying Xian', staff: 'Lead: Derlinder, Co: Ying Xian', category: 'EFT',
+            task: 'EFT', week: 1, lead: 'Darshan', coLead: 'Yu Xuan', staff: 'Lead: Darshan, Co: Yu Xuan', category: 'EFT',
         });
         // The other shift that day is the same object, untouched.
         expect(plan.shifts[1]).toBe(roster[DATE][1]);
         // And the input roster was not mutated: a plan is a proposal.
-        expect(roster[DATE][0].lead).toBe('Brandon');
+        expect(roster[DATE][0].lead).toBe('Bradley');
     });
 
     it('records before and after labels for the log, from the shift\'s own text', () => {
         const plan = reassign();
-        expect(plan.before).toBe('Lead: Brandon, Co: Ying Xian');
-        expect(plan.after).toBe('Lead: Derlinder, Co: Ying Xian');
-        expect(plan.after).toBe(buildShiftStaffLabel('Derlinder', 'Ying Xian'));
+        expect(plan.before).toBe('Lead: Bradley, Co: Yu Xuan');
+        expect(plan.after).toBe('Lead: Darshan, Co: Yu Xuan');
+        expect(plan.after).toBe(buildShiftStaffLabel('Darshan', 'Yu Xuan'));
     });
 
     it('a modern shift with no `staff` label still gets a `before` built from its identities', () => {
-        const roster = { [DATE]: [{ task: 'EFT', lead: 'Brandon', coLead: 'Ying Xian' }] };
-        const plan = planShiftReassignment({ roster, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
-        expect(plan.before).toBe('Lead: Brandon, Co: Ying Xian');
+        const roster = { [DATE]: [{ task: 'EFT', lead: 'Bradley', coLead: 'Yu Xuan' }] };
+        const plan = planShiftReassignment({ roster, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
+        expect(plan.before).toBe('Lead: Bradley, Co: Yu Xuan');
     });
 });
 
@@ -170,7 +170,7 @@ describe('planShiftReassignment — refusals', () => {
     });
 
     it('the same person both sides', () => {
-        expectRefusal(reassign({ to: 'Brandon' }), /already holds that duty/i);
+        expectRefusal(reassign({ to: 'Bradley' }), /already holds that duty/i);
     });
 
     it('no roster document', () => {
@@ -188,23 +188,23 @@ describe('planShiftReassignment — refusals', () => {
     });
 
     it('the outgoing person is not on that shift', () => {
-        expectRefusal(reassign({ from: 'Derlinder', to: 'Fadzlynn' }), /Derlinder is no longer on the EFT shift/i);
+        expectRefusal(reassign({ from: 'Darshan', to: 'Fayelynn' }), /Darshan is no longer on the EFT shift/i);
     });
 
     it('the outgoing person holds the OTHER duty — refuse rather than guess', () => {
-        // Brandon is the lead; the caller says coLead.
-        expectRefusal(reassign({ role: SHIFT_ROLE_CO_LEAD }), /Brandon is now the lead of the EFT shift on 2026-03-09, not the co-lead/i);
+        // Bradley is the lead; the caller says coLead.
+        expectRefusal(reassign({ role: SHIFT_ROLE_CO_LEAD }), /Bradley is now the lead of the EFT shift on 2026-03-09, not the co-lead/i);
     });
 
     it('the incoming person already holds the other duty on the same shift', () => {
-        expectRefusal(reassign({ to: 'Ying Xian' }), /Ying Xian is already the co-lead of the EFT shift/i);
-        expectRefusal(reassign({ role: SHIFT_ROLE_CO_LEAD, from: 'Ying Xian', to: 'Brandon' }), /Brandon is already the lead of the EFT shift/i);
+        expectRefusal(reassign({ to: 'Yu Xuan' }), /Yu Xuan is already the co-lead of the EFT shift/i);
+        expectRefusal(reassign({ role: SHIFT_ROLE_CO_LEAD, from: 'Yu Xuan', to: 'Bradley' }), /Bradley is already the lead of the EFT shift/i);
     });
 
     it('never mutates the roster it was given, on any refusal', () => {
         const roster = modernRoster();
         const snapshot = JSON.stringify(roster);
-        reassign({ roster, to: 'Ying Xian' });
+        reassign({ roster, to: 'Yu Xuan' });
         reassign({ roster, role: SHIFT_ROLE_CO_LEAD });
         reassign({ roster, task: 'CPET' });
         expect(JSON.stringify(roster)).toBe(snapshot);
@@ -218,24 +218,24 @@ describe('findReassignedShift — evidence after a read-back', () => {
         const plan = reassign();
         const written = { ...modernRoster(), [DATE]: plan.shifts };
 
-        const found = findReassignedShift({ roster: written, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
+        const found = findReassignedShift({ roster: written, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
         expect(found).toEqual(plan.shifts[0]);
     });
 
     it('returns null when the document still reads as it did — a write that did not land is not success', () => {
-        const found = findReassignedShift({ roster: modernRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' });
+        const found = findReassignedShift({ roster: modernRoster(), dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' });
         expect(found).toBeNull();
     });
 
     it('is the swap finder with a synthetic request, so "it landed" has one definition', () => {
         const plan = reassign();
         const written = { ...modernRoster(), [DATE]: plan.shifts };
-        const args = { roster: written, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder' };
+        const args = { roster: written, dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan' };
 
         expect(findReassignedShift(args)).toEqual(findAppliedSwapShift({
             roster: written,
-            swap: { originalShiftDate: DATE, originalTask: 'EFT', requestedBy: 'Brandon' },
-            coveringStaff: 'Derlinder',
+            swap: { originalShiftDate: DATE, originalTask: 'EFT', requestedBy: 'Bradley' },
+            coveringStaff: 'Darshan',
             role: SHIFT_ROLE_LEAD,
         }));
     });
@@ -248,17 +248,17 @@ describe('buildRosterChangeRecord', () => {
 
     it('carries everything the rule checks, and no `at` — the clock is the server\'s', () => {
         const plan = reassign();
-        const record = buildRosterChangeRecord({ plan, task: 'EFT', from: 'Brandon', to: 'Derlinder', reason: 'sick leave', actor });
+        const record = buildRosterChangeRecord({ plan, task: 'EFT', from: 'Bradley', to: 'Darshan', reason: 'sick leave', actor });
 
         expect(record).toEqual({
             kind: ROSTER_CHANGE_KIND_REASSIGN,
             dateKey: DATE,
             task: 'EFT',
             role: SHIFT_ROLE_LEAD,
-            from: 'Brandon',
-            to: 'Derlinder',
-            before: 'Lead: Brandon, Co: Ying Xian',
-            after: 'Lead: Derlinder, Co: Ying Xian',
+            from: 'Bradley',
+            to: 'Darshan',
+            before: 'Lead: Bradley, Co: Yu Xuan',
+            after: 'Lead: Darshan, Co: Yu Xuan',
             reason: 'sick leave',
             byUid: 'uid-alif',
             byName: 'Alif',
@@ -267,20 +267,20 @@ describe('buildRosterChangeRecord', () => {
     });
 
     it('an empty reason is stored as an empty string, never undefined (M7)', () => {
-        const record = buildRosterChangeRecord({ plan: reassign(), task: 'EFT', from: 'Brandon', to: 'Derlinder', reason: undefined, actor });
+        const record = buildRosterChangeRecord({ plan: reassign(), task: 'EFT', from: 'Bradley', to: 'Darshan', reason: undefined, actor });
         expect(record.reason).toBe('');
         expect(Object.values(record).some((v) => v === undefined)).toBe(false);
     });
 
     it('falls back from name to email to a fixed string for the actor', () => {
-        const base = { plan: reassign(), task: 'EFT', from: 'Brandon', to: 'Derlinder' };
+        const base = { plan: reassign(), task: 'EFT', from: 'Bradley', to: 'Darshan' };
         expect(buildRosterChangeRecord({ ...base, actor: { uid: 'u', email: 'x@y.z' } }).byName).toBe('x@y.z');
         expect(buildRosterChangeRecord({ ...base, actor: { uid: 'u' } }).byName).toBe('Unknown User');
         expect(buildRosterChangeRecord({ ...base, actor: null }).byUid).toBeNull();
     });
 
     it('refuses to build a record for a plan that was refused', () => {
-        expect(buildRosterChangeRecord({ plan: reassign({ to: 'Brandon' }), task: 'EFT', from: 'Brandon', to: 'Brandon', actor })).toBeNull();
+        expect(buildRosterChangeRecord({ plan: reassign({ to: 'Bradley' }), task: 'EFT', from: 'Bradley', to: 'Bradley', actor })).toBeNull();
         expect(buildRosterChangeRecord({ plan: null, actor })).toBeNull();
     });
 });
@@ -288,14 +288,14 @@ describe('buildRosterChangeRecord', () => {
 describe('describeRosterChange', () => {
     it('reads as one sentence with the day formatted for a clinician', () => {
         expect(describeRosterChange({
-            kind: 'reassign', dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Brandon', to: 'Derlinder', reason: 'sick leave', byName: 'Alif',
-        })).toBe('EFT on Mon 9 Mar 2026: Derlinder took over as lead from Brandon — sick leave (changed by Alif).');
+            kind: 'reassign', dateKey: DATE, task: 'EFT', role: SHIFT_ROLE_LEAD, from: 'Bradley', to: 'Darshan', reason: 'sick leave', byName: 'Alif',
+        })).toBe('EFT on Mon 9 Mar 2026: Darshan took over as lead from Bradley — sick leave (changed by Alif).');
     });
 
     it('omits the clauses it has no words for', () => {
         expect(describeRosterChange({
-            dateKey: DATE, task: 'NC', role: SHIFT_ROLE_CO_LEAD, from: 'Ying Xian', to: 'Brandon', reason: '', byName: '',
-        })).toBe('NC on Mon 9 Mar 2026: Brandon took over as co-lead from Ying Xian.');
+            dateKey: DATE, task: 'NC', role: SHIFT_ROLE_CO_LEAD, from: 'Yu Xuan', to: 'Bradley', reason: '', byName: '',
+        })).toBe('NC on Mon 9 Mar 2026: Bradley took over as co-lead from Yu Xuan.');
     });
 
     it('returns null rather than a sentence with "undefined" in it', () => {

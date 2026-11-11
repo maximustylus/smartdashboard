@@ -88,10 +88,10 @@ vi.mock('../context/NexusContext', () => ({
 // DOES, and `TeamContext.test.jsx` owns how a team is resolved.
 const TEAM_ID = 'kkh-sport-exercise-medicine';
 const TEAM_MEMBERS = [
-    { uid: 'uid-brandon', displayName: 'Brandon' },
-    { uid: 'uid-derlinder', displayName: 'Derlinder' },
-    { uid: 'uid-fadzlynn', displayName: 'Fadzlynn' },
-    { uid: 'uid-ying-xian', displayName: 'Ying Xian' },
+    { uid: 'uid-bradley', displayName: 'Bradley' },
+    { uid: 'uid-darshan', displayName: 'Darshan' },
+    { uid: 'uid-fayelynn', displayName: 'Fayelynn' },
+    { uid: 'uid-yu-xuan', displayName: 'Yu Xuan' },
 ];
 // WHO HOLDS DUTIES, which is not the same question as `role` — a roster master
 // configures the roster and is not in it. All four here are clinicians, matching the
@@ -141,23 +141,23 @@ const OTHER_DATE_KEY = `${today.getFullYear()}-${String(today.getMonth() + 1).pa
 const ROSTER_PATH = `teams/${TEAM_ID}/rosters/2026`;
 const SWAPS_PATH = `teams/${TEAM_ID}/swaps`;
 
-/** Brandon leads EFT with Ying Xian; a second shift that day belongs to nobody in this story. */
+/** Bradley leads EFT with Yu Xuan; a second shift that day belongs to nobody in this story. */
 const MODERN_ROSTER = () => ({
     [DATE_KEY]: [
         {
             task: 'EFT',
             week: 1,
-            lead: 'Brandon',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Brandon, Co: Ying Xian',
+            lead: 'Bradley',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Bradley, Co: Yu Xuan',
             category: 'EFT',
         },
         {
             task: 'NC',
             week: 1,
-            lead: 'Fadzlynn',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Fadzlynn, Co: Ying Xian',
+            lead: 'Fayelynn',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Fayelynn, Co: Yu Xuan',
             category: 'CORE',
         },
     ],
@@ -166,16 +166,16 @@ const MODERN_ROSTER = () => ({
 /** Pre-6-May shape: `staff` IS the identity and there is no co-lead. */
 const LEGACY_ROSTER = () => ({
     [DATE_KEY]: [
-        { task: 'EFT', week: 1, staff: 'Brandon', category: 'EFT' },
+        { task: 'EFT', week: 1, staff: 'Bradley', category: 'EFT' },
     ],
 });
 
 const PENDING_REQUEST = {
-    requestedBy: 'Brandon',
-    targetStaff: 'Derlinder',
+    requestedBy: 'Bradley',
+    targetStaff: 'Darshan',
     // Written beside `targetStaff`, not instead of it: the listener routes on this,
     // the roster mutator still matches the day arrays on the NAME.
-    targetUid: 'uid-derlinder',
+    targetUid: 'uid-darshan',
     originalShiftDate: DATE_KEY,
     originalTask: 'EFT',
     swapRole: 'lead',
@@ -184,7 +184,7 @@ const PENDING_REQUEST = {
     timestamp: 'mock-timestamp',
 };
 
-const DERLINDER = { uid: 'uid-derlinder', name: 'Derlinder', role: 'staff', email: 'derlinder@example.org' };
+const DARSHAN = { uid: 'uid-darshan', name: 'Darshan', role: 'staff', email: 'darshan@example.org' };
 
 // --- MOCK STATE --------------------------------------------------------------
 
@@ -355,10 +355,10 @@ const coverageCard = () => document.querySelector('[data-roster-view="coverage-r
 const requestCard = (docId = 'swap-1') =>
     document.querySelector(`[data-coverage-request="${docId}"]`);
 
-const coverButton = (task = 'EFT', asker = 'Brandon') =>
+const coverButton = (task = 'EFT', asker = 'Bradley') =>
     screen.getByRole('button', { name: new RegExp(`^Cover ${task} on .+ for ${asker}$`) });
 
-const declineButton = (task = 'EFT', asker = 'Brandon') =>
+const declineButton = (task = 'EFT', asker = 'Bradley') =>
     screen.getByRole('button', { name: new RegExp(`^Decline to cover ${task} on .+ for ${asker}$`) });
 
 const daySquare = (dateKey) => document.querySelector(`[data-date="${dateKey}"]`);
@@ -376,25 +376,25 @@ const swapPatches = () =>
 
 describe('a pending coverage request renders in the roster', () => {
     it('subscribes with the same query the chat panel used, and shows the request', () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         // The listener query: PENDING requests aimed at the signed-in user.
         expect(collection).toHaveBeenCalledWith(expect.anything(), 'teams', TEAM_ID, 'swaps');
-        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-derlinder');
+        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-darshan');
         expect(where).toHaveBeenCalledWith('status', '==', 'PENDING');
 
         const card = coverageCard();
         expect(card).not.toBeNull();
         expect(within(card).getByText(/cover asked of you \(1\)/i)).toBeTruthy();
         // Who is asking, which duty, which day — and the reason they gave.
-        expect(within(card).getByText(/Brandon asks you to cover EFT on .+, as lead\./)).toBeTruthy();
+        expect(within(card).getByText(/Bradley asks you to cover EFT on .+, as lead\./)).toBeTruthy();
         expect(within(card).getByText(/Attending a medical conference/)).toBeTruthy();
         // And what pressing the button will actually do.
         expect(within(card).getByText(/reads the document back/i)).toBeTruthy();
     });
 
     it('badges the calendar square the shift is in', () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         const square = daySquare(DATE_KEY);
         expect(within(square).getByText(/cover asked of you/i)).toBeTruthy();
@@ -408,22 +408,22 @@ describe('a pending coverage request renders in the roster', () => {
 
     it('renders nothing at all when nobody has asked', () => {
         swapDocs = [];
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         expect(coverageCard()).toBeNull();
         expect(document.querySelectorAll('[data-coverage-badge]').length).toBe(0);
     });
 
     it('names the admin who arranged cover on somebody else\'s behalf (M11)', () => {
         swapDocs = [{ id: 'swap-1', data: { ...PENDING_REQUEST, initiatedBy: 'Alif' } }];
-        render(<RosterView user={DERLINDER} />);
-        expect(screen.getByText(/Arranged by Alif on Brandon's behalf\./)).toBeTruthy();
+        render(<RosterView user={DARSHAN} />);
+        expect(screen.getByText(/Arranged by Alif on Bradley's behalf\./)).toBeTruthy();
     });
 
     it('shows a request it cannot answer, with the reason, and offers no buttons', () => {
         // Nothing is ever dropped: a malformed ledger entry that vanished would be a
         // shift nobody covers and nobody is told about (M5).
         swapDocs = [{ id: 'swap-1', data: { ...PENDING_REQUEST, originalTask: undefined } }];
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         const card = requestCard();
         expect(card).not.toBeNull();
@@ -436,7 +436,7 @@ describe('a pending coverage request renders in the roster', () => {
 
 describe('accepting runs the verified sequence and only then reports success', () => {
     it('reads, writes, READS BACK, finds the substitution, and approves last', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -460,10 +460,10 @@ describe('accepting runs the verified sequence and only then reports success', (
         await waitFor(() =>
             expect(screen.getByText(/verified against the master roster/i)).toBeTruthy(),
         );
-        expect(screen.getByText(/Lead: Derlinder, Co: Ying Xian/)).toBeTruthy();
-        expect(screen.getByText(/in place of Brandon/)).toBeTruthy();
+        expect(screen.getByText(/Lead: Darshan, Co: Yu Xuan/)).toBeTruthy();
+        expect(screen.getByText(/in place of Bradley/)).toBeTruthy();
         // M4 is still unbuilt, and the copy still says so rather than claiming it.
-        expect(screen.getByText(/cannot notify Brandon yet/i)).toBeTruthy();
+        expect(screen.getByText(/cannot notify Bradley yet/i)).toBeTruthy();
 
         // The request is off the card without waiting for Firestore's snapshot.
         expect(coverageCard()).toBeNull();
@@ -473,7 +473,7 @@ describe('accepting runs the verified sequence and only then reports success', (
     });
 
     it('substitutes mechanically: the requester\'s role only, nobody promoted, nobody else moved', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         fireEvent.click(coverButton());
         await waitFor(() => expect(rosterPatches()).toHaveLength(1));
 
@@ -483,9 +483,9 @@ describe('accepting runs the verified sequence and only then reports success', (
         expect(patch[DATE_KEY][0]).toEqual({
             task: 'EFT',
             week: 1,
-            lead: 'Derlinder',
-            coLead: 'Ying Xian',
-            staff: 'Lead: Derlinder, Co: Ying Xian',
+            lead: 'Darshan',
+            coLead: 'Yu Xuan',
+            staff: 'Lead: Darshan, Co: Yu Xuan',
             category: 'EFT',
         });
         // The other shift that day is byte-identical — no third person's duty moved.
@@ -496,17 +496,17 @@ describe('accepting runs the verified sequence and only then reports success', (
         rosterDoc = LEGACY_ROSTER();
         // A request from before `swapRole` existed, matched on identity alone.
         swapDocs = [{ id: 'swap-1', data: { ...PENDING_REQUEST, swapRole: undefined } }];
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
         await waitFor(() => expect(swapPatches()).toHaveLength(1));
 
         const shift = rosterPatches()[0][DATE_KEY][0];
-        expect(shift.lead).toBe('Derlinder');
+        expect(shift.lead).toBe('Darshan');
         // `buildShiftStaffLabel(lead, null)` is `Lead: X` — the modern one-person
         // label, not `Lead: X, Co: undefined` and not the bare name it replaced. The
         // upgrade is the point: the same document is never read as legacy twice.
-        expect(shift.staff).toBe('Lead: Derlinder');
+        expect(shift.staff).toBe('Lead: Darshan');
         expect('coLead' in shift).toBe(false);
         await waitFor(() =>
             expect(screen.getByText(/verified against the master roster/i)).toBeTruthy(),
@@ -514,14 +514,14 @@ describe('accepting runs the verified sequence and only then reports success', (
     });
 
     it('shows the covered shift in the calendar once the roster snapshot arrives', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         fireEvent.click(coverButton());
         await waitFor(() => expect(swapPatches()).toHaveLength(1));
 
         // The listener is what updates the grid, exactly as it does for any other
         // change to the document; nothing about the calendar is written locally.
         await deliverRoster();
-        expect(within(daySquare(DATE_KEY)).getByText('Lead: Derlinder, Co: Ying Xian')).toBeTruthy();
+        expect(within(daySquare(DATE_KEY)).getByText('Lead: Darshan, Co: Yu Xuan')).toBeTruthy();
         // And the badge is gone with the request.
         expect(document.querySelectorAll('[data-coverage-badge]').length).toBe(0);
     });
@@ -531,7 +531,7 @@ describe('accepting runs the verified sequence and only then reports success', (
         // double-tap can deliver two clicks that both see the pre-render state. The
         // latch is a ref, set synchronously, and this is what exercises it: two
         // clicks with no render between them.
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         await act(async () => {
             const button = coverButton();
@@ -554,7 +554,7 @@ describe('accepting runs the verified sequence and only then reports success', (
             { id: 'swap-1', data: { ...PENDING_REQUEST } },
             {
                 id: 'swap-2',
-                data: { ...PENDING_REQUEST, requestedBy: 'Fadzlynn', originalTask: 'NC' },
+                data: { ...PENDING_REQUEST, requestedBy: 'Fayelynn', originalTask: 'NC' },
             },
         ];
 
@@ -584,18 +584,18 @@ describe('accepting runs the verified sequence and only then reports success', (
             return realGetDoc(ref);
         });
 
-        render(<RosterView user={DERLINDER} />);
-        fireEvent.click(coverButton('EFT', 'Brandon'));
+        render(<RosterView user={DARSHAN} />);
+        fireEvent.click(coverButton('EFT', 'Bradley'));
 
         await waitFor(() => expect(releaseRead).toBeTypeOf('function'));
         // Both requests' controls are locked: both answers write the same document.
-        expect(coverButton('EFT', 'Brandon').disabled).toBe(true);
-        expect(declineButton('EFT', 'Brandon').disabled).toBe(true);
-        expect(coverButton('NC', 'Fadzlynn').disabled).toBe(true);
-        expect(declineButton('NC', 'Fadzlynn').disabled).toBe(true);
+        expect(coverButton('EFT', 'Bradley').disabled).toBe(true);
+        expect(declineButton('EFT', 'Bradley').disabled).toBe(true);
+        expect(coverButton('NC', 'Fayelynn').disabled).toBe(true);
+        expect(declineButton('NC', 'Fayelynn').disabled).toBe(true);
         expect(screen.getByText(/checking the roster/i)).toBeTruthy();
         // A press on the other one while locked does nothing at all.
-        fireEvent.click(coverButton('NC', 'Fadzlynn'));
+        fireEvent.click(coverButton('NC', 'Fayelynn'));
         expectGradeReadsAtMountOnly();
         expect(swapSequence()).toEqual([`getDoc:${ROSTER_PATH}`]);
 
@@ -605,7 +605,7 @@ describe('accepting runs the verified sequence and only then reports success', (
         await waitFor(() => expect(swapPatches()).toHaveLength(1));
         expect(swapPatches()[0].path).toBe(`${SWAPS_PATH}/swap-1`);
         // …and the other one is answerable again.
-        expect(coverButton('NC', 'Fadzlynn').disabled).toBe(false);
+        expect(coverButton('NC', 'Fayelynn').disabled).toBe(false);
     });
 
     it('answers one request without touching the other', async () => {
@@ -615,16 +615,16 @@ describe('accepting runs the verified sequence and only then reports success', (
                 id: 'swap-2',
                 data: {
                     ...PENDING_REQUEST,
-                    requestedBy: 'Fadzlynn',
+                    requestedBy: 'Fayelynn',
                     originalTask: 'NC',
                     swapRole: 'lead',
                 },
             },
         ];
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         expect(screen.getByText(/cover asked of you \(2\)/i)).toBeTruthy();
 
-        fireEvent.click(coverButton('EFT', 'Brandon'));
+        fireEvent.click(coverButton('EFT', 'Bradley'));
         await waitFor(() => expect(swapPatches()).toHaveLength(1));
 
         expect(swapPatches()[0].path).toBe(`${SWAPS_PATH}/swap-1`);
@@ -638,20 +638,20 @@ describe('accepting runs the verified sequence and only then reports success', (
 
 describe('a swap that cannot be applied leaves the request PENDING and says so', () => {
     it('refuses without writing anything when the requester no longer holds the duty', async () => {
-        // The roster was regenerated: Brandon is not on the EFT shift any more.
+        // The roster was regenerated: Bradley is not on the EFT shift any more.
         rosterDoc = {
             [DATE_KEY]: [
                 {
                     task: 'EFT',
                     week: 1,
-                    lead: 'Fadzlynn',
-                    coLead: 'Ying Xian',
-                    staff: 'Lead: Fadzlynn, Co: Ying Xian',
+                    lead: 'Fayelynn',
+                    coLead: 'Yu Xuan',
+                    staff: 'Lead: Fayelynn, Co: Yu Xuan',
                     category: 'EFT',
                 },
             ],
         };
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -673,7 +673,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
 
     it('does NOT approve when the write cannot be found on read-back', async () => {
         rosterWritesLand = false;
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -696,7 +696,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
 
     it('refuses when the roster document does not exist, and names that as the reason', async () => {
         rosterExists = false;
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -712,7 +712,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
             callLog.push(`updateDoc:${ref.path}`);
             return Promise.reject(Object.assign(new Error('offline'), { code: 'unavailable' }));
         });
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -740,7 +740,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
             }
             return Promise.reject(Object.assign(new Error('nope'), { code: 'unavailable' }));
         });
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
 
@@ -756,7 +756,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
         expect(screen.queryByText(/roster is unchanged/i)).toBeNull();
         expect(screen.queryByText(/Cover not applied/i)).toBeNull();
         // The roster really did change, and the ledger really was not flipped.
-        expect(rosterDoc[DATE_KEY][0].lead).toBe('Derlinder');
+        expect(rosterDoc[DATE_KEY][0].lead).toBe('Darshan');
         expectGradeReadsAtMountOnly();
         expect(swapSequence()).toEqual([
             `getDoc:${ROSTER_PATH}`,
@@ -768,7 +768,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
 
     it('stays retryable: a refusal is not remembered as an answer', async () => {
         rosterWritesLand = false;
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(coverButton());
         await waitFor(() => expect(swapSequence()).toHaveLength(3));
@@ -789,7 +789,7 @@ describe('a swap that cannot be applied leaves the request PENDING and says so',
 
 describe('declining does not touch the roster document', () => {
     it('writes DENIED to the ledger and nothing else', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(declineButton());
 
@@ -806,8 +806,8 @@ describe('declining does not touch the roster document', () => {
 
         await waitFor(() => expect(screen.getByText(/^Declined\./)).toBeTruthy());
         // M4: no claim that the requester was told.
-        expect(screen.getByText(/cannot notify Brandon yet/i)).toBeTruthy();
-        expect(screen.getByText(/stays with Brandon/i)).toBeTruthy();
+        expect(screen.getByText(/cannot notify Bradley yet/i)).toBeTruthy();
+        expect(screen.getByText(/stays with Bradley/i)).toBeTruthy();
         expect(requestCard()).toBeNull();
     });
 
@@ -816,7 +816,7 @@ describe('declining does not touch the roster document', () => {
             callLog.push(`updateDoc:${ref.path}`);
             return Promise.reject(Object.assign(new Error('nope'), { code: 'permission-denied' }));
         });
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         fireEvent.click(declineButton());
 
@@ -835,7 +835,7 @@ describe('declining does not touch the roster document', () => {
 
 describe('the card follows the listener', () => {
     it('drops a request that a later snapshot no longer reports as PENDING', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         expect(requestCard()).not.toBeNull();
 
         // Somebody else answered it, or an admin cancelled it.
@@ -845,7 +845,7 @@ describe('the card follows the listener', () => {
     });
 
     it('does not stack duplicate buttons when one document is delivered twice', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
         swapDocs = [
             { id: 'swap-1', data: { ...PENDING_REQUEST } },
             { id: 'swap-1', data: { ...PENDING_REQUEST } },
@@ -861,7 +861,7 @@ describe('the card follows the listener', () => {
 
 describe('a listener failure is surfaced, not swallowed (M8)', () => {
     it('says the card is empty because it could not be loaded', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         await act(async () => {
             coverageListener.onError(
@@ -874,7 +874,7 @@ describe('a listener failure is surfaced, not swallowed (M8)', () => {
     });
 
     it('names an unexpected error code rather than going quiet', async () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         await act(async () => {
             coverageListener.onError(Object.assign(new Error('gone'), { code: 'unavailable' }));
@@ -892,7 +892,7 @@ describe('demo mode has no coverage surface at all', () => {
     });
 
     it('opens no channel, shows no card, and calls no Firestore function', () => {
-        render(<RosterView user={DERLINDER} />);
+        render(<RosterView user={DARSHAN} />);
 
         expect(coverageCard()).toBeNull();
         expect(onSnapshot).not.toHaveBeenCalled();
@@ -917,8 +917,8 @@ describe('the listener is keyed on the signed-in user', () => {
      * query matching nothing is indistinguishable from nobody having asked.
      */
     it('asks for the requests aimed at whoever is signed in', () => {
-        render(<RosterView user={{ uid: 'uid-ying-xian', name: 'Ying Xian', role: 'staff' }} />);
-        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-ying-xian');
+        render(<RosterView user={{ uid: 'uid-yu-xuan', name: 'Yu Xuan', role: 'staff' }} />);
+        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-yu-xuan');
     });
 
     it('opens no listener at all when there is no signed-in name', () => {

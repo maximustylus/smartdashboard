@@ -121,7 +121,7 @@ vi.mock('../context/NexusContext', () => ({ useNexus: () => ({ isDemo: demoMode 
 
 const TEAM_ID = 'kkh-respiratory-therapy';
 const OWNER = { uid: 'leadUid0000000000000000000aa', displayName: 'Nur', role: 'lead' };
-const STAFF = { uid: 'staffUid000000000000000000cc', displayName: 'Brandon', role: 'staff' };
+const STAFF = { uid: 'staffUid000000000000000000cc', displayName: 'Bradley', role: 'staff' };
 
 let team;
 vi.mock('../context/TeamContext', () => ({
@@ -219,7 +219,7 @@ describe('the domain allowlist is not configured yet', () => {
         render(<TeamMembersPanel />);
         expect(screen.getByRole('note')).toBeTruthy();
 
-        fill({ email: 'brandon@kkh.com.sg' });
+        fill({ email: 'bradley@kkh.com.sg' });
         await act(async () => {
             fireEvent.click(screen.getByRole('button', { name: /add to team/i }));
         });
@@ -254,14 +254,14 @@ describe('the domain allowlist is not configured yet', () => {
 describe('adding a colleague', () => {
     it('sends the team, the address and the role the lead chose', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: ' Brandon@KKH.com.sg ', name: 'Brandon' });
+        fill({ email: ' Bradley@KKH.com.sg ', name: 'Bradley' });
         await submit();
 
         expect(invited).toHaveBeenCalledTimes(1);
         expect(invited.mock.calls[0][0]).toMatchObject({
             teamId: TEAM_ID,
-            email: 'Brandon@KKH.com.sg',   // trimmed here, lower-cased on the server
-            displayName: 'Brandon',
+            email: 'Bradley@KKH.com.sg',   // trimmed here, lower-cased on the server
+            displayName: 'Bradley',
             role: 'staff',
             rostered: true,
         });
@@ -323,9 +323,9 @@ describe('adding a colleague', () => {
     });
 
     it('treats "already a member" as the success it is', async () => {
-        invited.mockReturnValue(ok({ alreadyMember: true, message: 'Brandon is already in this team. Nothing was changed.' }));
+        invited.mockReturnValue(ok({ alreadyMember: true, message: 'Bradley is already in this team. Nothing was changed.' }));
         render(<TeamMembersPanel />);
-        fill({ email: 'brandon@kkh.com.sg' });
+        fill({ email: 'bradley@kkh.com.sg' });
         await submit();
         expect(screen.getByRole('status').textContent).toMatch(/already in this team/i);
         expect(screen.queryByRole('alert')).toBeNull();
@@ -350,7 +350,7 @@ describe('role and rostered', () => {
      */
     it('lets a lead be added without clinical duties', async () => {
         render(<TeamMembersPanel />);
-        fill({ email: 'nisa@kkh.com.sg' });
+        fill({ email: 'nora@kkh.com.sg' });
         fireEvent.click(screen.getByRole('radio', { name: /lead/i }));
         fireEvent.click(screen.getByRole('checkbox'));
         await submit();
@@ -375,7 +375,7 @@ describe('removing somebody', () => {
     it('sends the uid, never the display name', async () => {
         render(<TeamMembersPanel />);
         await act(async () => {
-            fireEvent.click(screen.getByRole('button', { name: /remove brandon/i }));
+            fireEvent.click(screen.getByRole('button', { name: /remove bradley/i }));
         });
         expect(removed).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid });
     });
@@ -417,7 +417,7 @@ describe('removing somebody', () => {
         removed.mockReturnValue(refused('That is the team\'s only lead.', 'last-lead'));
         render(<TeamMembersPanel />);
         await act(async () => {
-            fireEvent.click(screen.getByRole('button', { name: /remove brandon/i }));
+            fireEvent.click(screen.getByRole('button', { name: /remove bradley/i }));
         });
         expect(screen.getByRole('alert').textContent).toMatch(/only lead/i);
         expect(screen.queryByRole('status')).toBeNull();
@@ -431,7 +431,7 @@ describe('a member who is not a lead', () => {
 
     it('sees the list', () => {
         render(<TeamMembersPanel />);
-        expect(screen.getByText('Brandon')).toBeTruthy();
+        expect(screen.getByText('Bradley')).toBeTruthy();
     });
 
     it('sees no add form and no remove buttons', () => {
@@ -464,7 +464,7 @@ describe('the sandbox', () => {
         demoMode = true;
         render(<TeamMembersPanel />);
         await act(async () => {
-            fireEvent.click(screen.getByRole('button', { name: /remove brandon/i }));
+            fireEvent.click(screen.getByRole('button', { name: /remove bradley/i }));
         });
         expect(removed).not.toHaveBeenCalled();
         expect(screen.getByRole('alert').textContent).toMatch(/sandbox/i);
@@ -539,14 +539,14 @@ describe('4. a lead sets profession and grade for a member', () => {
 
     it('reads exactly one grade document, for the member whose editor opened', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         expect(getDocSpy.mock.calls.map(([path]) => path)).toEqual([gradeDocOf(STAFF.uid)]);
     });
 
     it('shows the stored grade, and writes it back with setBy and merge when changed', async () => {
         getDocImpl = () => Promise.resolve({ exists: () => true, data: () => ({ grade: 'AH11' }) });
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
 
         expect(document.getElementById(`member-grade-${STAFF.uid}`).value).toBe('AH11');
         chooseGrade(STAFF.uid, 'AH14');
@@ -569,7 +569,7 @@ describe('4. a lead sets profession and grade for a member', () => {
      */
     it('writes profession to the membership, on its own', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseProfession(STAFF.uid, 'physiotherapist');
         await save();
 
@@ -585,7 +585,7 @@ describe('4. a lead sets profession and grade for a member', () => {
     it('writes nothing when neither value changed', async () => {
         getDocImpl = () => Promise.resolve({ exists: () => true, data: () => ({ grade: 'AH11' }) });
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         await save();
 
         expect(setDocSpy).not.toHaveBeenCalled();
@@ -601,7 +601,7 @@ describe('4. a lead sets profession and grade for a member', () => {
     it('refuses to save when the grade could not be read, and says why', async () => {
         getDocImpl = () => Promise.reject(new Error('permission-denied'));
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseProfession(STAFF.uid, 'physiotherapist');
         await save();
 
@@ -613,7 +613,7 @@ describe('4. a lead sets profession and grade for a member', () => {
     it('writes nothing in the sandbox', async () => {
         demoMode = true;
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseProfession(STAFF.uid, 'physiotherapist');
         await save();
 
@@ -633,7 +633,7 @@ describe('4. a lead sets profession and grade for a member', () => {
         getDocImpl = () => new Promise((resolve) => { release = () => resolve({ exists: () => true, data: () => ({ grade: 'AH11' }) }); });
 
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseGrade(STAFF.uid, 'AH16');
         await act(async () => { release(); });
 
@@ -652,7 +652,7 @@ describe('4. a lead sets profession and grade for a member', () => {
         });
 
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         expect(document.getElementById(`member-grade-${STAFF.uid}`).value).toBe('AH17');
 
         await openEditorFor('Nur');
@@ -662,7 +662,7 @@ describe('4. a lead sets profession and grade for a member', () => {
     it('tells the member, on their own row, when a lead set the grade rather than them', async () => {
         getDocImpl = () => Promise.resolve({ exists: () => true, data: () => ({ grade: 'AH14', setBy: 'lead' }) });
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         expect(screen.getByText(/set by a lead, not by them/i)).toBeTruthy();
     });
 
@@ -675,7 +675,7 @@ describe('4. a lead sets profession and grade for a member', () => {
      */
     it('gives a lead a working path to set a grade for somebody who never set one', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         expect(document.getElementById(`member-grade-${STAFF.uid}`).value).toBe('');
 
         chooseGrade(STAFF.uid, 'AH13');
@@ -703,7 +703,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
 
     it('writes both fields to the membership, and only those keys', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         setShortName(STAFF.uid, 'BF');
         setOnlyTasks(STAFF.uid, 'Exercise Test, New Case');
         await save();
@@ -727,7 +727,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
      */
     it('merges a profession change and both limits into a single write', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseProfession(STAFF.uid, 'physiotherapist');
         setShortName(STAFF.uid, 'BF');
         setOnlyTasks(STAFF.uid, 'Clinic');
@@ -740,7 +740,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
 
     it('refuses a comma in a short name and writes nothing at all', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         setShortName(STAFF.uid, 'A,B');
         // Set a VALID duty list too, so the test proves the refusal blocks the whole
         // save rather than merely skipping the bad field.
@@ -761,7 +761,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
         });
         getDocImpl = () => Promise.resolve({ exists: () => true, data: () => ({ grade: 'AH11' }) });
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
 
         expect(document.getElementById(`member-shortname-${STAFF.uid}`).value).toBe('BF');
         expect(document.getElementById(`member-onlytasks-${STAFF.uid}`).value).toBe('Clinic, Ward');
@@ -778,7 +778,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
             members: [OWNER, { ...STAFF, onlyTasks: ['Clinic'] }],
         });
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         setOnlyTasks(STAFF.uid, '');
         await save();
 
@@ -792,7 +792,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
         // adds duties. Leave one out and the person silently stops being rostered for
         // it, and nobody notices until the day.
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         expect(screen.getByText(/limit, not an addition/i)).toBeTruthy();
     });
 });
@@ -806,7 +806,7 @@ describe('5. a lead sets the roster limits: short name and duties', () => {
 // all three roles; server-checked; a lead may step down if another lead remains,
 // with a second press; and a log the team's leads can read.
 
-const SECOND_LEAD = { uid: 'secondLead0000000000000000dd', displayName: 'Nisa', role: 'lead' };
+const SECOND_LEAD = { uid: 'secondLead0000000000000000dd', displayName: 'Nora', role: 'lead' };
 
 const chooseRole = (label, name) =>
     fireEvent.click(screen.getByLabelText(new RegExp(`^${label} — ${name}$`)));
@@ -816,38 +816,38 @@ const saveButton = () => screen.getByRole('button', { name: /^save/i });
 describe('6. a lead changes somebody\'s role', () => {
     it('promotes staff to lead through setMemberRole, never through a direct write', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
-        chooseRole('Lead', 'Brandon');
+        await openEditorFor('Bradley');
+        chooseRole('Lead', 'Bradley');
         await save();
 
         expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'lead', rostered: true });
         expect(updateDocSpy).not.toHaveBeenCalled();
         expect(lastRegion).toBe('us-central1');
-        expect(screen.getByRole('status').textContent).toMatch(/Brandon is now a lead\./);
+        expect(screen.getByRole('status').textContent).toMatch(/Bradley is now a lead\./);
     });
 
     it('makes somebody a viewer, takes the roster switch away, and sends rostered false', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
-        expect(screen.getByLabelText('Include Brandon in the roster')).toBeTruthy();
-        chooseRole('Viewer', 'Brandon');
-        expect(screen.queryByLabelText('Include Brandon in the roster')).toBeNull();
+        await openEditorFor('Bradley');
+        expect(screen.getByLabelText('Include Bradley in the roster')).toBeTruthy();
+        chooseRole('Viewer', 'Bradley');
+        expect(screen.queryByLabelText('Include Bradley in the roster')).toBeNull();
         await save();
         expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'viewer', rostered: false });
     });
 
     it('changes the roster flag alone, keeping the role', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
-        fireEvent.click(screen.getByLabelText('Include Brandon in the roster'));
+        await openEditorFor('Bradley');
+        fireEvent.click(screen.getByLabelText('Include Bradley in the roster'));
         await save();
         expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: STAFF.uid, role: 'staff', rostered: false });
-        expect(screen.getByRole('status').textContent).toMatch(/Brandon is now staff, not in the roster\./);
+        expect(screen.getByRole('status').textContent).toMatch(/Bradley is now staff, not in the roster\./);
     });
 
     it('calls nothing when the role and roster flag are unchanged', async () => {
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         await save();
         expect(roleSet).not.toHaveBeenCalled();
     });
@@ -873,9 +873,9 @@ describe('6. a lead changes somebody\'s role', () => {
     it('lets another lead be demoted once a second lead exists', async () => {
         team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF] });
         render(<TeamMembersPanel />);
-        await openEditorFor('Nisa');
-        expect(screen.getByLabelText('Staff — Nisa').disabled).toBe(false);
-        chooseRole('Staff', 'Nisa');
+        await openEditorFor('Nora');
+        expect(screen.getByLabelText('Staff — Nora').disabled).toBe(false);
+        chooseRole('Staff', 'Nora');
         await save();
         expect(roleSet).toHaveBeenCalledWith({ teamId: TEAM_ID, uid: SECOND_LEAD.uid, role: 'staff', rostered: true });
     });
@@ -883,8 +883,8 @@ describe('6. a lead changes somebody\'s role', () => {
     it('asks a lead stepping down THEMSELVES to press Save a second time', async () => {
         team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF], membership: { uid: SECOND_LEAD.uid, role: 'lead' } });
         render(<TeamMembersPanel />);
-        await openEditorFor('Nisa');
-        chooseRole('Staff', 'Nisa');
+        await openEditorFor('Nora');
+        chooseRole('Staff', 'Nora');
         await save();
 
         // First press: a warning, and nothing sent.
@@ -901,11 +901,11 @@ describe('6. a lead changes somebody\'s role', () => {
     it('drops the pending step-down if the lead picks a different role first', async () => {
         team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF], membership: { uid: SECOND_LEAD.uid, role: 'lead' } });
         render(<TeamMembersPanel />);
-        await openEditorFor('Nisa');
-        chooseRole('Staff', 'Nisa');
+        await openEditorFor('Nora');
+        chooseRole('Staff', 'Nora');
         await save();
         expect(screen.queryByText(/about to step down/i)).toBeTruthy();
-        chooseRole('Lead', 'Nisa');
+        chooseRole('Lead', 'Nora');
         expect(screen.queryByText(/about to step down/i)).toBeNull();
     });
 
@@ -913,8 +913,8 @@ describe('6. a lead changes somebody\'s role', () => {
         roleSet.mockReturnValue(refused('That is the team\'s only lead. Make somebody else a lead first.', 'last-lead'));
         team = asTeam({ members: [OWNER, SECOND_LEAD, STAFF] });
         render(<TeamMembersPanel />);
-        await openEditorFor('Nisa');
-        chooseRole('Staff', 'Nisa');
+        await openEditorFor('Nora');
+        chooseRole('Staff', 'Nora');
         await save();
         expect(screen.getByRole('alert').textContent).toMatch(/only lead\. Make somebody else a lead first/);
         expect(saveButton()).toBeTruthy();
@@ -923,9 +923,9 @@ describe('6. a lead changes somebody\'s role', () => {
     it('writes the other changes FIRST and the role LAST, and says which half failed', async () => {
         roleSet.mockReturnValue(refused('No.', 'last-lead'));
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
+        await openEditorFor('Bradley');
         chooseProfession(STAFF.uid, 'physiotherapist');
-        chooseRole('Lead', 'Brandon');
+        chooseRole('Lead', 'Bradley');
         await save();
         expect(callOrder).toEqual(['updateDoc', 'setMemberRole']);
         expect(screen.getByRole('alert').textContent).toMatch(/^Their other changes were saved, but the role was not\./);
@@ -934,8 +934,8 @@ describe('6. a lead changes somebody\'s role', () => {
     it('sends nothing in the sandbox', async () => {
         demoMode = true;
         render(<TeamMembersPanel />);
-        await openEditorFor('Brandon');
-        chooseRole('Lead', 'Brandon');
+        await openEditorFor('Bradley');
+        chooseRole('Lead', 'Bradley');
         await save();
         expect(roleSet).not.toHaveBeenCalled();
     });
@@ -944,14 +944,14 @@ describe('6. a lead changes somebody\'s role', () => {
 describe('6b. the role-change log', () => {
     it('lists recent changes for a lead, newest first, as sentences', () => {
         roleChangeDocs = [
-            { id: 'r2', data: { targetName: 'Brandon', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true, byName: 'Nur', at: { toDate: () => new Date('2026-10-14T09:00:00+08:00') } } },
+            { id: 'r2', data: { targetName: 'Bradley', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true, byName: 'Nur', at: { toDate: () => new Date('2026-10-14T09:00:00+08:00') } } },
             { id: 'r1', data: { targetName: 'Jo', fromRole: 'staff', toRole: 'viewer', fromRostered: true, toRostered: false, byName: 'Nur', at: null } },
         ];
         render(<TeamMembersPanel />);
         const log = screen.getByRole('region', { name: 'Role changes' });
         const items = log.querySelectorAll('[data-role-change]');
         expect(items).toHaveLength(2);
-        expect(items[0].textContent).toMatch(/^Brandon changed from staff to lead \(changed by Nur\)\./);
+        expect(items[0].textContent).toMatch(/^Bradley changed from staff to lead \(changed by Nur\)\./);
         expect(items[1].textContent).toMatch(/^Jo changed from staff to viewer \(changed by Nur\)\./);
     });
 

@@ -73,7 +73,7 @@ describe('⚠️ THE BUG THIS MODULE EXISTS FOR', () => {
 
 describe('a partial resolve — the case most likely to happen on the day', () => {
     /**
-     * ⚠️ RELEASE-v2.0.0.md warns that Benny's address carries a trailing dot in its
+     * ⚠️ RELEASE-v2.0.0.md warns that Barry's address carries a trailing dot in its
      *    local part, which is not a valid RFC 5321 address, so Firebase Auth may
      *    never have created it. One missing person out of seven is the realistic
      *    failure, and it must not read as success.

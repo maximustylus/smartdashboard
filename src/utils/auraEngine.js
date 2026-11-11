@@ -575,7 +575,7 @@ export const readShiftIdentities = (shift) => {
  * Which role does `name` hold on this shift? `'lead'`, `'coLead'` or `null`.
  *
  * Identity comparison, never `includes()`. The substring test it replaces
- * (ROSTER_POSTMORTEM.md A4) matched "Lynn" inside "Fadzlynn".
+ * (ROSTER_POSTMORTEM.md A4) matched "Lynn" inside "Fayelynn".
  */
 export const shiftRoleOf = (shift, name) => {
     const who = asName(name);
@@ -1370,8 +1370,8 @@ const ICS_UID_DOMAIN = '@nexus-aura-roster';
 /**
  * RFC 5545 §3.3.11 TEXT escaping.
  *
- * This is audit M6.1. The 6 May display-string refactor turned `[EFT] Brandon`
- * into `[EFT] Lead: Brandon, Co: Ying Xian`, and an unescaped `,` makes SUMMARY
+ * This is audit M6.1. The 6 May display-string refactor turned `[EFT] Bradley`
+ * into `[EFT] Lead: Bradley, Co: Yu Xuan`, and an unescaped `,` makes SUMMARY
  * a MULTI-VALUED property — Outlook truncates at the comma and the co-lead
  * silently disappears from the imported event.
  *
@@ -1552,7 +1552,7 @@ const csvField = (value) => {
 /**
  * How the Assignees cell separates names. A SEMICOLON, not a comma: a comma
  * would be indistinguishable from the column separator to anybody reading the
- * file by eye, and a name that legitimately contains a comma (`Wong, Ying Xian`)
+ * file by eye, and a name that legitimately contains a comma (`Wong, Yu Xuan`)
  * would then be unrecoverable even after RFC 4180 unquoting. The trailing space
  * is for the human reading the cell in Excel; a machine splitting on `;` should
  * trim. Judgment call, flagged in section 2d.
@@ -1682,7 +1682,7 @@ export const downloadCSV = (rosterData, options = {}) => {
 //     old columns stay byte-compatible, but it does mean the same name appears
 //     twice in a row.
 //  4. A SHIFT WHOSE ONLY RECORD IS A BARE `staff` NAME EXPORTS NO ASSIGNEES. A
-//     pre-6-May document has `staff: 'Brandon'` and no `lead`, and identity is
+//     pre-6-May document has `staff: 'Bradley'` and no `lead`, and identity is
 //     never parsed back out of a display string (the rule `readShiftIdentities`
 //     exists to enforce). Its Lead, Co-Lead and Assignees cells are all empty
 //     while the ICS SUMMARY still shows the name, because SUMMARY falls back to

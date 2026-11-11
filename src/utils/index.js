@@ -17,7 +17,7 @@ export const MONTHS = [
 // 2. WHERE THE VIP LIST USED TO BE
 // ==========================================
 //
-// Three people — Evelyn, Ashik and Mini — were removed from the directory before
+// Three people — Elaine, Arjun and Mira — were removed from the directory before
 // it was deleted, as a REVOCATION the owner decided and `scripts/team-one-manifest.cjs`
 // records with the full reasoning. That history matters and stays.
 //
@@ -51,7 +51,7 @@ export const MONTHS = [
  * Where each field went:
  *   recognition       → `legacyBridge.checkAccess` (digest lookup, same contract)
  *   admin gate        → `legacyBridge.isLegacyAdminEmail` (replaces `ADMIN_EMAILS`
- *                        in `App.jsx` and the `'Nisa'` name check in `WellbeingView`)
+ *                        in `App.jsx` and the `'Nora'` name check in `WellbeingView`)
  *   name              → the person's own auth `displayName` / `users/{uid}` doc
  *   title, role       → the bridge profile (badge-level, names nobody)
  *   the team itself   → `teams/{id}/members/*`, where it has lived since v2.0

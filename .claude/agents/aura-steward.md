@@ -70,7 +70,7 @@ Anything not on this list is out of scope tonight, however tempting.
 
 - `AN1` — **verify against the built bundle, not the source**:
   ```bash
-  npm run build && grep -oE 'Fadzlynn|Derlinder|Ying Xian|grade:"JG1[0-9]"' dist/assets/*.js | sort | uniq -c
+  npm run build && grep -oE 'Fayelynn|Darshan|Yu Xuan|grade:"JG1[0-9]"' dist/assets/*.js | sort | uniq -c
   ```
   Any **name** in the output means it is still live. ⚠️ Since the Marvel demo team
   gained grades, the `grade:"JG1[0-9]"` half returns **five hits that are legitimate**
@@ -81,7 +81,7 @@ Anything not on this list is out of scope tonight, however tempting.
   will look clean.
 - No other named-person constant reaches `dist/`:
   ```bash
-  grep -oE '"(Alif|Fadzlynn|Derlinder|Ying Xian|Brandon|Nisa)"' dist/assets/*.js | sort | uniq -c
+  grep -oE '"(Alif|Fayelynn|Darshan|Yu Xuan|Bradley|Nora)"' dist/assets/*.js | sort | uniq -c
   ```
 - The check that runs on every deploy is `src/utils/an14.bundle.test.js` (emails and
   distinctive names, reassembled so a source grep cannot match them). It only inspects

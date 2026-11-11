@@ -393,11 +393,11 @@ async function main() {
      * `uidByName.get(data.targetStaff)` — exact string equality. Sections 4 to 7
      * go through `legacyMatch`, which strips everything that is not a letter or a
      * digit precisely because the app produced several spellings of one name; the
-     * dry run proved it by finding `archive_2025/ying xian` alongside
-     * `archive_2025/ying_xian`.
+     * dry run proved it by finding `archive_2025/yu xuan` alongside
+     * `archive_2025/yu_xuan`.
      *
      * Swaps and notifications were the one place that did not, so a pending
-     * coverage request stored as `'ying xian'` or `'Ying  Xian'` would fail to
+     * coverage request stored as `'yu xuan'` or `'Yu  Xuan'` would fail to
      * match, be dropped, and be reported as targeting somebody "who is not a
      * member" — about a member. On swaps that is the worse direction: an unanswered
      * cover request is a shift nobody is holding.
@@ -486,8 +486,8 @@ async function main() {
                 const target = targetFor(verdict.member);
                 /**
                  * ⚠️ TWO SOURCE DOCUMENTS LANDING ON ONE DESTINATION. The old app
-                 *    slugged one person's name several ways, so `ying_xian` and
-                 *    `ying xian` are separate documents that both resolve to the same
+                 *    slugged one person's name several ways, so `yu_xuan` and
+                 *    `yu xuan` are separate documents that both resolve to the same
                  *    uid — which is exactly what the uid matching is FOR, and also the
                  *    one case where it loses data.
                  *
@@ -503,7 +503,7 @@ async function main() {
                  *    merge you compare the overlapping fields. Under a skip you check
                  *    whether the discarded document held anything the kept one does
                  *    not — a whole project, a whole year — and copy it across by hand.
-                 *    Observed on the real cutover, 2026-08-23, on Ying Xian's
+                 *    Observed on the real cutover, 2026-08-23, on Yu Xuan's
                  *    `archive_2025` pair.
                  *
                  * Neither behaviour destroys anything: both originals are untouched,

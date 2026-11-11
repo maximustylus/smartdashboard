@@ -45,7 +45,7 @@ import {
 
 /** The config RosterView ships in live mode. */
 const liveConfig = (overrides = {}) => ({
-    staff: ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'],
+    staff: ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'],
     tasks: [
         'Physical Activity Counseling',
         'Exercise Test',
@@ -144,7 +144,7 @@ describe('validateRosterConfig — start date', () => {
 });
 
 describe('validateRosterConfig — staff pool and task list', () => {
-    [[], [''], ['  '], null, undefined, 'Brandon'].forEach((staff) => {
+    [[], [''], ['  '], null, undefined, 'Bradley'].forEach((staff) => {
         it(`rejects staff = ${JSON.stringify(staff)}`, () => {
             const result = validateRosterConfig(liveConfig({ staff }));
             expect(result.valid).toBe(false);

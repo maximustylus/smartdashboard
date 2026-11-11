@@ -11,7 +11,7 @@
  *
  *   users/{uid}                      allow get: if isSelf(userId)
  *       Only you can read it. So anything a colleague or the roster engine must
- *       see cannot be here — Nisa opening Configure would get permission-denied
+ *       see cannot be here — Nora opening Configure would get permission-denied
  *       on every member.
  *
  *   teams/{teamId}/members/{uid}     allow get, list: if isMember(teamId)
