@@ -142,6 +142,45 @@ describe('⚠️ the floor applies to EVERY breakdown, not only sectors — CP25
         expect(out.suppression.suppressedRegions).toContain('north');
     });
 
+    /**
+     * ⚠️ THE FLOOR DOES NOT STOP SUBTRACTION. The total's breakdown minus the
+     *    published regions is everybody else. Sector 73 is north; 46 is east.
+     */
+    it('a region that would give a small one away is withheld too, with its sectors', () => {
+        const out = build([...many('73', 30, 'sdohFoodInsecure', 30), ...many('75', 12), rec('46', { sdohFoodInsecure: true })]);
+        // Left over without this rule: the one person in the east.
+        expect(out.regions.north).toBeUndefined();
+        expect(out.suppression.suppressedRegions).toEqual(['east']);
+        expect(out.suppression.complementRegions).toEqual(['north']);
+        expect(out.sectors).toEqual({});
+        expect(out.suppression.complementSectors).toEqual(['73', '75']);
+        expect(out.national.respondents).toBe(43);
+        expect(out.national.domains.foodInsecurity).toBe(31);
+    });
+
+    it('people with no usable sector are part of what a region could give away', () => {
+        const out = build([...many('73', 12), ...many('46', 30), rec(null, {}), rec('--', {})]);
+        expect(Object.keys(out.regions)).toEqual(['east']);
+        expect(out.suppression.complementRegions).toEqual(['north']);
+    });
+
+    it('a sector that would give a small neighbour away is withheld too; the region is not', () => {
+        const out = build([...many('73', 30), ...many('75', 12), ...many('76', 3)]);
+        expect(out.regions.north.respondents).toBe(45);
+        // Left over without this rule: the three people in sector 76.
+        expect(Object.keys(out.sectors)).toEqual(['73']);
+        expect(out.suppression.suppressedSectors).toEqual(['76']);
+        expect(out.suppression.complementSectors).toEqual(['75']);
+    });
+
+    it('nothing small left over, nothing extra withheld', () => {
+        const out = build([...many('73', 30), ...many('75', 6), ...many('76', 4), ...many('46', 10)]);
+        expect(Object.keys(out.sectors)).toEqual(['46', '73']);
+        expect(Object.keys(out.regions)).toEqual(['east', 'north']);
+        expect(out.suppression.complementRegions).toEqual([]);
+        expect(out.suppression.complementSectors).toEqual([]);
+    });
+
     it('withholds a month below the floor, and says so', () => {
         const out = build([rec('73', {}, '2026-07-15T00:00:00Z')]);
         expect(out.periods['2026-07']).toBeUndefined();
@@ -264,8 +303,13 @@ describe('records that cannot be placed', () => {
     it('counts an unknown sector nationally but in no region', () => {
         const out = build([...many('73', MIN_CELL), rec('--', {}), rec('74', {}), rec(null, {})]);
         expect(out.national.respondents).toBe(MIN_CELL + 3);
-        expect(out.regions.north.respondents).toBe(MIN_CELL);
         expect(out.quality.unlocatedRecords).toBe(3);
+        // Three unplaced people beside one published region are one subtraction
+        // away, so the region is withheld until there are ten of them (v2.23.2).
+        expect(out.regions.north).toBeUndefined();
+        const enough = build([...many('73', MIN_CELL), ...Array.from({ length: MIN_CELL }, () => rec(null, {}))]);
+        expect(enough.regions.north.respondents).toBe(MIN_CELL);
+        expect(enough.national.respondents).toBe(MIN_CELL * 2);
     });
 
     it('reports undated records rather than guessing a period', () => {

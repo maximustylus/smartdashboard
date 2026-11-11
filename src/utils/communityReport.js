@@ -70,6 +70,15 @@ export const dayOptions = (rollup, month) => {
     return Object.keys(days).sort().map((key) => ({ key, label: `${dateLabel(key)} (${days[key].respondents})` }));
 };
 
+const counted = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+
+/** Areas large enough alone but withheld against subtraction, as phrases. */
+export const heldBackAreas = (sup) => [
+    [sup?.complementRegions, 'region', 'regions'],
+    [sup?.complementSectors, 'postal sector', 'postal sectors'],
+].filter(([list]) => Array.isArray(list) && list.length > 0)
+    .map(([list, one, many]) => counted(list.length, one, many));
+
 /** A share of the respondents, or '' when the count is withheld or there is no base. */
 const share = (value, base) => (typeof value === 'number' && base > 0 ? `${Math.round((value / base) * 100)}%` : '');
 
@@ -157,6 +166,10 @@ export const buildCommunityReport = (rollup, { scope = 'all', day = '' } = {}) =
     }
     if (!month && sup.suppressedSectorCount > 0) {
         notes.push(`${sup.suppressedSectorCount} postal sector${sup.suppressedSectorCount === 1 ? ' is' : 's are'} withheld from the area tables (${sup.suppressedRespondents} people). They are still counted in the total.`);
+    }
+    const heldBack = heldBackAreas(sup);
+    if (!month && heldBack.length > 0) {
+        notes.push(`Also left out of the area tables: ${heldBack.join(' and ')}, each with ${sup.minCell || 10} people or more. Publishing every large group would let the small ones be worked out by subtraction. They are still counted in the total.`);
     }
     if (month) notes.push(`A single ${oneDay ? 'day' : 'month'} has no area tables: areas are not split by ${oneDay ? 'day' : 'month'}.`);
     if (!month && quality.unlocatedRecords > 0) notes.push(`${quality.unlocatedRecords} people gave no usable postal sector. They are counted in the total and in no area.`);
