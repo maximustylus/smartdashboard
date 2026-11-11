@@ -89,7 +89,7 @@ describe('callerKey', () => {
         // but it IS a way to create unbounded documents in `rate_limits` by sending
         // a new junk value each time.
         expect(callerKey('', 'not-an-ip')).toBeNull();
-        expect(callerKey('', 'kkh.com.sg')).toBeNull();
+        expect(callerKey('', 'northside.example')).toBeNull();
     });
 
     it('strips a port', () => {

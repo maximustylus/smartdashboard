@@ -54,6 +54,57 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.24.0] - 2026-11-11
+
+The institution is a deployment setting. The code names none.
+
+### Changed
+
+- **Where NEXUS is deployed is no longer written into the code.** Tests, scripts,
+  comments and documents named the institution it was first built in, and its sign-in
+  domains, in 70 files. They now use an invented institution and `.example` domains.
+- **Two deployment settings carry what the code no longer says**, both read from
+  repository variables at deploy:
+  - `VITE_DEFAULT_DOMAINS`: the fallback sign-in domains, comma separated, used only
+    when `config/domains` cannot be read before sign-in. Unset, the fallback is two
+    invented domains that admit nobody (`defaultDomainsFrom`). The server never used
+    this fallback and is unchanged: it reads `config/domains` and refuses without it.
+  - `NEXUS_INSTITUTION`: the institution AURA is told it works in. Unset, AURA is told
+    "a healthcare institution".
+- Form placeholders and two validation messages no longer suggest a named institution.
+  A profile with no department now sends AURA no department instead of a default one.
+- The NEXUS Admin workflow's domain and team inputs have no default. They were the
+  first team's own values.
+- **Security reports** go through the repository's private *Report a vulnerability*
+  form. The contact was a work email address.
+
+### Not changed, on purpose
+
+- **The community portal's directory of public services**, which names real hospitals,
+  helplines and health clusters because that is what a resident is being pointed to
+  (`communityResources.js`, `communityServices.js`, `communityResourcePlan.js`,
+  `ResultPage.jsx`, `AuraChat.jsx`, and their notes).
+- **The research persona's grant schemes and funding rules** (`src/config/personas.js`),
+  which name a health cluster's schemes. Whether those rules are public is the owner's
+  call and is listed below.
+
+### Verification
+
+- 4,806 tests in 149 files pass; lint and build clean. `accessPolicy.test.js` covers the
+  build setting: unset, set, and a wildcard that must not widen the list. A build with
+  the variable set was checked to carry the domain into the bundle.
+- Not checked in production. The two repository variables must exist before this is
+  deployed, or the fallback domains and AURA's institution take their neutral defaults.
+
+### Known limitations
+
+- **The commit history still holds the original names, addresses and institution.**
+- The deployed site's JavaScript still contains the real fallback domains, because the
+  browser needs them. That is the running product, not the published source.
+- Three binary files still name the institution inside them: a slide deck in `docs/`
+  and two images in `src/assets/`.
+- `src/config/personas.js` describes one health cluster's internal grant funding rules.
+
 ## [2.23.3] - 2026-11-11
 
 No colleague is named in this repository's files.
@@ -475,7 +526,7 @@ Every pop-up now reads as NEXUS's own.
 ## [2.19.0] - 2026-10-14
 
 An account can move to a new email address and keep everything. Built for the NEXUS
-owner, who is leaving KKH and keeping NEXUS: their account was on `kkh.com.sg`, a
+owner, who is leaving Northside and keeping NEXUS: their account was on `northside.example`, a
 mailbox that is about to close.
 
 ### Added
@@ -563,7 +614,7 @@ administer, repairable only by hand in the Firebase console.
   service account so the owner needs no key file:
   - **register-domain** adds an email domain to `config/domains`, additively. The
     live project had none, so the Team panel said "Setup outstanding" and every
-    "Add to team" was refused, including colleagues on `kkh.com.sg`.
+    "Add to team" was refused, including colleagues on `northside.example`.
   - **transfer-team** hands a team to a new lead (`scripts/transfer-team.cjs`): the
     founding lead (`teams/{id}.leadUid`) moves to them, they are made a lead if they
     were not, and the outgoing lead becomes a lead, staff or viewer. One transaction,
@@ -2191,8 +2242,8 @@ not wait on a registration relay.
 npm i --no-save firebase-admin
 GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json \
   node scripts/add-pending-member.cjs --team <teamId> \
-    --person bradley.tan.gq@kkh.com.sg:Bradley:AH11 \
-    --person fayelynn.mohamad.farid@kkh.com.sg:Fayelynn:AH13
+    --person bradley.tan.gq@northside.example:Bradley:AH11 \
+    --person fayelynn.mohamad.farid@northside.example:Fayelynn:AH13
 ```
 
 Dry run first — it prints the project and every document it would write. Add `--write`
@@ -2279,7 +2330,7 @@ Three things the roster owner said, all of which were right.
   Six tests. A mutation replacing the exact domain comparison with `endsWith` **survived
   the first five**: the lookalike case put the attacker in the *caller's* address, where a
   suffix check still refuses. The hole is the other direction — a legitimate lead and an
-  invitee at `evil-kkh.com.sg`. That case is now pinned, and it is the exact trap
+  invitee at `evil-northside.example`. That case is now pinned, and it is the exact trap
   `accessPolicy.js` names.
 
 ### Added
@@ -2386,7 +2437,7 @@ hospital.
 
 ### Fixed
 
-- **"NEXUS is not open to kkh.com.sg. Registered organisations: none configured."** One
+- **"NEXUS is not open to northside.example. Registered organisations: none configured."** One
   sentence served two situations that need opposite responses, and it chose the wrong
   words for the more common one. There are now two:
   - **Nothing configured at all** — *"NEXUS has not been set up with any organisations
@@ -2423,7 +2474,7 @@ hospital.
 `config/domains` does not exist in the deployed project. `allow write: if false` on
 `config/{docId}` means no client can create it, so it is a Firebase console or CLI step:
 collection `config`, document `domains`, one **array** field named `allowed` holding
-`kkh.com.sg` and `singhealth.com.sg`. The field name matters — `parseDomainAllowlist`
+`northside.example` and `unityhealth.example`. The field name matters — `parseDomainAllowlist`
 reads `data.allowed` and ignores anything else.
 
 The client/server asymmetry is deliberate and documented on both sides: the login screen
@@ -2708,7 +2759,7 @@ no subject line mentions them.*
 
 - **The dashboard showed one department's staff to every team, and every bar read
   zero.** The *Individual Clinical Load* panel rendered `TEAM_DIRECTORY` in live mode
-  — ten people from Sport & Exercise Medicine at KKH — so a respiratory therapy lead
+  — ten people from Sport & Exercise Medicine at Northside — so a respiratory therapy lead
   at SGH opened their dashboard onto somebody else's colleagues. This was the sixth
   hardcoded copy of that one department and the last one standing.
 
@@ -2849,7 +2900,7 @@ number.
 
 **MULTI-TEAM.** NEXUS was built for one ten-person department, with every collection at
 the root of the database and the team itself hardcoded in *six* separate places. It now
-serves a team per department per institution — Respiratory Therapy at KKH and
+serves a team per department per institution — Respiratory Therapy at Northside and
 Respiratory Therapy at SGH are different teams, rostering differently, unable to see
 each other.
 
@@ -2898,8 +2949,8 @@ changes**.
   spaces to catch the display-name habit surviving a copy-paste.
 
 - **A domain allowlist held as data** (`config/domains`), replacing a hardcoded
-  `@kkh.com.sg` test that **permanently locked out two colleagues** on
-  `@singhealth.com.sg` — they passed the directory check and failed the domain test one
+  `@northside.example` test that **permanently locked out two colleagues** on
+  `@unityhealth.example` — they passed the directory check and failed the domain test one
   line above it.
 
 - **Lead declaration at registration, and an approval Cloud Function.** A declaration is
@@ -2970,7 +3021,7 @@ changes**.
   missed. Used in two places in `AdminPanel`, both gone with the slugs themselves.
 
 - **`teamIdFrom('', 'Physiotherapy')` returned `'physiotherapy'`** — an id with no
-  institution in it, making Physiotherapy at KKH and at SGH the same team. Found by the
+  institution in it, making Physiotherapy at Northside and at SGH the same team. Found by the
   drift test comparing the client slug against the server's copy, which also caught the
   accent handling: NFKD alone turns 'Thérapie' into `the-rapie`.
 
@@ -2999,7 +3050,7 @@ changes**.
 ### Known limitations, stated rather than discovered
 
 - **The roster's day arrays, the pulse heatmap keys and swap `targetStaff` are still
-  display names.** Team scoping removed the collision that mattered — a Sarah at KKH and
+  display names.** Team scoping removed the collision that mattered — a Sarah at Northside and
   a Sarah at SGH are in different subcollections. Two in *one* department would still
   collide, which a lead fixes by editing a name. Converting them means changing the
   engine, the wizard, the demo fixtures and most of 1,837 tests: its own risk budget,
@@ -3179,8 +3230,8 @@ The authorization boundary stops living in a console, and the engine gets stress
 - **What was live until this release, and why it mattered.** The owner supplied the console's
   rules on 2026-08-18 — the first time anybody in this repository could see them. The operative
   clause was `match /{document=**} { allow read, write: if isVerifiedStaff(); }`, and
-  `isVerifiedStaff()` was **any verified `@kkh.com.sg` address, not the ten-person directory**.
-  The Firebase API key ships in the public bundle, so any KKH employee who registered an account
+  `isVerifiedStaff()` was **any verified `@northside.example` address, not the ten-person directory**.
+  The Firebase API key ships in the public bundle, so any Northside employee who registered an account
   could read `wellbeing_history` — the longitudinal burnout record per named clinician —
   overwrite `system_data/roster_2026`, and approve any `shift_swaps` entry. Whole-hospital
   exposure, not internet-wide, and it was live the entire time. Four emulator checks now prove
@@ -3276,7 +3327,7 @@ A sixth roster structure, and the correction that a shape is one team — not a 
 
 - **A shape is ONE TEAM AT ONE INSTITUTION, and the app now says so.** Until this release the
   picker told a visitor *"this is the shape your own profession described to us"*. Every shape here
-  came from one team at one site, so a respiratory therapist at any other SingHealth institution
+  came from one team at one site, so a respiratory therapist at any other Unity Health institution
   was told their **profession** had described a structure **one team at one hospital** described —
   and there are 27 other allied health professions with the same exposure. The copy now reads
   *"came from ONE team in your profession, at one institution … one team is not a profession,
@@ -3984,7 +4035,7 @@ first time in this repository's history.
   generated configs** against the previous engine — 0 substantive divergences, with 233
   distinct `unfilled` reason templates and 22 validation-refusal templates reproduced
   character for character, in two timezones.
-- **A profession-agnostic scale.** AH7–AH17 with three fixed bands was KKH allied health.
+- **A profession-agnostic scale.** AH7–AH17 with three fixed bands was Northside allied health.
   A scale is now an ordered list of ranks plus any number of named regions, so nursing
   bands, MO/Registrar/Consultant, or a two-tier team all work. The AH/three-band exports
   are retained as one instance of the general thing.

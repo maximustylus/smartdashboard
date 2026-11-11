@@ -541,7 +541,7 @@ service cloud.firestore {
 
       // ── The team feed ──────────────────────────────────────────────────────
       //
-      // Was one global `feed_posts` collection, so a KKH respiratory therapist's
+      // Was one global `feed_posts` collection, so a Northside respiratory therapist's
       // post appeared on an SGH physiotherapist's wall.
       match /feed/{postId} {
         allow get, list: if isMember(teamId);

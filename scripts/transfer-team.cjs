@@ -11,7 +11,7 @@
  *
  *   # DRY RUN — the default. Names the project, prints the plan, writes nothing.
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json node scripts/transfer-team.cjs \
- *     --team kkh-sport-exercise-medicine --to new.lead@kkh.com.sg --previous-lead-becomes viewer
+ *     --team northside-sport-exercise-medicine --to new.lead@northside.example --previous-lead-becomes viewer
  *
  *   # FOR REAL — the same command with --write.
  *

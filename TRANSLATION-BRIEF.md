@@ -327,9 +327,9 @@ clearance and to call 995 if symptoms are severe.
 
 | ID | English |
 |---|---|
-| `senior_isolated.primaryStep` | We strongly recommend connecting with SingHealth CareLine, a 24/7 tele-befriending and social support service. It is completely free for eligible seniors and ensures you always have someone to talk to or call for health advice. |
+| `senior_isolated.primaryStep` | We strongly recommend connecting with Unity Health CareLine, a 24/7 tele-befriending and social support service. It is completely free for eligible seniors and ensures you always have someone to talk to or call for health advice. |
 | `senior_isolated.healthierSG` | Your Healthier SG doctor can work alongside CareLine and community partners to ensure your Health Plan includes dedicated social support. |
-| `senior_isolated.resource1` | 📞 SingHealth CareLine: Call 6340 7054 (24/7 Support) |
+| `senior_isolated.resource1` | 📞 Unity Health CareLine: Call 6340 7054 (24/7 Support) |
 | `senior_isolated.resource2` | 🏠 Active Ageing Centres: Drop by your nearest centre for daily activities |
 | `senior_isolated.resource3` | 💬 Silver Generation Office: Request a home care visit |
 

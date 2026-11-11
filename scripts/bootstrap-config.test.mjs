@@ -101,10 +101,10 @@ describe('it validates a domain rather than trusting the operator', () => {
         // Mirror the deployed pattern and exercise it, rather than trusting that a
         // regexp exists — the trap `nric.test.js` documents.
         const pattern = new RegExp(match[1].slice(1, -1));
-        for (const good of ['kkh.com.sg', 'singhealth.com.sg', 'a.co', 'my-hospital.health.sg']) {
+        for (const good of ['northside.example', 'unityhealth.example', 'a.co', 'my-hospital.health.sg']) {
             expect(pattern.test(good), `${good} should be a domain`).toBe(true);
         }
-        for (const bad of ['me@kkh.com.sg', 'https://kkh.com.sg', '*', '*.kkh.com.sg', 'kkh', '', 'kkh..sg', '-kkh.sg']) {
+        for (const bad of ['me@northside.example', 'https://northside.example', '*', '*.northside.example', 'northside', '', 'northside..sg', '-northside.sg']) {
             expect(pattern.test(bad), `${bad} should NOT be a domain`).toBe(false);
         }
     });

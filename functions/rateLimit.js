@@ -7,7 +7,7 @@
  *
  * `communityAck` is deliberately unauthenticated: the community portal is FOR
  * members of the public, and requiring a sign-in would defeat it. `CP6` shrank the
- * blast radius of that decision — the prompt no longer names KKH/SingHealth or
+ * blast radius of that decision — the prompt no longer names Northside/Unity Health or
  * prints the internal schema, output is capped at 200 tokens and the timeout is
  * 30s. What it did not do is bound how OFTEN somebody can call it.
  *

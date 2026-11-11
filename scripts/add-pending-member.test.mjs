@@ -34,11 +34,11 @@ describe('a placeholder cannot become a second copy of somebody', () => {
         expect(match, 'pendingIdFor not found').not.toBeNull();
         // Mirror it and exercise it, rather than trusting that a function exists.
         const idFor = (email) => 'pending-' + email.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-        expect(idFor('bradley.tan.gq@kkh.com.sg')).toBe('pending-bradley-tan-gq-kkh-com-sg');
+        expect(idFor('bradley.tan.gq@northside.example')).toBe('pending-bradley-tan-gq-northside-example');
         // Same address, same id — twice through is one row.
-        expect(idFor('Bradley.Tan.GQ@kkh.com.sg')).toBe(idFor('bradley.tan.gq@kkh.com.sg'));
+        expect(idFor('Bradley.Tan.GQ@northside.example')).toBe(idFor('bradley.tan.gq@northside.example'));
         // Different people never collide.
-        expect(idFor('a@kkh.com.sg')).not.toBe(idFor('b@kkh.com.sg'));
+        expect(idFor('a@northside.example')).not.toBe(idFor('b@northside.example'));
     });
 
     it('leaves an address that already has a REAL account alone', () => {

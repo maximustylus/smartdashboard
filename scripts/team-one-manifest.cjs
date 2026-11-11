@@ -21,8 +21,8 @@
  * then narrowed it: **Arjun, Mira and Elaine are not in team #1.**
  *
  * ⚠️ THAT IS A REVOCATION, NOT A FILTER, AND IT SHOULD BE READ AS ONE. Those three
- *    can still sign in — the domain allowlist admits `@kkh.com.sg` and
- *    `@singhealth.com.sg` — but with no membership they reach the "nobody has added
+ *    can still sign in — the domain allowlist admits `@northside.example` and
+ *    `@unityhealth.example` — but with no membership they reach the "nobody has added
  *    you to a team yet" holding screen and see no roster, no wellbeing data and no
  *    feed. Today they can read all three. If any of them asks why NEXUS stopped
  *    working, this is why, and a lead can invite them back in seconds without a
@@ -77,14 +77,14 @@
  */
 
 const TEAM_ONE = Object.freeze({
-    teamId: 'kkh-sport-exercise-medicine',
+    teamId: 'northside-sport-exercise-medicine',
     name: 'Sport & Exercise Medicine',
-    institution: 'KKH',
+    institution: 'Northside',
     department: 'Sport & Exercise Medicine',
     // the national list's own vocabulary — the leaf id from `src/data/alliedHealthProfessions.js`, so the
     // team's profession tag matches the list the demo picker offers every other team.
     profession: 'clinical-exercise-physiologist',
-    leadEmail: 'muhammad.alif@kkh.com.sg',
+    leadEmail: 'muhammad.alif@northside.example',
 });
 
 /**
@@ -112,10 +112,10 @@ const MEMBERS = Object.freeze([
      *    rather than four. Rosters already stored are untouched — the migration
      *    copies and never rewrites — so this affects the next Generate, not history.
      */
-    { legacyId: 'alif',       displayName: 'Alif',       email: 'muhammad.alif@kkh.com.sg',              role: 'lead',   rostered: true,  title: 'Lead and Sr. CEP (JG14)' },
+    { legacyId: 'alif',       displayName: 'Alif',       email: 'muhammad.alif@northside.example',              role: 'lead',   rostered: true,  title: 'Lead and Sr. CEP (JG14)' },
     // ROSTER MASTER. Builds the roster every week, so `lead`; carries no clinical
     // load, so `rostered: false`. The pair of facts this model exists to separate.
-    { legacyId: 'nora',       displayName: 'Nora',       email: 'nora.binte.aziz.nh@kkh.com.sg',         role: 'lead',   rostered: false, title: 'Administrator & Roster Master' },
+    { legacyId: 'nora',       displayName: 'Nora',       email: 'nora.binte.aziz.nh@northside.example',         role: 'lead',   rostered: false, title: 'Administrator & Roster Master' },
     /**
      * HEAD OF SERVICE. `viewer` and `rostered: false` — he reads the roster, holds no
      * duties in it, and does not configure it.
@@ -127,11 +127,11 @@ const MEMBERS = Object.freeze([
      *    of Service reads it. If he should also be able to configure or invite, that
      *    is `role: 'lead'` and one edit; it has not been asked for.
      */
-    { legacyId: 'barry',      displayName: 'Barry',      email: 'barry.lim.k.g.@singhealth.com.sg',      role: 'viewer', rostered: false, title: 'Head of Service' },
-    { legacyId: 'bradley',    displayName: 'Bradley',    email: 'bradley.tan.gg@kkh.com.sg',            role: 'staff',  rostered: true,  title: 'CEP (JG11)' },
-    { legacyId: 'yu_xuan',  displayName: 'Yu Xuan',  email: 'lim.yu.xuan@kkh.com.sg',              role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
-    { legacyId: 'darshan',  displayName: 'Darshan',  email: 'darshan.rao@kkh.com.sg',             role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
-    { legacyId: 'fayelynn',   displayName: 'Fayelynn',   email: 'fayelynn.mohamad.farid@kkh.com.sg',  role: 'staff',  rostered: true,  title: 'CEP (JG13)' },
+    { legacyId: 'barry',      displayName: 'Barry',      email: 'barry.lim.k.g.@unityhealth.example',      role: 'viewer', rostered: false, title: 'Head of Service' },
+    { legacyId: 'bradley',    displayName: 'Bradley',    email: 'bradley.tan.gg@northside.example',            role: 'staff',  rostered: true,  title: 'CEP (JG11)' },
+    { legacyId: 'yu_xuan',  displayName: 'Yu Xuan',  email: 'lim.yu.xuan@northside.example',              role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
+    { legacyId: 'darshan',  displayName: 'Darshan',  email: 'darshan.rao@northside.example',             role: 'staff',  rostered: true,  title: 'CEP (JG12)' },
+    { legacyId: 'fayelynn',   displayName: 'Fayelynn',   email: 'fayelynn.mohamad.farid@northside.example',  role: 'staff',  rostered: true,  title: 'CEP (JG13)' },
 ]);
 
 /**
@@ -147,9 +147,9 @@ const MEMBERS = Object.freeze([
  * invited back, their history is still there to attach.
  */
 const EXCLUDED = Object.freeze([
-    { legacyId: 'elaine', displayName: 'Elaine', email: 'Elaine.Goh.MH@kkh.com.sg',              was: 'Asst. Director (Medicine)' },
-    { legacyId: 'arjun',  displayName: 'Arjun',  email: 'mohammad.arjun.zainal@singhealth.com.sg', was: 'Sr. Consultant (Ortho)' },
-    { legacyId: 'mira',   displayName: 'Mira',   email: 'Mira.Joseph@kkh.com.sg',               was: 'Nurse Clinician' },
+    { legacyId: 'elaine', displayName: 'Elaine', email: 'Elaine.Goh.MH@northside.example',              was: 'Asst. Director (Medicine)' },
+    { legacyId: 'arjun',  displayName: 'Arjun',  email: 'mohammad.arjun.zainal@unityhealth.example', was: 'Sr. Consultant (Ortho)' },
+    { legacyId: 'mira',   displayName: 'Mira',   email: 'Mira.Joseph@northside.example',               was: 'Nurse Clinician' },
 ]);
 
 /**

@@ -14,7 +14,7 @@ model: opus
 
 You are the version steward for NEXUS — a clinician-led React/Vite PWA on
 Firebase, in production across allied health departments (multi-team since
-v2.0.0; it began at the SSMC@KKH Sport & Exercise Medicine Centre).
+v2.0.0; it began at the SSMC@Northside Sport & Exercise Medicine Centre).
 
 ## The scheme
 

@@ -392,9 +392,17 @@ function parseJsonResponse(rawText, requiredFields) {
     }
 }
 
+/**
+ * WHERE THIS DEPLOYMENT RUNS, said to AURA. A setting, not a constant: the code is
+ * public and names no institution. `NEXUS_INSTITUTION` is written into
+ * `functions/.env` at deploy from a repository variable; unset, AURA is told only
+ * that it works in a healthcare institution.
+ */
+var AURA_INSTITUTION = String(process.env.NEXUS_INSTITUTION || '').trim().slice(0, 80) || 'a healthcare institution';
+
 var AURA_SYSTEM_PROMPT = [
     'ROLE:',
-    'You are AURA (Adaptive Understanding and Real-time Analytics). You are a Quad-Mode AI deployed at KKH/SingHealth. You must dynamically analyze the user\'s conversational intent and instantly switch your active persona to MODE 1 (Coach), MODE 2 (Assistant), MODE 3 (Data Entry), or MODE 4 (Research).',
+    'You are AURA (Adaptive Understanding and Real-time Analytics). You are a Quad-Mode AI deployed at ' + AURA_INSTITUTION + '. You must dynamically analyze the user\'s conversational intent and instantly switch your active persona to MODE 1 (Coach), MODE 2 (Assistant), MODE 3 (Data Entry), or MODE 4 (Research).',
     '',
     'CRITICAL OVERRIDE:',
     'If the user\'s prompt contains a request to update, log, or change a numerical metric (e.g., "Log 35 patients for January"), you MUST INSTANTLY switch to MODE 3 (DATA_ENTRY). Do NOT use Motivational Interviewing. Do NOT ask about their feelings.',
@@ -487,7 +495,7 @@ var AURA_SYSTEM_PROMPT = [
 var SMART_ANALYSIS_SYSTEM_PROMPT = [
     'ROLE:',
     // The institution comes from the caller's team, not from a constant. It was
-    // 'for KKH/SingHealth' — correct for team #1 and wrong for every other
+    // 'for Northside/Unity Health' — correct for team #1 and wrong for every other
     // department the multi-team rebuild exists to serve.
     'You are an Expert Organizational Analyst and Wellbeing Advisor for an allied health department.',
     'The department is named in the TEAM IDENTITY line of the request. Use that name; do not assume an institution.',
@@ -531,7 +539,7 @@ exports.chatWithAura = onCall({
     var personaId = request.data.personaId;
 
     // ⚠️ STAFF ONLY. This function's systemInstruction is `AURA_SYSTEM_PROMPT`,
-    //    which names KKH/SingHealth, describes a "MODE 3: DATA ENTRY AGENT" acting
+    //    which names Northside/Unity Health, describes a "MODE 3: DATA ENTRY AGENT" acting
     //    as a database gateway, and prints the internal Firestore schema. It was
     //    reachable by anyone on the internet.
     //
@@ -1007,7 +1015,7 @@ exports.processFeedPost = onCall({ secrets: ['GEMINI_API_KEY'] }, async (request
 
     /**
      * WHOSE FEED. The only Admin SDK path in this file that needed team scoping —
-     * it wrote to one global `feed_posts` collection, so a KKH respiratory
+     * it wrote to one global `feed_posts` collection, so a Northside respiratory
      * therapist's post appeared on an SGH physiotherapist's wall.
      *
      * ⚠️ MEMBERSHIP IS CHECKED HERE, NOT TRUSTED FROM THE ARGUMENT. This function
@@ -1213,7 +1221,7 @@ exports.publicTriageChat = onCall({ cors: true }, async () => {
 // `chatWithAura` — the SAME callable as the internal staff assistant
 // (`AuraPulseBot`). That callable takes no `request.auth`, and its
 // `systemInstruction` is `AURA_SYSTEM_PROMPT`: a staff-facing agent that names
-// KKH/SingHealth, describes a "MODE 3: DATA ENTRY AGENT" acting as a "safe
+// Northside/Unity Health, describes a "MODE 3: DATA ENTRY AGENT" acting as a "safe
 // database gateway", and then PRINTS the internal Firestore schema. Anyone on the
 // internet could reach it, and the public health screening was layering its own
 // persona on top of it as a caller-supplied `CONTEXT/OVERRIDE`.

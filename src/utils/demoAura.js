@@ -20,7 +20,7 @@
  * ── WHY THIS MODULE UNBLOCKS A SECURITY FIX ──────────────────────────────────
  *
  * `chatWithAura` has no `request.auth` check. It should — its system prompt names
- * KKH/SingHealth and prints the internal Firestore schema. The reason it could not
+ * Northside/Unity Health and prints the internal Firestore schema. The reason it could not
  * simply be added is that demo visitors are unauthenticated by construction, so
  * the check would turn every demo message into a "Neural link unstable" bubble.
  *

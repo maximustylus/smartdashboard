@@ -242,7 +242,7 @@ export const TeamProvider = ({ uid, children }) => {
          * ⚠️ TWO MEMBERS WITH THE SAME DISPLAY NAME RESOLVE TO ONE UID — the one
          *    that sorts first, deterministically (the reverse is so the first
          *    entry, not the last, survives `fromEntries`). Team-scoping has already
-         *    removed the collision that mattered: a Sarah at KKH and a Sarah at SGH
+         *    removed the collision that mattered: a Sarah at Northside and a Sarah at SGH
          *    are now in different subcollections and cannot touch each other's data.
          *    What remains is two Sarahs in ONE department, where the lead owns the
          *    member list and can write "Sarah T." — a fix that takes ten seconds and

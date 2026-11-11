@@ -39,23 +39,23 @@ import {
     anonymousWellbeingPath, ANONYMOUS_WELLBEING_ID,
 } from './teamPaths';
 
-const TEAM = 'kkh-respiratory-therapy';
+const TEAM = 'northside-respiratory-therapy';
 const UID = 'aB3xYz9QwErTyUiOpAsDfGhJkLzX';
 
 describe('teamPaths — team id validation', () => {
     it('accepts a slug and rejects everything that is not one', () => {
         expect(isTeamId(TEAM)).toBe(true);
-        expect(isTeamId('kkh-sport-exercise-medicine')).toBe(true);
+        expect(isTeamId('northside-sport-exercise-medicine')).toBe(true);
         expect(isTeamId('abc')).toBe(true);
 
         expect(isTeamId('')).toBe(false);
         expect(isTeamId('ab')).toBe(false);                    // too short
         expect(isTeamId('a'.repeat(65))).toBe(false);          // too long
-        expect(isTeamId('KKH-Respiratory')).toBe(false);       // upper case
-        expect(isTeamId('kkh_respiratory')).toBe(false);       // underscore
-        expect(isTeamId('kkh--respiratory')).toBe(false);      // doubled hyphen
-        expect(isTeamId('-kkh')).toBe(false);
-        expect(isTeamId('kkh-')).toBe(false);
+        expect(isTeamId('Northside-Respiratory')).toBe(false);       // upper case
+        expect(isTeamId('northside_respiratory')).toBe(false);       // underscore
+        expect(isTeamId('northside--respiratory')).toBe(false);      // doubled hyphen
+        expect(isTeamId('-northside')).toBe(false);
+        expect(isTeamId('northside-')).toBe(false);
         expect(isTeamId(null)).toBe(false);
         expect(isTeamId(undefined)).toBe(false);
         expect(isTeamId(42)).toBe(false);
@@ -69,7 +69,7 @@ describe('teamPaths — team id validation', () => {
      */
     it('THROWS on a path-escaping or empty id rather than composing something plausible', () => {
         expect(() => teamPath('a/../b')).toThrow(/Invalid teamId/);
-        expect(() => teamPath('kkh/respiratory')).toThrow(/Invalid teamId/);
+        expect(() => teamPath('northside/respiratory')).toThrow(/Invalid teamId/);
         expect(() => teamPath('')).toThrow(/Invalid teamId/);
         expect(() => teamPath(undefined)).toThrow(/Invalid teamId/);
         expect(() => teamPath(null)).toThrow(/Invalid teamId/);
@@ -127,10 +127,10 @@ describe('teamPaths — the paths themselves', () => {
      * the absence of.
      */
     it('never produces the same path for two different teams', () => {
-        const a = rosterPath('kkh-respiratory-therapy', 2026).join('/');
+        const a = rosterPath('northside-respiratory-therapy', 2026).join('/');
         const b = rosterPath('sgh-respiratory-therapy', 2026).join('/');
         expect(a).not.toBe(b);
-        expect(a).toContain('kkh-');
+        expect(a).toContain('northside-');
         expect(b).toContain('sgh-');
     });
 
@@ -152,13 +152,13 @@ describe('teamPaths — the paths themselves', () => {
 
 describe('teamPaths — deriving an id from what a lead types', () => {
     it('slugs institution and department, institution first', () => {
-        expect(teamIdFrom('KKH', 'Respiratory Therapy')).toBe('kkh-respiratory-therapy');
+        expect(teamIdFrom('Northside', 'Respiratory Therapy')).toBe('northside-respiratory-therapy');
         expect(teamIdFrom('SGH', 'Physiotherapy')).toBe('sgh-physiotherapy');
-        expect(teamIdFrom('  KKH  ', 'Sport & Exercise Medicine')).toBe('kkh-sport-exercise-medicine');
+        expect(teamIdFrom('  Northside  ', 'Sport & Exercise Medicine')).toBe('northside-sport-exercise-medicine');
     });
 
     it('separates the same department at two institutions', () => {
-        expect(teamIdFrom('KKH', 'Respiratory Therapy'))
+        expect(teamIdFrom('Northside', 'Respiratory Therapy'))
             .not.toBe(teamIdFrom('SGH', 'Respiratory Therapy'));
     });
 
@@ -166,14 +166,14 @@ describe('teamPaths — deriving an id from what a lead types', () => {
      * BOTH PARTS ARE REQUIRED, and the first draft did not enforce it: it joined
      * whichever parts were truthy, so `('', 'Physiotherapy')` returned
      * `'physiotherapy'` — an id with NO INSTITUTION IN IT, which makes Physiotherapy
-     * at KKH and Physiotherapy at SGH the same team. That defeats the single
+     * at Northside and Physiotherapy at SGH the same team. That defeats the single
      * property the test above asserts. Found by the drift guard in
      * `functions/teamApproval.test.js`, which compares this against the server copy.
      */
     it('refuses a half-filled pair rather than composing an id from one part', () => {
-        expect(teamIdFrom('KKH', '')).toBeNull();
+        expect(teamIdFrom('Northside', '')).toBeNull();
         expect(teamIdFrom('', 'Physiotherapy')).toBeNull();
-        expect(teamIdFrom('KKH', '   ')).toBeNull();
+        expect(teamIdFrom('Northside', '   ')).toBeNull();
         expect(teamIdFrom('  ', 'Physiotherapy')).toBeNull();
     });
 
@@ -184,7 +184,7 @@ describe('teamPaths — deriving an id from what a lead types', () => {
      * because it is a property of THIS function, not only of the pair.
      */
     it('keeps the letter under an accent rather than dropping it', () => {
-        expect(teamIdFrom('KKH', 'Thérapie')).toBe('kkh-therapie');
+        expect(teamIdFrom('Northside', 'Thérapie')).toBe('northside-therapie');
     });
 
     /**
@@ -287,13 +287,13 @@ describe('⚠️ the guards that were only shape-deep — T5 and T7', () => {
      * exemption without anything enforcing it.
      */
     it('refuses to treat the anonymous bucket as a person', () => {
-        expect(() => wellbeingDocPath('kkh-physiotherapy', ANONYMOUS_WELLBEING_ID))
+        expect(() => wellbeingDocPath('northside-physiotherapy', ANONYMOUS_WELLBEING_ID))
             .toThrow(/shared anonymous check-in bucket/);
     });
 
     it('still composes the anonymous bucket by its own builder', () => {
-        expect(anonymousWellbeingPath('kkh-physiotherapy'))
-            .toEqual(['teams', 'kkh-physiotherapy', 'wellbeing', ANONYMOUS_WELLBEING_ID]);
+        expect(anonymousWellbeingPath('northside-physiotherapy'))
+            .toEqual(['teams', 'northside-physiotherapy', 'wellbeing', ANONYMOUS_WELLBEING_ID]);
     });
 
     /**

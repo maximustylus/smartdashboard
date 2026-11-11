@@ -82,7 +82,7 @@ vi.mock('../context/NexusContext', () => ({
 // swap listener routes by `targetUid` rather than by display name. Mocked here
 // rather than wrapped in a real provider: these tests are about what the roster
 // DOES, and `TeamContext.test.jsx` owns how a team is resolved.
-const TEAM_ID = 'kkh-sport-exercise-medicine';
+const TEAM_ID = 'northside-sport-exercise-medicine';
 const TEAM_MEMBERS = [
     { uid: 'uid-bradley', displayName: 'Bradley' },
     { uid: 'uid-darshan', displayName: 'Darshan' },

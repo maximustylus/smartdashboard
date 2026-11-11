@@ -121,7 +121,7 @@ const CommentSection = ({ postId, user, isMock, postAuthor: _postAuthor }) => {
 };
 
 const FeedsView = ({ user }) => {
-    // The feed belongs to a department, not to the whole installation: a KKH
+    // The feed belongs to a department, not to the whole installation: a Northside
     // respiratory therapist's post should not appear on an SGH physiotherapist's
     // wall, and `feed_posts` was one global collection everybody read.
     const { teamId } = useTeam();

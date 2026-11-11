@@ -68,7 +68,7 @@ describe('classifyAuthFailure', () => {
 });
 
 describe('environmentReport', () => {
-    const member = { displayName: 'Alif', email: 'muhammad.alif@kkh.com.sg' };
+    const member = { displayName: 'Alif', email: 'muhammad.alif@northside.example' };
 
     it('names the person looked up WITHOUT blaming them', () => {
         const lines = environmentReport(member, classifyAuthFailure(err('app/invalid-credential'))).join('\n');

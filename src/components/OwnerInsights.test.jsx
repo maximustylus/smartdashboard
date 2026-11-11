@@ -34,7 +34,7 @@ const payload = (over = {}) => ({
     },
     teamRows: [
         { name: 'Respiratory Therapy', institution: 'SGH', members: 6, leads: 2, pendingMembers: 1, hasRoster: true, createdOn: '2026-10-31', activity: { rosters: 1, swaps: 5, feedPosts: 18 } },
-        { name: 'Audiology', institution: 'KKH', members: 3, leads: 1, pendingMembers: 0, hasRoster: false, createdOn: null, activity: { rosters: 0, swaps: 0, feedPosts: 2 } },
+        { name: 'Audiology', institution: 'Northside', members: 3, leads: 1, pendingMembers: 0, hasRoster: false, createdOn: null, activity: { rosters: 0, swaps: 0, feedPosts: 2 } },
     ],
     access: { visits: [{ at: '2026-11-10T03:00:00.000Z', self: true }, { at: '2026-11-08T01:30:00.000Z', self: false }], total: 14 },
     ...over,
@@ -134,7 +134,7 @@ describe('the teams tab', () => {
         const table = screen.getByRole('table');
         expect(table.textContent).toMatch(/Rosters.*Swaps.*Feed posts/);
         expect(table.textContent).toMatch(/Respiratory TherapySGH6 \+1 not registered2Yes15182026-10-31/);
-        expect(table.textContent).toMatch(/AudiologyKKH31Not yet002–/);
+        expect(table.textContent).toMatch(/AudiologyNorthside31Not yet002–/);
         expect(table.textContent).toMatch(/All teams931 of 21520/);
     });
 

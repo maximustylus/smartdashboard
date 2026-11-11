@@ -31,7 +31,7 @@
  *
  * `canonical` strips dots and everything else that is not a letter or a digit
  * from the local part. That is deliberately aggressive and it is aimed at one
- * observed case: the manifest holds `barry.lim.k.g.@singhealth.com.sg`, whose
+ * observed case: the manifest holds `barry.lim.k.g.@unityhealth.example`, whose
  * trailing dot makes it invalid under RFC 5321, so the account almost certainly
  * exists as `barry.lim.k.g@…`. Both canonicalise to `barrylimkg`, which is an
  * EXACT canonical match and by far the strongest signal available.

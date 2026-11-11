@@ -35,9 +35,9 @@ H('A. TEAM IDS - nothing may escape the subtree');
 const HOSTILE = [
     '', ' ', null, undefined, 0, true, [], {}, NaN,
     'a', 'ab', 'a'.repeat(65),
-    '../other-team', 'a/../b', 'kkh/rt', 'kkh//rt', '/kkh', 'kkh/', '..', '.',
-    'KKH-RT', 'kkh_rt', 'kkh rt', 'kkh.rt', 'kkh--rt', '-kkh', 'kkh-',
-    'kkh-rt ', 'CHINESE-team', '__proto__',
+    '../other-team', 'a/../b', 'northside/rt', 'northside//rt', '/northside', 'northside/', '..', '.',
+    'Northside-RT', 'northside_rt', 'northside rt', 'northside.rt', 'northside--rt', '-northside', 'northside-',
+    'northside-rt ', 'CHINESE-team', '__proto__',
 ];
 const acceptedIds = HOSTILE.filter((id) => TP.isTeamId(id));
 console.log(`  ${HOSTILE.length} hostile ids - ${acceptedIds.length} accepted`);
@@ -86,7 +86,7 @@ if (asName.length) flag('U2', 'assertUid-cannot-tell-a-single-word-name-from-a-u
 // The sentinel is a legal uid SHAPE — the refusal belongs to the builder that would
 // otherwise file it as a person, not to `assertUid`, which cannot know the context.
 let sentinelRefused = false;
-try { TP.wellbeingDocPath('kkh-physiotherapy', TP.ANONYMOUS_WELLBEING_ID); } catch { sentinelRefused = true; }
+try { TP.wellbeingDocPath('northside-physiotherapy', TP.ANONYMOUS_WELLBEING_ID); } catch { sentinelRefused = true; }
 console.log(`  the anonymous bucket as a person: ${sentinelRefused ? 'refused' : 'ACCEPTED'}`);
 if (!sentinelRefused) flag('U3',
     'the-anonymous-wellbeing-sentinel-can-be-filed-as-a-person',
@@ -94,13 +94,13 @@ if (!sentinelRefused) flag('U3',
 
 H('C. TEAM ID DERIVATION - two departments must never share one id');
 
-const INSTITUTIONS = ['KKH', 'SGH', 'NUH', 'CGH', 'TTSH', 'SKH', 'NTFGH', 'KTPH',
-    'KK Women and Children Hospital', 'Singapore General Hospital',
+const INSTITUTIONS = ['Northside', 'SGH', 'NUH', 'CGH', 'TTSH', 'SKH', 'NTFGH', 'KTPH',
+    'Northside Hospital', 'Singapore General Hospital',
     'National University Hospital', 'Changi General Hospital', 'Tan Tock Seng Hospital',
     'Sengkang General Hospital', 'Ng Teng Fong General Hospital', 'Khoo Teck Puat Hospital',
     'Institute of Mental Health', 'National Heart Centre Singapore',
     'Singapore National Eye Centre', 'National Cancer Centre Singapore',
-    'KKH Respiratory', 'SGH Occupational', 'NUH Speech'];
+    'Northside Respiratory', 'SGH Occupational', 'NUH Speech'];
 const DEPARTMENTS = ['Physiotherapy', 'Occupational Therapy', 'Speech Therapy',
     'Speech-Language Therapy', 'Respiratory Therapy', 'Dietetics', 'Podiatry',
     'Medical Social Work', 'Psychology', 'Clinical Psychology', 'Pharmacy', 'Radiography',
@@ -108,7 +108,7 @@ const DEPARTMENTS = ['Physiotherapy', 'Occupational Therapy', 'Speech Therapy',
     'Prosthetics and Orthotics', 'Music Therapy', 'Art Therapy', 'Sport & Exercise Medicine',
     'Sports and Exercise Medicine', 'Physio Therapy', 'Therapy'];
 
-// Case and punctuation SHOULD collapse - "KKH" and "kkh" are one institution.
+// Case and punctuation SHOULD collapse - "Northside" and "northside" are one institution.
 const canon = (s) => String(s).toLowerCase().replace(/[^a-z0-9]/g, '');
 const byId = new Map();
 for (const inst of INSTITUTIONS) {
@@ -142,14 +142,14 @@ console.log(`     64 pairs through both copies - ${drift} disagreed`);
 
 H('D. APPROVAL - the only thing between an account and its own team');
 
-const CONFIG = { uids: ['SUPERuid'], emails: ['owner@kkh.com.sg'] };
+const CONFIG = { uids: ['SUPERuid'], emails: ['owner@northside.example'] };
 const SUPER = [
     ['a listed uid', CONFIG, { uid: 'SUPERuid', emailVerified: false }, true],
-    ['a listed email, verified', CONFIG, { uid: 'x', email: 'owner@kkh.com.sg', emailVerified: true }, true],
-    ['a listed email, UNVERIFIED', CONFIG, { uid: 'x', email: 'owner@kkh.com.sg', emailVerified: false }, false],
-    ['a lookalike domain', CONFIG, { uid: 'x', email: 'owner@kkh.com.sg.evil.com', emailVerified: true }, false],
-    ['a subdomain lookalike', CONFIG, { uid: 'x', email: 'owner@evil.kkh.com.sg', emailVerified: true }, false],
-    ['emailVerified as the STRING "true"', CONFIG, { uid: 'x', email: 'owner@kkh.com.sg', emailVerified: 'true' }, false],
+    ['a listed email, verified', CONFIG, { uid: 'x', email: 'owner@northside.example', emailVerified: true }, true],
+    ['a listed email, UNVERIFIED', CONFIG, { uid: 'x', email: 'owner@northside.example', emailVerified: false }, false],
+    ['a lookalike domain', CONFIG, { uid: 'x', email: 'owner@northside.example.evil.com', emailVerified: true }, false],
+    ['a subdomain lookalike', CONFIG, { uid: 'x', email: 'owner@evil.northside.example', emailVerified: true }, false],
+    ['emailVerified as the STRING "true"', CONFIG, { uid: 'x', email: 'owner@northside.example', emailVerified: 'true' }, false],
     ['config.uids as a string that contains it', { uids: 'SUPERuid' }, { uid: 'SUPERuid', emailVerified: true }, false],
     ['prototype pollution', JSON.parse('{"uids":["a"],"__proto__":{"uids":["evil"]}}'), { uid: 'evil', emailVerified: true }, false],
     ['no config at all', null, { uid: 'SUPERuid', emailVerified: true }, false],
@@ -161,8 +161,8 @@ for (const [label, config, caller, want] of SUPER) {
 }
 console.log(`  ${SUPER.length} authorization cases - ${superWrong} wrong`);
 
-const REQ = { uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@kkh.com.sg',
-    displayName: 'A Lead', institution: 'KKH', department: 'Physiotherapy' };
+const REQ = { uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@northside.example',
+    displayName: 'A Lead', institution: 'Northside', department: 'Physiotherapy' };
 const APPROVE = [
     ['the happy path', { request: { ...REQ }, authUser: { emailVerified: true }, teamExists: false }, true],
     ['an unverified account', { request: { ...REQ }, authUser: { emailVerified: false }, teamExists: false }, false],
@@ -184,7 +184,7 @@ console.log(`  ${APPROVE.length} approvability cases - ${approveWrong} wrong`);
 
 const smuggled = buildApprovalWrites({
     request: { ...REQ, leadUid: 'ATTACKER', createdBy: 'ATTACKER', teamIds: ['other'], admin: true, extra: 'x' },
-    teamId: 'kkh-physiotherapy', approverUid: 'SUPERuid', now: 'NOW',
+    teamId: 'northside-physiotherapy', approverUid: 'SUPERuid', now: 'NOW',
 });
 const written = [...Object.keys(smuggled.team.data), ...Object.keys(smuggled.member.data)];
 const leakedKeys = written.filter((k) => ['admin', 'extra', 'teamIds', 'status'].includes(k));
@@ -195,7 +195,7 @@ if (smuggled.team.data.createdBy !== 'SUPERuid') flag('S5', 'createdBy-is-not-th
 
 const long = buildApprovalWrites({
     request: { ...REQ, displayName: 'x'.repeat(5000), department: 'y'.repeat(5000), institution: 'z'.repeat(5000) },
-    teamId: 'kkh-physiotherapy', approverUid: 'S', now: 'NOW',
+    teamId: 'northside-physiotherapy', approverUid: 'S', now: 'NOW',
 });
 const lengths = { name: long.team.data.name.length, department: long.team.data.department.length,
     institution: long.team.data.institution.length, displayName: long.member.data.displayName.length };
@@ -205,13 +205,13 @@ if (Object.values(lengths).some((n) => n > 200)) flag('S6', 'text-from-a-request
 
 // The two causes of "that id is taken", and whether the owner can tell them apart.
 const collision = assertApprovable({
-    request: { ...REQ, institution: 'KKH Respiratory', department: 'Therapy' },
+    request: { ...REQ, institution: 'Northside Respiratory', department: 'Therapy' },
     authUser: { emailVerified: true }, teamExists: true,
-    existingTeam: { institution: 'KKH', department: 'Respiratory Therapy' },
+    existingTeam: { institution: 'Northside', department: 'Respiratory Therapy' },
 });
 const duplicate = assertApprovable({
     request: { ...REQ }, authUser: { emailVerified: true }, teamExists: true,
-    existingTeam: { institution: 'KKH', department: 'Physiotherapy' },
+    existingTeam: { institution: 'Northside', department: 'Physiotherapy' },
 });
 console.log(`\n  a DIFFERENT department holds the id -> collision=${collision.collision}`);
 console.log(`     "${collision.message}"`);
@@ -221,7 +221,7 @@ if (collision.collision !== true || duplicate.collision !== false) {
     flag('S7', 'the-two-causes-of-a-taken-id-are-not-distinguished',
         `collision=${collision.collision}, duplicate=${duplicate.collision}`);
 }
-if (!collision.message.includes('Respiratory Therapy at KKH')) {
+if (!collision.message.includes('Respiratory Therapy at Northside')) {
     flag('S8', 'the-team-exists-message-does-not-name-the-team-that-exists', collision.message);
 }
 
@@ -235,10 +235,10 @@ H('E. MEMBERSHIP - how a team grows, and the team nobody can administer');
  * Function that had not been written, so an approved team could never grow.
  */
 
-const TEAM = 'kkh-respiratory-therapy';
+const TEAM = 'northside-respiratory-therapy';
 const LEAD_MEMBERSHIP = { uid: 'leadUid0000000000000000000aa', role: 'lead' };
-const DOMAINS = ['kkh.com.sg', 'singhealth.com.sg'];
-const REAL = { uid: 'newUid00000000000000000000bb', email: 'bradley@kkh.com.sg', emailVerified: true };
+const DOMAINS = ['northside.example', 'unityhealth.example'];
+const REAL = { uid: 'newUid00000000000000000000bb', email: 'bradley@northside.example', emailVerified: true };
 
 const invitable = (over = {}) => assertInvitable({
     teamId: TEAM, callerMembership: LEAD_MEMBERSHIP, invitee: REAL,
@@ -267,10 +267,10 @@ if (admittedCallers.length) flag('M1', 'a-non-lead-was-allowed-to-add-a-member',
 // themselves up and be skipped entirely for people a lead adds.
 const HOSTILE_EMAILS = [
     '', ' ', null, undefined, 0, [], {},
-    'bradley', 'bradley@', '@kkh.com.sg', 'a@b@kkh.com.sg', 'a@kkh.com.sg@evil.example',
-    'a@gmail.com', 'a@mail.kkh.com.sg', 'a@kkh.com.sg.attacker.example', 'a@KKH.COM.SG.evil',
-    'a@localhost', 'a@-kkh.com.sg', 'a@kkh-.com.sg', 'a@kkh..com.sg',
-    'a@xn--kkh-tla.com.sg', 'a@\u212akkh.com.sg', 'a@kkh.com.sg\u0000',
+    'bradley', 'bradley@', '@northside.example', 'a@b@northside.example', 'a@northside.example@evil.example',
+    'a@gmail.com', 'a@mail.northside.example', 'a@northside.example.attacker.example', 'a@NORTHSIDE.EXAMPLE.evil',
+    'a@localhost', 'a@-northside.example', 'a@northside-.example', 'a@northside..example',
+    'a@xn--northside-tla.com.sg', 'a@\u212anorthside.example', 'a@northside.example\u0000',
 ];
 const admittedEmails = HOSTILE_EMAILS.filter((email) => invitable({ invitee: { ...REAL, email } }).ok);
 console.log(`  ${HOSTILE_EMAILS.length} hostile addresses - ${admittedEmails.length} admitted`);
@@ -279,7 +279,7 @@ if (admittedEmails.length) flag('M2', 'a-hostile-address-passed-the-domain-gate'
 
 /*
  * ⚠️ SEPARATED FROM THE LIST ABOVE AFTER THE HARNESS FLAGGED THEM AND THE FLAG WAS
- *    WRONG. `a@kkh.com.sg.` and an address with a trailing newline are ADMITTED,
+ *    WRONG. `a@northside.example.` and an address with a trailing newline are ADMITTED,
  *    and that is correct rather than a hole: a trailing dot is the fully-qualified
  *    form of the same domain, and a trailing newline is what a paste from Outlook
  *    leaves behind. `normaliseDomain` strips both deliberately, the client copy
@@ -291,7 +291,7 @@ if (admittedEmails.length) flag('M2', 'a-hostile-address-passed-the-domain-gate'
  *    so a future change that stops canonicalising them shows up here as a number
  *    that moved.
  */
-const CANONICAL_ADMITS = ['a@kkh.com.sg.', 'a@kkh.com.sg\n', '  a@KKH.com.sg  '];
+const CANONICAL_ADMITS = ['a@northside.example.', 'a@northside.example\n', '  a@NORTHSIDE.example  '];
 const wronglyRefused = CANONICAL_ADMITS.filter((email) => !invitable({ invitee: { ...REAL, email } }).ok);
 console.log(`  ${CANONICAL_ADMITS.length} addresses that should canonicalise to an allowed domain - ${wronglyRefused.length} refused`);
 if (wronglyRefused.length) flag('M12', 'a-real-address-was-refused-over-canonicalisation',
@@ -301,7 +301,7 @@ if (wronglyRefused.length) flag('M12', 'a-real-address-was-refused-over-canonica
 //    and both are right. The login screen falls back to a built-in list because it
 //    still has to let existing users in. This function is what stands between a
 //    lead and placing an arbitrary address in a team.
-const BAD_LISTS = [[], null, undefined, '', 'kkh.com.sg', {}, ['*'], ['*.com.sg'], [''], [null]];
+const BAD_LISTS = [[], null, undefined, '', 'northside.example', {}, ['*'], ['*.com.sg'], [''], [null]];
 const openedLists = BAD_LISTS.filter((allowedDomains) => invitable({ allowedDomains }).ok);
 console.log(`  ${BAD_LISTS.length} unusable allowlists - ${openedLists.length} admitted anybody`);
 if (openedLists.length) flag('M3', 'an-unusable-allowlist-opened-the-gate',

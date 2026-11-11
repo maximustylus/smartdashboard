@@ -10,12 +10,12 @@
  *
  * ── WHAT THIS REPLACES ───────────────────────────────────────────────────────
  *
- * `WelcomeScreen.jsx:109` refused any address not ending `@kkh.com.sg`, and then
+ * `WelcomeScreen.jsx:109` refused any address not ending `@northside.example`, and then
  * `checkAccess()` refused anyone not among ten hardcoded people. Two consequences,
  * both real rather than theoretical:
  *
  *   1. TWO PEOPLE IN THE DIRECTORY COULD NEVER LOG IN. Barry and Arjun hold
- *      `@singhealth.com.sg` addresses. They passed `checkAccess` and failed the
+ *      `@unityhealth.example` addresses. They passed `checkAccess` and failed the
  *      domain test one line above it. Nobody noticed because both are viewers.
  *   2. ONBOARDING ANYONE MEANT A CODE DEPLOY. Twenty-eight departments cannot be
  *      served by a list a developer edits.
@@ -50,14 +50,13 @@ import { teamIdFrom } from './teamPaths';
 // ==============================================================================
 
 /**
- * The fallback, used when `config/domains` is missing or unreadable. These are the
- * two domains ALREADY present in the live directory — so this fallback restores
- * exactly today's intended population and no more. Adding to it is not the way to
- * onboard an institution; editing `config/domains` is.
+ * Two invented domains, used as the fallback only when the build was given none
+ * (`defaultDomainsFrom`, below). They exist so the tests and a fresh checkout have
+ * something to reason about. Onboarding an institution is `config/domains`.
  */
-export const DEFAULT_ALLOWED_DOMAINS = Object.freeze([
-    'kkh.com.sg',
-    'singhealth.com.sg',
+const EXAMPLE_DOMAINS = Object.freeze([
+    'northside.example',
+    'unityhealth.example',
 ]);
 
 /**
@@ -69,7 +68,7 @@ export const DEFAULT_ALLOWED_DOMAINS = Object.freeze([
 const DOMAIN_SHAPE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/;
 
 /**
- * Accepts what people actually type — `@KKH.com.sg`, `  kkh.com.sg. ` — and returns
+ * Accepts what people actually type — `@NORTHSIDE.example`, `  northside.example. ` — and returns
  * the canonical form, or `null` if it is not a domain at all.
  */
 export const normaliseDomain = (value) => {
@@ -79,8 +78,25 @@ export const normaliseDomain = (value) => {
 };
 
 /**
+ * The fallback list for THIS build. The code is public and names no institution, so
+ * the real domains arrive as a build setting: `VITE_DEFAULT_DOMAINS`, comma
+ * separated, from a repository variable. Unset or unusable, the fallback is the two
+ * invented domains above, which admit nobody real. That is the fail-closed side: a
+ * build that was never told its institutions refuses rather than guesses.
+ */
+export const defaultDomainsFrom = (raw) => {
+    const parsed = [...new Set(String(raw || '').split(',').map(normaliseDomain).filter(Boolean))].sort();
+    return Object.freeze(parsed.length > 0 ? parsed : [...EXAMPLE_DOMAINS]);
+};
+
+let buildDomains = '';
+try { buildDomains = import.meta.env?.VITE_DEFAULT_DOMAINS || ''; } catch { /* not a Vite build */ }
+
+export const DEFAULT_ALLOWED_DOMAINS = defaultDomainsFrom(buildDomains);
+
+/**
  * The domain half of an address, or `null`. Refuses anything with a count of `@`
- * other than exactly one — `a@b@kkh.com.sg` is not a KKH address, and a naive
+ * other than exactly one — `a@b@northside.example` is not a Northside address, and a naive
  * `split('@').pop()` would say it was.
  */
 export const emailDomain = (email) => {
@@ -108,9 +124,9 @@ export const parseDomainAllowlist = (data) => {
 };
 
 /**
- * THE GATE. Exact domain match only — `kkh.com.sg` does not admit
- * `mail.kkh.com.sg`, and much more importantly does not admit
- * `kkh.com.sg.attacker.example`, which an `endsWith` check would have let through.
+ * THE GATE. Exact domain match only — `northside.example` does not admit
+ * `mail.northside.example`, and much more importantly does not admit
+ * `northside.example.attacker.example`, which an `endsWith` check would have let through.
  * Subdomains, if a cluster turns out to need them, are one extra entry in
  * `config/domains` and no code change.
  */
@@ -128,7 +144,7 @@ export const isAllowedEmail = (email, domains) => {
  * it runs in the browser, and `firestore.rules` plus membership are what protect
  * data. It used to run on sign-in as well, which locked out an EXISTING, already
  * vetted account whose address had moved off an institutional domain: the NEXUS
- * owner, keeping their account after leaving KKH, could not sign in with a personal
+ * owner, keeping their account after leaving Northside, could not sign in with a personal
  * address that the server had changed for them. An account that exists has passed
  * this gate once, when it was made; asking again at every sign-in adds nothing.
  */
@@ -202,7 +218,7 @@ export const validateLeadDeclaration = (declaration) => {
         errors.role = 'Choose the role you hold: lead, supervisor or administrator.';
     }
     if (!institution) {
-        errors.institution = 'Which hospital or institution? e.g. KKH.';
+        errors.institution = 'Which hospital or institution?';
     }
     if (!department) {
         errors.department = 'Which department or service? e.g. Respiratory Therapy.';
@@ -212,7 +228,7 @@ export const validateLeadDeclaration = (declaration) => {
     }
 
     if (!errors.institution && !errors.department && !teamIdFrom(institution, department)) {
-        errors.department = 'Those cannot make a team name. Use letters and numbers, e.g. KKH + Respiratory Therapy.';
+        errors.department = 'Those cannot make a team name. Use letters and numbers, e.g. Respiratory Therapy.';
     }
 
     return { ok: Object.keys(errors).length === 0, errors };

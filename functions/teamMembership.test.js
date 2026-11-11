@@ -43,13 +43,13 @@ import {
 } from '../src/utils/accessPolicy.js';
 
 const NOW = '2026-08-23T09:00:00.000Z';
-const TEAM = 'kkh-respiratory-therapy';
+const TEAM = 'northside-respiratory-therapy';
 const LEAD = { uid: 'leadUid0000000000000000000aa', role: 'lead', displayName: 'Nur' };
-const DOMAINS = ['kkh.com.sg', 'singhealth.com.sg'];
+const DOMAINS = ['northside.example', 'unityhealth.example'];
 
 const invitee = (over = {}) => ({
     uid: 'newUid00000000000000000000bb',
-    email: 'bradley@kkh.com.sg',
+    email: 'bradley@northside.example',
     emailVerified: true,
     ...over,
 });
@@ -129,8 +129,8 @@ describe('the invitee has to be real, allowed and verified', () => {
     it('lets a verified lead add a colleague on their OWN domain with no allowlist at all', () => {
         const verdict = invite({
             allowedDomains: [],
-            callerEmail: 'lead@kkh.com.sg',
-            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
+            callerEmail: 'lead@northside.example',
+            invitee: invitee({ email: 'bradley@northside.example' }),
         });
         expect(verdict.ok, verdict.message).toBe(true);
     });
@@ -139,7 +139,7 @@ describe('the invitee has to be real, allowed and verified', () => {
         // The exemption is exactly one domain wide: the caller's own.
         expect(invite({
             allowedDomains: [],
-            callerEmail: 'lead@kkh.com.sg',
+            callerEmail: 'lead@northside.example',
             invitee: invitee({ email: 'someone@gmail.com' }),
         }).reason).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
@@ -150,15 +150,15 @@ describe('the invitee has to be real, allowed and verified', () => {
         expect(invite({
             allowedDomains: [],
             callerEmail: null,
-            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
+            invitee: invitee({ email: 'bradley@northside.example' }),
         }).reason).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
     it('does not let a lookalike caller domain smuggle one in', () => {
         expect(invite({
             allowedDomains: [],
-            callerEmail: 'lead@kkh.com.sg.attacker.example',
-            invitee: invitee({ email: 'bradley@kkh.com.sg' }),
+            callerEmail: 'lead@northside.example.attacker.example',
+            invitee: invitee({ email: 'bradley@northside.example' }),
         }).reason).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
@@ -168,17 +168,17 @@ describe('the invitee has to be real, allowed and verified', () => {
      *    them: the lookalike case above puts the attacker in the CALLER's address,
      *    where a suffix check still refuses. The hole is the other way round — a
      *    legitimate lead, and an invitee whose domain ENDS WITH theirs. This is the
-     *    exact trap `accessPolicy.js` names: "does not admit kkh.com.sg.attacker
+     *    exact trap `accessPolicy.js` names: "does not admit northside.example.attacker
      *    .example, which an endsWith check would have let through".
      */
     it('refuses an invitee whose domain merely ENDS WITH the lead\'s own', () => {
         for (const email of [
-            'attacker@evil-kkh.com.sg',
-            'attacker@notkkh.com.sg',
-            'attacker@x.kkh.com.sg',
+            'attacker@evil-northside.example',
+            'attacker@notnorthside.example',
+            'attacker@x.northside.example',
         ]) {
             expect(
-                invite({ allowedDomains: [], callerEmail: 'lead@kkh.com.sg', invitee: invitee({ email }) }).reason,
+                invite({ allowedDomains: [], callerEmail: 'lead@northside.example', invitee: invitee({ email }) }).reason,
                 `${email} was admitted by a suffix match`,
             ).toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
         }
@@ -191,7 +191,7 @@ describe('the invitee has to be real, allowed and verified', () => {
     /**
      * ⚠️ THE REFUSAL IS THE SAME; THE SENTENCE MUST NOT BE. These two cases need
      *    different actions from the lead reading them, and one message served both:
-     *    "NEXUS is not open to kkh.com.sg. Registered organisations: none configured."
+     *    "NEXUS is not open to northside.example. Registered organisations: none configured."
      *    told a lead their hospital had been considered and rejected, when in fact
      *    nobody had configured ANY institution yet. Reported from the field on
      *    2026-08-31, by the owner, on their own hospital's domain.
@@ -209,11 +209,11 @@ describe('the invitee has to be real, allowed and verified', () => {
     it('names the registered organisations when there ARE some and theirs is not one', () => {
         const message = invite({
             invitee: invitee({ email: 'someone@gmail.com' }),
-            allowedDomains: ['kkh.com.sg', 'singhealth.com.sg'],
+            allowedDomains: ['northside.example', 'unityhealth.example'],
         }).message;
         expect(message).toMatch(/not open to gmail\.com/i);
-        expect(message).toContain('kkh.com.sg');
-        expect(message).toContain('singhealth.com.sg');
+        expect(message).toContain('northside.example');
+        expect(message).toContain('unityhealth.example');
         expect(message).not.toMatch(/config\/domains/i);
         // The setup wording belongs to the other case only.
         expect(message).not.toMatch(/not been set up/i);
@@ -224,17 +224,17 @@ describe('the invitee has to be real, allowed and verified', () => {
     });
 
     it('refuses a lookalike domain rather than matching on a suffix', () => {
-        expect(invite({ invitee: invitee({ email: 'a@kkh.com.sg.attacker.example' }) }).reason)
+        expect(invite({ invitee: invitee({ email: 'a@northside.example.attacker.example' }) }).reason)
             .toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
     it('refuses a subdomain, which is one config entry away if a cluster needs it', () => {
-        expect(invite({ invitee: invitee({ email: 'a@mail.kkh.com.sg' }) }).reason)
+        expect(invite({ invitee: invitee({ email: 'a@mail.northside.example' }) }).reason)
             .toBe(INVITE_REASONS.DOMAIN_NOT_ALLOWED);
     });
 
     it('refuses a two-@ address that a naive split would have admitted', () => {
-        expect(invite({ invitee: invitee({ email: 'a@evil.example@kkh.com.sg' }) }).reason)
+        expect(invite({ invitee: invitee({ email: 'a@evil.example@northside.example' }) }).reason)
             .toBe(INVITE_REASONS.BAD_EMAIL);
     });
 
@@ -349,12 +349,12 @@ describe('buildInviteWrites', () => {
     });
 
     it('lower-cases the stored address so two spellings are not two people', () => {
-        expect(writes({ invitee: invitee({ email: 'Bradley@KKH.com.sg' }) }).member.data.email)
-            .toBe('bradley@kkh.com.sg');
+        expect(writes({ invitee: invitee({ email: 'Bradley@NORTHSIDE.example' }) }).member.data.email)
+            .toBe('bradley@northside.example');
     });
 
     it('falls back to the address when no display name was given', () => {
-        expect(writes({ displayName: '' }).member.data.displayName).toBe('bradley@kkh.com.sg');
+        expect(writes({ displayName: '' }).member.data.displayName).toBe('bradley@northside.example');
     });
 
     /**
@@ -534,16 +534,16 @@ describe('the domain gate matches the client copy', () => {
      * guard in `teamApproval.test.js` caught a real divergence in `slugTeamId`.
      */
     const CASES = [
-        'bradley@kkh.com.sg', 'a@KKH.COM.SG', '  a@kkh.com.sg  ', 'a@kkh.com.sg.',
-        'a@mail.kkh.com.sg', 'a@kkh.com.sg.attacker.example', 'a@b@kkh.com.sg',
-        '@kkh.com.sg', 'a@', 'a@-kkh.com.sg', 'a@kkh-.com.sg', 'a@localhost', 'not-an-email', '',
+        'bradley@northside.example', 'a@NORTHSIDE.EXAMPLE', '  a@northside.example  ', 'a@northside.example.',
+        'a@mail.northside.example', 'a@northside.example.attacker.example', 'a@b@northside.example',
+        '@northside.example', 'a@', 'a@-northside.example', 'a@northside-.example', 'a@localhost', 'not-an-email', '',
     ];
 
     it.each(CASES)('agrees on %j', (value) => {
         expect(emailDomain(value)).toBe(clientEmailDomain(value));
     });
 
-    it.each(['kkh.com.sg', '@KKH.com.sg', 'kkh.com.sg.', '*', '*.com.sg', 'localhost', ''])(
+    it.each(['northside.example', '@NORTHSIDE.example', 'northside.example.', '*', '*.com.sg', 'localhost', ''])(
         'agrees on the domain %j',
         (value) => {
             const { normaliseDomain } = require('./teamMembership.js');
@@ -562,14 +562,14 @@ describe('the domain gate matches the client copy', () => {
     });
 
     it('drops bad entries rather than rejecting the whole document', () => {
-        expect(parseDomainAllowlist({ allowed: ['kkh.com.sg', '*', 'not a domain', '@sgh.com.sg'] }))
-            .toEqual(['kkh.com.sg', 'sgh.com.sg']);
+        expect(parseDomainAllowlist({ allowed: ['northside.example', '*', 'not a domain', '@sgh.com.sg'] }))
+            .toEqual(['northside.example', 'sgh.com.sg']);
     });
 
     it('returns an empty list — meaning admit nobody — for a malformed document', () => {
         expect(parseDomainAllowlist(null)).toEqual([]);
         expect(parseDomainAllowlist({})).toEqual([]);
-        expect(parseDomainAllowlist({ allowed: 'kkh.com.sg' })).toEqual([]);
+        expect(parseDomainAllowlist({ allowed: 'northside.example' })).toEqual([]);
     });
 });
 
@@ -599,7 +599,7 @@ describe('firestore.rules still defers to this module', () => {
 // ─── CHANGING SOMEBODY'S ROLE (v2.18.0) ──────────────────────────────────────
 
 describe('changing somebody\'s role', () => {
-    const TEAM = 'kkh-sport-exercise-medicine';
+    const TEAM = 'northside-sport-exercise-medicine';
     const base = {
         teamId: TEAM,
         team: { leadUid: 'uid-founder' },
@@ -733,14 +733,14 @@ describe('firestore.rules no longer lets a client write role or rostered', () =>
 // ─── HANDING A TEAM TO A NEW LEAD (v2.18.0) ──────────────────────────────────
 
 describe('handing a team to a new lead', () => {
-    const ALIF = { uid: 'u-alif', email: 'muhammad.alif@kkh.com.sg', displayName: 'Alif', role: 'lead', rostered: true };
-    const LINDER = { uid: 'u-linder', email: 'Darshan@KKH.com.sg', displayName: 'Darshan', role: 'staff', rostered: true };
-    const NORA = { uid: 'u-nora', email: 'nora@kkh.com.sg', displayName: 'Nora', role: 'lead', rostered: false };
+    const ALIF = { uid: 'u-alif', email: 'muhammad.alif@northside.example', displayName: 'Alif', role: 'lead', rostered: true };
+    const LINDER = { uid: 'u-linder', email: 'Darshan@NORTHSIDE.example', displayName: 'Darshan', role: 'staff', rostered: true };
+    const NORA = { uid: 'u-nora', email: 'nora@northside.example', displayName: 'Nora', role: 'lead', rostered: false };
     const team = { name: 'Sport & Exercise Medicine', leadUid: ALIF.uid };
     const members = [ALIF, LINDER, NORA];
 
     it('promotes a staff member to lead, takes the founding lead, and makes the old lead a viewer', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@kkh.com.sg', previousLeadBecomes: 'viewer' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@northside.example', previousLeadBecomes: 'viewer' });
         expect(plan).toMatchObject({ ok: true, noChange: false, fromUid: ALIF.uid, toUid: LINDER.uid });
         expect(plan.roleChanges).toEqual([
             { uid: LINDER.uid, name: 'Darshan', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true },
@@ -749,31 +749,31 @@ describe('handing a team to a new lead', () => {
     });
 
     it('matches the address without caring about case or spaces', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: '  DARSHAN@kkh.com.sg ' });
+        const plan = assertTeamTransfer({ team, members, toEmail: '  DARSHAN@northside.example ' });
         expect(plan.toUid).toBe(LINDER.uid);
     });
 
     it('leaves the old lead a lead by default, and does not re-promote a lead', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@northside.example' });
         expect(plan.ok).toBe(true);
         expect(plan.roleChanges).toEqual([]);
         expect(plan.toUid).toBe(NORA.uid);
     });
 
     it('keeps rostered as it was when the old lead becomes staff', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg', previousLeadBecomes: 'staff' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'nora@northside.example', previousLeadBecomes: 'staff' });
         expect(plan.roleChanges).toEqual([
             { uid: ALIF.uid, name: 'Alif', fromRole: 'lead', toRole: 'staff', fromRostered: true, toRostered: true },
         ]);
     });
 
     it('reports no change when the person already leads it', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'muhammad.alif@kkh.com.sg' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'muhammad.alif@northside.example' });
         expect(plan).toMatchObject({ ok: true, noChange: true });
     });
 
     it('refuses somebody not in the team WITHOUT naming anybody — its message reaches a public log', () => {
-        const plan = assertTeamTransfer({ team, members, toEmail: 'stranger@kkh.com.sg' });
+        const plan = assertTeamTransfer({ team, members, toEmail: 'stranger@northside.example' });
         expect(plan).toMatchObject({ ok: false, reason: TRANSFER_REASONS.NOT_A_MEMBER });
         expect(plan.message).toMatch(/the team has 3 members/);
         for (const m of members) {
@@ -784,14 +784,14 @@ describe('handing a team to a new lead', () => {
     });
 
     it('refuses a missing team and a role that does not exist', () => {
-        expect(assertTeamTransfer({ team: null, members, toEmail: 'nora@kkh.com.sg' }).reason).toBe(TRANSFER_REASONS.NO_TEAM);
-        expect(assertTeamTransfer({ team, members, toEmail: 'nora@kkh.com.sg', previousLeadBecomes: 'admin' }).reason)
+        expect(assertTeamTransfer({ team: null, members, toEmail: 'nora@northside.example' }).reason).toBe(TRANSFER_REASONS.NO_TEAM);
+        expect(assertTeamTransfer({ team, members, toEmail: 'nora@northside.example', previousLeadBecomes: 'admin' }).reason)
             .toBe(TRANSFER_REASONS.BAD_ROLE);
     });
 
     it('always leaves the new lead as a lead, so the team cannot end up with none', () => {
         for (const previousLeadBecomes of ['lead', 'staff', 'viewer']) {
-            const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@kkh.com.sg', previousLeadBecomes });
+            const plan = assertTeamTransfer({ team, members, toEmail: 'darshan@northside.example', previousLeadBecomes });
             const newLeadChange = plan.roleChanges.find((c) => c.uid === LINDER.uid);
             expect(newLeadChange.toRole).toBe('lead');
         }

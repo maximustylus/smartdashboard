@@ -45,7 +45,7 @@ const generateSmartAnalysis = httpsCallable(functions, 'generateSmartAnalysis', 
  *           2 JG11   2 JG12   2 JG13   2 JG14   1 JG15   1 JG16
  *
  * One bundle serves every route, including `/individuals` — so a member of the
- * public opening the community health screening downloaded six KKH clinicians'
+ * public opening the community health screening downloaded six Northside clinicians'
  * names, roles and pay grades as part of the page. No sign-in, no Firestore read,
  * so no rule was involved and nothing in `firestore.rules` could have stopped it.
  *
@@ -219,8 +219,8 @@ const SmartAnalysis = ({ teamData, staffLoads, onClose }) => {
                 // and never passes through `firestore.rules`.
                 teamId,
                 /**
-                 * `AN3`. This was the literal string `"SSMC@KKH CEP Team"`, so the
-                 * server prompt opened `TEAM IDENTITY: SSMC@KKH CEP Team` for every
+                 * `AN3`. This was the literal string `"SSMC@Northside CEP Team"`, so the
+                 * server prompt opened `TEAM IDENTITY: SSMC@Northside CEP Team` for every
                  * department — and `SMART_ANALYSIS_SYSTEM_PROMPT` explicitly
                  * instructs the model to *"identify the specific team"* and *"adapt
                  * your analysis to their specific function"*. It was tailoring to

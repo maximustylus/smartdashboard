@@ -317,7 +317,7 @@ export const LIVE_ROSTER_DEFAULTS = Object.freeze({
  * ── `live` — THE MULTI-TEAM ARGUMENT ─────────────────────────────────────────
  *
  * `LIVE_ROSTER_DEFAULTS` above is a FOURTH hardcoded copy of one department: four
- * names and four task codes belonging to Sport & Exercise Medicine at KKH. It sits
+ * names and four task codes belonging to Sport & Exercise Medicine at Northside. It sits
  * alongside `TEAM_DIRECTORY`, `ADMIN_EMAILS` and the directory in
  * `firestore.rules`, and it is the copy that decides who a roster can be generated
  * FOR — so a respiratory therapy lead pressing Generate would have staffed their

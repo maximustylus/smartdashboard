@@ -40,7 +40,7 @@ vi.mock('../context/NexusContext', () => ({
 // The watcher is team-scoped now: no team, no listener. Mocked rather than wrapped
 // in a real provider because these tests are about what the watcher NOTICES, not
 // about how a team is resolved — `TeamContext.test.jsx` owns that.
-let activeTeamId = 'kkh-sport-exercise-medicine';
+let activeTeamId = 'northside-sport-exercise-medicine';
 vi.mock('../context/TeamContext', () => ({
     useTeam: () => ({ teamId: activeTeamId }),
 }));
@@ -184,11 +184,11 @@ describe('CoverageWatcher — team scope and uid routing', () => {
      * notice; routing it by a mutable string was the one way it could fail silently.
      */
     it('queries the team swaps subcollection by uid, not the global collection by name', () => {
-        activeTeamId = 'kkh-sport-exercise-medicine';
+        activeTeamId = 'northside-sport-exercise-medicine';
         render(<CoverageWatcher user={USER} isRosterVisible={false} onOpenRoster={() => {}} />);
 
         expect(collection).toHaveBeenCalledWith(
-            expect.anything(), 'teams', 'kkh-sport-exercise-medicine', 'swaps',
+            expect.anything(), 'teams', 'northside-sport-exercise-medicine', 'swaps',
         );
         expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-yu-xuan');
         expect(where).not.toHaveBeenCalledWith('targetStaff', '==', 'Yu Xuan');
@@ -203,7 +203,7 @@ describe('CoverageWatcher — team scope and uid routing', () => {
         activeTeamId = null;
         render(<CoverageWatcher user={USER} isRosterVisible={false} onOpenRoster={() => {}} />);
         expect(listeners).toHaveLength(0);
-        activeTeamId = 'kkh-sport-exercise-medicine';
+        activeTeamId = 'northside-sport-exercise-medicine';
     });
 
     it('opens no listener for a user with no uid', () => {

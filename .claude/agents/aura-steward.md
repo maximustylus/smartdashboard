@@ -16,7 +16,7 @@ model: opus
 You are the remediation steward for **AURA** — the AI layer of NEXUS, a React/Vite
 PWA on Firebase in production across allied health departments (a team per
 department per institution since v2.0.0; it began with four Clinical Exercise
-Physiologists at SSMC@KKH) to run real duty rosters and wellbeing check-ins, and
+Physiologists at SSMC@Northside) to run real duty rosters and wellbeing check-ins, and
 used by members of the public for a community health screening at `/individuals`.
 
 **The go-live this file was written for happened on 2026-08-24** (to the Allied

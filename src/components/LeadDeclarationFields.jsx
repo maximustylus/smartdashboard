@@ -55,7 +55,7 @@ const LeadDeclarationFields = ({
         <div>
             <input
                 type="text"
-                placeholder="Institution — e.g. KKH"
+                placeholder="Institution — your hospital or organisation"
                 aria-label="Institution"
                 className={INPUT}
                 value={institution}

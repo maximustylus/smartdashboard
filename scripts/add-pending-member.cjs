@@ -11,9 +11,9 @@
  *
  *   # 1. DRY RUN — the default. Writes nothing, and names the project first.
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json \
- *     node scripts/add-pending-member.cjs --team kkh-sport-exercise-medicine \
- *       --person bradley.tan.gq@kkh.com.sg:Bradley:AH11 \
- *       --person fayelynn.mohamad.farid@kkh.com.sg:Fayelynn:AH13
+ *     node scripts/add-pending-member.cjs --team northside-sport-exercise-medicine \
+ *       --person bradley.tan.gq@northside.example:Bradley:AH11 \
+ *       --person fayelynn.mohamad.farid@northside.example:Fayelynn:AH13
  *
  *   # 2. FOR REAL — only after reading the dry run.
  *   …same command… --write

@@ -16,13 +16,13 @@ const workflow = readFileSync(resolve(process.cwd(), '.github/workflows/nexus-ad
 
 const OWNER = 'u-owner';
 const base = {
-    fromEmail: 'Owner@KKH.com.sg',
+    fromEmail: 'Owner@NORTHSIDE.example',
     toEmail: 'owner@me.com',
     account: { uid: OWNER },
     toTaken: false,
-    user: { email: 'owner@kkh.com.sg', teamIds: ['kkh-sport-exercise-medicine'] },
-    memberships: [{ teamId: 'kkh-sport-exercise-medicine', email: 'owner@kkh.com.sg' }],
-    superAdmins: { emails: ['owner@kkh.com.sg'] },
+    user: { email: 'owner@northside.example', teamIds: ['northside-sport-exercise-medicine'] },
+    memberships: [{ teamId: 'northside-sport-exercise-medicine', email: 'owner@northside.example' }],
+    superAdmins: { emails: ['owner@northside.example'] },
 };
 const plan = (over = {}) => planEmailChange({ ...base, ...over });
 
@@ -34,7 +34,7 @@ describe('planEmailChange', () => {
         expect(p.auth).toEqual({ email: 'owner@me.com', emailVerified: false });
         expect(p.userDoc).toEqual({ path: ['users', OWNER], data: { email: 'owner@me.com' } });
         expect(p.members).toEqual([
-            { path: ['teams', 'kkh-sport-exercise-medicine', 'members', OWNER], data: { email: 'owner@me.com' } },
+            { path: ['teams', 'northside-sport-exercise-medicine', 'members', OWNER], data: { email: 'owner@me.com' } },
         ]);
     });
 
@@ -43,17 +43,17 @@ describe('planEmailChange', () => {
     });
 
     it('keeps other approvers, and does not duplicate a uid already listed', () => {
-        const p = plan({ superAdmins: { emails: ['owner@kkh.com.sg', 'other@kkh.com.sg'], uids: [OWNER, 'u-x'] } });
-        expect(p.superAdmins).toEqual({ emails: ['other@kkh.com.sg', 'owner@me.com'], uids: [OWNER, 'u-x'] });
+        const p = plan({ superAdmins: { emails: ['owner@northside.example', 'other@northside.example'], uids: [OWNER, 'u-x'] } });
+        expect(p.superAdmins).toEqual({ emails: ['other@northside.example', 'owner@me.com'], uids: [OWNER, 'u-x'] });
     });
 
     it('leaves the approver list alone for somebody who is not an approver', () => {
-        expect(plan({ superAdmins: { emails: ['other@kkh.com.sg'] } }).superAdmins).toBeNull();
+        expect(plan({ superAdmins: { emails: ['other@northside.example'] } }).superAdmins).toBeNull();
         expect(plan({ superAdmins: null }).superAdmins).toBeNull();
     });
 
     it('skips a membership that already carries the new address', () => {
-        const p = plan({ memberships: [{ teamId: 't1', email: 'owner@me.com' }, { teamId: 't2', email: 'owner@kkh.com.sg' }] });
+        const p = plan({ memberships: [{ teamId: 't1', email: 'owner@me.com' }, { teamId: 't2', email: 'owner@northside.example' }] });
         expect(p.members.map((m) => m.path[1])).toEqual(['t2']);
     });
 
@@ -68,11 +68,11 @@ describe('planEmailChange', () => {
 
     it('refuses a non-address and a no-op', () => {
         expect(plan({ toEmail: 'not-an-email' }).ok).toBe(false);
-        expect(plan({ toEmail: ' OWNER@kkh.com.sg ' }).message).toMatch(/same as the current one/);
+        expect(plan({ toEmail: ' OWNER@northside.example ' }).message).toMatch(/same as the current one/);
     });
 
     it('never puts an address in a refusal — refusals reach a public log', () => {
-        for (const over of [{ account: null }, { toTaken: true }, { toEmail: 'x' }, { toEmail: 'owner@kkh.com.sg' }]) {
+        for (const over of [{ account: null }, { toTaken: true }, { toEmail: 'x' }, { toEmail: 'owner@northside.example' }]) {
             const message = plan(over).message.toLowerCase();
             expect(message).not.toContain('owner@');
             expect(message).not.toContain('me.com');

@@ -516,7 +516,7 @@ const TeamMembersPanel = () => {
               * is missing is not a gate. But nothing said so, so the first a lead knew
               * was a refusal naming their own hospital, which reads as "your
               * institution is not welcome here". It is not: it is a setup step nobody
-              * has done. The owner hit this on 2026-08-31 on `kkh.com.sg`.
+              * has done. The owner hit this on 2026-08-31 on `northside.example`.
               *
               * WHY HERE AND NOT ON THE LOGIN SCREEN: the hook's own header argues that
               * a red banner on the login screen of a clinical tool costs more than it
@@ -566,7 +566,7 @@ const TeamMembersPanel = () => {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="colleague@kkh.com.sg"
+                                placeholder="colleague@your-institution"
                                 className="mt-1 w-full px-3 py-2.5 rounded-lg text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500"
                             />
                         </label>

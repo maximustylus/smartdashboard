@@ -41,8 +41,8 @@ vi.mock('firebase/firestore', () => ({
 import { TeamProvider, useTeam } from './TeamContext';
 
 const UID = 'aB3xYz9QwErTyUiOpAsDfGhJkLzX';
-const A = 'kkh-sport-exercise-medicine';
-const B = 'kkh-respiratory-therapy';   // sorts FIRST — 'respiratory' < 'sport'
+const A = 'northside-sport-exercise-medicine';
+const B = 'northside-respiratory-therapy';   // sorts FIRST — 'respiratory' < 'sport'
 
 const exists = (data) => ({ exists: () => true, id: data.id || 'doc', data: () => data });
 /** A collection snapshot, in the shape `members` reads. */
@@ -252,7 +252,7 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
     /**
      * ⚠️ A DUPLICATED DISPLAY NAME RESOLVES DETERMINISTICALLY, to the member that
      *    sorts first. Team-scoping already removed the collision that mattered — a
-     *    Sarah at KKH and a Sarah at SGH are in different subcollections now. What
+     *    Sarah at Northside and a Sarah at SGH are in different subcollections now. What
      *    is left is two identical names inside ONE department, which the lead fixes
      *    by editing the member list. Pinned so the behaviour is a decision rather
      *    than whatever `Object.fromEntries` happened to do.

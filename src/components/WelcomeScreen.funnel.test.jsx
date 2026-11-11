@@ -50,8 +50,8 @@ vi.mock('../context/NexusContext', () => ({
     useNexus: () => ({ isDemo: false, toggleDemo: vi.fn() }),
 }));
 vi.mock('../hooks/useDomainAllowlist', () => ({
-    useDomainAllowlist: () => ({ domains: ['kkh.com.sg'], loaded: true }),
-    default: () => ({ domains: ['kkh.com.sg'], loaded: true }),
+    useDomainAllowlist: () => ({ domains: ['northside.example'], loaded: true }),
+    default: () => ({ domains: ['northside.example'], loaded: true }),
 }));
 
 // jsdom has no `matchMedia`, and the theme hook this screen mounts reads it.

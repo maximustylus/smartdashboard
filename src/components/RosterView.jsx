@@ -4049,7 +4049,7 @@ const RosterView = ({ user }) => {
                                             ⚠️ AND IT SAYS ONE TEAM, NOT A PROFESSION.
                                             It used to read "the shape your own profession
                                             described to us" — which told a respiratory
-                                            therapist at any other SingHealth institution
+                                            therapist at any other Unity Health institution
                                             that their PROFESSION had described a structure
                                             ONE team at one hospital described. Every shape
                                             here is one team at one site (`sourceScope` says

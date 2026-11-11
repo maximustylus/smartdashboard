@@ -103,7 +103,7 @@ const normaliseDomain = (value) => {
 
 /**
  * The domain half of an address. Refuses any `@` count other than exactly one —
- * `a@b@kkh.com.sg` is not a KKH address, and `split('@').pop()` would say it was.
+ * `a@b@northside.example` is not a Northside address, and `split('@').pop()` would say it was.
  */
 const emailDomain = (email) => {
     if (typeof email !== 'string') return null;
@@ -261,7 +261,7 @@ const assertInvitable = ({
          *   • NOTHING CONFIGURED. Nobody can be added to any team, at any
          *     institution. That is a SETUP step somebody has not done yet, and it
          *     says nothing about the institution in the address. The old message
-         *     read "NEXUS is not open to kkh.com.sg… none configured", which tells a
+         *     read "NEXUS is not open to northside.example… none configured", which tells a
          *     lead their hospital was considered and rejected. It was not.
          *   • CONFIGURED, BUT NOT THIS ONE. Their institution genuinely is not
          *     registered, and the list is worth showing so they can see what is.

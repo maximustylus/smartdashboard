@@ -31,18 +31,18 @@ const APPROVER = 'ownerUid00000000000000000000';
 
 const pending = (over = {}) => ({
     uid: LEAD_UID,
-    email: 'lead.rt@kkh.com.sg',
+    email: 'lead.rt@northside.example',
     displayName: 'Nur',
     role: 'lead',
-    institution: 'KKH',
+    institution: 'Northside',
     department: 'Respiratory Therapy',
     profession: 'respiratory-therapist',
-    proposedTeamId: 'kkh-respiratory-therapy',
+    proposedTeamId: 'northside-respiratory-therapy',
     status: 'pending',
     ...over,
 });
 
-const verified = { uid: LEAD_UID, email: 'lead.rt@kkh.com.sg', emailVerified: true };
+const verified = { uid: LEAD_UID, email: 'lead.rt@northside.example', emailVerified: true };
 
 // ==============================================================================
 
@@ -58,22 +58,22 @@ describe('slugTeamId — and the copy of it that lives in src/', () => {
      * This is the test that makes editing one of them fail loudly.
      */
     it.each([
-        ['KKH', 'Respiratory Therapy'],
+        ['Northside', 'Respiratory Therapy'],
         ['SGH', 'Physiotherapy'],
-        ['  KKH  ', 'Sport & Exercise Medicine'],
+        ['  Northside  ', 'Sport & Exercise Medicine'],
         ['NUH', 'Speech & Language Therapy (Paeds)'],
-        ['KKH', 'Medical Social Work'],
+        ['Northside', 'Medical Social Work'],
         // The accented case, which is where the two copies most easily diverge:
         // without NFKD on both sides, 'é' is stripped rather than decomposed and the
         // department becomes a different team.
-        ['KKH', 'Thérapie Réadaptation'],
+        ['Northside', 'Thérapie Réadaptation'],
         ['', ''],
         ['!!', '???'],
-        ['KKH', ''],
+        ['Northside', ''],
         ['', 'Physiotherapy'],
         [null, undefined],
-        ['KKH', 'a'],
-        ['KKH', '   '],
+        ['Northside', 'a'],
+        ['Northside', '   '],
         [42, 'Physiotherapy'],
     ])('agrees with teamIdFrom for %s + %s', (institution, department) => {
         expect(slugTeamId(institution, department)).toBe(teamIdFrom(institution, department));
@@ -82,18 +82,18 @@ describe('slugTeamId — and the copy of it that lives in src/', () => {
     /**
      * The two failures the drift guard found on its first run, kept as explicit
      * cases so they cannot come back quietly. The second is the serious one: an id
-     * with no institution in it means Physiotherapy at KKH and Physiotherapy at SGH
+     * with no institution in it means Physiotherapy at Northside and Physiotherapy at SGH
      * are the same team.
      */
     it('refuses a missing department, and a missing institution', () => {
-        expect(slugTeamId('KKH', '')).toBeNull();
+        expect(slugTeamId('Northside', '')).toBeNull();
         expect(slugTeamId('', 'Physiotherapy')).toBeNull();
-        expect(teamIdFrom('KKH', '')).toBeNull();
+        expect(teamIdFrom('Northside', '')).toBeNull();
         expect(teamIdFrom('', 'Physiotherapy')).toBeNull();
     });
 
     it('separates the same department at two institutions', () => {
-        expect(slugTeamId('KKH', 'Respiratory Therapy'))
+        expect(slugTeamId('Northside', 'Respiratory Therapy'))
             .not.toBe(slugTeamId('SGH', 'Respiratory Therapy'));
     });
 });
@@ -110,7 +110,7 @@ describe('isSuperAdmin — who may turn a claim into access', () => {
      */
     it('admits NOBODY when the config is missing or malformed', () => {
         [null, undefined, {}, { uids: 'nope' }, { uids: null }, 'string', 42].forEach((config) => {
-            expect(isSuperAdmin(config, { uid: APPROVER, email: 'a@kkh.com.sg', emailVerified: true })).toBe(false);
+            expect(isSuperAdmin(config, { uid: APPROVER, email: 'a@northside.example', emailVerified: true })).toBe(false);
         });
     });
 
@@ -121,8 +121,8 @@ describe('isSuperAdmin — who may turn a claim into access', () => {
     });
 
     it('allows the bootstrap-by-email path, case-insensitively', () => {
-        const config = { emails: ['Muhammad.Alif@kkh.com.sg'] };
-        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@kkh.com.sg', emailVerified: true })).toBe(true);
+        const config = { emails: ['Muhammad.Alif@northside.example'] };
+        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@northside.example', emailVerified: true })).toBe(true);
     });
 
     /**
@@ -131,16 +131,16 @@ describe('isSuperAdmin — who may turn a claim into access', () => {
      * address can register it and approve their own team.
      */
     it('refuses the bootstrap path for an UNVERIFIED address', () => {
-        const config = { emails: ['muhammad.alif@kkh.com.sg'] };
-        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@kkh.com.sg', emailVerified: false })).toBe(false);
-        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@kkh.com.sg' })).toBe(false);
+        const config = { emails: ['muhammad.alif@northside.example'] };
+        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@northside.example', emailVerified: false })).toBe(false);
+        expect(isSuperAdmin(config, { uid: 'x', email: 'muhammad.alif@northside.example' })).toBe(false);
     });
 });
 
 describe('assertApprovable — every reason a claim must not become a team', () => {
     it('approves a verified, pending, well-formed request', () => {
         expect(assertApprovable({ request: pending(), authUser: verified, teamExists: false }))
-            .toEqual({ ok: true, teamId: 'kkh-respiratory-therapy' });
+            .toEqual({ ok: true, teamId: 'northside-respiratory-therapy' });
     });
 
     /**
@@ -196,7 +196,7 @@ describe('assertApprovable — every reason a claim must not become a team', () 
     it('refuses a duplicate team with a sentence that says what to do instead', () => {
         const result = assertApprovable({ request: pending(), authUser: verified, teamExists: true });
         expect(result.code).toBe('team-exists');
-        expect(result.teamId).toBe('kkh-respiratory-therapy');
+        expect(result.teamId).toBe('northside-respiratory-therapy');
         expect(result.message).toMatch(/invite this person/i);
     });
 
@@ -207,26 +207,26 @@ describe('assertApprovable — every reason a claim must not become a team', () 
      */
     it('re-derives the team id and ignores the client-supplied one', () => {
         const result = assertApprovable({
-            request: pending({ proposedTeamId: 'kkh-cardiology' }),
+            request: pending({ proposedTeamId: 'northside-cardiology' }),
             authUser: verified,
             teamExists: false,
         });
-        expect(result.teamId).toBe('kkh-respiratory-therapy');
+        expect(result.teamId).toBe('northside-respiratory-therapy');
     });
 });
 
 describe('buildApprovalWrites — what approving actually does', () => {
     const writes = buildApprovalWrites({
         request: pending(),
-        teamId: 'kkh-respiratory-therapy',
+        teamId: 'northside-respiratory-therapy',
         approverUid: APPROVER,
         now: NOW,
     });
 
     it('creates the team beneath teams/, with the lead recorded by uid', () => {
-        expect(writes.team.path).toEqual(['teams', 'kkh-respiratory-therapy']);
+        expect(writes.team.path).toEqual(['teams', 'northside-respiratory-therapy']);
         expect(writes.team.data.leadUid).toBe(LEAD_UID);
-        expect(writes.team.data.institution).toBe('KKH');
+        expect(writes.team.data.institution).toBe('Northside');
         expect(writes.team.data.department).toBe('Respiratory Therapy');
         expect(writes.team.data.createdBy).toBe(APPROVER);
     });
@@ -238,7 +238,7 @@ describe('buildApprovalWrites — what approving actually does', () => {
      * coincidence.
      */
     it('keys the membership by uid, never by display name', () => {
-        expect(writes.member.path).toEqual(['teams', 'kkh-respiratory-therapy', 'members', LEAD_UID]);
+        expect(writes.member.path).toEqual(['teams', 'northside-respiratory-therapy', 'members', LEAD_UID]);
         expect(writes.member.path[3]).not.toContain(' ');
         expect(writes.member.data.displayName).toBe('Nur');
         expect(writes.member.data.role).toBe('lead');
@@ -251,7 +251,7 @@ describe('buildApprovalWrites — what approving actually does', () => {
     it('records which of the three roles was declared, not just that it was a lead', () => {
         const supervisor = buildApprovalWrites({
             request: pending({ role: 'supervisor' }),
-            teamId: 'kkh-respiratory-therapy',
+            teamId: 'northside-respiratory-therapy',
             approverUid: APPROVER,
             now: NOW,
         });
@@ -262,14 +262,14 @@ describe('buildApprovalWrites — what approving actually does', () => {
     it('adds the team to the user rather than replacing what they already have', () => {
         expect(writes.user.path).toEqual(['users', LEAD_UID]);
         expect(writes.user.merge).toBe(true);
-        expect(writes.user.data.addTeamIds).toEqual(['kkh-respiratory-therapy']);
+        expect(writes.user.data.addTeamIds).toEqual(['northside-respiratory-therapy']);
     });
 
     it('stamps the decision onto the request, with who and when', () => {
         expect(writes.decision.path).toEqual(['lead_requests', LEAD_UID]);
         expect(writes.decision.data).toEqual({
             status: 'approved',
-            teamId: 'kkh-respiratory-therapy',
+            teamId: 'northside-respiratory-therapy',
             decidedBy: APPROVER,
             decidedAt: NOW,
         });
@@ -278,11 +278,11 @@ describe('buildApprovalWrites — what approving actually does', () => {
     it('falls back to the email rather than writing a blank name', () => {
         const nameless = buildApprovalWrites({
             request: pending({ displayName: '   ' }),
-            teamId: 'kkh-respiratory-therapy',
+            teamId: 'northside-respiratory-therapy',
             approverUid: APPROVER,
             now: NOW,
         });
-        expect(nameless.member.data.displayName).toBe('lead.rt@kkh.com.sg');
+        expect(nameless.member.data.displayName).toBe('lead.rt@northside.example');
     });
 });
 
@@ -310,8 +310,8 @@ describe('buildDeclineWrite', () => {
 
 describe('⚠️ "that id is taken" has two causes, and the owner must be able to tell them apart — T4', () => {
     const REQUEST = {
-        uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@kkh.com.sg',
-        displayName: 'A Lead', institution: 'KKH', department: 'Physiotherapy',
+        uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@northside.example',
+        displayName: 'A Lead', institution: 'Northside', department: 'Physiotherapy',
     };
     const VERIFIED = { emailVerified: true };
     const taken = (request, existingTeam) =>
@@ -319,35 +319,35 @@ describe('⚠️ "that id is taken" has two causes, and the owner must be able t
 
     /**
      * The hyphen joining institution to department is the same character used inside
-     * each half, so the boundary is not recoverable from the id: `KKH` +
-     * `Respiratory Therapy` and `KKH Respiratory` + `Therapy` both slug to
-     * `kkh-respiratory-therapy`. Measured over 529 realistic pairs, that shape is
+     * each half, so the boundary is not recoverable from the id: `Northside` +
+     * `Respiratory Therapy` and `Northside Respiratory` + `Therapy` both slug to
+     * `northside-respiratory-therapy`. Measured over 529 realistic pairs, that shape is
      * the only collision — and it means a genuinely new department can be refused as
      * a duplicate.
      */
     it('names the EXISTING team when a different department holds the id', () => {
         const verdict = taken(
-            { institution: 'KKH Respiratory', department: 'Therapy' },
-            { institution: 'KKH', department: 'Respiratory Therapy' },
+            { institution: 'Northside Respiratory', department: 'Therapy' },
+            { institution: 'Northside', department: 'Respiratory Therapy' },
         );
         expect(verdict.ok).toBe(false);
         expect(verdict.code).toBe('team-exists');
-        expect(verdict.message).toMatch(/Respiratory Therapy at KKH/);
+        expect(verdict.message).toMatch(/Respiratory Therapy at Northside/);
         expect(verdict.message).toMatch(/DIFFERENT department/);
         expect(verdict.collision).toBe(true);
-        expect(verdict.existingTeam).toEqual({ institution: 'KKH', department: 'Respiratory Therapy' });
+        expect(verdict.existingTeam).toEqual({ institution: 'Northside', department: 'Respiratory Therapy' });
     });
 
     it('does not cry collision when it really is the same department asking twice', () => {
-        const verdict = taken({}, { institution: 'KKH', department: 'Physiotherapy' });
+        const verdict = taken({}, { institution: 'Northside', department: 'Physiotherapy' });
         expect(verdict.collision).toBe(false);
-        expect(verdict.message).toMatch(/Physiotherapy at KKH is already on NEXUS/);
+        expect(verdict.message).toMatch(/Physiotherapy at Northside is already on NEXUS/);
         expect(verdict.message).toMatch(/invite this person/);
     });
 
     it('ignores case when deciding whether the two are the same department', () => {
-        const verdict = taken({ institution: 'kkh', department: 'physiotherapy' },
-            { institution: 'KKH', department: 'Physiotherapy' });
+        const verdict = taken({ institution: 'northside', department: 'physiotherapy' },
+            { institution: 'Northside', department: 'Physiotherapy' });
         expect(verdict.collision).toBe(false);
     });
 
@@ -358,10 +358,10 @@ describe('⚠️ "that id is taken" has two causes, and the owner must be able t
      */
     it('never describes the request as though it were the existing team', () => {
         const verdict = taken(
-            { institution: 'KKH Respiratory', department: 'Therapy' },
-            { institution: 'KKH', department: 'Respiratory Therapy' },
+            { institution: 'Northside Respiratory', department: 'Therapy' },
+            { institution: 'Northside', department: 'Respiratory Therapy' },
         );
-        expect(verdict.message).not.toMatch(/^Therapy at KKH Respiratory is already on NEXUS/);
+        expect(verdict.message).not.toMatch(/^Therapy at Northside Respiratory is already on NEXUS/);
     });
 
     /** A caller that only knows the boolean still gets the right verdict. */
@@ -377,7 +377,7 @@ describe('⚠️ "that id is taken" has two causes, and the owner must be able t
     it('supplying the existing team is enough on its own, without the boolean', () => {
         const verdict = assertApprovable({
             request: { ...REQUEST }, authUser: VERIFIED,
-            existingTeam: { institution: 'KKH', department: 'Physiotherapy' },
+            existingTeam: { institution: 'Northside', department: 'Physiotherapy' },
         });
         expect(verdict.ok).toBe(false);
         expect(verdict.code).toBe('team-exists');
@@ -386,8 +386,8 @@ describe('⚠️ "that id is taken" has two causes, and the owner must be able t
 
 describe('⚠️ free text from a request is capped, not written verbatim — T8', () => {
     const REQUEST = {
-        uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@kkh.com.sg',
-        displayName: 'A Lead', institution: 'KKH', department: 'Physiotherapy',
+        uid: 'leadUID', status: 'pending', role: 'lead', email: 'a@northside.example',
+        displayName: 'A Lead', institution: 'Northside', department: 'Physiotherapy',
     };
 
     /**
@@ -400,7 +400,7 @@ describe('⚠️ free text from a request is capped, not written verbatim — T8
     it('caps every identity field a request supplies', () => {
         const writes = buildApprovalWrites({
             request: { ...REQUEST, institution: 'i'.repeat(5000), department: 'd'.repeat(5000), displayName: 'n'.repeat(5000) },
-            teamId: 'kkh-physiotherapy', approverUid: 'S', now: 'NOW',
+            teamId: 'northside-physiotherapy', approverUid: 'S', now: 'NOW',
         });
         for (const value of [writes.team.data.institution, writes.team.data.department,
             writes.team.data.name, writes.member.data.displayName, writes.user.data.displayName]) {
