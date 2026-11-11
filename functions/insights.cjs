@@ -244,6 +244,7 @@ const buildInsights = (records, regionFor) => {
     const bySector = new Map();
     const byRegion = new Map();
     const byPeriod = new Map();
+    const regionOfSector = new Map();
     const national = emptyTally();
     let undated = 0;
     let unlocated = 0;
@@ -278,7 +279,7 @@ const buildInsights = (records, regionFor) => {
         if (!byRegion.has(region)) byRegion.set(region, emptyTally());
         tallyInto(byRegion.get(region), flags);
 
-        if (!bySector.has(sector)) bySector.set(sector, emptyTally());
+        if (!bySector.has(sector)) { bySector.set(sector, emptyTally()); regionOfSector.set(sector, region); }
         tallyInto(bySector.get(sector), flags);
     });
 
@@ -333,6 +334,32 @@ const buildInsights = (records, regionFor) => {
     const complementPeriods = Object.keys(periodSplit.published).filter((key) => !openPeriods.has(key));
     complementPeriods.forEach((key) => { delete periodSplit.published[key]; });
 
+    /**
+     * ⚠️ AREAS HAVE TO SURVIVE THE SAME SUBTRACTION, AT BOTH LEVELS (v2.23.2).
+     *
+     *    REGIONS against the total: the total minus the published regions is the
+     *    withheld regions plus everybody who gave no usable sector.
+     *    SECTORS against their region: a published region minus its published
+     *    sectors is that region's withheld sectors.
+     *
+     *    Either leftover can be one person. So each goes through `publishableCells`,
+     *    and a region that is NOT published publishes no sector either: its sectors
+     *    would add up to the breakdown that was just withheld.
+     */
+    const sizesOf = (entries) => new Map(entries.map(([key, tally]) => [key, tally.respondents]));
+    const openRegions = publishableCells(sizesOf([...byRegion.entries()]), national.respondents);
+    const complementRegions = Object.keys(regionSplit.published).filter((key) => !openRegions.has(key));
+    complementRegions.forEach((key) => { delete regionSplit.published[key]; });
+
+    const openSectors = new Set();
+    openRegions.forEach((region) => {
+        const inRegion = [...bySector.entries()].filter(([sector]) => regionOfSector.get(sector) === region);
+        publishableCells(sizesOf(inRegion), byRegion.get(region).respondents)
+            .forEach((sector) => openSectors.add(sector));
+    });
+    const complementSectors = Object.keys(sectorSplit.published).filter((key) => !openSectors.has(key));
+    complementSectors.forEach((key) => { delete sectorSplit.published[key]; });
+
     const sectors = sectorSplit.published;
     const regions = regionSplit.published;
     const periods = periodSplit.published;
@@ -375,6 +402,9 @@ const buildInsights = (records, regionFor) => {
             // worked out by subtraction. Never mixed into the list above: the page
             // says "fewer than ten" about that list, and it would be untrue of these.
             complementPeriods,
+            // The same, for areas: large enough alone, withheld against subtraction.
+            complementRegions,
+            complementSectors,
             nationalDomainsWithheld: national.respondents < MIN_CELL,
         },
         quality: {

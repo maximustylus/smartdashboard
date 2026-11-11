@@ -54,6 +54,44 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.23.2] - 2026-11-11
+
+Regions and postal sectors can no longer be worked out by subtraction either.
+
+### Security
+
+- **Small areas could be recovered by subtraction.** v2.23.1 closed this for months and
+  named areas as the next fix. Two leftovers were open: the total minus the published
+  regions (the withheld regions plus everybody with no usable sector), and a published
+  region minus its published sectors (that region's withheld sectors). Each now goes
+  through the same rule (`publishableCells`): the leftover must be zero or at least
+  ten, and while it is one to nine the smallest published region, or sector of that
+  region, is withheld as well. A region that is not published publishes no sector,
+  because its sectors would add up to the breakdown just withheld.
+
+### Changed
+
+- The area tables can be shorter. Which regions and sectors are affected on the live
+  figures is not known until the next nightly run: this release was written without
+  reading the area figures. Everybody withheld is still counted in the total.
+- Areas withheld for this reason are listed in `suppression.complementRegions` and
+  `suppression.complementSectors`, apart from the areas withheld for being small. The
+  staff Community panel and the Owner Insights report say how many and why.
+
+### Verification
+
+- `insights.test.js`: a region beside one person elsewhere is withheld with its
+  sectors; people with no sector count as leftover; a sector beside three people in a
+  neighbouring sector is withheld while its region stays; a leftover of ten or none
+  withholds nothing extra. `communityReport.test.js` covers the report's sentence.
+- Takes effect at the first nightly run after deploy (03:50 Singapore time). Not
+  checked against production data in a browser.
+
+### Known limitations
+
+- The two that remain from v2.23.1: two nights' figures compared, and a month's saved
+  breakdown against its rows still held once rows expire (from April 2028).
+
 ## [2.23.1] - 2026-11-11
 
 A small month of community screenings can no longer be worked out by subtraction.
@@ -99,7 +137,8 @@ A small month of community screenings can no longer be worked out by subtraction
 
 ### Known limitations
 
-- **Regions and postal sectors have the same weakness and are not changed here.** The
+- ~~**Regions and postal sectors have the same weakness and are not changed here.**~~
+  *(Closed 2026-11-11 in v2.23.2.)* The
   total minus the published regions is the withheld regions plus people with no
   location, and a region minus its published sectors is its withheld sectors. Either
   can be fewer than ten. Next fix.

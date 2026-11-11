@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { Users, ShieldAlert, MapPin, TrendingUp, EyeOff } from 'lucide-react';
 import { POSTAL_SECTORS, REGION_LABEL } from '../utils/singapore/postalSectors';
 // One label map, shared with the report the owner can generate from the same rollup.
-import { DOMAIN_LABELS } from '../utils/communityReport';
+import { DOMAIN_LABELS, heldBackAreas } from '../utils/communityReport';
 
 /**
  * ==============================================================================
@@ -131,6 +131,12 @@ export default function CommunityInsightsPanel() {
 
   const d = state.data;
   const domainKeys = d.domainKeys || Object.keys(DOMAIN_LABELS);
+  // Groups of ten or more withheld so smaller ones cannot be worked out by subtraction.
+  const heldMonths = d.suppression?.complementPeriods?.length ?? 0;
+  const heldBack = [
+    ...heldBackAreas(d.suppression),
+    ...(heldMonths > 0 ? [`${heldMonths} ${heldMonths === 1 ? 'month' : 'months'}`] : []),
+  ];
   const sectorRows = Object.entries(d.sectors || {}).map(([sector, tally]) => {
     const info = POSTAL_SECTORS[sector];
     return [info ? `${sector} · ${info.locality.split(' · ')[0]}` : sector, tally];
@@ -183,15 +189,11 @@ export default function CommunityInsightsPanel() {
               as <em>{d.suppression?.band ?? '<5'}</em>. A blank area on this page means
               too few responses to publish, <strong>not</strong> no need.
             </p>
-            {(d.suppression?.complementPeriods?.length ?? 0) > 0 && (
+            {heldBack.length > 0 && (
               <p className="mt-1.5">
-                <strong>
-                  {d.suppression.complementPeriods.length === 1
-                    ? '1 larger month is'
-                    : `${d.suppression.complementPeriods.length} larger months are`}
-                </strong>{' '}
-                also left out of the monthly table. Publishing every large month would
-                let the small ones be worked out by subtraction from the total.
+                <strong>Also left out: {heldBack.join(', ')}</strong>, each with{' '}
+                {d.suppression?.minCell ?? 10} respondents or more. Publishing every
+                large group would let the small ones be worked out by subtraction.
               </p>
             )}
             {d.suppression?.nationalDomainsWithheld && (

@@ -212,6 +212,14 @@ describe('with the permanent monthly record', () => {
         expect(day.notes.join(' ')).toMatch(/withheld for August 2026/);
     });
 
+    it('areas held back against subtraction are named in the all-time report only', () => {
+        const held = rollup({ history });
+        held.suppression = { ...held.suppression, complementRegions: ['north'], complementSectors: ['73', '75'] };
+        expect(buildCommunityReport(held).notes.join(' ')).toMatch(/Also left out of the area tables: 1 region and 2 postal sectors, each with 10 people or more/);
+        expect(buildCommunityReport(held, { scope: '2026-09' }).notes.join(' ')).not.toMatch(/Also left out/);
+        expect(buildCommunityReport(rollup()).notes.join(' ')).not.toMatch(/Also left out/);
+    });
+
     it('a day that is not in the month is ignored rather than invented', () => {
         expect(buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-01-01' }).day).toBe('');
     });
