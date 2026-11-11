@@ -54,6 +54,62 @@ not changed by this release.
 
 ## [Unreleased]
 
+## [2.23.1] - 2026-11-11
+
+A small month of community screenings can no longer be worked out by subtraction.
+
+### Security
+
+- **Months could be recovered by subtraction from the total.** The nightly rollup
+  publishes what people reported for the total and for every month of ten people or
+  more. Taking the published months away from the total leaves the breakdown of
+  everybody else: the small months, and anyone with no date. On the live figures on
+  2026-11-11 that was two people (May and July 2026, one screening each). v2.23.0 named
+  this as a known limitation of the older month table; the permanent monthly record it
+  added had the same weakness. Both are closed by one rule (`publishableCells`,
+  `functions/insights.cjs`): the people not covered by a published month must number
+  zero or at least ten. While they number one to nine, the smallest published month is
+  withheld as well. Its count, its chat and form split and its days' counts are still
+  shown; what people reported is not, for the month or any day of it.
+- **The two month tables now cut months the same way.** The rollup's months were UTC
+  months and the permanent record's were Singapore months, so a screening before 08:00
+  on the 1st sat in different months in the two tables, and their difference was a
+  small group nobody had reviewed. Both are Singapore months now.
+
+### Changed
+
+- **August 2026 loses its breakdown** on the live figures, because it is the smallest
+  published month and May and July hold one person each. That includes the day of
+  28 August. It returns by itself once the small months and undated records together
+  reach ten. All-time figures, and April, September and October, are unchanged.
+- A month withheld for this reason is listed in `suppression.complementPeriods`, apart
+  from the months withheld for being small, and the staff Community panel and the
+  Owner Insights report each say why in a sentence.
+
+### Verification
+
+- `insightsHistory.test.js`: the live shape (62, 1, 1, 24, 38, 44 of 170) withholds
+  August and leaves 26 people uncovered instead of 2; undated records count as
+  uncovered; the rollup and the permanent record withhold the same months, including
+  across the 08:00 boundary. `communityReport.test.js`: the withheld month says why and
+  is not called "too few".
+- Takes effect at the first nightly run after deploy (03:50 Singapore time), which
+  rewrites `community_insights/latest` and the months still held. Not checked against
+  production data in a browser.
+
+### Known limitations
+
+- **Regions and postal sectors have the same weakness and are not changed here.** The
+  total minus the published regions is the withheld regions plus people with no
+  location, and a region minus its published sectors is its withheld sectors. Either
+  can be fewer than ten. Next fix.
+- **Two nights compared.** Anybody who kept yesterday's figures can subtract them from
+  today's and see what today's respondents reported. Every exact, nightly count has
+  this property. The page is readable by signed-in staff only.
+- **Once rows expire (from April 2028)** a month's saved breakdown and the breakdown of
+  its rows still held will differ by the expired rows, which can be few. To be settled
+  before then.
+
 ## [2.23.0] - 2026-11-10
 
 Community figures that are not lost when records expire, and reports without a public log.

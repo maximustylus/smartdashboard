@@ -286,6 +286,11 @@ describe('records that cannot be placed', () => {
         expect(periodOf({ createdAt: { toDate: () => new Date('2026-03-02T00:00:00Z') } })).toBe('2026-03');
         expect(periodOf({})).toBeNull();
     });
+
+    it('a month is a Singapore month, as it is in the permanent record', () => {
+        expect(periodOf({ createdAt: new Date('2026-09-30T17:00:00Z') })).toBe('2026-10');
+        expect(periodOf({ createdAt: new Date('2026-09-30T15:59:00Z') })).toBe('2026-09');
+    });
 });
 
 describe('⚠️ the region map must not drift from the client table', () => {

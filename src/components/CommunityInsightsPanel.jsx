@@ -183,6 +183,17 @@ export default function CommunityInsightsPanel() {
               as <em>{d.suppression?.band ?? '<5'}</em>. A blank area on this page means
               too few responses to publish, <strong>not</strong> no need.
             </p>
+            {(d.suppression?.complementPeriods?.length ?? 0) > 0 && (
+              <p className="mt-1.5">
+                <strong>
+                  {d.suppression.complementPeriods.length === 1
+                    ? '1 larger month is'
+                    : `${d.suppression.complementPeriods.length} larger months are`}
+                </strong>{' '}
+                also left out of the monthly table. Publishing every large month would
+                let the small ones be worked out by subtraction from the total.
+              </p>
+            )}
             {d.suppression?.nationalDomainsWithheld && (
               <p className="mt-1.5 font-bold">
                 Fewer than {d.suppression?.minCell ?? 10} assessments in total, so even
