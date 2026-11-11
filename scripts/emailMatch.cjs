@@ -8,8 +8,8 @@
  * The migration resolves each clinician by an EXACT email lookup. When that
  * misses, the only thing it could say was *"NO AUTH ACCOUNT — they must register
  * once"*. On the owner's first real dry run that fired for three of seven people,
- * including two who plainly use the system: `staff_loads/brandon`,
- * `cep_team/brandon` and `archive_2025/brandon` all exist.
+ * including two who plainly use the system: `staff_loads/bradley`,
+ * `cep_team/bradley` and `archive_2025/bradley` all exist.
  *
  * A person with a year of clinical records is not a person who never signed in.
  * The far likelier explanation is that **the manifest's address is not the address
@@ -31,17 +31,17 @@
  *
  * `canonical` strips dots and everything else that is not a letter or a digit
  * from the local part. That is deliberately aggressive and it is aimed at one
- * observed case: the manifest holds `benny.loo.k.g.@singhealth.com.sg`, whose
+ * observed case: the manifest holds `barry.lim.k.g.@singhealth.com.sg`, whose
  * trailing dot makes it invalid under RFC 5321, so the account almost certainly
- * exists as `benny.loo.k.g@…`. Both canonicalise to `bennylookg`, which is an
+ * exists as `barry.lim.k.g@…`. Both canonicalise to `barrylimkg`, which is an
  * EXACT canonical match and by far the strongest signal available.
  *
  * Prefix matching catches the other observed shape: a manifest address carrying
- * an extra initial the person did not register with — `brandon.feng.gg@…`
- * against an account at `brandon.feng@…`.
+ * an extra initial the person did not register with — `bradley.tan.gg@…`
+ * against an account at `bradley.tan@…`.
  */
 
-/** Local part, letters and digits only. `Benny.Loo.K.G.@x` → `bennylookg`. */
+/** Local part, letters and digits only. `Barry.Lim.K.G.@x` → `barrylimkg`. */
 const canonical = (email) => String(email || '').toLowerCase().split('@')[0].replace(/[^a-z0-9]/g, '');
 
 /** Domain, lower-cased, or '' when there is not one. */

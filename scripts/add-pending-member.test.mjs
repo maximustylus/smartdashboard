@@ -34,9 +34,9 @@ describe('a placeholder cannot become a second copy of somebody', () => {
         expect(match, 'pendingIdFor not found').not.toBeNull();
         // Mirror it and exercise it, rather than trusting that a function exists.
         const idFor = (email) => 'pending-' + email.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-        expect(idFor('brandon.feng.gq@kkh.com.sg')).toBe('pending-brandon-feng-gq-kkh-com-sg');
+        expect(idFor('bradley.tan.gq@kkh.com.sg')).toBe('pending-bradley-tan-gq-kkh-com-sg');
         // Same address, same id — twice through is one row.
-        expect(idFor('Brandon.Feng.GQ@kkh.com.sg')).toBe(idFor('brandon.feng.gq@kkh.com.sg'));
+        expect(idFor('Bradley.Tan.GQ@kkh.com.sg')).toBe(idFor('bradley.tan.gq@kkh.com.sg'));
         // Different people never collide.
         expect(idFor('a@kkh.com.sg')).not.toBe(idFor('b@kkh.com.sg'));
     });
@@ -54,7 +54,7 @@ describe('a placeholder cannot become a second copy of somebody', () => {
 
 describe('the real account replaces the placeholder, in one batch', () => {
     /**
-     * ⚠️ THE HALF THAT MAKES THE OTHER HALF SAFE. Without it, a lead who adds Brandon
+     * ⚠️ THE HALF THAT MAKES THE OTHER HALF SAFE. Without it, a lead who adds Bradley
      *    after he registers ends up with two of him in the staff pool, and the engine
      *    will give one person two duties at once believing they are two people.
      */

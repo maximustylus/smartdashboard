@@ -20,17 +20,17 @@
  *
  * The app built that slug THREE different ways:
  *
- *   `AdminPanel.jsx`          name.toLowerCase().replace(/\s+/g, '_')   → ying_xian
+ *   `AdminPanel.jsx`          name.toLowerCase().replace(/\s+/g, '_')   → yu_xuan
  *   `AdminWellbeingPanel.jsx` name.toLowerCase().replace(/[^a-z0-9]/g, '_')
- *   `App.jsx` / normalize()   name.toLowerCase().replace(/[\s_]/g, '')  → yingxian
+ *   `App.jsx` / normalize()   name.toLowerCase().replace(/[\s_]/g, '')  → yuxuan
  *
  * — and `AdminPanel` used `.replace(' ', '_')` in two places, which replaces only
  * the FIRST space, so a three-word name slugged differently again. One person can
- * therefore own documents under `ying_xian`, `yingxian` and `ying-xian`.
+ * therefore own documents under `yu_xuan`, `yuxuan` and `yu-xuan`.
  *
  * ⚠️ A FOURTH FORM WAS FOUND IN PRODUCTION, and it was not in any of the three
  *    code paths above: the first real migration dry run reported
- *    `archive_2025/ying xian` — a raw display name, space and all, used verbatim as
+ *    `archive_2025/yu xuan` — a raw display name, space and all, used verbatim as
  *    a document id. So the list above is a record of what was READ IN THE SOURCE,
  *    not a complete census of what is in the database. That is the argument for
  *    normalising aggressively rather than enumerating the known forms: an

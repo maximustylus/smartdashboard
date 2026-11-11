@@ -204,8 +204,8 @@ describe('SmartAnalysis — publishing from the sandbox', () => {
 describe('AN2 — the analysis is generated over the TEAM\'s own people', () => {
     /**
      * ⚠️ IT WAS GENERATED OVER SIX HARDCODED NAMED COLLEAGUES, FOR EVERY TEAM.
-     *    `const currentProfiles = STAFF_PROFILES` — Alif, Fadzlynn, Derlinder,
-     *    Ying Xian, Brandon, Nisa, with their job grades — so a Respiratory Therapy
+     *    `const currentProfiles = STAFF_PROFILES` — Alif, Fayelynn, Darshan,
+     *    Yu Xuan, Bradley, Nora, with their job grades — so a Respiratory Therapy
      *    lead's year-end report named another department's staff, and
      *    `handlePublish` archived it to THEIR `reports/{year}`, readable by every
      *    member of their team. A cross-tenant disclosure by construction.
@@ -220,7 +220,7 @@ describe('AN2 — the analysis is generated over the TEAM\'s own people', () => 
         expect(payload.staffProfiles.map((p) => p.name)).toEqual(['A. Clinician', 'B. Clinician']);
 
         const serialised = JSON.stringify(payload);
-        ['Fadzlynn', 'Derlinder', 'Ying Xian', 'Nisa', 'Brandon'].forEach((n) => {
+        ['Fayelynn', 'Darshan', 'Yu Xuan', 'Nora', 'Bradley'].forEach((n) => {
             expect(serialised, `${n} must not reach the model`).not.toContain(n);
         });
     });

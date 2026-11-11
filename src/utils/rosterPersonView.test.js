@@ -10,7 +10,7 @@
  * not theirs:
  *
  *   1. IDENTITY, NEVER SUBSTRING (post-mortem A4). "Lynn" must not match inside
- *      "Fadzlynn" — that bug removed a colleague from a dropdown for months.
+ *      "Fayelynn" — that bug removed a colleague from a dropdown for months.
  *   2. THE THIRD PERSON ON A TEAM SHIFT IS ON IT (audit D2). `shift.staff` is a
  *      two-name display string, so a trio's third member is invisible in it; if
  *      this module read `staff` they would never see their own weekend.
@@ -112,18 +112,18 @@ describe('personRoleOnShift', () => {
     });
 
     it('compares identities, never substrings (post-mortem A4)', () => {
-        const shift = pairShift('Clinic', 'Fadzlynn', 'Brandon');
+        const shift = pairShift('Clinic', 'Fayelynn', 'Bradley');
         expect(personRoleOnShift(shift, 'Lynn')).toBeNull();
-        expect(personRoleOnShift(shift, 'Fadzlynn')).toMatchObject({ role: 'lead' });
+        expect(personRoleOnShift(shift, 'Fayelynn')).toMatchObject({ role: 'lead' });
         // …and surrounding whitespace is not a different person.
-        expect(personRoleOnShift(shift, '  Fadzlynn ')).toMatchObject({ role: 'lead' });
+        expect(personRoleOnShift(shift, '  Fayelynn ')).toMatchObject({ role: 'lead' });
     });
 
     it('calls a genuine pre-refactor single-person shift "on duty", not "lead"', () => {
         // `readShiftIdentities` reports a legacy bare-`staff` holder as the lead so
         // the swap flow can act on it. Calling them "Lead" in their own list would
         // invent a co-lead that never existed on that shift.
-        expect(personRoleOnShift({ task: 'Old Clinic', staff: 'Brandon' }, 'Brandon'))
+        expect(personRoleOnShift({ task: 'Old Clinic', staff: 'Bradley' }, 'Bradley'))
             .toMatchObject({ role: 'staff', label: 'On duty' });
     });
 

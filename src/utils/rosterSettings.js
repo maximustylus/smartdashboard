@@ -11,7 +11,7 @@
  * That was survivable while the wizard was sandbox-only — a visitor exploring a
  * fictional department loses nothing by closing the page. It stops being
  * survivable the moment a real roster master configures a real department, which
- * is what `R3` makes possible: Nisa would have retyped Sport & Exercise Medicine's
+ * is what `R3` makes possible: Nora would have retyped Sport & Exercise Medicine's
  * entire structure every time she opened the roster, and so would twenty-seven
  * other departments.
  *

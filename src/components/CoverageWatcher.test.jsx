@@ -50,7 +50,7 @@ import { onSnapshot, collection, where } from 'firebase/firestore';
 
 // `uid` is what the listener routes on now; `name` is still here because the
 // rendered copy names the requester and the duty.
-const USER = { uid: 'uid-ying-xian', name: 'Ying Xian', role: 'staff' };
+const USER = { uid: 'uid-yu-xuan', name: 'Yu Xuan', role: 'staff' };
 
 /** One PENDING shift_swaps document, in the shape the collection really holds. */
 const snapshotOf = (docs) => ({
@@ -59,9 +59,9 @@ const snapshotOf = (docs) => ({
 
 const REQUEST = {
     id: 'req-1',
-    requestedBy: 'Brandon',
-    targetStaff: 'Ying Xian',
-    targetUid: 'uid-ying-xian',
+    requestedBy: 'Bradley',
+    targetStaff: 'Yu Xuan',
+    targetUid: 'uid-yu-xuan',
     originalShiftDate: '2026-09-15',
     originalTask: 'Outpatient Clinic',
     swapRole: 'lead',
@@ -100,7 +100,7 @@ describe('CoverageWatcher — notices what the view-gated roster cannot', () => 
 
         expect(screen.getByRole('status')).toBeTruthy();
         expect(screen.getByText(/someone needs cover/i)).toBeTruthy();
-        expect(screen.getByText(/Brandon/)).toBeTruthy();
+        expect(screen.getByText(/Bradley/)).toBeTruthy();
     });
 
     it('takes the recipient to the roster rather than answering in place', () => {
@@ -168,10 +168,10 @@ describe('CoverageWatcher — notices what the view-gated roster cannot', () => 
 
     it('announces several requests separately', () => {
         render(<CoverageWatcher user={USER} isRosterVisible={false} onOpenRoster={() => {}} />);
-        emit([REQUEST, { ...REQUEST, id: 'req-2', requestedBy: 'Derlinder', originalTask: 'Inpatient Rounds' }]);
+        emit([REQUEST, { ...REQUEST, id: 'req-2', requestedBy: 'Darshan', originalTask: 'Inpatient Rounds' }]);
 
         expect(screen.getAllByRole('status')).toHaveLength(2);
-        expect(screen.getByText(/Derlinder/)).toBeTruthy();
+        expect(screen.getByText(/Darshan/)).toBeTruthy();
     });
 });
 
@@ -190,8 +190,8 @@ describe('CoverageWatcher — team scope and uid routing', () => {
         expect(collection).toHaveBeenCalledWith(
             expect.anything(), 'teams', 'kkh-sport-exercise-medicine', 'swaps',
         );
-        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-ying-xian');
-        expect(where).not.toHaveBeenCalledWith('targetStaff', '==', 'Ying Xian');
+        expect(where).toHaveBeenCalledWith('targetUid', '==', 'uid-yu-xuan');
+        expect(where).not.toHaveBeenCalledWith('targetStaff', '==', 'Yu Xuan');
     });
 
     /**
@@ -207,7 +207,7 @@ describe('CoverageWatcher — team scope and uid routing', () => {
     });
 
     it('opens no listener for a user with no uid', () => {
-        render(<CoverageWatcher user={{ name: 'Ying Xian' }} isRosterVisible={false} onOpenRoster={() => {}} />);
+        render(<CoverageWatcher user={{ name: 'Yu Xuan' }} isRosterVisible={false} onOpenRoster={() => {}} />);
         expect(listeners).toHaveLength(0);
     });
 });

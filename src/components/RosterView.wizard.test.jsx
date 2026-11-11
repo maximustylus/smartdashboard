@@ -84,10 +84,10 @@ vi.mock('../context/NexusContext', () => ({
 // DOES, and `TeamContext.test.jsx` owns how a team is resolved.
 const TEAM_ID = 'kkh-sport-exercise-medicine';
 const TEAM_MEMBERS = [
-    { uid: 'uid-brandon', displayName: 'Brandon' },
-    { uid: 'uid-derlinder', displayName: 'Derlinder' },
-    { uid: 'uid-fadzlynn', displayName: 'Fadzlynn' },
-    { uid: 'uid-ying-xian', displayName: 'Ying Xian' },
+    { uid: 'uid-bradley', displayName: 'Bradley' },
+    { uid: 'uid-darshan', displayName: 'Darshan' },
+    { uid: 'uid-fayelynn', displayName: 'Fayelynn' },
+    { uid: 'uid-yu-xuan', displayName: 'Yu Xuan' },
 ];
 // WHO HOLDS DUTIES, which is not the same question as `role` — a roster master
 // configures the roster and is not in it. All four here are clinicians, matching the
@@ -118,7 +118,7 @@ import { LIVE_ROSTER_DEFAULTS } from '../utils/auraEngine';
 import { DEFAULT_GRADE_BANDS } from '../utils/rosterEngineV2';
 import { bandsToInputs } from '../utils/rosterWizard';
 
-const BRANDON = { uid: 'uid-brandon', name: 'Brandon', role: 'staff', email: 'brandon@example.org' };
+const BRADLEY = { uid: 'uid-bradley', name: 'Bradley', role: 'staff', email: 'bradley@example.org' };
 
 /**
  * The two live textareas, verbatim as of the commit before the sandbox tables
@@ -217,7 +217,7 @@ afterEach(() => {
  */
 describe('live mode: the same wizard, with the team as its staff', () => {
     it('renders the sandbox tables — the two textareas are gone', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         expect(document.getElementById('roster-staff-pool'),
@@ -234,7 +234,7 @@ describe('live mode: the same wizard, with the team as its staff', () => {
      *    the last place it survived.
      */
     it('shows the team as the staff rows, in member order', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         TEAM_ROSTERED.forEach((person) => {
@@ -249,7 +249,7 @@ describe('live mode: the same wizard, with the team as its staff', () => {
      * would take them out of one week and leave them in the department.
      */
     it('does not offer add or remove on the live staff table', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         expect(screen.queryByRole('button', { name: /remove staff row 1/i })).toBeNull();
@@ -267,7 +267,7 @@ describe('live mode: the same wizard, with the team as its staff', () => {
      *    `generateRosterV2`'s own wording.
      */
     it('is gated by the configuration, not by a textarea', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // Clearing every task name is the live equivalent of emptying the old task
@@ -287,7 +287,7 @@ describe('live mode: the same wizard, with the team as its staff', () => {
      * behind the modal.
      */
     it('opens on the tasks the department is already running', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         LIVE_ROSTER_DEFAULTS.tasks.forEach((task) => {
@@ -314,7 +314,7 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
     };
 
     it('defaults to the department grid, and adds no control to the wizard', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         expect(screen.getByRole('button', { name: /^department$/i }).getAttribute('aria-pressed'))
             .toBe('true');
@@ -342,15 +342,15 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
     });
 
     it('lists the signed-in user\'s own duties out of the live document, and nobody else\'s', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         // The live listener, answered with a document in the shape
         // `system_data/roster_2026` really holds.
         const dateKey = liveDayKey(15);
         const liveDoc = {
             [dateKey]: [
-                { task: 'EFT', lead: 'Brandon', coLead: 'Derlinder', staff: 'Lead: Brandon, Co: Derlinder', week: 1, category: 'CORE' },
-                { task: 'NC', lead: 'Ying Xian', coLead: 'Fadzlynn', staff: 'Lead: Ying Xian, Co: Fadzlynn', week: 1, category: 'CORE' },
+                { task: 'EFT', lead: 'Bradley', coLead: 'Darshan', staff: 'Lead: Bradley, Co: Darshan', week: 1, category: 'CORE' },
+                { task: 'NC', lead: 'Yu Xuan', coLead: 'Fayelynn', staff: 'Lead: Yu Xuan, Co: Fayelynn', week: 1, category: 'CORE' },
             ],
         };
         // CHANGED (one-tap cover): one listener on the ROSTER DOCUMENT. The view also
@@ -368,15 +368,15 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
         const panel = document.querySelector('[data-roster-view="person"]');
         expect(panel).toBeTruthy();
 
-        // …and exactly one of them is Brandon's.
-        expect(within(panel).getByRole('heading', { name: 'Brandon' })).toBeTruthy();
+        // …and exactly one of them is Bradley's.
+        expect(within(panel).getByRole('heading', { name: 'Bradley' })).toBeTruthy();
         const list = within(panel).getByRole('list');
         expect(within(list).getAllByRole('listitem')).toHaveLength(1);
         expect(within(list).getByText('EFT')).toBeTruthy();
         expect(within(list).getByText('Lead')).toBeTruthy();
-        expect(within(list).getByText(/with Derlinder/)).toBeTruthy();
+        expect(within(list).getByText(/with Darshan/)).toBeTruthy();
         expect(within(list).queryByText('NC')).toBeNull();
-        expect(within(list).queryByText(/Ying Xian/)).toBeNull();
+        expect(within(list).queryByText(/Yu Xuan/)).toBeNull();
 
         // Live mode's person IS the signed-in user: there is nothing to choose, and
         // therefore no `<select>` anywhere in this universe.
@@ -402,7 +402,7 @@ describe('live mode: my week reads the live document and adds nothing to it', ()
     });
 
     it('says so plainly when there is no live roster to read', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         fireEvent.click(screen.getByRole('button', { name: /^my week$/i }));
 
         // The listener has not answered, so the calendar is empty — and the person
@@ -423,7 +423,7 @@ describe('demo mode: the wizard is the tables, and only the tables', () => {
     });
 
     it('has no free-text staff or task box at all', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         expect(document.getElementById('roster-staff-pool')).toBeNull();
@@ -433,7 +433,7 @@ describe('demo mode: the wizard is the tables, and only the tables', () => {
     });
 
     it('has the band editor, both tables and the sandbox chrome', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         expect(screen.getByText(/grade bands/i)).toBeTruthy();
@@ -485,7 +485,7 @@ describe('demo mode: the wizard is the tables, and only the tables', () => {
     });
 
     it('opens with an empty pool and a disabled Generate, saying what is missing', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // RENAMED (language pass): "Generate Sandbox Roster" -> "Draft roster".
@@ -631,7 +631,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('publishes each divider\'s value and its LEGAL travel, not the scale ends', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // BY LABEL, NOT BY INDEX. `dividers()[0]` was the junior|senior boundary
@@ -686,7 +686,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('re-publishes the other divider\'s travel as soon as one of them moves', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // CHANGED BY THE FOUR-BAND SPLIT. This drove the junior|senior divider from
@@ -708,7 +708,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('steps one grade per arrow key, and swallows the key so the wizard stays put', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         expect(press(juniorSenior(), 'ArrowLeft')).toBe(false);
@@ -734,7 +734,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('Home and End jump to the published limits, not to AH7 and AH17', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         press(juniorSenior(), 'End');
@@ -775,7 +775,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('cannot be driven into a gap or an overlap, however hard it is pushed', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // CHANGED BY THE FOUR-BAND SPLIT: two hand-written pairs of pushes became a
@@ -817,7 +817,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('drags with a pointer, snapping to the nearest grade line, and clamps', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         stubRulerWidth();
@@ -867,7 +867,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('moves the grade range on a task\'s band chips as the divider moves', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         fireEvent.change(screen.getByLabelText('Task row 1 name'), { target: { value: 'Governance' } });
@@ -891,7 +891,7 @@ describe('demo mode: the band boundary ruler', () => {
     });
 
     it('hands the moved boundaries to the ENGINE, in its own validator and its output', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         openConfigure();
 
         // Two people, neither of them in the senior band as it is shipped, and one

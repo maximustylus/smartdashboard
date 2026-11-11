@@ -14,7 +14,7 @@
  * `checkAccess()` refused anyone not among ten hardcoded people. Two consequences,
  * both real rather than theoretical:
  *
- *   1. TWO PEOPLE IN THE DIRECTORY COULD NEVER LOG IN. Benny and Ashik hold
+ *   1. TWO PEOPLE IN THE DIRECTORY COULD NEVER LOG IN. Barry and Arjun hold
  *      `@singhealth.com.sg` addresses. They passed `checkAccess` and failed the
  *      domain test one line above it. Nobody noticed because both are viewers.
  *   2. ONBOARDING ANYONE MEANT A CODE DEPLOY. Twenty-eight departments cannot be

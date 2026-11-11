@@ -77,13 +77,13 @@ describe('roleOf', () => {
 
 describe('describeRoleChange', () => {
     it('reads a promotion', () => {
-        expect(describeRoleChange({ targetName: 'Brandon', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true, byName: 'Alif' }))
-            .toBe('Brandon changed from staff to lead (changed by Alif).');
+        expect(describeRoleChange({ targetName: 'Bradley', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: true, byName: 'Alif' }))
+            .toBe('Bradley changed from staff to lead (changed by Alif).');
     });
 
     it('notes a roster change made in the same save', () => {
-        expect(describeRoleChange({ targetName: 'Nisa', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: false, byName: '' }))
-            .toBe('Nisa changed from staff to lead, no longer in the roster.');
+        expect(describeRoleChange({ targetName: 'Nora', fromRole: 'staff', toRole: 'lead', fromRostered: true, toRostered: false, byName: '' }))
+            .toBe('Nora changed from staff to lead, no longer in the roster.');
     });
 
     it('does not mention the roster for a viewer, who is never in it', () => {
@@ -92,8 +92,8 @@ describe('describeRoleChange', () => {
     });
 
     it('reads a roster-only change', () => {
-        expect(describeRoleChange({ targetName: 'Alif', fromRole: 'lead', toRole: 'lead', fromRostered: true, toRostered: false, byName: 'Nisa' }))
-            .toBe('Alif is no longer in the roster (changed by Nisa).');
+        expect(describeRoleChange({ targetName: 'Alif', fromRole: 'lead', toRole: 'lead', fromRostered: true, toRostered: false, byName: 'Nora' }))
+            .toBe('Alif is no longer in the roster (changed by Nora).');
     });
 
     it('returns null rather than a sentence with "undefined" in it', () => {

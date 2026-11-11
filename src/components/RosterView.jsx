@@ -2092,7 +2092,7 @@ const RosterView = ({ user }) => {
 
     // WHO MAY OPEN A SHIFT THEY ARE NOT ON. The app-level admin always could; a
     // MEMBERSHIP lead now can too, because the roster master is a lead (often not
-    // in the pool at all — `NISA` in the rules fixture) and the two things this
+    // in the pool at all — `NORA` in the rules fixture) and the two things this
     // modal does on somebody else's shift, arranging cover and reassigning, are
     // both hers to do. `user.role` and `membership.role` are different documents
     // (see `TeamContext`); either grants it.
@@ -2944,7 +2944,7 @@ const RosterView = ({ user }) => {
                 📱 SEVEN COLUMNS BECOME ONE BELOW `sm:`, AND THE REASONING MATTERS.
                 At 375px a seven-column month grid gives each day about 48px of width.
                 The cells already render at 9px with a 90px inner scroller, and 48px is
-                not enough for "EFT" and "Lead: Fadzlynn, Co: Derlinder" at any size a
+                not enough for "EFT" and "Lead: Fayelynn, Co: Darshan" at any size a
                 person can read — shrinking further is not a fix, it is the same
                 unreadable grid with smaller type. So below `sm:` the month lays out as
                 a LIST: one full-width row per day, in date order, each naming its own
@@ -3732,7 +3732,7 @@ const RosterView = ({ user }) => {
                                             to work only because no current name is a
                                             substring of another: a "Lynn" silently
                                             disappeared from this dropdown whenever
-                                            "Fadzlynn" was on the shift, and could never
+                                            "Fayelynn" was on the shift, and could never
                                             be asked to cover. Now an identity comparison
                                             against the shift's lead/coLead. */}
                                         {filterSwapCandidates(config.staff, selectedShift).map(colleague => (

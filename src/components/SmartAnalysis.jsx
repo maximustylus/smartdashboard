@@ -36,8 +36,8 @@ const generateSmartAnalysis = httpsCallable(functions, 'generateSmartAnalysis', 
  * their roles and their JOB GRADES:
  *
  *     "Alif": { role: "Lead and Senior Clinical Exercise Physiologist", grade: "JG14" },
- *     "Fadzlynn": { …, grade: "JG13" },  "Derlinder": { …, grade: "JG12" },
- *     "Ying Xian": { …, grade: "JG12" }, "Brandon":   { …, grade: "JG11" }, …
+ *     "Fayelynn": { …, grade: "JG13" },  "Darshan": { …, grade: "JG12" },
+ *     "Yu Xuan": { …, grade: "JG12" }, "Bradley":   { …, grade: "JG11" }, …
  *
  * A constant in a React component is a constant in the BUNDLE. Measured:
  *

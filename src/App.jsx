@@ -802,7 +802,7 @@ export default function App() {
             *    COSMETIC. `getClinicalData` looks a person up in `activeStaffLoads`,
             *    which the multi-team rewire re-keyed by UID (`setStaffLoads(prev =>
             *    ({ ...prev, [member.uid]: … }))`). This list supplied a DIRECTORY ID
-            *    — `'brandon'`, `'alif'` — so the lookup missed every time and fell
+            *    — `'bradley'`, `'alif'` — so the lookup missed every time and fell
             *    back to `Array(12).fill(0)`. Twelve months of zero bars per clinician,
             *    rendered confidently, on the first screen anybody sees.
             *

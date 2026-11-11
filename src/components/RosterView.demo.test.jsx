@@ -2329,7 +2329,7 @@ describe('demo mode: the picker is a profession and a shape', () => {
         // into the test itself: test files do not ship, and the check must keep
         // guarding against exactly the people someone editing this fixture in good
         // faith might reach for.
-        const REAL_COLLEAGUE_NAMES = ['Brandon', 'Ying Xian', 'Derlinder', 'Fadzlynn'];
+        const REAL_COLLEAGUE_NAMES = ['Bradley', 'Yu Xuan', 'Darshan', 'Fayelynn'];
         const everyName = DEMO_SHAPES.flatMap((entry) => entry.config.staff.map((person) => person.name));
         expect(everyName.length).toBeGreaterThan(0);
         for (const colleague of REAL_COLLEAGUE_NAMES) {

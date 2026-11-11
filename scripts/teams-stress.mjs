@@ -74,7 +74,7 @@ H('B. UIDS - per-person documents are keyed by uid, never by name');
 
 const TAB = String.fromCharCode(9);
 const HOSTILE_UIDS = ['', ' ', TAB, null, undefined, 0, [], {},
-    'Ying Xian', 'Sarah Tan', 'Sarah', 'YINGXIAN', 'a/b', '..', '.', 'uid ',
+    'Yu Xuan', 'Sarah Tan', 'Sarah', 'YUXUAN', 'a/b', '..', '.', 'uid ',
     TP.ANONYMOUS_WELLBEING_ID];
 const uidThrough = HOSTILE_UIDS.filter((u) => { try { TP.assertUid(u); return true; } catch { return false; } });
 console.log(`  ${HOSTILE_UIDS.length} hostile uids - ${uidThrough.length} accepted: ${uidThrough.map((u) => JSON.stringify(u)).join(', ')}`);
@@ -82,7 +82,7 @@ const asPath = uidThrough.filter((u) => typeof u === 'string' && (u.includes('/'
 if (asPath.length) flag('U1', 'assertUid-accepted-a-path', asPath.map((u) => JSON.stringify(u)).join(', '));
 const asName = uidThrough.filter((u) => typeof u === 'string' && /^[A-Za-z]{3,}$/.test(u));
 if (asName.length) flag('U2', 'assertUid-cannot-tell-a-single-word-name-from-a-uid',
-    `${asName.map((u) => JSON.stringify(u)).join(', ')} - the guard catches "Ying Xian" but not "Sarah"`);
+    `${asName.map((u) => JSON.stringify(u)).join(', ')} - the guard catches "Yu Xuan" but not "Sarah"`);
 // The sentinel is a legal uid SHAPE — the refusal belongs to the builder that would
 // otherwise file it as a person, not to `assertUid`, which cannot know the context.
 let sentinelRefused = false;
@@ -238,7 +238,7 @@ H('E. MEMBERSHIP - how a team grows, and the team nobody can administer');
 const TEAM = 'kkh-respiratory-therapy';
 const LEAD_MEMBERSHIP = { uid: 'leadUid0000000000000000000aa', role: 'lead' };
 const DOMAINS = ['kkh.com.sg', 'singhealth.com.sg'];
-const REAL = { uid: 'newUid00000000000000000000bb', email: 'brandon@kkh.com.sg', emailVerified: true };
+const REAL = { uid: 'newUid00000000000000000000bb', email: 'bradley@kkh.com.sg', emailVerified: true };
 
 const invitable = (over = {}) => assertInvitable({
     teamId: TEAM, callerMembership: LEAD_MEMBERSHIP, invitee: REAL,
@@ -267,7 +267,7 @@ if (admittedCallers.length) flag('M1', 'a-non-lead-was-allowed-to-add-a-member',
 // themselves up and be skipped entirely for people a lead adds.
 const HOSTILE_EMAILS = [
     '', ' ', null, undefined, 0, [], {},
-    'brandon', 'brandon@', '@kkh.com.sg', 'a@b@kkh.com.sg', 'a@kkh.com.sg@evil.example',
+    'bradley', 'bradley@', '@kkh.com.sg', 'a@b@kkh.com.sg', 'a@kkh.com.sg@evil.example',
     'a@gmail.com', 'a@mail.kkh.com.sg', 'a@kkh.com.sg.attacker.example', 'a@KKH.COM.SG.evil',
     'a@localhost', 'a@-kkh.com.sg', 'a@kkh-.com.sg', 'a@kkh..com.sg',
     'a@xn--kkh-tla.com.sg', 'a@\u212akkh.com.sg', 'a@kkh.com.sg\u0000',
@@ -390,7 +390,7 @@ for (const isOwner of [true, false]) {
 console.log(`  ${matrix} removal combinations - ${orphanable} would have left a team with no lead`);
 
 // ── E6. Idempotence: doing it twice is the state the lead asked for ──────────
-const twice = invitable({ existingMembership: { displayName: 'Brandon', role: 'staff' } });
+const twice = invitable({ existingMembership: { displayName: 'Bradley', role: 'staff' } });
 const gone = assertRemovable({
     teamId: TEAM, team: { leadUid: 'x' }, callerUid: LEAD_MEMBERSHIP.uid,
     callerMembership: LEAD_MEMBERSHIP, targetUid: 'ghost000000000000000000000dd',

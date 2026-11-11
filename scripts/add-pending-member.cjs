@@ -12,8 +12,8 @@
  *   # 1. DRY RUN — the default. Writes nothing, and names the project first.
  *   GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json \
  *     node scripts/add-pending-member.cjs --team kkh-sport-exercise-medicine \
- *       --person brandon.feng.gq@kkh.com.sg:Brandon:AH11 \
- *       --person fadzlynn.mohamad.fadzully@kkh.com.sg:Fadzlynn:AH13
+ *       --person bradley.tan.gq@kkh.com.sg:Bradley:AH11 \
+ *       --person fayelynn.mohamad.farid@kkh.com.sg:Fayelynn:AH13
  *
  *   # 2. FOR REAL — only after reading the dry run.
  *   …same command… --write
@@ -38,7 +38,7 @@
  *    and never will be. The department can roster four months tonight instead of
  *    waiting on a registration relay.
  *
- * ⚠️ THE DUPLICATE THIS WOULD OTHERWISE CAUSE, and how it is closed. When Brandon
+ * ⚠️ THE DUPLICATE THIS WOULD OTHERWISE CAUSE, and how it is closed. When Bradley
  *    does register and the lead adds him properly, `inviteMember` creates a
  *    membership under his REAL uid — and the placeholder would still be there, so
  *    he would appear twice in the staff pool and could be double-booked. That is

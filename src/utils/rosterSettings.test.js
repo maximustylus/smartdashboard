@@ -34,7 +34,7 @@ const configured = () => ({
     ],
     bandInputs: { ...bandsToInputs(), senior: { min: '12', max: '14' } },
     hoursInputs: { weeklyHours: '42', maxHoursPerDay: '9' },
-    rulesInputs: { maxConcurrentPerDay: '2', maxConsecutiveDays: '5', forbidPairs: [['Alif', 'Nisa']] },
+    rulesInputs: { maxConcurrentPerDay: '2', maxConsecutiveDays: '5', forbidPairs: [['Alif', 'Nora']] },
     extraRules: null,
 });
 
@@ -87,7 +87,7 @@ describe('the round trip', () => {
         expect(back.hoursInputs).toEqual({ weeklyHours: '42', maxHoursPerDay: '9' });
         expect(back.rulesInputs.maxConcurrentPerDay).toBe('2');
         expect(back.rulesInputs.maxConsecutiveDays).toBe('5');
-        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nisa']]);
+        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nora']]);
     });
 
     /** Twice through must be identical to once — otherwise it drifts every reload. */
@@ -169,14 +169,14 @@ describe('nothing about a PERSON is stored', () => {
      */
     it('DOES store forbidPairs names, which is the one accepted exception', () => {
         const stored = toStoredSettings(configured());
-        expect(stored.rules.forbidPairs).toEqual([{ a: 'Alif', b: 'Nisa' }]);
+        expect(stored.rules.forbidPairs).toEqual([{ a: 'Alif', b: 'Nora' }]);
     });
 
     /**
      * ⚠️ THE SHAPE IS `{ a, b }` BECAUSE FIRESTORE FORBIDS AN ARRAY INSIDE AN ARRAY,
      *    AND GETTING THIS WRONG LOST A DEPARTMENT'S WHOLE CONFIGURATION.
      *
-     *    It was `[['Alif','Nisa']]`, which is a nested array, so `setDoc` threw
+     *    It was `[['Alif','Nora']]`, which is a nested array, so `setDoc` threw
      *    "Nested arrays are not supported" and the ENTIRE settings document failed to
      *    write — tasks, bands, hours, everything, not just the pairs. The department
      *    was told "you may have to set it up again next time" with no indication that
@@ -208,16 +208,16 @@ describe('nothing about a PERSON is stored', () => {
     it('reads the pair back as the two names the wizard works in', () => {
         const stored = toStoredSettings(configured());
         const back = fromStoredSettings({ version: 1, tasks: [{ name: 'EFT' }], rules: stored.rules });
-        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nisa']]);
+        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nora']]);
     });
 
     it('still reads a legacy two-element array, so nothing is lost on the way in', () => {
         const back = fromStoredSettings({
             version: 1,
             tasks: [{ name: 'EFT' }],
-            rules: { forbidPairs: [['Alif', 'Nisa']] },
+            rules: { forbidPairs: [['Alif', 'Nora']] },
         });
-        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nisa']]);
+        expect(back.rulesInputs.forbidPairs).toEqual([['Alif', 'Nora']]);
     });
 
     it('reads back no staff either, so a stored one could not resurface', () => {

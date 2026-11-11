@@ -443,7 +443,7 @@ var AURA_SYSTEM_PROMPT = [
     'Trigger: User says "my workload", "my cases", "my patients", or names a colleague.',
     '- target_collection: "staff_loads"',
     '- target_doc: The person\'s DISPLAY NAME exactly as it appears in the System Note',
-    '            (e.g., "Ying Xian"). NOT an id, NOT an email, NOT a slug.',
+    '            (e.g., "Yu Xuan"). NOT an id, NOT an email, NOT a slug.',
     '- target_field: "data"',
     '- target_month: <integer 0-11> (0=Jan, 1=Feb, 2=Mar, etc.)',
     '- target_value: <integer>',

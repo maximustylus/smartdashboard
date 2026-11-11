@@ -27,7 +27,7 @@ import {
 
 const loads = (over = {}) => ({
     target_collection: TARGET_LOADS,
-    target_doc: 'Brandon',
+    target_doc: 'Bradley',
     target_field: 'data',
     target_value: 35,
     target_month: 0,
@@ -311,7 +311,7 @@ describe('AU4 — monthly_workload target_doc must be a real mmm_yyyy period', (
     it('the staff_loads branch is untouched — a display name is not a period', () => {
         expect(refuseWorkloadWrite({
             target_collection: 'staff_loads',
-            target_doc: 'Ying Xian',
+            target_doc: 'Yu Xuan',
             target_field: 'data',
             target_value: 30,
             target_month: 4,

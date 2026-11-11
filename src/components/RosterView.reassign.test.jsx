@@ -73,10 +73,10 @@ vi.mock('../context/NexusContext', () => ({
 
 const TEAM_ID = 'kkh-sport-exercise-medicine';
 const TEAM_MEMBERS = [
-    { uid: 'uid-brandon', displayName: 'Brandon' },
-    { uid: 'uid-derlinder', displayName: 'Derlinder' },
-    { uid: 'uid-fadzlynn', displayName: 'Fadzlynn' },
-    { uid: 'uid-ying-xian', displayName: 'Ying Xian' },
+    { uid: 'uid-bradley', displayName: 'Bradley' },
+    { uid: 'uid-darshan', displayName: 'Darshan' },
+    { uid: 'uid-fayelynn', displayName: 'Fayelynn' },
+    { uid: 'uid-yu-xuan', displayName: 'Yu Xuan' },
 ];
 // Hoisted and stable, for the reason `RosterView.coverage.test.jsx` gives: a
 // fresh array per call re-runs the live effect forever.
@@ -118,14 +118,14 @@ const CHANGES_PATH = `teams/${TEAM_ID}/rosters/2026/changes`;
 
 const MODERN_ROSTER = () => ({
     [DATE_KEY]: [
-        { task: 'EFT', week: 1, lead: 'Brandon', coLead: 'Ying Xian', staff: 'Lead: Brandon, Co: Ying Xian', category: 'EFT' },
-        { task: 'NC', week: 1, lead: 'Fadzlynn', coLead: 'Ying Xian', staff: 'Lead: Fadzlynn, Co: Ying Xian', category: 'CORE' },
+        { task: 'EFT', week: 1, lead: 'Bradley', coLead: 'Yu Xuan', staff: 'Lead: Bradley, Co: Yu Xuan', category: 'EFT' },
+        { task: 'NC', week: 1, lead: 'Fayelynn', coLead: 'Yu Xuan', staff: 'Lead: Fayelynn, Co: Yu Xuan', category: 'CORE' },
     ],
 });
 
 /** The roster master: a membership lead, NOT in the pool, app role plain staff. */
-const NISA = { uid: 'uid-nisa', name: 'Nisa', role: 'staff', email: 'nisa@example.org' };
-const BRANDON = { uid: 'uid-brandon', name: 'Brandon', role: 'staff', email: 'brandon@example.org' };
+const NORA = { uid: 'uid-nora', name: 'Nora', role: 'staff', email: 'nora@example.org' };
+const BRADLEY = { uid: 'uid-bradley', name: 'Bradley', role: 'staff', email: 'bradley@example.org' };
 const VISITOR = { name: 'Visiting Therapist', role: 'staff', email: 'visitor@example.org' };
 
 // --- MOCK STATE --------------------------------------------------------------
@@ -254,10 +254,10 @@ const logWrites = () =>
 /** The full live path up to the click: a lead opens EFT, picks the duty and the colleague. */
 const armReassignment = () => {
     ctx.isLead = true;
-    render(<RosterView user={NISA} />);
+    render(<RosterView user={NORA} />);
     openShift('EFT');
     chooseDuty('lead');
-    chooseColleague('Derlinder');
+    chooseColleague('Darshan');
 };
 
 // ─── 1. WHO IS OFFERED IT ─────────────────────────────────────────────────────
@@ -265,7 +265,7 @@ const armReassignment = () => {
 describe('a membership lead who is not on the shift', () => {
     it('can open it, and is offered Reassign now once a colleague is chosen', () => {
         ctx.isLead = true;
-        render(<RosterView user={NISA} />);
+        render(<RosterView user={NORA} />);
 
         const chip = openShift('EFT');
         expect(chip.disabled).toBe(false);
@@ -277,19 +277,19 @@ describe('a membership lead who is not on the shift', () => {
         expect(reassign.disabled).toBe(true);
 
         chooseDuty('lead');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
         expect(reassignButton().disabled).toBe(false);
-        expect(reassignButton().textContent).toMatch(/reassign now to Derlinder/i);
+        expect(reassignButton().textContent).toMatch(/reassign now to Darshan/i);
         // The copy says what will happen, in plain words, before the tap.
-        expect(screen.getByText(/takes effect immediately, without asking Derlinder/i)).toBeTruthy();
-        expect(screen.getByText(/Brandon comes off the lead duty/i)).toBeTruthy();
+        expect(screen.getByText(/takes effect immediately, without asking Darshan/i)).toBeTruthy();
+        expect(screen.getByText(/Bradley comes off the lead duty/i)).toBeTruthy();
     });
 });
 
 describe('a staff member', () => {
     it('is not offered Reassign now, even on their own shift', () => {
         ctx.isLead = false;
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         openShift('EFT');
         expect(modal()).not.toBeNull();
@@ -300,7 +300,7 @@ describe('a staff member', () => {
 
     it('still cannot open a colleague\'s shift', () => {
         ctx.isLead = false;
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         const nc = screen.getAllByText('NC')[0].closest('button');
         expect(nc.disabled).toBe(true);
     });
@@ -326,7 +326,7 @@ describe('reassigning', () => {
         const [patch] = rosterPatches();
         expect(Object.keys(patch)).toEqual([DATE_KEY]);
         expect(patch[DATE_KEY][0]).toEqual({
-            task: 'EFT', week: 1, lead: 'Derlinder', coLead: 'Ying Xian', staff: 'Lead: Derlinder, Co: Ying Xian', category: 'EFT',
+            task: 'EFT', week: 1, lead: 'Darshan', coLead: 'Yu Xuan', staff: 'Lead: Darshan, Co: Yu Xuan', category: 'EFT',
         });
         expect(patch[DATE_KEY][1]).toEqual(MODERN_ROSTER()[DATE_KEY][1]);
 
@@ -336,19 +336,19 @@ describe('reassigning', () => {
             dateKey: DATE_KEY,
             task: 'EFT',
             role: 'lead',
-            from: 'Brandon',
-            to: 'Derlinder',
-            before: 'Lead: Brandon, Co: Ying Xian',
-            after: 'Lead: Derlinder, Co: Ying Xian',
+            from: 'Bradley',
+            to: 'Darshan',
+            before: 'Lead: Bradley, Co: Yu Xuan',
+            after: 'Lead: Darshan, Co: Yu Xuan',
             reason: '',
-            byUid: 'uid-nisa',
-            byName: 'Nisa',
+            byUid: 'uid-nora',
+            byName: 'Nora',
             at: 'mock-timestamp',
         }]);
 
         // The sentence is built from the document that was read back.
-        expect(screen.getByText(/now reads “Lead: Derlinder, Co: Ying Xian”/)).toBeTruthy();
-        expect(screen.getByText(/Derlinder takes over as lead from Brandon/)).toBeTruthy();
+        expect(screen.getByText(/now reads “Lead: Darshan, Co: Yu Xuan”/)).toBeTruthy();
+        expect(screen.getByText(/Darshan takes over as lead from Bradley/)).toBeTruthy();
         expect(screen.getByText(/tell them both/i)).toBeTruthy();
 
         // Done: the modal is gone.
@@ -383,19 +383,19 @@ describe('reassigning', () => {
 
     it('a refusal from the planner touches nothing and names the reason', async () => {
         ctx.isLead = true;
-        render(<RosterView user={NISA} />);
+        render(<RosterView user={NORA} />);
         openShift('EFT');
         chooseDuty('lead');
-        chooseColleague('Derlinder');
+        chooseColleague('Darshan');
 
-        // Between the calendar being drawn and the click, somebody else moved Brandon.
+        // Between the calendar being drawn and the click, somebody else moved Bradley.
         rosterDoc[DATE_KEY][0] = {
-            ...rosterDoc[DATE_KEY][0], lead: 'Fadzlynn', staff: 'Lead: Fadzlynn, Co: Ying Xian',
+            ...rosterDoc[DATE_KEY][0], lead: 'Fayelynn', staff: 'Lead: Fayelynn, Co: Yu Xuan',
         };
         fireEvent.click(reassignButton());
 
         await waitFor(() => expect(screen.getByText(/not reassigned — the roster is unchanged/i)).toBeTruthy());
-        expect(screen.getByText(/Brandon is no longer on the EFT shift/)).toBeTruthy();
+        expect(screen.getByText(/Bradley is no longer on the EFT shift/)).toBeTruthy();
         expect(sequence()).toEqual([`getDoc:${ROSTER_PATH}`]);
         expect(rosterPatches()).toEqual([]);
         expect(logWrites()).toEqual([]);
@@ -417,7 +417,7 @@ describe('reassigning', () => {
             `getDoc:${ROSTER_PATH}`,
             `addDoc:${CHANGES_PATH}`,
         ]);
-        expect(rosterDoc[DATE_KEY][0].lead).toBe('Derlinder');
+        expect(rosterDoc[DATE_KEY][0].lead).toBe('Darshan');
     });
 
     it('a second tap while the first is in flight does nothing', async () => {
@@ -443,10 +443,10 @@ describe('reassigning', () => {
 describe('the change log panel', () => {
     it('subscribes newest-first with a cap, and lists what the listener delivers', () => {
         changeDocs = [
-            { id: 'c2', data: { kind: 'reassign', dateKey: DATE_KEY, task: 'EFT', role: 'lead', from: 'Brandon', to: 'Derlinder', reason: 'sick leave', byName: 'Nisa', at: { toDate: () => new Date('2026-03-09T09:00:00+08:00') } } },
-            { id: 'c1', data: { kind: 'reassign', dateKey: DATE_KEY, task: 'NC', role: 'coLead', from: 'Ying Xian', to: 'Brandon', reason: '', byName: 'Nisa', at: null } },
+            { id: 'c2', data: { kind: 'reassign', dateKey: DATE_KEY, task: 'EFT', role: 'lead', from: 'Bradley', to: 'Darshan', reason: 'sick leave', byName: 'Nora', at: { toDate: () => new Date('2026-03-09T09:00:00+08:00') } } },
+            { id: 'c1', data: { kind: 'reassign', dateKey: DATE_KEY, task: 'NC', role: 'coLead', from: 'Yu Xuan', to: 'Bradley', reason: '', byName: 'Nora', at: null } },
         ];
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
 
         expect(collection).toHaveBeenCalledWith(expect.anything(), 'teams', TEAM_ID, 'rosters', '2026', 'changes');
         expect(orderBy).toHaveBeenCalledWith('at', 'desc');
@@ -457,17 +457,17 @@ describe('the change log panel', () => {
         expect(within(panel).getByText(/changed by hand \(2\)/i)).toBeTruthy();
         const items = panel.querySelectorAll('[data-roster-change]');
         expect(items).toHaveLength(2);
-        expect(items[0].textContent).toMatch(/EFT on .*: Derlinder took over as lead from Brandon — sick leave \(changed by Nisa\)\./);
-        expect(items[1].textContent).toMatch(/NC on .*: Brandon took over as co-lead from Ying Xian \(changed by Nisa\)\./);
+        expect(items[0].textContent).toMatch(/EFT on .*: Darshan took over as lead from Bradley — sick leave \(changed by Nora\)\./);
+        expect(items[1].textContent).toMatch(/NC on .*: Bradley took over as co-lead from Yu Xuan \(changed by Nora\)\./);
     });
 
     it('renders nothing when there is nothing to show', () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         expect(changeLog()).toBeNull();
     });
 
     it('a rules denial on the log is visible, not an empty panel (M8)', async () => {
-        render(<RosterView user={BRANDON} />);
+        render(<RosterView user={BRADLEY} />);
         await act(async () => {
             changesListener.onError({ code: 'permission-denied', message: 'denied' });
         });
@@ -484,7 +484,7 @@ describe('the change log panel', () => {
         await act(async () => {
             changesListener.onNext(changesSnapshot());
         });
-        expect(within(changeLog()).getByText(/Derlinder took over as lead from Brandon/)).toBeTruthy();
+        expect(within(changeLog()).getByText(/Darshan took over as lead from Bradley/)).toBeTruthy();
     });
 });
 

@@ -73,7 +73,7 @@ const Probe = () => {
             <span data-testid="loading">{String(team.loading)}</span>
             <span data-testid="canOther">{String(team.canActOn('sgh-physiotherapy'))}</span>
             <span data-testid="members">{team.members.map((m) => m.displayName).join(',')}</span>
-            <span data-testid="lookup">{team.memberUidByName['Ying Xian'] || 'none'}</span>
+            <span data-testid="lookup">{team.memberUidByName['Yu Xuan'] || 'none'}</span>
             <span data-testid="rostered">{team.rosteredMembers.map((m) => m.displayName).join(',')}</span>
             <button type="button" onClick={() => team.switchTeam(A)}>go A</button>
             <button type="button" onClick={() => team.switchTeam('sgh-physiotherapy')}>go elsewhere</button>
@@ -230,11 +230,11 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
         mount();
         emit(`users/${UID}`, exists({ teamIds: [A] }));
         emit(`teams/${A}/members`, docsOf([
-            ['uid-y', { displayName: 'Ying Xian' }],
-            ['uid-b', { displayName: 'Brandon' }],
-            ['uid-d', { displayName: 'Derlinder' }],
+            ['uid-y', { displayName: 'Yu Xuan' }],
+            ['uid-b', { displayName: 'Bradley' }],
+            ['uid-d', { displayName: 'Darshan' }],
         ]));
-        expect(value('members')).toBe('Brandon,Derlinder,Ying Xian');
+        expect(value('members')).toBe('Bradley,Darshan,Yu Xuan');
     });
 
     /**
@@ -245,7 +245,7 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
     it('maps a display name to a uid', () => {
         mount();
         emit(`users/${UID}`, exists({ teamIds: [A] }));
-        emit(`teams/${A}/members`, docsOf([['uid-y', { displayName: 'Ying Xian' }]]));
+        emit(`teams/${A}/members`, docsOf([['uid-y', { displayName: 'Yu Xuan' }]]));
         expect(value('lookup')).toBe('uid-y');
     });
 
@@ -261,8 +261,8 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
         mount();
         emit(`users/${UID}`, exists({ teamIds: [A] }));
         emit(`teams/${A}/members`, docsOf([
-            ['uid-second', { displayName: 'Ying Xian' }],
-            ['uid-first', { displayName: 'Ying Xian' }],
+            ['uid-second', { displayName: 'Yu Xuan' }],
+            ['uid-first', { displayName: 'Yu Xuan' }],
         ]));
         // Both sort equal on name; the array order after sort decides, and the
         // reverse in `memberUidByName` makes the FIRST one win rather than the last.
@@ -284,13 +284,13 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
         mount();
         emit(`users/${UID}`, exists({ teamIds: [A] }));
         emit(`teams/${A}/members`, docsOf([
-            ['uid-nisa', { displayName: 'Nisa', role: 'lead', rostered: false }],
-            ['uid-benny', { displayName: 'Benny', role: 'viewer', rostered: false }],
-            ['uid-brandon', { displayName: 'Brandon', role: 'staff', rostered: true }],
+            ['uid-nora', { displayName: 'Nora', role: 'lead', rostered: false }],
+            ['uid-barry', { displayName: 'Barry', role: 'viewer', rostered: false }],
+            ['uid-bradley', { displayName: 'Bradley', role: 'staff', rostered: true }],
         ]));
 
-        expect(value('members')).toBe('Benny,Brandon,Nisa');   // all three are members
-        expect(value('rostered')).toBe('Brandon');             // one holds duties
+        expect(value('members')).toBe('Barry,Bradley,Nora');   // all three are members
+        expect(value('rostered')).toBe('Bradley');             // one holds duties
     });
 
     /**
@@ -309,8 +309,8 @@ describe('TeamContext — the member list that replaces TEAM_DIRECTORY', () => {
     it('empties the member list rather than keeping a stale one when it cannot be read', () => {
         mount();
         emit(`users/${UID}`, exists({ teamIds: [A] }));
-        emit(`teams/${A}/members`, docsOf([['uid-b', { displayName: 'Brandon' }]]));
-        expect(value('members')).toBe('Brandon');
+        emit(`teams/${A}/members`, docsOf([['uid-b', { displayName: 'Bradley' }]]));
+        expect(value('members')).toBe('Bradley');
 
         emitError(`teams/${A}/members`, new Error('permission-denied'));
         expect(value('members')).toBe('');

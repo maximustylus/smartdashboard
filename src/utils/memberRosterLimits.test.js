@@ -323,10 +323,10 @@ describe('a lead who carries SOME of the department\'s duties', () => {
      */
     const members = [
         { uid: 'u1', displayName: 'Alif', fte: 1, onlyTasks: ['Exercise Test', 'New Case'] },
-        { uid: 'u2', displayName: 'Brandon', fte: 1 },
-        { uid: 'u3', displayName: 'Fadzlynn', fte: 1 },
-        { uid: 'u4', displayName: 'Derlinder', fte: 1 },
-        { uid: 'u5', displayName: 'Ying Xian', fte: 1 },
+        { uid: 'u2', displayName: 'Bradley', fte: 1 },
+        { uid: 'u3', displayName: 'Fayelynn', fte: 1 },
+        { uid: 'u4', displayName: 'Darshan', fte: 1 },
+        { uid: 'u5', displayName: 'Yu Xuan', fte: 1 },
     ];
     const grades = { u1: 'AH14', u2: 'AH11', u3: 'AH13', u4: 'AH13', u5: 'AH12' };
     const DUTIES = ['Exercise Test', 'New Case', 'Inpatient Therapy', 'Group Session'];
@@ -378,7 +378,7 @@ describe('a lead who carries SOME of the department\'s duties', () => {
     it('leaves everybody else on every duty', () => {
         const run = generateRosterV2(built.config);
         // Nobody else acquired a restriction from the one person who has one.
-        expect(dutiesFor(run.roster, 'Brandon').size).toBe(DUTIES.length);
+        expect(dutiesFor(run.roster, 'Bradley').size).toBe(DUTIES.length);
     });
 
     it('and with NOBODY restricted, no window is emitted at all', () => {
@@ -402,13 +402,13 @@ describe('a lead who carries SOME of the department\'s duties', () => {
 // 5. THE OUTPUTS — A SHORT NAME IS DISPLAY ONLY
 // ==============================================================================
 
-const SHORTS = { 'Muhammad Alif': 'MA', 'Brandon Feng': 'BF' };
+const SHORTS = { 'Muhammad Alif': 'MA', 'Bradley Tan': 'BF' };
 
 const shift = (seed = {}) => ({
     task: 'Exercise Test',
     lead: 'Muhammad Alif',
-    coLead: 'Brandon Feng',
-    staff: 'Lead: Muhammad Alif, Co: Brandon Feng',
+    coLead: 'Bradley Tan',
+    staff: 'Lead: Muhammad Alif, Co: Bradley Tan',
     category: 'Clinical',
     week: 1,
     ...seed,
@@ -441,16 +441,16 @@ describe('the calendar chip', () => {
     it('returns the STORED string untouched when nothing is shortened', () => {
         // Byte-for-byte, because the stored string is what a swap rewrote and what
         // every existing test and live document holds.
-        expect(shiftStaffDisplay(shift(), null)).toBe('Lead: Muhammad Alif, Co: Brandon Feng');
-        expect(shiftStaffDisplay(shift(), { 'Nobody Here': 'NH' })).toBe('Lead: Muhammad Alif, Co: Brandon Feng');
+        expect(shiftStaffDisplay(shift(), null)).toBe('Lead: Muhammad Alif, Co: Bradley Tan');
+        expect(shiftStaffDisplay(shift(), { 'Nobody Here': 'NH' })).toBe('Lead: Muhammad Alif, Co: Bradley Tan');
     });
 
     it('shortens one person without touching the other', () => {
-        expect(shiftStaffDisplay(shift(), { 'Muhammad Alif': 'MA' })).toBe('Lead: MA, Co: Brandon Feng');
+        expect(shiftStaffDisplay(shift(), { 'Muhammad Alif': 'MA' })).toBe('Lead: MA, Co: Bradley Tan');
     });
 
     it('falls back to the stored string when there is no lead to build a label from', () => {
-        expect(shiftStaffDisplay({ ...shift(), lead: '' }, SHORTS)).toBe('Lead: Muhammad Alif, Co: Brandon Feng');
+        expect(shiftStaffDisplay({ ...shift(), lead: '' }, SHORTS)).toBe('Lead: Muhammad Alif, Co: Bradley Tan');
     });
 
     /**
@@ -471,9 +471,9 @@ describe('the calendar chip', () => {
      *    report.
      */
     it('DISCARDS a hand-corrected staff string once somebody on the shift has an acronym', () => {
-        const hand = shift({ staff: 'Lead: Muhammad Alif (acting), Co: Brandon Feng' });
+        const hand = shift({ staff: 'Lead: Muhammad Alif (acting), Co: Bradley Tan' });
         // Untouched while nothing is shortened.
-        expect(shiftStaffDisplay(hand, null)).toBe('Lead: Muhammad Alif (acting), Co: Brandon Feng');
+        expect(shiftStaffDisplay(hand, null)).toBe('Lead: Muhammad Alif (acting), Co: Bradley Tan');
         // Rebuilt — and "(acting)" does not survive.
         expect(shiftStaffDisplay(hand, SHORTS)).toBe('Lead: MA, Co: BF');
         expect(shiftStaffDisplay(hand, SHORTS)).not.toMatch(/acting/);
@@ -496,12 +496,12 @@ describe('the .ics export', () => {
     it('keeps the full names inside the event body', () => {
         const out = ics({ shortNames: SHORTS });
         expect(out).toMatch(/DESCRIPTION:.*Muhammad Alif/);
-        expect(out).toMatch(/DESCRIPTION:.*Brandon Feng/);
+        expect(out).toMatch(/DESCRIPTION:.*Bradley Tan/);
     });
 
     it('is byte-identical to the old output when no short names are given', () => {
         const before = ics({});
-        expect(before).toMatch(/SUMMARY:\[Exercise Test\] Lead: Muhammad Alif\\, Co: Brandon Feng/);
+        expect(before).toMatch(/SUMMARY:\[Exercise Test\] Lead: Muhammad Alif\\, Co: Bradley Tan/);
         // And the DESCRIPTION gains nothing: it is still Week - Category alone.
         expect(before).toMatch(/DESCRIPTION:Week 1 - Clinical\r?\n/);
         expect(before).not.toMatch(/DESCRIPTION:.*Muhammad Alif/);
@@ -531,13 +531,13 @@ describe('the .csv export uses short names too', () => {
         for (const options of [undefined, {}, { shortNames: { 'Nobody Here': 'NH' } }]) {
             const csv = buildCSV({ '2026-09-07': [shift()] }, options);
             expect(csv).toMatch(/Muhammad Alif/);
-            expect(csv).toMatch(/Brandon Feng/);
+            expect(csv).toMatch(/Bradley Tan/);
         }
     });
 
     it('shortens the Assignees column as well as Lead and Co-Lead', () => {
         // Three names go through a different code path from the two identity columns.
-        const three = shift({ assignees: ['Muhammad Alif', 'Brandon Feng', 'Somebody Else'] });
+        const three = shift({ assignees: ['Muhammad Alif', 'Bradley Tan', 'Somebody Else'] });
         const csv = buildCSV({ '2026-09-07': [three] }, { shortNames: SHORTS });
         expect(csv).toMatch(/MA; BF; Somebody Else/);
     });

@@ -25,7 +25,7 @@ const ProfileView = ({ user, onLogout }) => {
      *
      * `users/{uid}` is `allow get: if isSelf(userId)` — only you can read your own.
      * So grade and profession, which a colleague and the roster engine both have to
-     * see, cannot live there: Nisa opening Configure would get permission-denied on
+     * see, cannot live there: Nora opening Configure would get permission-denied on
      * every member. They live on `teams/{teamId}/members/{uid}`, which the team can
      * read. See `src/utils/memberProfile.js` for the full reasoning.
      *

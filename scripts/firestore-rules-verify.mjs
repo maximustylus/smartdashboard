@@ -75,9 +75,9 @@ const TEAM_A = 'kkh-sport-exercise-medicine';
 const TEAM_B = 'sgh-physiotherapy';
 
 const ALIF = 'uid-alif';            // team A, lead, rostered
-const NISA = 'uid-nisa';            // team A, lead, NOT rostered (roster master)
-const BRANDON = 'uid-brandon';      // team A, staff
-const YING = 'uid-ying-xian';       // team A, staff
+const NORA = 'uid-nora';            // team A, lead, NOT rostered (roster master)
+const BRADLEY = 'uid-bradley';      // team A, staff
+const YU = 'uid-yu-xuan';       // team A, staff
 const SGH_LEAD = 'uid-sgh-lead';    // team B, lead — the outsider in every A case
 const NOMAD = 'uid-nomad';          // signed in, verified, in NO team
 
@@ -99,27 +99,27 @@ const seed = async () => {
 
         await setDoc(doc(raw, `teams/${TEAM_A}`), { name: 'Sport & Exercise Medicine', institution: 'KKH', leadUid: ALIF });
         await setDoc(doc(raw, `teams/${TEAM_A}/members/${ALIF}`), member(ALIF, 'lead', true));
-        await setDoc(doc(raw, `teams/${TEAM_A}/members/${NISA}`), member(NISA, 'lead', false));
-        await setDoc(doc(raw, `teams/${TEAM_A}/members/${BRANDON}`), member(BRANDON, 'staff', true));
-        await setDoc(doc(raw, `teams/${TEAM_A}/members/${YING}`), member(YING, 'staff', true));
-        await setDoc(doc(raw, `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'EFT', lead: 'Brandon' }], '2026-02-03': [] });
-        await setDoc(doc(raw, `teams/${TEAM_A}/wellbeing/${BRANDON}`), { logs: [{ energy: 3 }] });
-        await setDoc(doc(raw, `teams/${TEAM_A}/loads/${BRANDON}`), { data: Array(12).fill(0) });
-        await setDoc(doc(raw, `teams/${TEAM_A}/pulse/daily`), { Brandon: { energy: 4 } });
-        await setDoc(doc(raw, `teams/${TEAM_A}/feed/post-1`), { author: 'Brandon', likes: 0, comments: 0 });
+        await setDoc(doc(raw, `teams/${TEAM_A}/members/${NORA}`), member(NORA, 'lead', false));
+        await setDoc(doc(raw, `teams/${TEAM_A}/members/${BRADLEY}`), member(BRADLEY, 'staff', true));
+        await setDoc(doc(raw, `teams/${TEAM_A}/members/${YU}`), member(YU, 'staff', true));
+        await setDoc(doc(raw, `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'EFT', lead: 'Bradley' }], '2026-02-03': [] });
+        await setDoc(doc(raw, `teams/${TEAM_A}/wellbeing/${BRADLEY}`), { logs: [{ energy: 3 }] });
+        await setDoc(doc(raw, `teams/${TEAM_A}/loads/${BRADLEY}`), { data: Array(12).fill(0) });
+        await setDoc(doc(raw, `teams/${TEAM_A}/pulse/daily`), { Bradley: { energy: 4 } });
+        await setDoc(doc(raw, `teams/${TEAM_A}/feed/post-1`), { author: 'Bradley', likes: 0, comments: 0 });
         await setDoc(doc(raw, `teams/${TEAM_A}/reports/2026`), { publicText: 'x' });
-        await setDoc(doc(raw, `teams/${TEAM_A}/projects/2026/staff/${BRANDON}`), { projects: [] });
+        await setDoc(doc(raw, `teams/${TEAM_A}/projects/2026/staff/${BRADLEY}`), { projects: [] });
         await setDoc(doc(raw, `teams/${TEAM_A}/attendance/2026`), { 2026: Array(12).fill(0) });
         await setDoc(doc(raw, `teams/${TEAM_A}/swaps/swap-1`), {
-            requestedBy: 'Brandon', requestedUid: BRANDON, targetStaff: 'Ying Xian', targetUid: YING,
+            requestedBy: 'Bradley', requestedUid: BRADLEY, targetStaff: 'Yu Xuan', targetUid: YU,
             originalShiftDate: '2026-02-02', originalTask: 'EFT', swapRole: 'lead', status: 'PENDING',
         });
-        await setDoc(doc(raw, `teams/${TEAM_A}/notifications/n-1`), { recipientUid: YING, read: false });
+        await setDoc(doc(raw, `teams/${TEAM_A}/notifications/n-1`), { recipientUid: YU, read: false });
 
         await setDoc(doc(raw, `teams/${TEAM_B}`), { name: 'Physiotherapy', institution: 'SGH', leadUid: SGH_LEAD });
         await setDoc(doc(raw, `teams/${TEAM_B}/members/${SGH_LEAD}`), member(SGH_LEAD, 'lead', true));
 
-        await setDoc(doc(raw, `users/${BRANDON}`), { displayName: 'Brandon', teamIds: [TEAM_A] });
+        await setDoc(doc(raw, `users/${BRADLEY}`), { displayName: 'Bradley', teamIds: [TEAM_A] });
         await setDoc(doc(raw, `users/${NOMAD}`), { displayName: 'Nomad', teamIds: [] });
         await setDoc(doc(raw, 'config/domains'), { allowed: ['kkh.com.sg', 'singhealth.com.sg'] });
         await setDoc(doc(raw, 'config/superAdmins'), { uids: [ALIF] });
@@ -137,7 +137,7 @@ console.log('\n══ CROSS-TEAM ISOLATION: team B must get NOTHING from team A 
     await check('cannot read team A\'s roster',
         assertFails(getDoc(doc(b, `teams/${TEAM_A}/rosters/2026`))));
     await check('cannot read team A\'s wellbeing record        ← the most sensitive',
-        assertFails(getDoc(doc(b, `teams/${TEAM_A}/wellbeing/${BRANDON}`))));
+        assertFails(getDoc(doc(b, `teams/${TEAM_A}/wellbeing/${BRADLEY}`))));
     await check('cannot LIST team A\'s wellbeing collection',
         assertFails(getDocs(collection(b, `teams/${TEAM_A}/wellbeing`))));
     await check('cannot read team A\'s member list',
@@ -145,7 +145,7 @@ console.log('\n══ CROSS-TEAM ISOLATION: team B must get NOTHING from team A 
     await check('cannot read even team A\'s NAME',
         assertFails(getDoc(doc(b, `teams/${TEAM_A}`))));
     await check('cannot read team A\'s swaps',
-        assertFails(getDocs(query(collection(b, `teams/${TEAM_A}/swaps`), where('targetUid', '==', YING)))));
+        assertFails(getDocs(query(collection(b, `teams/${TEAM_A}/swaps`), where('targetUid', '==', YU)))));
     await check('cannot read team A\'s pulse board',
         assertFails(getDoc(doc(b, `teams/${TEAM_A}/pulse/daily`))));
     await check('cannot read team A\'s clinical loads',
@@ -164,7 +164,7 @@ console.log('\n══ CROSS-TEAM ISOLATION: team B must get NOTHING from team A 
     await check('cannot add themselves to team A\'s member list',
         assertFails(setDoc(doc(b, `teams/${TEAM_A}/members/${SGH_LEAD}`), { displayName: 'x', role: 'lead' })));
     await check('cannot edit a team A membership',
-        assertFails(updateDoc(doc(b, `teams/${TEAM_A}/members/${BRANDON}`), { role: 'viewer' })));
+        assertFails(updateDoc(doc(b, `teams/${TEAM_A}/members/${BRADLEY}`), { role: 'viewer' })));
     await check('cannot answer a team A swap',
         assertFails(updateDoc(doc(b, `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED' })));
     await check('cannot write a wellbeing log into team A',
@@ -189,13 +189,13 @@ console.log('\n══ AND NOBODY AT ALL GETS ANYTHING ══');
 // ═════════════════════════════════════════════════════════════════════════════
 console.log('\n══ membership-as-data: a member document IS the permission ══');
 {
-    const brandon = as(BRANDON);
+    const bradley = as(BRADLEY);
     await check('a member reads their own team\'s roster',
-        assertSucceeds(getDoc(doc(brandon, `teams/${TEAM_A}/rosters/2026`))));
+        assertSucceeds(getDoc(doc(bradley, `teams/${TEAM_A}/rosters/2026`))));
     await check('a member reads their own team\'s member list',
-        assertSucceeds(getDocs(collection(brandon, `teams/${TEAM_A}/members`))));
+        assertSucceeds(getDocs(collection(bradley, `teams/${TEAM_A}/members`))));
     await check('a member reads their own team\'s name',
-        assertSucceeds(getDoc(doc(brandon, `teams/${TEAM_A}`))));
+        assertSucceeds(getDoc(doc(bradley, `teams/${TEAM_A}`))));
 
     /**
      * ⚠️ THE ONE DOCUMENT A CLIENT MUST NEVER AUTHOR. Every rule in the file trusts
@@ -205,44 +205,44 @@ console.log('\n══ membership-as-data: a member document IS the permission �
      *    belongs to a real verified account — something rules cannot see.
      */
     await check('a member CANNOT mint a new membership, even in their own team',
-        assertFails(setDoc(doc(brandon, `teams/${TEAM_A}/members/uid-stranger`), { displayName: 'Stranger', role: 'staff' })));
+        assertFails(setDoc(doc(bradley, `teams/${TEAM_A}/members/uid-stranger`), { displayName: 'Stranger', role: 'staff' })));
     await check('a LEAD cannot mint one either',
         assertFails(setDoc(doc(as(ALIF), `teams/${TEAM_A}/members/uid-stranger`), { displayName: 'Stranger', role: 'lead' })));
     await check('a member cannot promote themselves to lead',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { role: 'lead' })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { role: 'lead' })));
     await check('a member cannot make themselves rostered',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { rostered: false })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { rostered: false })));
     await check('a member CAN maintain their own availability',
-        assertSucceeds(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { unavailable: ['2026-02-02'] })));
+        assertSucceeds(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { unavailable: ['2026-02-02'] })));
     await check('a member cannot edit a COLLEAGUE\'s availability',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${YING}`), { unavailable: ['2026-02-02'] })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${YU}`), { unavailable: ['2026-02-02'] })));
     // v2.18.0: role and rostered moved to the `setMemberRole` Cloud Function, which
     // can count leads. A direct write — even by a lead — is now refused.
     await check('a lead CANNOT write a colleague\'s role directly (setMemberRole does)',
-        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { role: 'lead' })));
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { role: 'lead' })));
     await check('a lead CANNOT write a colleague\'s rostered directly',
-        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { rostered: false })));
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { rostered: false })));
     await check('a lead CANNOT demote themselves directly',
         assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${ALIF}`), { role: 'staff' })));
     await check('a lead CAN still edit a colleague\'s duties and short name',
-        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BR', onlyTasks: ['EFT'] })));
+        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { shortName: 'BR', onlyTasks: ['EFT'] })));
     await env.withSecurityRulesDisabled(async (c) => {
         await setDoc(doc(c.firestore(), `teams/${TEAM_A}/roleChanges/rc-1`), {
-            targetUid: BRANDON, fromRole: 'staff', toRole: 'lead', byUid: ALIF, at: new Date(),
+            targetUid: BRADLEY, fromRole: 'staff', toRole: 'lead', byUid: ALIF, at: new Date(),
         });
     });
     await check('a lead CAN read the role-change log',
         assertSucceeds(getDocs(collection(as(ALIF), `teams/${TEAM_A}/roleChanges`))));
     await check('a staff member CANNOT read the role-change log',
-        assertFails(getDocs(collection(brandon, `teams/${TEAM_A}/roleChanges`))));
+        assertFails(getDocs(collection(bradley, `teams/${TEAM_A}/roleChanges`))));
     await check('team B\'s lead CANNOT read team A\'s role-change log',
         assertFails(getDocs(collection(as(SGH_LEAD), `teams/${TEAM_A}/roleChanges`))));
     await check('nobody — not even a lead — can write a role-change record',
-        assertFails(addDoc(collection(as(ALIF), `teams/${TEAM_A}/roleChanges`), { targetUid: BRANDON, toRole: 'lead' })));
+        assertFails(addDoc(collection(as(ALIF), `teams/${TEAM_A}/roleChanges`), { targetUid: BRADLEY, toRole: 'lead' })));
     await check('nobody can edit a role-change record',
         assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/roleChanges/rc-1`), { toRole: 'viewer' })));
     await check('nobody may delete a membership (removal is a Cloud Function)',
-        assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${YING}`))));
+        assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${YU}`))));
 
     /**
      * ── ROSTER LIMITS: `shortName` AND `onlyTasks` ────────────────────────────
@@ -263,28 +263,28 @@ console.log('\n══ membership-as-data: a member document IS the permission �
      *    nothing — trap #1 in this file's own header.
      */
     await check('a lead CAN set a colleague\'s shortName',
-        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BF' })));
+        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { shortName: 'BF' })));
     await check('a lead CAN set a colleague\'s onlyTasks',
-        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { onlyTasks: ['Exercise Test'] })));
+        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { onlyTasks: ['Exercise Test'] })));
     await check('a lead CAN set both plus profession in ONE write (the real payload)',
-        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), {
+        assertSucceeds(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), {
             shortName: 'BFG', onlyTasks: ['New Case'], profession: 'physiotherapist',
         })));
     await check('a lead sending shortName + grade is refused ENTIRELY (grade is not a membership field)',
-        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BF', grade: 'AH11' })));
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { shortName: 'BF', grade: 'AH11' })));
 
     await check('a member CANNOT set their own shortName',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BF' })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { shortName: 'BF' })));
     await check('a member CANNOT set their own onlyTasks (they could drop a duty unannounced)',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { onlyTasks: ['Exercise Test'] })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { onlyTasks: ['Exercise Test'] })));
     await check('a member CANNOT smuggle a CHANGED onlyTasks alongside a key they DO own',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), {
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), {
             unavailable: ['2026-03-03'], onlyTasks: ['Something Else'],
         })));
     await check('a member cannot set a COLLEAGUE\'s shortName',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${YING}`), { shortName: 'YX' })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${YU}`), { shortName: 'YX' })));
     await check('a lead of ANOTHER team cannot set either field',
-        assertFails(updateDoc(doc(as(SGH_LEAD), `teams/${TEAM_A}/members/${BRANDON}`), { shortName: 'BF' })));
+        assertFails(updateDoc(doc(as(SGH_LEAD), `teams/${TEAM_A}/members/${BRADLEY}`), { shortName: 'BF' })));
 
     /**
      * ⚠️ GRADE IS NOT A MEMBERSHIP FIELD ANY MORE, AND THIS IS THE ASSERTION THAT
@@ -299,9 +299,9 @@ console.log('\n══ membership-as-data: a member document IS the permission �
      *    only reason this is survivable as a mistake.
      */
     await check('grade CANNOT be written onto a membership, even by a lead',
-        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRANDON}`), { grade: 'AH12' })));
+        assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/members/${BRADLEY}`), { grade: 'AH12' })));
     await check('grade CANNOT be written onto a membership by the person either',
-        assertFails(updateDoc(doc(brandon, `teams/${TEAM_A}/members/${BRANDON}`), { grade: 'AH12' })));
+        assertFails(updateDoc(doc(bradley, `teams/${TEAM_A}/members/${BRADLEY}`), { grade: 'AH12' })));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -319,19 +319,19 @@ console.log('\n══ membership-as-data: a member document IS the permission �
 console.log('\n══ pay grade: private to the person and their lead ══');
 {
     await seed();
-    const brandon = as(BRANDON);
-    const ying = as(YING);
+    const bradley = as(BRADLEY);
+    const yu = as(YU);
 
     await check('a person can set their OWN grade',
-        assertSucceeds(setDoc(doc(brandon, `teams/${TEAM_A}/grades/${BRANDON}`), { grade: 'AH12' })));
+        assertSucceeds(setDoc(doc(bradley, `teams/${TEAM_A}/grades/${BRADLEY}`), { grade: 'AH12' })));
     await check('and read it back',
-        assertSucceeds(getDoc(doc(brandon, `teams/${TEAM_A}/grades/${BRANDON}`))));
+        assertSucceeds(getDoc(doc(bradley, `teams/${TEAM_A}/grades/${BRADLEY}`))));
 
     // THE ONE THAT MATTERS.
     await check('a colleague CANNOT read it',
-        assertFails(getDoc(doc(ying, `teams/${TEAM_A}/grades/${BRANDON}`))));
+        assertFails(getDoc(doc(yu, `teams/${TEAM_A}/grades/${BRADLEY}`))));
     await check('a colleague CANNOT write it',
-        assertFails(setDoc(doc(ying, `teams/${TEAM_A}/grades/${BRANDON}`), { grade: 'AH7' })));
+        assertFails(setDoc(doc(yu, `teams/${TEAM_A}/grades/${BRADLEY}`), { grade: 'AH7' })));
 
     /**
      * ⚠️ `list` IS DENIED TO EVERYBODY, INCLUDING A LEAD. A lead reads one document
@@ -340,20 +340,20 @@ console.log('\n══ pay grade: private to the person and their lead ══');
      *    prevent: one query returning every salary band in the department.
      */
     await check('a lead CAN read a member\'s grade (the roster needs it)',
-        assertSucceeds(getDoc(doc(as(ALIF), `teams/${TEAM_A}/grades/${BRANDON}`))));
+        assertSucceeds(getDoc(doc(as(ALIF), `teams/${TEAM_A}/grades/${BRADLEY}`))));
     await check('a lead CAN correct one',
-        assertSucceeds(setDoc(doc(as(ALIF), `teams/${TEAM_A}/grades/${BRANDON}`), { grade: 'AH13' }, { merge: true })));
+        assertSucceeds(setDoc(doc(as(ALIF), `teams/${TEAM_A}/grades/${BRADLEY}`), { grade: 'AH13' }, { merge: true })));
     await check('NOBODY may list the grades collection, not even a lead',
         assertFails(getDocs(collection(as(ALIF), `teams/${TEAM_A}/grades`))));
     await check('a member cannot list it either',
-        assertFails(getDocs(collection(brandon, `teams/${TEAM_A}/grades`))));
+        assertFails(getDocs(collection(bradley, `teams/${TEAM_A}/grades`))));
 
     // Cross-team, the property section 1 exists for, applied to the new collection.
     await check('another department\'s lead gets nothing',
-        assertFails(getDoc(doc(as(SGH_LEAD), `teams/${TEAM_A}/grades/${BRANDON}`))));
+        assertFails(getDoc(doc(as(SGH_LEAD), `teams/${TEAM_A}/grades/${BRADLEY}`))));
 
     await check('nobody may delete a grade (clearing it is an update to \'\')',
-        assertFails(deleteDoc(doc(brandon, `teams/${TEAM_A}/grades/${BRANDON}`))));
+        assertFails(deleteDoc(doc(bradley, `teams/${TEAM_A}/grades/${BRADLEY}`))));
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -365,14 +365,14 @@ console.log('\n══ roster settings: read by the team, written by a lead ═�
     await check('a lead CAN write the department configuration',
         assertSucceeds(setDoc(doc(as(ALIF), `teams/${TEAM_A}/settings/roster`), { version: 1, tasks: [{ name: 'EFT' }] })));
     await check('a member CAN read it — it is the department describing itself',
-        assertSucceeds(getDoc(doc(as(BRANDON), `teams/${TEAM_A}/settings/roster`))));
+        assertSucceeds(getDoc(doc(as(BRADLEY), `teams/${TEAM_A}/settings/roster`))));
 
     /**
      * ⚠️ IT DECIDES WHAT EVERY GENERATED ROSTER CONTAINS. A staff member who could
      *    edit this could rewrite the department's duties without touching a roster.
      */
     await check('a member CANNOT write it',
-        assertFails(setDoc(doc(as(BRANDON), `teams/${TEAM_A}/settings/roster`), { version: 1, tasks: [{ name: 'Nothing' }] })));
+        assertFails(setDoc(doc(as(BRADLEY), `teams/${TEAM_A}/settings/roster`), { version: 1, tasks: [{ name: 'Nothing' }] })));
     await check('nobody may delete it (clearing tasks is an update)',
         assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/settings/roster`))));
     await check('nobody may list the settings collection',
@@ -390,17 +390,17 @@ await check('a lead CAN rewrite the whole roster (Generate)',
     assertSucceeds(setDoc(doc(as(ALIF), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'NC' }], '2026-02-03': [{ task: 'EFT' }] })));
 await seed();
 await check('a staff member CANNOT rewrite the whole roster',
-    assertFails(setDoc(doc(as(BRANDON), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'NC' }], '2026-02-03': [{ task: 'EFT' }] })));
+    assertFails(setDoc(doc(as(BRADLEY), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'NC' }], '2026-02-03': [{ task: 'EFT' }] })));
 await check('a staff member CAN replace exactly one existing day (swap accept)',
-    assertSucceeds(updateDoc(doc(as(BRANDON), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'EFT', lead: 'Ying Xian' }] })));
+    assertSucceeds(updateDoc(doc(as(BRADLEY), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'EFT', lead: 'Yu Xuan' }] })));
 await seed();
 // ⚠️ Genuinely different values on BOTH days — see trap 1 in the header.
 await check('a staff member CANNOT change two days in one write',
-    assertFails(updateDoc(doc(as(BRANDON), `teams/${TEAM_A}/rosters/2026`), {
+    assertFails(updateDoc(doc(as(BRADLEY), `teams/${TEAM_A}/rosters/2026`), {
         '2026-02-02': [{ task: 'X' }], '2026-02-03': [{ task: 'Y' }],
     })));
 await check('a staff member CANNOT add a day that did not exist',
-    assertFails(updateDoc(doc(as(BRANDON), `teams/${TEAM_A}/rosters/2026`), { '2026-03-01': [{ task: 'X' }] })));
+    assertFails(updateDoc(doc(as(BRADLEY), `teams/${TEAM_A}/rosters/2026`), { '2026-03-01': [{ task: 'X' }] })));
 await check('nobody can delete the roster',
     assertFails(deleteDoc(doc(as(ALIF), `teams/${TEAM_A}/rosters/2026`))));
 
@@ -414,18 +414,18 @@ console.log('\n══ roster change log: lead-written, member-readable, immutabl
 const CHANGES = `teams/${TEAM_A}/rosters/2026/changes`;
 const CHANGE = {
     kind: 'reassign', dateKey: '2026-02-02', task: 'EFT', role: 'lead',
-    from: 'Brandon', to: 'Ying Xian', before: 'Lead: Brandon', after: 'Lead: Ying Xian',
+    from: 'Bradley', to: 'Yu Xuan', before: 'Lead: Bradley', after: 'Lead: Yu Xuan',
     reason: 'sick leave', byUid: ALIF, byName: 'Alif',
 };
 await seed();
 await check('a lead CAN log a reassignment',
     assertSucceeds(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, at: serverTimestamp() })));
 await check('a NON-ROSTERED lead (the roster master) CAN log one too',
-    assertSucceeds(addDoc(collection(as(NISA), CHANGES), { ...CHANGE, byUid: NISA, byName: 'Nisa', at: serverTimestamp() })));
+    assertSucceeds(addDoc(collection(as(NORA), CHANGES), { ...CHANGE, byUid: NORA, byName: 'Nora', at: serverTimestamp() })));
 await check('a staff member CANNOT log a change',
-    assertFails(addDoc(collection(as(BRANDON), CHANGES), { ...CHANGE, byUid: BRANDON, at: serverTimestamp() })));
+    assertFails(addDoc(collection(as(BRADLEY), CHANGES), { ...CHANGE, byUid: BRADLEY, at: serverTimestamp() })));
 await check('a lead CANNOT log a change as somebody else',
-    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, byUid: BRANDON, at: serverTimestamp() })));
+    assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, byUid: BRADLEY, at: serverTimestamp() })));
 await check('a lead CANNOT log a change with a client clock',
     assertFails(addDoc(collection(as(ALIF), CHANGES), { ...CHANGE, at: '2026-02-02T09:00:00Z' })));
 await check('a lead CANNOT log a change with an unknown kind',
@@ -437,7 +437,7 @@ await check('a lead CANNOT log a change with a duty that is not lead/coLead',
 await check('team B\'s lead CANNOT log into team A\'s change log',
     assertFails(addDoc(collection(as(SGH_LEAD), CHANGES), { ...CHANGE, byUid: SGH_LEAD, at: serverTimestamp() })));
 await check('a staff member CAN read the change log',
-    assertSucceeds(getDocs(collection(as(BRANDON), CHANGES))));
+    assertSucceeds(getDocs(collection(as(BRADLEY), CHANGES))));
 await check('team B\'s lead CANNOT read team A\'s change log',
     assertFails(getDocs(collection(as(SGH_LEAD), CHANGES))));
 await check('a signed-in user with NO team reads no change log',
@@ -460,7 +460,7 @@ await check('a signed-in user with NO team reads no change log',
  */
 await seed();
 await check('the roster master (lead, not rostered) CAN still generate',
-    assertSucceeds(setDoc(doc(as(NISA), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'NC' }], '2026-02-03': [] })));
+    assertSucceeds(setDoc(doc(as(NORA), `teams/${TEAM_A}/rosters/2026`), { '2026-02-02': [{ task: 'NC' }], '2026-02-03': [] })));
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 4. SWAPS — only the person asked may answer
@@ -468,9 +468,9 @@ await check('the roster master (lead, not rostered) CAN still generate',
 console.log('\n══ swaps: routed by uid, answerable only by the target ══');
 await seed();
 await check('the TARGET can read the request aimed at them',
-    assertSucceeds(getDocs(query(collection(as(YING), `teams/${TEAM_A}/swaps`), where('targetUid', '==', YING)))));
+    assertSucceeds(getDocs(query(collection(as(YU), `teams/${TEAM_A}/swaps`), where('targetUid', '==', YU)))));
 await check('the TARGET can approve it',
-    assertSucceeds(updateDoc(doc(as(YING), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED', approvedAt: 'now' })));
+    assertSucceeds(updateDoc(doc(as(YU), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED', approvedAt: 'now' })));
 await seed();
 /**
  * ⚠️ A COLLEAGUE CANNOT APPROVE A HAND-OVER NOBODY AGREED TO. Same team, same
@@ -478,24 +478,24 @@ await seed();
  *    answer to the person asked.
  */
 await check('a COLLEAGUE in the same team cannot approve somebody else\'s swap',
-    assertFails(updateDoc(doc(as(BRANDON), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED' })));
+    assertFails(updateDoc(doc(as(BRADLEY), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED' })));
 await check('even a LEAD cannot approve on the target\'s behalf',
     assertFails(updateDoc(doc(as(ALIF), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED' })));
 await check('the target cannot redirect the swap to another day while answering',
-    assertFails(updateDoc(doc(as(YING), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED', originalShiftDate: '2026-02-09' })));
+    assertFails(updateDoc(doc(as(YU), `teams/${TEAM_A}/swaps/swap-1`), { status: 'APPROVED', originalShiftDate: '2026-02-09' })));
 await check('a member CAN ask a colleague to cover',
-    assertSucceeds(addDoc(collection(as(BRANDON), `teams/${TEAM_A}/swaps`), {
-        requestedBy: 'Brandon', requestedUid: BRANDON, targetStaff: 'Ying Xian', targetUid: YING,
+    assertSucceeds(addDoc(collection(as(BRADLEY), `teams/${TEAM_A}/swaps`), {
+        requestedBy: 'Bradley', requestedUid: BRADLEY, targetStaff: 'Yu Xuan', targetUid: YU,
         originalShiftDate: '2026-02-02', swapRole: 'lead', status: 'PENDING', timestamp: serverTimestamp(),
     })));
 await check('a request cannot arrive pre-APPROVED',
-    assertFails(addDoc(collection(as(BRANDON), `teams/${TEAM_A}/swaps`), {
-        requestedBy: 'Brandon', targetUid: YING, originalShiftDate: '2026-02-02',
+    assertFails(addDoc(collection(as(BRADLEY), `teams/${TEAM_A}/swaps`), {
+        requestedBy: 'Bradley', targetUid: YU, originalShiftDate: '2026-02-02',
         swapRole: 'lead', status: 'APPROVED', timestamp: serverTimestamp(),
     })));
 await check('you cannot ask YOURSELF to cover (which would self-approve)',
-    assertFails(addDoc(collection(as(BRANDON), `teams/${TEAM_A}/swaps`), {
-        requestedBy: 'Brandon', targetUid: BRANDON, originalShiftDate: '2026-02-02',
+    assertFails(addDoc(collection(as(BRADLEY), `teams/${TEAM_A}/swaps`), {
+        requestedBy: 'Bradley', targetUid: BRADLEY, originalShiftDate: '2026-02-02',
         swapRole: 'lead', status: 'PENDING', timestamp: serverTimestamp(),
     })));
 
@@ -505,25 +505,25 @@ await check('you cannot ask YOURSELF to cover (which would self-approve)',
 console.log('\n══ wellbeing: the most sensitive collection ══');
 await seed();
 await check('a clinician CAN read their own record',
-    assertSucceeds(getDoc(doc(as(BRANDON), `teams/${TEAM_A}/wellbeing/${BRANDON}`))));
+    assertSucceeds(getDoc(doc(as(BRADLEY), `teams/${TEAM_A}/wellbeing/${BRADLEY}`))));
 await check('a COLLEAGUE cannot read it',
-    assertFails(getDoc(doc(as(YING), `teams/${TEAM_A}/wellbeing/${BRANDON}`))));
+    assertFails(getDoc(doc(as(YU), `teams/${TEAM_A}/wellbeing/${BRADLEY}`))));
 await check('not even a LEAD can read one person\'s record directly',
-    assertFails(getDoc(doc(as(ALIF), `teams/${TEAM_A}/wellbeing/${BRANDON}`))));
+    assertFails(getDoc(doc(as(ALIF), `teams/${TEAM_A}/wellbeing/${BRADLEY}`))));
 await check('a lead CAN list the collection (the burnout monitor)',
     assertSucceeds(getDocs(collection(as(ALIF), `teams/${TEAM_A}/wellbeing`))));
 await check('a staff member CANNOT list it',
-    assertFails(getDocs(collection(as(BRANDON), `teams/${TEAM_A}/wellbeing`))));
+    assertFails(getDocs(collection(as(BRADLEY), `teams/${TEAM_A}/wellbeing`))));
 await check('a clinician CAN append to their own record',
-    assertSucceeds(setDoc(doc(as(BRANDON), `teams/${TEAM_A}/wellbeing/${BRANDON}`), { logs: [{ energy: 4 }] }, { merge: true })));
+    assertSucceeds(setDoc(doc(as(BRADLEY), `teams/${TEAM_A}/wellbeing/${BRADLEY}`), { logs: [{ energy: 4 }] }, { merge: true })));
 await check('a clinician CANNOT write into a colleague\'s record',
-    assertFails(setDoc(doc(as(YING), `teams/${TEAM_A}/wellbeing/${BRANDON}`), { logs: [] }, { merge: true })));
+    assertFails(setDoc(doc(as(YU), `teams/${TEAM_A}/wellbeing/${BRADLEY}`), { logs: [] }, { merge: true })));
 await check('nobody can delete a wellbeing record',
-    assertFails(deleteDoc(doc(as(BRANDON), `teams/${TEAM_A}/wellbeing/${BRANDON}`))));
+    assertFails(deleteDoc(doc(as(BRADLEY), `teams/${TEAM_A}/wellbeing/${BRADLEY}`))));
 await check('the anonymous bucket is unreadable, even by a lead',
     assertFails(getDoc(doc(as(ALIF), `teams/${TEAM_A}/wellbeing/_anonymous_logs`))));
 await check('a member CAN append to the anonymous bucket',
-    assertSucceeds(setDoc(doc(as(BRANDON), `teams/${TEAM_A}/wellbeing/_anonymous_logs`), { last_updated: 'x' }, { merge: true })));
+    assertSucceeds(setDoc(doc(as(BRADLEY), `teams/${TEAM_A}/wellbeing/_anonymous_logs`), { last_updated: 'x' }, { merge: true })));
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 6. THE PERSON — `users/{uid}` and the field they may not touch
@@ -531,11 +531,11 @@ await check('a member CAN append to the anonymous bucket',
 console.log('\n══ users: teamIds is the membership graph ══');
 await seed();
 await check('a user reads their own profile',
-    assertSucceeds(getDoc(doc(as(BRANDON), `users/${BRANDON}`))));
+    assertSucceeds(getDoc(doc(as(BRADLEY), `users/${BRADLEY}`))));
 await check('a user cannot read a colleague\'s profile',
-    assertFails(getDoc(doc(as(YING), `users/${BRANDON}`))));
+    assertFails(getDoc(doc(as(YU), `users/${BRADLEY}`))));
 await check('a user CAN edit their own display name',
-    assertSucceeds(updateDoc(doc(as(BRANDON), `users/${BRANDON}`), { displayName: 'Brandon F' })));
+    assertSucceeds(updateDoc(doc(as(BRADLEY), `users/${BRADLEY}`), { displayName: 'Bradley F' })));
 /**
  * ⚠️ THE SELF-GRANT. `teamIds` is the membership graph as far as the client is
  *    concerned. A user who could append to it would hand themselves a team in the
@@ -543,7 +543,7 @@ await check('a user CAN edit their own display name',
  *    relies on downstream denials is not a design.
  */
 await check('a user CANNOT add a team to their own teamIds',
-    assertFails(updateDoc(doc(as(BRANDON), `users/${BRANDON}`), { teamIds: [TEAM_A, TEAM_B] })));
+    assertFails(updateDoc(doc(as(BRADLEY), `users/${BRADLEY}`), { teamIds: [TEAM_A, TEAM_B] })));
 await check('a user with no team cannot grant themselves one',
     assertFails(updateDoc(doc(as(NOMAD), `users/${NOMAD}`), { teamIds: [TEAM_A] })));
 
@@ -605,7 +605,7 @@ await env.withSecurityRulesDisabled(async (c) => {
 await check('CANNOT edit its own request after lodging it (no self-approval by update)',
     assertFails(updateDoc(doc(newLead, `lead_requests/${NEWLEAD}`), { status: 'approved' })));
 await check('a colleague CANNOT read somebody else\'s request',
-    assertFails(getDoc(doc(as(BRANDON), `lead_requests/${NEWLEAD}`))));
+    assertFails(getDoc(doc(as(BRADLEY), `lead_requests/${NEWLEAD}`))));
 await check('not even a super-admin can LIST requests (the function serves them)',
     assertFails(getDocs(collection(as(ALIF), 'lead_requests'))));
 
@@ -765,7 +765,7 @@ await check('a client-supplied timestamp is refused (server clock pinned)',
 await check('the public CANNOT read submissions back',
     assertFails(getDocs(collection(anon, 'community_assessments'))));
 await check('a signed-in member cannot read them either',
-    assertFails(getDocs(collection(as(BRANDON), 'community_assessments'))));
+    assertFails(getDocs(collection(as(BRADLEY), 'community_assessments'))));
 await check('not even a lead can read them',
     assertFails(getDocs(collection(as(ALIF), 'community_assessments'))));
 await check('nobody can read one back by id',
@@ -785,7 +785,7 @@ await check('and nobody can edit a submission after the fact',
  *    figure it liked to a page a health system plans from.
  */
 await check('a signed-in member CAN read the population rollup',
-    assertSucceeds(getDoc(doc(as(BRANDON), 'community_insights/latest'))));
+    assertSucceeds(getDoc(doc(as(BRADLEY), 'community_insights/latest'))));
 await check('a lead can read it too',
     assertSucceeds(getDoc(doc(as(ALIF), 'community_insights/latest'))));
 await check('the public CANNOT read the rollup',
@@ -810,23 +810,23 @@ await env.clearFirestore();
 await env.withSecurityRulesDisabled(async (c) => {
     const raw = c.firestore();
     await setDoc(doc(raw, 'system_data/roster_2026'), { '2026-02-02': [] });
-    await setDoc(doc(raw, 'wellbeing_history/brandon'), { logs: [] });
-    await setDoc(doc(raw, 'staff_loads/brandon'), { data: [] });
-    await setDoc(doc(raw, 'cep_team/brandon'), { projects: [] });
-    await setDoc(doc(raw, `teams/${TEAM_A}/members/${BRANDON}`), { displayName: 'Brandon', role: 'staff' });
+    await setDoc(doc(raw, 'wellbeing_history/bradley'), { logs: [] });
+    await setDoc(doc(raw, 'staff_loads/bradley'), { data: [] });
+    await setDoc(doc(raw, 'cep_team/bradley'), { projects: [] });
+    await setDoc(doc(raw, `teams/${TEAM_A}/members/${BRADLEY}`), { displayName: 'Bradley', role: 'staff' });
 });
 {
-    const brandon = as(BRANDON);   // a real, current member of team A
+    const bradley = as(BRADLEY);   // a real, current member of team A
     await check('the old global roster is unreadable',
-        assertFails(getDoc(doc(brandon, 'system_data/roster_2026'))));
+        assertFails(getDoc(doc(bradley, 'system_data/roster_2026'))));
     await check('the old global wellbeing_history is unreadable',
-        assertFails(getDoc(doc(brandon, 'wellbeing_history/brandon'))));
+        assertFails(getDoc(doc(bradley, 'wellbeing_history/bradley'))));
     await check('the old global staff_loads is unreadable',
-        assertFails(getDoc(doc(brandon, 'staff_loads/brandon'))));
+        assertFails(getDoc(doc(bradley, 'staff_loads/bradley'))));
     await check('the old global cep_team is unreadable',
-        assertFails(getDoc(doc(brandon, 'cep_team/brandon'))));
+        assertFails(getDoc(doc(bradley, 'cep_team/bradley'))));
     await check('and none of them is writable',
-        assertFails(setDoc(doc(brandon, 'system_data/roster_2026'), { x: 1 })));
+        assertFails(setDoc(doc(bradley, 'system_data/roster_2026'), { x: 1 })));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -842,7 +842,7 @@ console.log('\nAU3 — the workload document accepts only its own fields:');
 await seed();
 {
     const alif = as(ALIF);       // a lead — the only role that may write at all
-    const brandon = as(BRANDON); // staff
+    const bradley = as(BRADLEY); // staff
     const wdoc = (client) => doc(client, `teams/${TEAM_A}/workload/jan_2026`);
     const audit = { last_updated_by: 'Alif', last_updated_at: '2026-08-24T00:00:00Z' };
 
@@ -851,7 +851,7 @@ await seed();
     await check('a lead updates just patient_load — hasOnly permits a subset',
         assertSucceeds(setDoc(wdoc(alif), { patient_load: 80, ...audit }, { merge: true })));
     await check('staff may not write it at all',
-        assertFails(setDoc(wdoc(brandon), { patient_attendance: 5, ...audit })));
+        assertFails(setDoc(wdoc(bradley), { patient_attendance: 5, ...audit })));
     await check('a model-invented field fails the whole write',
         assertFails(setDoc(wdoc(alif), { patient_attendance: 120, engagement_score: 9, ...audit })));
     await check('a field-name typo fails rather than minting a key',
@@ -879,10 +879,10 @@ await seed();
 console.log('\nAN13 — the comments NRIC fence, against the real RE2:');
 await seed();
 {
-    const brandon = as(BRANDON);
+    const bradley = as(BRADLEY);
     const comment = (text) => addDoc(
-        collection(brandon, `teams/${TEAM_A}/feed/post-1/comments`),
-        { author: 'Brandon', text, timestamp: serverTimestamp() },
+        collection(bradley, `teams/${TEAM_A}/feed/post-1/comments`),
+        { author: 'Bradley', text, timestamp: serverTimestamp() },
     );
 
     await check('an ordinary comment is allowed',
@@ -949,7 +949,7 @@ await seed();
     await check('a bad sector is refused',
         assertFails(putEvent(eventRecord({ postalSector: '7' }))));
     await check('nobody can read event records from the client, signed in or not',
-        assertFails(getDocs(collection(as(BRANDON), 'event_records'))));
+        assertFails(getDocs(collection(as(BRADLEY), 'event_records'))));
 }
 
 await env.cleanup();

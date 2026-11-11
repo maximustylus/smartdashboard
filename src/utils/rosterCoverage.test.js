@@ -43,8 +43,8 @@ const snapDoc = (id, data) => ({ id, data: () => data });
 const snap = (...docs) => ({ docs });
 
 const REQUEST = {
-    requestedBy: 'Brandon',
-    targetStaff: 'Derlinder',
+    requestedBy: 'Bradley',
+    targetStaff: 'Darshan',
     originalShiftDate: '2026-09-07',
     originalTask: 'EFT',
     swapRole: 'lead',
@@ -60,8 +60,8 @@ describe('readCoverageRequests', () => {
 
         expect(request).toMatchObject({
             docId: 'swap-1',
-            requestedBy: 'Brandon',
-            targetStaff: 'Derlinder',
+            requestedBy: 'Bradley',
+            targetStaff: 'Darshan',
             originalShiftDate: '2026-09-07',
             originalTask: 'EFT',
             swapRole: 'lead',
@@ -82,10 +82,10 @@ describe('readCoverageRequests', () => {
 
     it('reads identity fields VERBATIM — no trimming, because the mutator does not trim', () => {
         const [request] = readCoverageRequests(
-            snap(snapDoc('swap-1', { ...REQUEST, originalTask: ' EFT ', requestedBy: 'Brandon ' })),
+            snap(snapDoc('swap-1', { ...REQUEST, originalTask: ' EFT ', requestedBy: 'Bradley ' })),
         );
         expect(request.originalTask).toBe(' EFT ');
-        expect(request.requestedBy).toBe('Brandon ');
+        expect(request.requestedBy).toBe('Bradley ');
     });
 
     it('nulls a swapRole that is not one of the two real roles', () => {
@@ -249,7 +249,7 @@ describe('describeCoverageRequest', () => {
 
     it('names the asker, the duty, the task and the day in words', () => {
         expect(describeCoverageRequest(read(REQUEST))).toBe(
-            'Brandon asks you to cover EFT on Mon 7 Sep 2026, as lead.',
+            'Bradley asks you to cover EFT on Mon 7 Sep 2026, as lead.',
         );
     });
 
@@ -281,15 +281,15 @@ describe('describeCoverageRequest', () => {
 
 describe('describeCoverageArranger', () => {
     it('names an admin who arranged cover on somebody else\'s behalf (M11)', () => {
-        expect(describeCoverageArranger({ initiatedBy: 'Alif', requestedBy: 'Brandon' })).toBe(
-            "Arranged by Alif on Brandon's behalf.",
+        expect(describeCoverageArranger({ initiatedBy: 'Alif', requestedBy: 'Bradley' })).toBe(
+            "Arranged by Alif on Bradley's behalf.",
         );
     });
 
     it('says nothing for a self-request — the absent field is the signal', () => {
-        expect(describeCoverageArranger({ requestedBy: 'Brandon' })).toBeNull();
-        expect(describeCoverageArranger({ initiatedBy: '', requestedBy: 'Brandon' })).toBeNull();
-        expect(describeCoverageArranger({ initiatedBy: 'Brandon', requestedBy: 'Brandon' })).toBeNull();
+        expect(describeCoverageArranger({ requestedBy: 'Bradley' })).toBeNull();
+        expect(describeCoverageArranger({ initiatedBy: '', requestedBy: 'Bradley' })).toBeNull();
+        expect(describeCoverageArranger({ initiatedBy: 'Bradley', requestedBy: 'Bradley' })).toBeNull();
         expect(describeCoverageArranger(undefined)).toBeNull();
     });
 });

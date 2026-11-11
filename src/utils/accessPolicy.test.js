@@ -66,8 +66,8 @@ describe('accessPolicy — domain normalisation', () => {
 
 describe('accessPolicy — reading the domain out of an address', () => {
     it('lowercases and takes the half after the one @', () => {
-        expect(emailDomain('Evelyn.Ong.MH@kkh.com.sg')).toBe('kkh.com.sg');
-        expect(emailDomain('  benny.loo.k.g.@singhealth.com.sg ')).toBe('singhealth.com.sg');
+        expect(emailDomain('Elaine.Goh.MH@kkh.com.sg')).toBe('kkh.com.sg');
+        expect(emailDomain('  barry.lim.k.g.@singhealth.com.sg ')).toBe('singhealth.com.sg');
     });
 
     it('refuses addresses with no @, two @, or an empty local part', () => {
@@ -107,12 +107,12 @@ describe('accessPolicy — the allowlist document', () => {
 describe('accessPolicy — the gate itself', () => {
     /**
      * THE TWO PEOPLE THE OLD GATE LOCKED OUT. `WelcomeScreen.jsx:109` demanded
-     * `@kkh.com.sg`; Benny and Ashik have been in `TEAM_DIRECTORY` the whole time
+     * `@kkh.com.sg`; Barry and Arjun have been in `TEAM_DIRECTORY` the whole time
      * on `@singhealth.com.sg` and could never sign in. This assertion is the fix.
      */
     it('admits the singhealth.com.sg addresses the old gate refused', () => {
-        expect(isAllowedEmail('benny.loo.k.g.@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
-        expect(isAllowedEmail('mohammad.ashik.zainuddin@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
+        expect(isAllowedEmail('barry.lim.k.g.@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
+        expect(isAllowedEmail('mohammad.arjun.zainal@singhealth.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
         expect(isAllowedEmail('muhammad.alif@kkh.com.sg', DEFAULT_ALLOWED_DOMAINS)).toBe(true);
     });
 

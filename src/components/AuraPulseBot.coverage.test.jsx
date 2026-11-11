@@ -102,9 +102,9 @@ const USER = {
     // `uid` is what the wellbeing document is keyed by now. `id` is the old
     // DIRECTORY id, left on the fixture because the component still reads it for
     // AURA's prompt context — but nothing routes on it any more.
-    uid: 'uid-derlinder',
-    id: 'derlinder',
-    name: 'Derlinder',
+    uid: 'uid-darshan',
+    id: 'darshan',
+    name: 'Darshan',
     title: 'Physiotherapist',
 };
 

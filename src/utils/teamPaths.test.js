@@ -89,20 +89,20 @@ describe('teamPaths — uid guard, which exists to catch the OLD habit', () => {
 
     /**
      * The previous model keyed documents by human name — `shift_swaps.targetStaff`
-     * was `"Ying Xian"`. The guard is shaped to catch precisely that: a string with
+     * was `"Yu Xuan"`. The guard is shaped to catch precisely that: a string with
      * a space in it. Two people called Sarah across two teams is a certainty, and
      * the failure mode is one clinician's wellbeing record filed under another's.
      */
     it('THROWS on a display name, which is the exact thing being migrated away from', () => {
-        expect(() => memberPath(TEAM, 'Ying Xian')).toThrow(/Invalid uid/);
-        expect(() => wellbeingDocPath(TEAM, 'Ying Xian')).toThrow(/never by display name/);
+        expect(() => memberPath(TEAM, 'Yu Xuan')).toThrow(/Invalid uid/);
+        expect(() => wellbeingDocPath(TEAM, 'Yu Xuan')).toThrow(/never by display name/);
         expect(() => loadPath(TEAM, 'Scott Lang')).toThrow(/Invalid uid/);
         expect(() => userPath('')).toThrow(/Invalid uid/);
         expect(() => userPath(undefined)).toThrow(/Invalid uid/);
     });
 
     it('names the fix in the error, not just the problem', () => {
-        expect(() => memberPath(TEAM, 'Ying Xian')).toThrow(/Pass `user.uid`/);
+        expect(() => memberPath(TEAM, 'Yu Xuan')).toThrow(/Pass `user.uid`/);
     });
 });
 
@@ -209,7 +209,7 @@ describe('teamPaths — the legacy paths, kept for the migration only', () => {
         expect(LEGACY.roster(2026)).toEqual(['system_data', 'roster_2026']);
         expect(LEGACY.dailyPulse()).toEqual(['system_data', 'daily_pulse']);
         expect(LEGACY.swaps()).toEqual(['shift_swaps']);
-        expect(LEGACY.wellbeing('fadzlynn')).toEqual(['wellbeing_history', 'fadzlynn']);
+        expect(LEGACY.wellbeing('fayelynn')).toEqual(['wellbeing_history', 'fayelynn']);
         expect(LEGACY.archive(2025)).toEqual(['archive_2025']);
         expect(LEGACY.feedPosts()).toEqual(['feed_posts']);
     });
@@ -220,8 +220,8 @@ describe('teamPaths — the legacy paths, kept for the migration only', () => {
      * migration cannot read what is there.
      */
     it('does not apply the uid guard to legacy ids, which were never uids', () => {
-        expect(() => LEGACY.wellbeing('fadzlynn')).not.toThrow();
-        expect(() => LEGACY.staffLoads('ying_xian')).not.toThrow();
+        expect(() => LEGACY.wellbeing('fayelynn')).not.toThrow();
+        expect(() => LEGACY.staffLoads('yu_xuan')).not.toThrow();
     });
 });
 
@@ -260,7 +260,7 @@ describe('teamPaths — the collection name tables', () => {
 describe('⚠️ the guards that were only shape-deep — T5 and T7', () => {
     /**
      * `assertUid` refused whitespace and the empty string, which caught the habit it
-     * was written for ("Ying Xian") and nothing else. Firestore forbids these three
+     * was written for ("Yu Xuan") and nothing else. Firestore forbids these three
      * as document ids, so the old behaviour failed loudly — but with an error naming
      * neither the value nor the habit, which is the whole reason this function
      * exists rather than letting Firestore do the complaining.
@@ -275,7 +275,7 @@ describe('⚠️ the guards that were only shape-deep — T5 and T7', () => {
     });
 
     it('still refuses the old habit it was written for', () => {
-        expect(() => assertUid('Ying Xian')).toThrow(/never by display name/);
+        expect(() => assertUid('Yu Xuan')).toThrow(/never by display name/);
     });
 
     /**

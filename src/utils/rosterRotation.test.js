@@ -32,7 +32,7 @@ import { describe, it, expect } from 'vitest';
 import { generateRosterV2, validateRosterV2Config } from './rosterEngineV2.js';
 
 /** The reporting department: five people, four daily duties, one twice-weekly. */
-const TEAM = ['Alif', 'Brandon', 'Derlinder', 'Fadzlynn', 'Ying Xian'];
+const TEAM = ['Alif', 'Bradley', 'Darshan', 'Fayelynn', 'Yu Xuan'];
 const DAILY = ['EFT', 'IPT+SKG', 'WI+FSG', 'NC'];
 
 const config = ({ rotate = true, weeks = 17, staff = null, tasks = null } = {}) => ({

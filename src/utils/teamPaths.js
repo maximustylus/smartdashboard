@@ -75,7 +75,7 @@
  * ------------------------------------------------------------------------------
  *
  * The old model keyed documents by human name — `shift_swaps.targetStaff` was
- * `"Ying Xian"`, `wellbeing_history/fadzlynn` was a directory id. `firestore.rules`
+ * `"Yu Xuan"`, `wellbeing_history/fayelynn` was a directory id. `firestore.rules`
  * has carried the diagnosis for months: *"The only durable fix is to stop keying
  * documents by display name."* At ten people you get away with it. Across 28
  * professions and several institutions, two people called Sarah is a certainty,
@@ -177,7 +177,7 @@ export const assertTeamId = (value) => {
  * habit rather than to validate Firebase's format precisely. Firebase uids are
  * opaque (28 chars today, but that is not a contract), so this refuses the two
  * things that actually appear when somebody reaches for the previous model: a
- * string containing a SPACE (`"Ying Xian"`), and the empty string.
+ * string containing a SPACE (`"Yu Xuan"`), and the empty string.
  */
 /**
  * Document ids Firestore itself forbids, and which `assertUid` used to wave

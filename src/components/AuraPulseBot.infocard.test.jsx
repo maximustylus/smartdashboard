@@ -81,7 +81,7 @@ vi.mock('../context/TeamContext', () => ({
 
 import AuraPulseBot from './AuraPulseBot';
 
-const USER = { uid: 'uid-derlinder', id: 'derlinder', name: 'Derlinder', title: 'Physiotherapist' };
+const USER = { uid: 'uid-darshan', id: 'darshan', name: 'Darshan', title: 'Physiotherapist' };
 
 const NOTICE_KEY = 'aura_infocard_notice_v1';
 // The two substantive caveats — the assertion is on the words, so a future edit

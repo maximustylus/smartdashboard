@@ -38,26 +38,26 @@ const root = resolve(here, '..', '..');
 const at = (local, domain) => local + '@' + domain;
 const EMAILS = [
     at('muhammad.alif', 'kkh.com.sg'),
-    at('siti.nur.anisah.nh', 'kkh.com.sg'),
-    at('benny.loo.k.g.', 'singhealth.com.sg'),
-    at('brandon.feng.gg', 'kkh.com.sg'),
-    at('lim.ying.xian', 'kkh.com.sg'),
-    at('derlinder.kaur', 'kkh.com.sg'),
-    at('fadzlynn.mohamad.fadzully', 'kkh.com.sg'),
+    at('nora.binte.aziz.nh', 'kkh.com.sg'),
+    at('barry.lim.k.g.', 'singhealth.com.sg'),
+    at('bradley.tan.gg', 'kkh.com.sg'),
+    at('lim.yu.xuan', 'kkh.com.sg'),
+    at('darshan.rao', 'kkh.com.sg'),
+    at('fayelynn.mohamad.farid', 'kkh.com.sg'),
 ];
 
 /**
- * Names distinctive enough to grep without false positives. 'Alif' and 'Benny'
+ * Names distinctive enough to grep without false positives. 'Alif' and 'Barry'
  * are excluded deliberately: short, common, and 'Alif' appears in legitimate
  * strings (the owner authored half the docs). The email check covers them.
  */
 const DISTINCTIVE_NAMES = [
-    'Derlinder', 'Fadzlynn', 'Ying Xian', 'ying_xian', 'fadzlynn',
+    'Darshan', 'Fayelynn', 'Yu Xuan', 'yu_xuan', 'fayelynn',
     // From `LIVE_MOCK_POSTS` (FeedsView), the ninth copy: fabricated posts
     // attributed to real people. 'Linder' is case-sensitive on purpose —
-    // lowercase would match 'cylinder'. 'Ashik' is a revoked member whose name
+    // lowercase would match 'cylinder'. 'Arjun' is a revoked member whose name
     // appeared nowhere else.
-    'Ashik', 'Linder',
+    'Arjun', 'Linder',
 ];
 
 const stripComments = (text) => text

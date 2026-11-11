@@ -349,7 +349,7 @@ const getBatteryIcon = (level) => {
                         const currentEnergy = staffData ? staffData.energy : 0;
                         const currentFocus = staffData ? staffData.focus : 0;
                         
-                        // `AN14`: this said `user?.name === 'Nisa'` — the roster
+                        // `AN14`: this said `user?.name === 'Nora'` — the roster
                         // master, by first name, in the public bundle. The grant is
                         // `role: 'admin'` on her own `users/{uid}` document; the
                         // legacy bridge that also carried it was deleted in v2.20.1.
