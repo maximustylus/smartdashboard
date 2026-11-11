@@ -197,6 +197,21 @@ describe('with the permanent monthly record', () => {
         expect(small.notes.join(' ')).toMatch(/withheld for this day/);
     });
 
+    it('a large month held back against subtraction says so, and is not called too few', () => {
+        const held = {
+            ...history,
+            '2026-08': { month: '2026-08', respondents: 24, chat: 4, form: 20, domains: null, days: { '2026-08-28': { respondents: 20, chat: 4, form: 16, domains: null } } },
+        };
+        const month = buildCommunityReport(rollup({ history: held }), { scope: '2026-08' });
+        expect(month.respondents).toBe(24);
+        expect(month.domainRows).toEqual([]);
+        expect(month.pathwayRows.map((r) => r.value)).toEqual([4, 20]);
+        expect(month.notes.join(' ')).toMatch(/withheld for August 2026\. The month is large enough on its own/);
+        expect(month.notes.join(' ')).not.toMatch(/too few people/);
+        const day = buildCommunityReport(rollup({ history: held }), { scope: '2026-08', day: '2026-08-28' });
+        expect(day.notes.join(' ')).toMatch(/withheld for August 2026/);
+    });
+
     it('a day that is not in the month is ignored rather than invented', () => {
         expect(buildCommunityReport(withHistory(), { scope: '2026-09', day: '2026-01-01' }).day).toBe('');
     });

@@ -142,9 +142,15 @@ export const buildCommunityReport = (rollup, { scope = 'all', day = '' } = {}) =
         notes.push(`Any group of fewer than ${sup.minCell} people is withheld, and a count from 1 to ${sup.minCount - 1} is shown as ${sup.band}.`);
     }
     if (!tally.domains) {
-        notes.push(oneDay
-            ? 'What people reported is withheld for this day: the day, or what is left of its month without it, is too few people to publish safely.'
-            : 'What people reported is withheld here: too few people to publish safely.');
+        // A month of ten or more with no breakdown was withheld for a different
+        // reason from a small one, and the report must not call 24 people "too few".
+        const monthHeldBack = month && history && !history[month].domains
+            && Number(history[month].respondents) >= (sup.minCell || 10);
+        notes.push(monthHeldBack
+            ? `What people reported is withheld for ${monthLabel(month)}. The month is large enough on its own, but publishing it would let smaller months be worked out by subtracting it from the all-time figures.`
+            : oneDay
+                ? 'What people reported is withheld for this day: the day, or what is left of its month without it, is too few people to publish safely.'
+                : 'What people reported is withheld here: too few people to publish safely.');
     }
     if (expired > 0) {
         notes.push(`${expired} of these screenings are older than 24 months. Their records have been deleted as promised and only their monthly counts are kept, so "What people reported" and the area tables describe the ${held} still held.`);

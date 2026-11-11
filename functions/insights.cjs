@@ -105,15 +105,65 @@ const DOMAINS = Object.freeze({
     notEnrolledHealthierSg: (f) => f.healthierSgEnrolled === false,
 });
 
-/** `YYYY-MM` for a record, or `null` when it has no usable timestamp. */
-const periodOf = (record) => {
+const SG_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+const createdMillis = (record) => {
     const raw = record && record.createdAt;
     let created = null;
     if (raw && typeof raw.toDate === 'function') created = raw.toDate();
     else if (raw instanceof Date) created = raw;
     else if (typeof raw === 'number') created = new Date(raw);
-    if (!created || Number.isNaN(created.getTime())) return null;
-    return `${created.getUTCFullYear()}-${String(created.getUTCMonth() + 1).padStart(2, '0')}`;
+    return created && !Number.isNaN(created.getTime()) ? created.getTime() : null;
+};
+
+/** `YYYY-MM-DD` in Singapore, where every screening so far has happened. */
+const dayOf = (record) => {
+    const ms = createdMillis(record);
+    return ms === null ? null : new Date(ms + SG_OFFSET_MS).toISOString().slice(0, 10);
+};
+
+/**
+ * `YYYY-MM` for a record, or `null` when it has no usable timestamp.
+ *
+ * ⚠️ A SINGAPORE MONTH, THE SAME MONTH `buildHistory` USES (v2.23.1). This was a UTC
+ *    month, so a screening between midnight and 08:00 on the 1st sat in one month
+ *    here and the next in the permanent record. Two tables that cut the same people
+ *    two ways publish their difference: the handful who came in those eight hours.
+ */
+const periodOf = (record) => {
+    const day = dayOf(record);
+    return day === null ? null : day.slice(0, 7);
+};
+
+/**
+ * WHICH CELLS OF A BREAKDOWN MAY PUBLISH WHAT PEOPLE REPORTED (v2.23.1).
+ *
+ * ⚠️ THE FLOOR ALONE DOES NOT STOP SUBTRACTION. The total's breakdown is published,
+ *    and so is every month of `MIN_CELL` people or more. Take the published months
+ *    away from the total and what is left is the breakdown of everybody else: the
+ *    small months, plus anyone with no date. Measured on the live figures in
+ *    November 2026: four published months and two months of ONE person each, so
+ *    the subtraction described two people.
+ *
+ *    The rule, which is the standard one (complementary suppression): the people
+ *    NOT covered by a published cell must number zero, or at least `MIN_CELL`. While
+ *    they number 1 to 9, the smallest published cell is withheld as well and its
+ *    people join them. Each cell withheld this way adds at least `MIN_CELL`, so one
+ *    is always enough.
+ *
+ * @param {Map<string, number>} sizes  cell key → respondents
+ * @param {number} total               everybody the total's breakdown describes
+ * @returns {Set<string>} the keys whose breakdown may be published
+ */
+const publishableCells = (sizes, total) => {
+    const open = [...sizes.entries()]
+        .filter(([, n]) => n >= MIN_CELL)
+        .sort(([a, x], [b, y]) => x - y || a.localeCompare(b));
+    let hidden = total - open.reduce((sum, [, n]) => sum + n, 0);
+    while (hidden > 0 && hidden < MIN_CELL && open.length > 0) {
+        hidden += open.shift()[1];
+    }
+    return new Set(open.map(([key]) => key));
 };
 
 /** The flags object, whichever shape the pathway stored it under. */
@@ -273,6 +323,16 @@ const buildInsights = (records, regionFor) => {
     const regionSplit = partition(byRegion);
     const periodSplit = partition(byPeriod);
 
+    // ⚠️ MONTHS ALSO HAVE TO SURVIVE SUBTRACTION FROM THE TOTAL — see
+    //    `publishableCells`. A month withheld for that reason is large enough on its
+    //    own, so it is reported separately from the months that are simply small.
+    const openPeriods = publishableCells(
+        new Map([...byPeriod.entries()].map(([key, tally]) => [key, tally.respondents])),
+        national.respondents,
+    );
+    const complementPeriods = Object.keys(periodSplit.published).filter((key) => !openPeriods.has(key));
+    complementPeriods.forEach((key) => { delete periodSplit.published[key]; });
+
     const sectors = sectorSplit.published;
     const regions = regionSplit.published;
     const periods = periodSplit.published;
@@ -311,6 +371,10 @@ const buildInsights = (records, regionFor) => {
             // same reason, so a short table reads as withheld rather than as absent.
             suppressedRegions: regionSplit.withheld,
             suppressedPeriods: periodSplit.withheld,
+            // Months of `MIN_CELL` or more, withheld so the small ones cannot be
+            // worked out by subtraction. Never mixed into the list above: the page
+            // says "fewer than ten" about that list, and it would be untrue of these.
+            complementPeriods,
             nationalDomainsWithheld: national.respondents < MIN_CELL,
         },
         quality: {
@@ -350,24 +414,12 @@ const buildInsights = (records, regionFor) => {
  *    month outside the published days number zero or at least `MIN_CELL`. If that
  *    remainder is 1 to 9, NO day in the month gets a breakdown. How many people
  *    came on a day, and by which pathway, is always published: it locates nobody.
+ *
+ * ⚠️ MONTHS FOLLOW THE SAME RULE AGAINST THE ALL-TIME TOTAL (v2.23.1), through
+ *    `publishableCells`, with the same inputs the rollup's own month table uses, so
+ *    the two tables always withhold the same months. A month withheld that way
+ *    publishes no day either: a day of it would reopen the subtraction.
  */
-const SG_OFFSET_MS = 8 * 60 * 60 * 1000;
-
-const createdMillis = (record) => {
-    const raw = record && record.createdAt;
-    let created = null;
-    if (raw && typeof raw.toDate === 'function') created = raw.toDate();
-    else if (raw instanceof Date) created = raw;
-    else if (typeof raw === 'number') created = new Date(raw);
-    return created && !Number.isNaN(created.getTime()) ? created.getTime() : null;
-};
-
-/** `YYYY-MM-DD` in Singapore, where every screening so far has happened. */
-const dayOf = (record) => {
-    const ms = createdMillis(record);
-    return ms === null ? null : new Date(ms + SG_OFFSET_MS).toISOString().slice(0, 10);
-};
-
 /** The form stores `flags`; the chat stores `payload`. */
 const pathwayOf = (record) => (
     record && record.flags && typeof record.flags === 'object' && !Array.isArray(record.flags) ? 'form' : 'chat'
@@ -385,9 +437,10 @@ const countInto = (bucket, record) => {
  */
 const buildHistory = (records) => {
     const months = new Map();
-    (records || []).filter(isAssessment).forEach((record) => {
+    const assessments = (records || []).filter(isAssessment);
+    assessments.forEach((record) => {
         const day = dayOf(record);
-        if (!day) return; // an undated record belongs to no month
+        if (!day) return; // an undated record belongs to no month, but is in the total
         const month = day.slice(0, 7);
         if (!months.has(month)) months.set(month, { total: emptyCount(), days: new Map() });
         const entry = months.get(month);
@@ -396,10 +449,17 @@ const buildHistory = (records) => {
         countInto(entry.days.get(day), record);
     });
 
+    // The total is every assessment, dated or not: that is who the all-time
+    // breakdown describes, so that is what the months are subtracted from.
+    const openMonths = publishableCells(
+        new Map([...months.entries()].map(([key, entry]) => [key, entry.total.respondents])),
+        assessments.length,
+    );
+
     const out = {};
     [...months.keys()].sort().forEach((month) => {
         const { total, days } = months.get(month);
-        const monthPublished = total.respondents >= MIN_CELL;
+        const monthPublished = openMonths.has(month);
         const bigDays = [...days.values()].filter((d) => d.respondents >= MIN_CELL);
         const remainder = total.respondents - bigDays.reduce((sum, d) => sum + d.respondents, 0);
         // See the warning above: a remainder of 1..9 is a small group by subtraction.
@@ -442,5 +502,5 @@ const keepFullerMonth = (saved, fresh) => (
 
 module.exports = {
     MIN_CELL, MIN_COUNT, BAND, DOMAINS, periodOf, flagsOf, isAssessment, buildInsights,
-    dayOf, pathwayOf, buildHistory, keepFullerMonth,
+    publishableCells, dayOf, pathwayOf, buildHistory, keepFullerMonth,
 };
